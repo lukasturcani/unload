@@ -7,6 +7,7 @@ import Html exposing (Html)
 import SearchBox
 import Sort
 import Sort.Dict as Dict exposing (Dict)
+import Sort.Set as Set exposing (Set)
 import Task as Task_
 import Time exposing (Posix)
 
@@ -90,6 +91,7 @@ type alias Model =
     , tasks : Dict TaskId Task
     , blocks : Dict TaskId (List TaskId)
     , blockedBy : Dict TaskId (List TaskId)
+    , collapsedTasks : Set TaskId
 
     -- Board
     , toDo : List TaskId
@@ -227,12 +229,16 @@ init _ =
     ( { mode = ViewingBoard
       , users =
             Dict.empty (Sort.by (\(UserId id) -> id) Sort.increasing)
+
+      -- Tasks
       , tasks =
             Dict.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
       , blocks =
             Dict.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
       , blockedBy =
             Dict.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
+      , collapsedTasks =
+            Set.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
 
       -- Board
       , toDo = []
