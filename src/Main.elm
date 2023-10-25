@@ -55,8 +55,6 @@ type alias Task =
     , description : String
     , assignees : List UserId
     , size : TaskSize
-    , blocks : List TaskId
-    , blockedBy : List TaskId
     , created : Posix
     , updated : Posix
     , due : Maybe Posix
@@ -79,13 +77,19 @@ type alias NewTask r =
         , newTaskUserSearchBoxText : String
         , newTaskBlocksSearchBox : SearchBox.State
         , newTaskBlocksSearchBoxText : String
+        , newTaskBlockedBySearchBox : SearchBox.State
+        , newTaskBlockedBySearchBoxText : String
     }
 
 
 type alias Model =
-    { tasks : Dict TaskId Task
+    { mode : Mode
     , users : Dict UserId User
-    , mode : Mode
+
+    -- Tasks
+    , tasks : Dict TaskId Task
+    , blocks : Dict TaskId (List TaskId)
+    , blockedBy : Dict TaskId (List TaskId)
 
     -- Board
     , toDo : List TaskId
@@ -106,6 +110,8 @@ type alias Model =
     , newTaskUserSearchBoxText : String
     , newTaskBlocksSearchBox : SearchBox.State
     , newTaskBlocksSearchBoxText : String
+    , newTaskBlockedBySearchBox : SearchBox.State
+    , newTaskBlockedBySearchBoxText : String
 
     -- New User
     , newUserName : String
@@ -128,36 +134,82 @@ emptyNewTask newTask =
         , newTaskUserSearchBoxText = ""
         , newTaskBlocksSearchBox = SearchBox.reset newTask.newTaskBlocksSearchBox
         , newTaskBlocksSearchBoxText = ""
+        , newTaskBlockedBySearchBox = SearchBox.reset newTask.newTaskBlocksSearchBox
+        , newTaskBlockedBySearchBoxText = ""
     }
 
 
-insertToDoTask : TaskId -> Task -> Model -> Model
-insertToDoTask taskId task model =
-    { model
-        | tasks = Dict.insert taskId task model.tasks
-        , toDo = taskId :: model.toDo
+taskFromNewTask : Posix -> NewTask r -> Task
+taskFromNewTask time newTask =
+    { title = newTask.newTaskTitle
+    , description = newTask.newTaskDescription
+    , assignees = newTask.newTaskAssignees
+    , size = newTask.newTaskSize
+    , created = time
+    , updated = time
+    , due = newTask.newTaskDue
+    , tags = newTask.newTaskTags
     }
 
 
-insertInProgressTask : TaskId -> Task -> Model -> Model
-insertInProgressTask taskId task model =
-    { model
-        | tasks = Dict.insert taskId task model.tasks
-        , inProgress = taskId :: model.toDo
-    }
+insertNewTaskIntoToDo : Posix -> Model -> Model
+insertNewTaskIntoToDo time model =
+    let
+        taskId =
+            TaskId (Dict.size model.tasks)
+    in
+    emptyNewTask
+        { model
+            | tasks = Dict.insert taskId (taskFromNewTask time model) model.tasks
+            , toDo = taskId :: model.toDo
+            , blocks = List.foldl (insertIntoList taskId) model.blocks model.newTaskBlockedBy
+            , blockedBy = List.foldl (insertIntoList taskId) model.blockedBy model.newTaskBlocks
+        }
 
 
-insertDoneTask : TaskId -> Task -> Model -> Model
-insertDoneTask taskId task model =
-    { model
-        | tasks = Dict.insert taskId task model.tasks
-        , done = taskId :: model.toDo
-    }
+insertNewTaskIntoInProgress : Posix -> Model -> Model
+insertNewTaskIntoInProgress time model =
+    let
+        taskId =
+            TaskId (Dict.size model.tasks)
+    in
+    emptyNewTask
+        { model
+            | tasks = Dict.insert taskId (taskFromNewTask time model) model.tasks
+            , inProgress = taskId :: model.inProgress
+            , blocks = List.foldl (insertIntoList taskId) model.blocks model.newTaskBlockedBy
+            , blockedBy = List.foldl (insertIntoList taskId) model.blockedBy model.newTaskBlocks
+        }
+
+
+insertNewTaskIntoDone : Posix -> Model -> Model
+insertNewTaskIntoDone time model =
+    let
+        taskId =
+            TaskId (Dict.size model.tasks)
+    in
+    emptyNewTask
+        { model
+            | tasks = Dict.insert taskId (taskFromNewTask time model) model.tasks
+            , done = taskId :: model.done
+            , blocks = List.foldl (insertIntoList taskId) model.blocks model.newTaskBlockedBy
+            , blockedBy = List.foldl (insertIntoList taskId) model.blockedBy model.newTaskBlocks
+        }
+
+
+insertIntoList : value -> key -> Dict key (List value) -> Dict key (List value)
+insertIntoList value key dict =
+    case Dict.get key dict of
+        Nothing ->
+            Dict.insert key [ value ] dict
+
+        Just values ->
+            Dict.insert key (value :: values) dict
 
 
 getAll : List key -> Dict key value -> List value
 getAll keys dict =
-    List.foldr
+    List.foldl
         (\key results ->
             case Dict.get key dict of
                 Nothing ->
@@ -172,11 +224,15 @@ getAll keys dict =
 
 init : flags -> ( Model, Cmd msg )
 init _ =
-    ( { tasks =
-            Dict.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
+    ( { mode = ViewingBoard
       , users =
             Dict.empty (Sort.by (\(UserId id) -> id) Sort.increasing)
-      , mode = ViewingBoard
+      , tasks =
+            Dict.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
+      , blocks =
+            Dict.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
+      , blockedBy =
+            Dict.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
 
       -- Board
       , toDo = []
@@ -197,6 +253,8 @@ init _ =
       , newTaskUserSearchBoxText = ""
       , newTaskBlocksSearchBox = SearchBox.init
       , newTaskBlocksSearchBoxText = ""
+      , newTaskBlockedBySearchBox = SearchBox.init
+      , newTaskBlockedBySearchBoxText = ""
 
       -- New User
       , newUserName = ""
@@ -218,6 +276,7 @@ type
     | UpdatedNewTaskStatus Status
     | UpdatedNewTaskAssignees (SearchBox.ChangeEvent ( UserId, User ))
     | UpdatedNewTaskBlocks (SearchBox.ChangeEvent ( TaskId, Task ))
+    | UpdatedNewTaskBlockedBy (SearchBox.ChangeEvent ( TaskId, Task ))
       -- Add User
     | ClickedAddUser
     | ClickedAddUserDone
@@ -240,44 +299,15 @@ update msg model =
             ( { model | mode = ViewingBoard }, Cmd.none )
 
         GotNewTimeAfterAddTaskDone time ->
-            let
-                taskId =
-                    TaskId (Dict.size model.tasks)
-
-                task =
-                    { title = model.newTaskTitle
-                    , description = model.newTaskDescription
-                    , assignees = model.newTaskAssignees
-                    , size = model.newTaskSize
-                    , blocks = model.newTaskBlocks
-                    , blockedBy = model.newTaskBlockedBy
-                    , created = time
-                    , updated = time
-                    , due = model.newTaskDue
-                    , tags = model.newTaskTags
-                    }
-            in
             case model.newTaskStatus of
                 ToDo ->
-                    ( model
-                        |> emptyNewTask
-                        |> insertToDoTask taskId task
-                    , Cmd.none
-                    )
+                    ( insertNewTaskIntoToDo time model, Cmd.none )
 
                 InProgress ->
-                    ( model
-                        |> emptyNewTask
-                        |> insertInProgressTask taskId task
-                    , Cmd.none
-                    )
+                    ( insertNewTaskIntoInProgress time model, Cmd.none )
 
                 Done ->
-                    ( model
-                        |> emptyNewTask
-                        |> insertDoneTask taskId task
-                    , Cmd.none
-                    )
+                    ( insertNewTaskIntoDone time model, Cmd.none )
 
         UpdatedNewTaskTitle title ->
             ( { model | newTaskTitle = title }, Cmd.none )
@@ -337,6 +367,31 @@ update msg model =
                 SearchBox.SearchBoxChanged subMsg ->
                     ( { model
                         | newTaskBlocksSearchBox = SearchBox.update subMsg model.newTaskBlocksSearchBox
+                      }
+                    , Cmd.none
+                    )
+
+        UpdatedNewTaskBlockedBy changeEvent ->
+            case changeEvent of
+                SearchBox.SelectionChanged ( taskId, _ ) ->
+                    ( { model
+                        | newTaskBlockedBy = taskId :: model.newTaskBlockedBy
+                        , newTaskBlockedBySearchBoxText = ""
+                      }
+                    , Cmd.none
+                    )
+
+                SearchBox.TextChanged text ->
+                    ( { model
+                        | newTaskBlockedBySearchBoxText = text
+                        , newTaskBlockedBySearchBox = SearchBox.reset model.newTaskBlockedBySearchBox
+                      }
+                    , Cmd.none
+                    )
+
+                SearchBox.SearchBoxChanged subMsg ->
+                    ( { model
+                        | newTaskBlockedBySearchBox = SearchBox.update subMsg model.newTaskBlockedBySearchBox
                       }
                     , Cmd.none
                     )
@@ -432,7 +487,7 @@ view model =
                         , selected = Nothing
                         , options =
                             model.newTaskAssignees
-                                |> List.foldr Dict.remove model.users
+                                |> List.foldl Dict.remove model.users
                                 |> Dict.toList
                                 |> Just
                         , label = Input.labelAbove [] (text "Assignees")
@@ -441,15 +496,15 @@ view model =
                         , filter = \query ( _, { name } ) -> String.startsWith query name
                         , state = model.newTaskUserSearchBox
                         }
-                    , viewNewTaskBlocks model.tasks model.newTaskBlocks
+                    , viewTaskRow model.tasks model.newTaskBlocks
                     , SearchBox.input
                         []
                         { onChange = UpdatedNewTaskBlocks
                         , text = model.newTaskBlocksSearchBoxText
                         , selected = Nothing
                         , options =
-                            model.newTaskBlocks
-                                |> List.foldr Dict.remove model.tasks
+                            List.append model.newTaskBlocks model.newTaskBlockedBy
+                                |> List.foldl Dict.remove model.tasks
                                 |> Dict.toList
                                 |> Just
                         , label = Input.labelAbove [] (text "Blocks")
@@ -457,6 +512,23 @@ view model =
                         , toLabel = \( _, task ) -> task.title
                         , filter = \query ( _, { title } ) -> String.contains query title
                         , state = model.newTaskBlocksSearchBox
+                        }
+                    , viewTaskRow model.tasks model.newTaskBlockedBy
+                    , SearchBox.input
+                        []
+                        { onChange = UpdatedNewTaskBlockedBy
+                        , text = model.newTaskBlockedBySearchBoxText
+                        , selected = Nothing
+                        , options =
+                            List.append model.newTaskBlocks model.newTaskBlockedBy
+                                |> List.foldl Dict.remove model.tasks
+                                |> Dict.toList
+                                |> Just
+                        , label = Input.labelAbove [] (text "Blocked By")
+                        , placeholder = Nothing
+                        , toLabel = \( _, task ) -> task.title
+                        , filter = \query ( _, { title } ) -> String.contains query title
+                        , state = model.newTaskBlockedBySearchBox
                         }
                     , Input.button
                         []
@@ -552,8 +624,8 @@ viewNewTaskAssignees users userIds =
         (List.map (.name >> text) assigned)
 
 
-viewNewTaskBlocks : Dict TaskId Task -> List TaskId -> Element Msg
-viewNewTaskBlocks tasks taskIds =
+viewTaskRow : Dict TaskId Task -> List TaskId -> Element Msg
+viewTaskRow tasks taskIds =
     let
         blocks =
             getAll taskIds tasks
