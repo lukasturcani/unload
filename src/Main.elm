@@ -118,8 +118,8 @@ type alias Model =
 
     -- Tasks
     , tasks : Dict TaskId Task
-    , blocks : Dict TaskId (List TaskId)
-    , blockedBy : Dict TaskId (List TaskId)
+    , blocks : Dict TaskId (Set TaskId)
+    , blockedBy : Dict TaskId (Set TaskId)
     , expandedTasks : Set TaskId
 
     -- Board
@@ -149,84 +149,69 @@ type alias Model =
     }
 
 
-tryFold : (a -> b -> Maybe b) -> b -> List a -> Maybe b
-tryFold f acc list =
-    case list of
-        [] ->
-            Just acc
-
-        x :: xs ->
-            f x acc
-                |> Maybe.andThen (\newAcc -> tryFold f newAcc xs)
-
-
 taskView : TaskId -> Model -> Maybe TaskView
 taskView taskId model =
     let
         taskQuery =
             Dict.get taskId model.tasks
 
-        assigneesQuery =
-            taskQuery
-                |> Maybe.andThen
-                    (\task ->
-                        tryFold
-                            (\userId acc ->
-                                Dict.get userId model.users
-                                    |> Maybe.map (\user -> user.name :: acc)
-                            )
-                            []
-                            task.assignees
-                    )
+        assignees =
+            case taskQuery of
+                Nothing ->
+                    []
 
-        blocksQuery =
-            Dict.get taskId model.blocks
-                |> Maybe.andThen
-                    (\taskIds ->
-                        tryFold
-                            (\blockedTaskId acc ->
-                                Dict.get blockedTaskId model.tasks
-                                    |> Maybe.map (\task -> task.title :: acc)
-                            )
-                            []
-                            taskIds
-                    )
+                Just task ->
+                    List.foldl
+                        (\userId acc ->
+                            case Dict.get userId model.users of
+                                Nothing ->
+                                    acc
 
-        blockedByQuery =
-            Dict.get taskId model.blockedBy
-                |> Maybe.andThen
-                    (\taskIds ->
-                        tryFold
-                            (\blockingTaskId acc ->
-                                Dict.get blockingTaskId model.tasks
-                                    |> Maybe.map (\task -> task.title :: acc)
-                            )
-                            []
-                            taskIds
-                    )
+                                Just user ->
+                                    user.name :: acc
+                        )
+                        []
+                        task.assignees
 
-        query =
-            taskQuery
-                |> Maybe.andThen
-                    (\task ->
-                        assigneesQuery
-                            |> Maybe.andThen
-                                (\assignees ->
-                                    blocksQuery
-                                        |> Maybe.andThen
-                                            (\blocks ->
-                                                blockedByQuery
-                                                    |> Maybe.map
-                                                        (\blockedBy ->
-                                                            { task = task, assignees = assignees, blocks = blocks, blockedBy = blockedBy }
-                                                        )
-                                            )
-                                )
-                    )
+        blocks =
+            case Dict.get taskId model.blocks of
+                Nothing ->
+                    []
+
+                Just taskIds ->
+                    Set.foldl
+                        (\blockedTaskId acc ->
+                            case Dict.get blockedTaskId model.tasks of
+                                Nothing ->
+                                    acc
+
+                                Just task ->
+                                    task.title :: acc
+                        )
+                        []
+                        taskIds
+
+        blockedBy =
+            case Dict.get taskId model.blocks of
+                Nothing ->
+                    []
+
+                Just taskIds ->
+                    Set.foldl
+                        (\blockedTaskId acc ->
+                            case Dict.get blockedTaskId model.tasks of
+                                Nothing ->
+                                    acc
+
+                                Just task ->
+                                    task.title :: acc
+                        )
+                        []
+                        taskIds
     in
-    case query of
-        Just { task, assignees, blocks, blockedBy } ->
-            Just
+    taskQuery
+        |> Maybe.map
+            (\task ->
                 { title = task.title
                 , description = task.description
                 , size = task.size
@@ -241,9 +226,22 @@ taskView taskId model =
                     Set.memberOf model.expandedTasks taskId
                 , taskId = taskId
                 }
+            )
 
-        _ ->
-            Nothing
+
+taskViews : List TaskId -> Model -> List TaskView
+taskViews ids model =
+    List.foldl
+        (\id acc ->
+            case taskView id model of
+                Nothing ->
+                    acc
+
+                Just task ->
+                    task :: acc
+        )
+        []
+        ids
 
 
 emptyNewTask : NewTask r -> NewTask r
@@ -290,8 +288,8 @@ insertNewTaskIntoToDo time model =
         { model
             | tasks = Dict.insert taskId (taskFromNewTask time model) model.tasks
             , toDo = taskId :: model.toDo
-            , blocks = List.foldl (insertIntoList taskId) model.blocks model.newTaskBlockedBy
-            , blockedBy = List.foldl (insertIntoList taskId) model.blockedBy model.newTaskBlocks
+            , blocks = List.foldl (insertIntoSet taskId) model.blocks model.newTaskBlockedBy
+            , blockedBy = List.foldl (insertIntoSet taskId) model.blockedBy model.newTaskBlocks
         }
 
 
@@ -305,8 +303,8 @@ insertNewTaskIntoInProgress time model =
         { model
             | tasks = Dict.insert taskId (taskFromNewTask time model) model.tasks
             , inProgress = taskId :: model.inProgress
-            , blocks = List.foldl (insertIntoList taskId) model.blocks model.newTaskBlockedBy
-            , blockedBy = List.foldl (insertIntoList taskId) model.blockedBy model.newTaskBlocks
+            , blocks = List.foldl (insertIntoSet taskId) model.blocks model.newTaskBlockedBy
+            , blockedBy = List.foldl (insertIntoSet taskId) model.blockedBy model.newTaskBlocks
         }
 
 
@@ -320,19 +318,23 @@ insertNewTaskIntoDone time model =
         { model
             | tasks = Dict.insert taskId (taskFromNewTask time model) model.tasks
             , done = taskId :: model.done
-            , blocks = List.foldl (insertIntoList taskId) model.blocks model.newTaskBlockedBy
-            , blockedBy = List.foldl (insertIntoList taskId) model.blockedBy model.newTaskBlocks
+            , blocks = List.foldl (insertIntoSet taskId) model.blocks model.newTaskBlockedBy
+            , blockedBy = List.foldl (insertIntoSet taskId) model.blockedBy model.newTaskBlocks
         }
 
 
-insertIntoList : value -> key -> Dict key (List value) -> Dict key (List value)
-insertIntoList value key dict =
+insertIntoSet : TaskId -> key -> Dict key (Set TaskId) -> Dict key (Set TaskId)
+insertIntoSet value key dict =
     case Dict.get key dict of
         Nothing ->
-            Dict.insert key [ value ] dict
+            let
+                sorter =
+                    Sort.by (\(TaskId id) -> id) Sort.increasing
+            in
+            Dict.insert key (Set.singleton sorter value) dict
 
         Just values ->
-            Dict.insert key (value :: values) dict
+            Dict.insert key (Set.insert value values) dict
 
 
 getAll : List key -> Dict key value -> List value
@@ -710,32 +712,32 @@ viewBoard model =
     Element.row
         []
         [ model.toDo
-            |> List.map (\taskId -> taskView taskId model)
+            |> (\taskIds -> taskViews taskIds model)
             |> viewToDo
         , model.inProgress
-            |> List.map (\taskId -> taskView taskId model)
+            |> (\taskIds -> taskViews taskIds model)
             |> viewInProgress
         , model.done
-            |> List.map (\taskId -> taskView taskId model)
+            |> (\taskIds -> taskViews taskIds model)
             |> viewDone
         ]
 
 
-viewToDo : List (Maybe TaskView) -> Element Msg
+viewToDo : List TaskView -> Element Msg
 viewToDo tasks =
     Element.column
         []
         (List.map viewTask tasks)
 
 
-viewInProgress : List (Maybe TaskView) -> Element Msg
+viewInProgress : List TaskView -> Element Msg
 viewInProgress tasks =
     Element.column
         []
         (List.map viewTask tasks)
 
 
-viewDone : List (Maybe TaskView) -> Element Msg
+viewDone : List TaskView -> Element Msg
 viewDone tasks =
     Element.column
         []
@@ -782,42 +784,37 @@ viewTaskRow tasks taskIds =
         (List.map (.title >> text) blocks)
 
 
-viewTask : Maybe TaskView -> Element Msg
-viewTask taskM =
-    case taskM of
-        Nothing ->
-            Element.text "Task not found"
-
-        Just task ->
-            if task.expanded then
-                Element.column
+viewTask : TaskView -> Element Msg
+viewTask task =
+    if task.expanded then
+        Element.column
+            []
+            [ Element.row
+                []
+                [ Input.button
                     []
-                    [ Element.row
-                        []
-                        [ Input.button
-                            []
-                            { onPress = Just (ClickedCollapseTask task.taskId)
-                            , label = text "V"
-                            }
-                        , Element.text task.title
-                        ]
-                    , Element.text task.description
-                    , Element.text (sizeToString task.size)
-                    , Element.row [] (List.map text task.assignees)
-                    , Element.row [] (List.map text task.blocks)
-                    , Element.row [] (List.map text task.blockedBy)
-                    ]
+                    { onPress = Just (ClickedCollapseTask task.taskId)
+                    , label = text "V"
+                    }
+                , Element.text task.title
+                ]
+            , Element.text task.description
+            , Element.text (sizeToString task.size)
+            , Element.row [] (List.map text task.assignees)
+            , Element.row [] (List.map text task.blocks)
+            , Element.row [] (List.map text task.blockedBy)
+            ]
 
-            else
-                Element.row
-                    []
-                    [ Input.button
-                        []
-                        { onPress = Just (ClickedExpandTask task.taskId)
-                        , label = text ">"
-                        }
-                    , Element.text task.title
-                    ]
+    else
+        Element.row
+            []
+            [ Input.button
+                []
+                { onPress = Just (ClickedExpandTask task.taskId)
+                , label = text ">"
+                }
+            , Element.text task.title
+            ]
 
 
 main : Program () Model Msg
