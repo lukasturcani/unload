@@ -30,6 +30,19 @@ type TaskSize
     | Large
 
 
+sizeToString : TaskSize -> String
+sizeToString size =
+    case size of
+        Small ->
+            "small"
+
+        Medium ->
+            "medium"
+
+        Large ->
+            "large"
+
+
 
 -- type TaskBundle = TaskBundle (List TaskBlueprint)
 
@@ -40,7 +53,7 @@ type Mode
     | AddingUser
 
 
-type Status
+type TaskStatus
     = ToDo
     | InProgress
     | Done
@@ -54,12 +67,28 @@ type alias User =
 type alias Task =
     { title : String
     , description : String
+    , size : TaskSize
     , assignees : List UserId
+    , created : Posix
+    , updated : Posix
+    , due : Maybe Posix
+    , tags : List TagId
+    }
+
+
+type alias TaskView =
+    { title : String
+    , description : String
     , size : TaskSize
     , created : Posix
     , updated : Posix
     , due : Maybe Posix
     , tags : List TagId
+    , assignees : List String
+    , blocks : List String
+    , blockedBy : List String
+    , expanded : Bool
+    , taskId : TaskId
     }
 
 
@@ -73,7 +102,7 @@ type alias NewTask r =
         , newTaskBlockedBy : List TaskId
         , newTaskDue : Maybe Posix
         , newTaskTags : List TagId
-        , newTaskStatus : Status
+        , newTaskStatus : TaskStatus
         , newTaskUserSearchBox : SearchBox.State
         , newTaskUserSearchBoxText : String
         , newTaskBlocksSearchBox : SearchBox.State
@@ -91,7 +120,7 @@ type alias Model =
     , tasks : Dict TaskId Task
     , blocks : Dict TaskId (List TaskId)
     , blockedBy : Dict TaskId (List TaskId)
-    , collapsedTasks : Set TaskId
+    , expandedTasks : Set TaskId
 
     -- Board
     , toDo : List TaskId
@@ -107,7 +136,7 @@ type alias Model =
     , newTaskBlockedBy : List TaskId
     , newTaskDue : Maybe Posix
     , newTaskTags : List TagId
-    , newTaskStatus : Status
+    , newTaskStatus : TaskStatus
     , newTaskUserSearchBox : SearchBox.State
     , newTaskUserSearchBoxText : String
     , newTaskBlocksSearchBox : SearchBox.State
@@ -118,6 +147,103 @@ type alias Model =
     -- New User
     , newUserName : String
     }
+
+
+tryFold : (a -> b -> Maybe b) -> b -> List a -> Maybe b
+tryFold f acc list =
+    case list of
+        [] ->
+            Just acc
+
+        x :: xs ->
+            f x acc
+                |> Maybe.andThen (\newAcc -> tryFold f newAcc xs)
+
+
+taskView : TaskId -> Model -> Maybe TaskView
+taskView taskId model =
+    let
+        taskQuery =
+            Dict.get taskId model.tasks
+
+        assigneesQuery =
+            taskQuery
+                |> Maybe.andThen
+                    (\task ->
+                        tryFold
+                            (\userId acc ->
+                                Dict.get userId model.users
+                                    |> Maybe.map (\user -> user.name :: acc)
+                            )
+                            []
+                            task.assignees
+                    )
+
+        blocksQuery =
+            Dict.get taskId model.blocks
+                |> Maybe.andThen
+                    (\taskIds ->
+                        tryFold
+                            (\blockedTaskId acc ->
+                                Dict.get blockedTaskId model.tasks
+                                    |> Maybe.map (\task -> task.title :: acc)
+                            )
+                            []
+                            taskIds
+                    )
+
+        blockedByQuery =
+            Dict.get taskId model.blockedBy
+                |> Maybe.andThen
+                    (\taskIds ->
+                        tryFold
+                            (\blockingTaskId acc ->
+                                Dict.get blockingTaskId model.tasks
+                                    |> Maybe.map (\task -> task.title :: acc)
+                            )
+                            []
+                            taskIds
+                    )
+
+        query =
+            taskQuery
+                |> Maybe.andThen
+                    (\task ->
+                        assigneesQuery
+                            |> Maybe.andThen
+                                (\assignees ->
+                                    blocksQuery
+                                        |> Maybe.andThen
+                                            (\blocks ->
+                                                blockedByQuery
+                                                    |> Maybe.map
+                                                        (\blockedBy ->
+                                                            { task = task, assignees = assignees, blocks = blocks, blockedBy = blockedBy }
+                                                        )
+                                            )
+                                )
+                    )
+    in
+    case query of
+        Just { task, assignees, blocks, blockedBy } ->
+            Just
+                { title = task.title
+                , description = task.description
+                , size = task.size
+                , created = task.created
+                , updated = task.updated
+                , due = task.due
+                , tags = task.tags
+                , assignees = assignees
+                , blocks = blocks
+                , blockedBy = blockedBy
+                , expanded =
+                    Set.memberOf model.expandedTasks taskId
+                , taskId = taskId
+                }
+
+        _ ->
+            Nothing
 
 
 emptyNewTask : NewTask r -> NewTask r
@@ -237,7 +363,7 @@ init _ =
             Dict.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
       , blockedBy =
             Dict.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
-      , collapsedTasks =
+      , expandedTasks =
             Set.empty (Sort.by (\(TaskId id) -> id) Sort.increasing)
 
       -- Board
@@ -279,10 +405,13 @@ type
     | UpdatedNewTaskTitle String
     | UpdatedNewTaskDescription String
     | UpdatedNewTaskSize TaskSize
-    | UpdatedNewTaskStatus Status
+    | UpdatedNewTaskStatus TaskStatus
     | UpdatedNewTaskAssignees (SearchBox.ChangeEvent ( UserId, User ))
     | UpdatedNewTaskBlocks (SearchBox.ChangeEvent ( TaskId, Task ))
     | UpdatedNewTaskBlockedBy (SearchBox.ChangeEvent ( TaskId, Task ))
+      -- Collapse Task
+    | ClickedCollapseTask TaskId
+    | ClickedExpandTask TaskId
       -- Add User
     | ClickedAddUser
     | ClickedAddUserDone
@@ -423,6 +552,12 @@ update msg model =
 
         UpdatedNewUserName name ->
             ( { model | newUserName = name }, Cmd.none )
+
+        ClickedCollapseTask taskId ->
+            ( { model | expandedTasks = Set.remove taskId model.expandedTasks }, Cmd.none )
+
+        ClickedExpandTask taskId ->
+            ( { model | expandedTasks = Set.insert taskId model.expandedTasks }, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -574,27 +709,33 @@ viewBoard : Model -> Element Msg
 viewBoard model =
     Element.row
         []
-        [ viewToDo (getAll model.toDo model.tasks)
-        , viewInProgress (getAll model.inProgress model.tasks)
-        , viewDone (getAll model.done model.tasks)
+        [ model.toDo
+            |> List.map (\taskId -> taskView taskId model)
+            |> viewToDo
+        , model.inProgress
+            |> List.map (\taskId -> taskView taskId model)
+            |> viewInProgress
+        , model.done
+            |> List.map (\taskId -> taskView taskId model)
+            |> viewDone
         ]
 
 
-viewToDo : List Task -> Element Msg
+viewToDo : List (Maybe TaskView) -> Element Msg
 viewToDo tasks =
     Element.column
         []
         (List.map viewTask tasks)
 
 
-viewInProgress : List Task -> Element Msg
+viewInProgress : List (Maybe TaskView) -> Element Msg
 viewInProgress tasks =
     Element.column
         []
         (List.map viewTask tasks)
 
 
-viewDone : List Task -> Element Msg
+viewDone : List (Maybe TaskView) -> Element Msg
 viewDone tasks =
     Element.column
         []
@@ -641,9 +782,42 @@ viewTaskRow tasks taskIds =
         (List.map (.title >> text) blocks)
 
 
-viewTask : Task -> Element Msg
-viewTask task =
-    Element.el [] (Element.text task.title)
+viewTask : Maybe TaskView -> Element Msg
+viewTask taskM =
+    case taskM of
+        Nothing ->
+            Element.text "Task not found"
+
+        Just task ->
+            if task.expanded then
+                Element.column
+                    []
+                    [ Element.row
+                        []
+                        [ Input.button
+                            []
+                            { onPress = Just (ClickedCollapseTask task.taskId)
+                            , label = text "V"
+                            }
+                        , Element.text task.title
+                        ]
+                    , Element.text task.description
+                    , Element.text (sizeToString task.size)
+                    , Element.row [] (List.map text task.assignees)
+                    , Element.row [] (List.map text task.blocks)
+                    , Element.row [] (List.map text task.blockedBy)
+                    ]
+
+            else
+                Element.row
+                    []
+                    [ Input.button
+                        []
+                        { onPress = Just (ClickedExpandTask task.taskId)
+                        , label = text ">"
+                        }
+                    , Element.text task.title
+                    ]
 
 
 main : Program () Model Msg
