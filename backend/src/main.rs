@@ -10,6 +10,40 @@ struct Args {
     database_url: String,
 }
 
+enum TaskSize {
+    Small,
+    Medium,
+    Large,
+}
+
+enum TaskStatus {
+    ToDo,
+    InProgress,
+    Done,
+}
+
+struct BoardId(i64);
+
+enum Message {
+    AddTask {
+        board_id: BoardId,
+        title: String,
+        description: String,
+        size: TaskSize,
+        status: TaskStatus,
+    },
+    RemoveTask {
+        id: i64,
+    },
+    AddUser {
+        board_id: BoardId,
+        name: String,
+    },
+    RemoveUser {
+        id: i64,
+    },
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
