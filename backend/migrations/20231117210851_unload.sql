@@ -1,8 +1,8 @@
 CREATE TABLE
 IF NOT EXISTS boards (
     id INTEGER PRIMARY KEY NOT NULL,
-    join_name TEXT NOT NULL,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    title TEXT NOT NULL
 );
 
 
