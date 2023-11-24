@@ -2,10 +2,9 @@ use anyhow::Context;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use axum::{extract::Path, response::Json, routing::get, routing::post, Router};
+use axum::{extract::Path, response::Json, routing::delete, routing::get, routing::post, Router};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
 use sqlx::Connection;
 use sqlx::SqliteConnection;
 use tokio;
@@ -59,7 +58,7 @@ enum Message {
     RemoveUser(RemoveUser),
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize)]
 struct TaskData {
     title: String,
     description: String,
@@ -76,6 +75,19 @@ struct TaskEntry {
     size: TaskSize,
     status: TaskStatus,
     assignees: Vec<UserId>,
+}
+
+#[derive(Serialize)]
+struct UserEntry {
+    id: UserId,
+    name: String,
+    color: Color,
+}
+
+#[derive(Deserialize)]
+struct UserData {
+    name: String,
+    color: Color,
 }
 
 struct GetTask {
@@ -95,12 +107,17 @@ struct AddTask {
     description: String,
     size: TaskSize,
     status: TaskStatus,
+    assignees: Vec<UserId>,
+    resp: oneshot::Sender<Option<TaskId>>,
 }
 
 struct RemoveTask {
+    board_name: BoardName,
     task_id: TaskId,
+    resp: oneshot::Sender<Option<()>>,
 }
 
+#[derive(Serialize, Deserialize)]
 enum Color {
     Black,
     White,
@@ -123,20 +140,25 @@ enum Color {
 struct GetUser {
     board_name: BoardName,
     user_id: UserId,
+    resp: oneshot::Sender<Option<UserEntry>>,
 }
 
 struct GetAllUsers {
     board_name: BoardName,
+    resp: oneshot::Sender<Option<Vec<UserEntry>>>,
 }
 
 struct AddUser {
     board_name: BoardName,
     name: String,
     color: Color,
+    resp: oneshot::Sender<Option<UserId>>,
 }
 
 struct RemoveUser {
+    board_name: BoardName,
     user_id: UserId,
+    resp: oneshot::Sender<Option<()>>,
 }
 
 #[derive(Debug)]
@@ -177,6 +199,13 @@ async fn main() -> Result<()> {
             }),
         )
         .route(
+            "/api/boards/:board_name/tasks/:task_id",
+            delete({
+                let tx = tx.clone();
+                move |path| delete_task(tx, path)
+            }),
+        )
+        .route(
             "/api/boards/:board_name/tasks",
             get({
                 let tx = tx.clone();
@@ -187,7 +216,7 @@ async fn main() -> Result<()> {
             "/api/boards/:board_name/tasks",
             post({
                 let tx = tx.clone();
-                move |path| create_task(tx, path)
+                move |path, json| create_task(tx, path, json)
             }),
         )
         .route(
@@ -195,6 +224,13 @@ async fn main() -> Result<()> {
             get({
                 let tx = tx.clone();
                 move |path| show_user(tx, path)
+            }),
+        )
+        .route(
+            "/api/boards/:board_name/users/:user_id",
+            delete({
+                let tx = tx.clone();
+                move |path| delete_user(tx, path)
             }),
         )
         .route(
@@ -208,7 +244,7 @@ async fn main() -> Result<()> {
             "/api/boards/:board_name/users",
             post({
                 let tx = tx.clone();
-                move |path| create_user(tx, path)
+                move |path, json| create_user(tx, path, json)
             }),
         );
     axum::Server::bind(&args.server_address)
@@ -253,23 +289,118 @@ async fn show_tasks(
     }
 }
 
-async fn create_task(tx: Sender<Message>, Path(board_name): Path<BoardName>) -> Json<Value> {
-    Json(json!("create task"))
+async fn create_task(
+    tx: Sender<Message>,
+    Path(board_name): Path<BoardName>,
+    Json(task_data): Json<TaskData>,
+) -> Result<Json<TaskId>> {
+    let (resp_tx, resp_rx) = oneshot::channel();
+    tx.send(Message::AddTask(AddTask {
+        board_name,
+        title: task_data.title,
+        description: task_data.description,
+        size: task_data.size,
+        status: task_data.status,
+        assignees: task_data.assignees,
+        resp: resp_tx,
+    }))
+    .await?;
+    if let Some(task_id) = resp_rx.await? {
+        Ok(Json(task_id))
+    } else {
+        Err(AppError(anyhow::anyhow!("failed to create task")))
+    }
+}
+
+async fn delete_task(
+    tx: Sender<Message>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+) -> Result<Json<()>> {
+    let (resp_tx, resp_rx) = oneshot::channel();
+    tx.send(Message::RemoveTask(RemoveTask {
+        board_name,
+        task_id,
+        resp: resp_tx,
+    }))
+    .await?;
+    if resp_rx.await?.is_some() {
+        Ok(Json(()))
+    } else {
+        Err(AppError(anyhow::anyhow!("failed to delete task")))
+    }
 }
 
 async fn show_user(
     tx: Sender<Message>,
     Path((board_name, user_id)): Path<(BoardName, UserId)>,
-) -> Json<Value> {
-    Json(json!("show user"))
+) -> Result<Json<UserEntry>> {
+    let (resp_tx, resp_rx) = oneshot::channel();
+    tx.send(Message::GetUser(GetUser {
+        board_name,
+        user_id,
+        resp: resp_tx,
+    }))
+    .await?;
+    if let Some(user) = resp_rx.await? {
+        Ok(Json(user))
+    } else {
+        Err(AppError(anyhow::anyhow!("user not found")))
+    }
 }
 
-async fn show_users(tx: Sender<Message>, Path(board_name): Path<BoardName>) -> Json<Value> {
-    Json(json!("show all users"))
+async fn show_users(
+    tx: Sender<Message>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<UserEntry>>> {
+    let (resp_tx, resp_rx) = oneshot::channel();
+    tx.send(Message::GetAllUsers(GetAllUsers {
+        board_name,
+        resp: resp_tx,
+    }))
+    .await?;
+    if let Some(users) = resp_rx.await? {
+        Ok(Json(users))
+    } else {
+        Err(AppError(anyhow::anyhow!("board not found")))
+    }
 }
 
-async fn create_user(tx: Sender<Message>, Path(board_name): Path<BoardName>) -> Json<Value> {
-    Json(json!("create user"))
+async fn create_user(
+    tx: Sender<Message>,
+    Path(board_name): Path<BoardName>,
+    Json(user_data): Json<UserData>,
+) -> Result<Json<UserId>> {
+    let (resp_tx, resp_rx) = oneshot::channel();
+    tx.send(Message::AddUser(AddUser {
+        board_name,
+        name: user_data.name,
+        color: user_data.color,
+        resp: resp_tx,
+    }))
+    .await?;
+    if let Some(user_id) = resp_rx.await? {
+        Ok(Json(user_id))
+    } else {
+        Err(AppError(anyhow::anyhow!("failed to create user")))
+    }
+}
+
+async fn delete_user(
+    tx: Sender<Message>,
+    Path((board_name, user_id)): Path<(BoardName, UserId)>,
+) -> Result<Json<()>> {
+    let (resp_tx, resp_rx) = oneshot::channel();
+    tx.send(Message::RemoveUser(RemoveUser {
+        board_name,
+        user_id,
+        resp: resp_tx,
+    }))
+    .await?;
+    if resp_rx.await?.is_some() {
+        Ok(Json(()))
+    } else {
+        Err(AppError(anyhow::anyhow!("failed to delete user")))
+    }
 }
 
 async fn talk_to_db(database_url: String, mut rx: Receiver<Message>) -> Result<()> {
