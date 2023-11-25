@@ -31,11 +31,33 @@ enum TaskSize {
     Large,
 }
 
+impl TaskSize {
+    fn from_str(size: &str) -> Result<Self> {
+        match size {
+            "SMALL" => Ok(TaskSize::Small),
+            "MEDIUM" => Ok(TaskSize::Medium),
+            "Large" => Ok(TaskSize::Large),
+            _ => Err(AppError(anyhow::anyhow!("invalid task size"))),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 enum TaskStatus {
     ToDo,
     InProgress,
     Done,
+}
+
+impl TaskStatus {
+    fn from_str(status: &str) -> Result<Self> {
+        match status {
+            "TO_DO" => Ok(TaskStatus::ToDo),
+            "IN_PROGRESS" => Ok(TaskStatus::InProgress),
+            "DONE" => Ok(TaskStatus::Done),
+            _ => Err(AppError(anyhow::anyhow!("invalid task status"))),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -67,6 +89,18 @@ struct TaskData {
     assignees: Vec<UserId>,
 }
 
+struct TaskRow {
+    id: i64,
+    board_name: String,
+    title: String,
+    description: String,
+    created: i64,
+    updated: i64,
+    due: Option<i64>,
+    size: String,
+    status: String,
+}
+
 #[derive(Serialize)]
 struct TaskEntry {
     id: TaskId,
@@ -75,6 +109,19 @@ struct TaskEntry {
     size: TaskSize,
     status: TaskStatus,
     assignees: Vec<UserId>,
+}
+
+impl TaskEntry {
+    fn from_task_row(row: TaskRow) -> Result<Self> {
+        Ok(Self {
+            id: TaskId(row.id),
+            title: row.title,
+            description: row.description,
+            size: TaskSize::from_str(&row.size)?,
+            status: TaskStatus::from_str(&row.status)?,
+            assignees: todo!(),
+        })
+    }
 }
 
 #[derive(Serialize)]
@@ -439,7 +486,44 @@ async fn talk_to_db(database_url: String, mut rx: Receiver<Message>) -> Result<(
 }
 
 async fn get_task_from_db(connection: &mut SqliteConnection, get_task: GetTask) -> Result<()> {
-    Ok(())
+    match sqlx::query_as!(
+        TaskRow,
+        "
+SELECT
+    tasks.id, tasks.title, description, created,
+    updated, due, size, status, boards.name AS board_name
+FROM tasks
+INNER JOIN boards on boards.id = board_id
+WHERE tasks.id = ?
+LIMIT 1
+       ",
+        get_task.task_id.0
+    )
+    .fetch_one(connection)
+    .await
+    {
+        Ok(task_row) => {
+            if task_row.board_name == get_task.board_name.0 {
+                let entry = TaskEntry::from_task_row(task_row)?;
+                get_task
+                    .resp
+                    .send(Some(entry))
+                    .map_err(|_| anyhow::anyhow!("channel closed"))?;
+                Ok(())
+            } else {
+                get_task.resp.send(None);
+                Ok(())
+            }
+        }
+        Err(sqlx::Error::RowNotFound) => {
+            get_task.resp.send(None);
+            Ok(())
+        }
+        err @ _ => {
+            err?;
+            Ok(())
+        }
+    }
 }
 
 async fn get_all_tasks_from_db(
