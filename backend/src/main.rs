@@ -244,6 +244,22 @@ async fn show_tasks(
     todo!()
 }
 
+async fn show_tasks_using_map(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<TaskEntry>>> {
+    todo!()
+}
+
+async fn show_tasks_using_queries(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<TaskEntry>>> {
+    todo!()
+}
+
+
+
 async fn create_task(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
