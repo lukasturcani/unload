@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\nSELECT\n    task_id, user_id\nFROM\n    task_assignments\nWHERE\n    board_name = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "task_id",
+        "ordinal": 0,
+        "type_info": "Int64"
+      },
+      {
+        "name": "user_id",
+        "ordinal": 1,
+        "type_info": "Int64"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "0b155d4ebec340ae1a5e5b259bc1b1576f67eb789a2d908c7ed5d7a3d560ed89"
+}

@@ -4,6 +4,7 @@ use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
+use std::collections::HashMap;
 use tokio;
 use tokio::join;
 
@@ -210,6 +211,68 @@ WHERE
 }
 
 pub async fn show_tasks(
+    pool: State<SqlitePool>,
+    board_name: Path<BoardName>,
+) -> Result<Json<Vec<TaskEntry>>> {
+    show_tasks_1(pool, board_name).await
+}
+
+async fn show_tasks_1(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<TaskEntry>>> {
+    let tasks_query = sqlx::query_as!(
+        TaskRow,
+        "
+SELECT
+    id, title, description, created, updated, due, size, status
+FROM
+    tasks
+WHERE
+    board_name = ?",
+        board_name.0
+    )
+    .fetch_all(&pool);
+    let assignments_query = sqlx::query!(
+        "
+SELECT
+    task_id, user_id
+FROM
+    task_assignments
+WHERE
+    board_name = ?",
+        board_name.0,
+    )
+    .fetch_all(&pool);
+    match join!(tasks_query, assignments_query) {
+        (Ok(tasks), Ok(assignments)) => {
+            let mut task_assignments =
+                assignments
+                    .into_iter()
+                    .fold(HashMap::new(), |mut map, record| {
+                        map.entry(record.task_id)
+                            .or_insert_with(Vec::new)
+                            .push(UserId(record.user_id));
+                        map
+                    });
+            let task_entries: Result<Vec<TaskEntry>> = tasks
+                .into_iter()
+                .map(|task_row| {
+                    let task_id = task_row.id;
+                    TaskEntry::from_task_row(
+                        task_row,
+                        task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
+                    )
+                })
+                .collect();
+            Ok(Json(task_entries?))
+        }
+        (Err(err), _) => Err(err.into()),
+        (_, Err(err)) => Err(err.into()),
+    }
+}
+
+async fn show_tasks_2(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<Vec<TaskEntry>>> {
