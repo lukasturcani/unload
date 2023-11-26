@@ -91,7 +91,6 @@ struct TaskData {
 
 struct TaskRow {
     id: i64,
-    board_name: String,
     title: String,
     description: String,
     created: i64,
@@ -112,14 +111,14 @@ struct TaskEntry {
 }
 
 impl TaskEntry {
-    fn from_task_row(row: TaskRow) -> Result<Self> {
+    fn from_task_row(row: TaskRow, assignees: Vec<UserId>) -> Result<Self> {
         Ok(Self {
             id: TaskId(row.id),
             title: row.title,
             description: row.description,
             size: TaskSize::from_str(&row.size)?,
             status: TaskStatus::from_str(&row.status)?,
-            assignees: todo!(),
+            assignees,
         })
     }
 }
@@ -486,50 +485,91 @@ async fn talk_to_db(database_url: String, mut rx: Receiver<Message>) -> Result<(
 }
 
 async fn get_task_from_db(connection: &mut SqliteConnection, get_task: GetTask) -> Result<()> {
-    match sqlx::query_as!(
+    let task = sqlx::query_as!(
         TaskRow,
         "
 SELECT
-    tasks.id, tasks.title, description, created,
-    updated, due, size, status, boards.name AS board_name
-FROM tasks
-INNER JOIN boards on boards.id = board_id
-WHERE tasks.id = ?
-LIMIT 1
-       ",
-        get_task.task_id.0
+    id, title, description, created,
+    updated, due, size, status
+FROM
+    tasks
+WHERE
+    id = ? AND board_name = ?
+LIMIT 1",
+        get_task.task_id.0,
+        get_task.board_name.0,
     )
-    .fetch_one(connection)
-    .await
-    {
-        Ok(task_row) => {
-            if task_row.board_name == get_task.board_name.0 {
-                let entry = TaskEntry::from_task_row(task_row)?;
-                get_task
-                    .resp
-                    .send(Some(entry))
-                    .map_err(|_| anyhow::anyhow!("channel closed"))?;
-                Ok(())
-            } else {
-                get_task.resp.send(None);
-                Ok(())
-            }
-        }
-        Err(sqlx::Error::RowNotFound) => {
-            get_task.resp.send(None);
-            Ok(())
-        }
-        err @ _ => {
-            err?;
-            Ok(())
-        }
-    }
+    .fetch_one(&mut (*connection));
+    let assignees = sqlx::query!(
+        "
+SELECT
+    user_id
+FROM
+    task_assignments
+WHERE
+    task_id = ?",
+        get_task.task_id.0,
+    )
+    .fetch_all(&mut (*connection));
+
+    // {
+    //     Ok(task_row) => {
+    //         let assignees = get_assignees_from_db(connection, get_task.task_id).await?;
+    //         let entry = TaskEntry::from_task_row(task_row, assignees)?;
+    //         get_task
+    //             .resp
+    //             .send(Some(entry))
+    //             .map_err(|_| anyhow::anyhow!("channel closed"))?;
+    //         Ok(())
+    //     }
+    //     Err(sqlx::Error::RowNotFound) => {
+    //         get_task
+    //             .resp
+    //             .send(None)
+    //             .map_err(|_| anyhow::anyhow!("channel closed"))?;
+    //         Ok(())
+    //     }
+    //     err @ _ => {
+    //         err?;
+    //         Ok(())
+    //     }
+    // }
+}
+
+async fn get_assignees_from_db(
+    connection: &mut SqliteConnection,
+    task_id: TaskId,
+) -> Result<Vec<UserId>> {
+    Ok(sqlx::query!()
+        .fetch_all(connection)
+        .await?
+        .into_iter()
+        .map(|record| UserId(record.user_id))
+        .collect())
 }
 
 async fn get_all_tasks_from_db(
     connection: &mut SqliteConnection,
     get_all_tasks: GetAllTasks,
 ) -> Result<()> {
+    let task_entries = sqlx::query_as!(
+        TaskRow,
+        "
+SELECT
+    id, title, description, created,
+    updated, due, size, status
+FROM tasks
+WHERE board_name = ?",
+        get_all_tasks.board_name.0,
+    )
+    .fetch_all(&mut (*connection))
+    .await?
+    .into_iter()
+    .map(|task_row| {
+        let assignees = get_assignees_from_db(connection, TaskId(task_row.id));
+        TaskEntry::from_task_row(task_row, assignees)
+    })
+    .collect();
     Ok(())
 }
 
