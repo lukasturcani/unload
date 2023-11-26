@@ -14,9 +14,13 @@ serde_json = "1.0.108"
 sqlx = { version = "0.7.2", features = ["runtime-tokio", "sqlite"] }
 tokio = { version = "1.34.0", features = ["full"] }
 
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["async_tokio"] }
+
 [profile.release]
 lto = true
 codegen-units = 1
 
-[dev-dependencies]
-criterion = { version = "0.5.1", features = ["async_tokio"] }
+[[bench]]
+name = "show_tasks"
+harness = false
