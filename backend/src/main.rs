@@ -235,29 +235,6 @@ WHERE
         (Err(err), _) => Err(err.into()),
         (_, Err(err)) => Err(err.into()),
     }
-
-    // {
-    //     Ok(task_row) => {
-    //         let assignees = get_assignees_from_db(connection, get_task.task_id).await?;
-    //         let entry = TaskEntry::from_task_row(task_row, assignees)?;
-    //         get_task
-    //             .resp
-    //             .send(Some(entry))
-    //             .map_err(|_| anyhow::anyhow!("channel closed"))?;
-    //         Ok(())
-    //     }
-    //     Err(sqlx::Error::RowNotFound) => {
-    //         get_task
-    //             .resp
-    //             .send(None)
-    //             .map_err(|_| anyhow::anyhow!("channel closed"))?;
-    //         Ok(())
-    //     }
-    //     err @ _ => {
-    //         err?;
-    //         Ok(())
-    //     }
-    // }
 }
 
 async fn show_tasks(
