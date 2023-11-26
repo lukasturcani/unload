@@ -1,0 +1,62 @@
+{
+  "db_name": "SQLite",
+  "query": "\nSELECT\n    id, title, description, created, updated, due, size, status\nFROM\n    tasks\nWHERE\n    id = ? AND board_name = ?\nLIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Int64"
+      },
+      {
+        "name": "title",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "description",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "created",
+        "ordinal": 3,
+        "type_info": "Int64"
+      },
+      {
+        "name": "updated",
+        "ordinal": 4,
+        "type_info": "Int64"
+      },
+      {
+        "name": "due",
+        "ordinal": 5,
+        "type_info": "Int64"
+      },
+      {
+        "name": "size",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "status",
+        "ordinal": 7,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "c51ae5e9bd67f517f2241ae6014336d86c2102f3849686ec365fbec2de1e2e3a"
+}
