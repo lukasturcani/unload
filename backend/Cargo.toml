@@ -23,6 +23,8 @@ criterion = { version = "0.5.1", features = ["async_tokio"] }
 [profile.release]
 lto = true
 codegen-units = 1
+strip = true
+panic = "abort"
 
 [[bench]]
 name = "show_tasks"
