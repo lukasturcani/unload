@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "\nSELECT\n    id, name, color\nFROM\n    users\nWHERE\n    board_name = ? AND id = ?\nLIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Int64"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "color",
+        "ordinal": 2,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "a56c0744fbfdc5df39889cfd857c494044e31e379e6f9768ab27a093774b5f90"
+}

@@ -181,6 +181,30 @@ pub enum Color {
     Aqua,
 }
 
+impl Color {
+    fn from_str(color: &str) -> Result<Color> {
+        match color {
+            "BLACK" => Ok(Color::Black),
+            "WHITE" => Ok(Color::White),
+            "GRAY" => Ok(Color::Gray),
+            "SILVER" => Ok(Color::Silver),
+            "MAROON" => Ok(Color::Maroon),
+            "RED" => Ok(Color::Red),
+            "PURPLE" => Ok(Color::Purple),
+            "FUSHSIA" => Ok(Color::Fushsia),
+            "GREEN" => Ok(Color::Green),
+            "LIME" => Ok(Color::Lime),
+            "OLIVE" => Ok(Color::Olive),
+            "YELLOW" => Ok(Color::Yellow),
+            "NAVY" => Ok(Color::Navy),
+            "BLUE" => Ok(Color::Blue),
+            "TEAL" => Ok(Color::Teal),
+            "AQUA" => Ok(Color::Aqua),
+            _ => Err(AppError(anyhow::anyhow!("invalid color"))),
+        }
+    }
+}
+
 impl Display for Color {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -393,7 +417,27 @@ pub async fn show_user(
     State(pool): State<SqlitePool>,
     Path((board_name, user_id)): Path<(BoardName, UserId)>,
 ) -> Result<Json<UserEntry>> {
-    todo!()
+    let mut tx = pool.begin().await?;
+    let user_row = sqlx::query!(
+        "
+SELECT
+    id, name, color
+FROM
+    users
+WHERE
+    board_name = ? AND id = ?
+LIMIT 1",
+        board_name.0,
+        user_id.0
+    )
+    .fetch_one(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(UserEntry {
+        id: UserId(user_row.id),
+        name: user_row.name,
+        color: Color::from_str(&user_row.color)?,
+    }))
 }
 
 pub async fn show_users(
