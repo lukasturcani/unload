@@ -36,9 +36,10 @@ async fn main() -> Result<(), anyhow::Error> {
         .await?;
         for user_id in 0..args.num_users_per_board {
             sqlx::query(
-                "INSERT INTO users (board_name, name, color)
-                 VALUES (?, ?, ?)",
+                "INSERT INTO users (id, board_name, name, color)
+                 VALUES (?, ?, ?, ?)",
             )
+            .bind(board_id * args.num_users_per_board + user_id)
             .bind(format!("board-{}", board_id))
             .bind(format!("user-{}", user_id))
             .bind("PURPLE")
@@ -48,9 +49,10 @@ async fn main() -> Result<(), anyhow::Error> {
         for task_id in 0..args.num_tasks_per_board {
             sqlx::query(
                 "
-INSERT INTO tasks (board_name, title, description, created, updated, due, size, status)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+INSERT INTO tasks (id, board_name, title, description, created, updated, due, size, status)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             )
+            .bind(board_id * args.num_tasks_per_board + task_id)
             .bind(format!("board-{}", board_id))
             .bind(format!("task-{}", task_id))
             .bind("task description")
@@ -68,10 +70,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 VALUES (?, ?, ?)",
                 )
                 .bind(format!("board-{}", board_id))
-                .bind(0)
-                .bind(0)
-                // .bind(board_id * args.num_users_per_board + assignment)
-                // .bind(board_id * args.num_users_per_board + task_id)
+                .bind(board_id * args.num_users_per_board + assignment)
+                .bind(board_id * args.num_tasks_per_board + task_id)
                 .execute(&mut *tx)
                 .await?;
             }
