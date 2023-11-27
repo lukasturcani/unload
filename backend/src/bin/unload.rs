@@ -96,6 +96,7 @@ mod tests {
 
         // Check users one by one
 
+        let mut expected_users = Vec::with_capacity(users.len());
         for (user_id, user_data) in user_ids.iter().zip(users.iter()) {
             let user_entry = server
                 .get(&format!("/api/boards/{board_name}/users/{user_id}"))
@@ -107,11 +108,18 @@ mod tests {
                 color: user_data.color.clone(),
             };
             assert_eq!(user_entry, expected);
+            expected_users.push(expected);
         }
 
         // Check all users
 
-        todo!();
+        expected_users.sort_by(|user1, user2| user1.id.cmp(&user2.id));
+        let mut db_users = server
+            .get(&format!("/api/boards/{board_name}/users"))
+            .await
+            .json::<Vec<UserEntry>>();
+        db_users.sort_by(|user1, user2| user1.id.cmp(&user2.id));
+        assert_eq!(expected_users, db_users);
 
         // Create tasks
 
@@ -150,6 +158,7 @@ mod tests {
 
         // Check tasks one by one
 
+        let mut expected_tasks = Vec::with_capacity(tasks.len());
         for (task_id, task_data) in task_ids.iter().zip(tasks.iter()) {
             let task_entry = server
                 .get(&format!("/api/boards/{board_name}/tasks/{task_id}"))
@@ -167,11 +176,18 @@ mod tests {
                 assignees: task_data.assignees.clone(),
             };
             assert_eq!(task_entry, expected);
+            expected_tasks.push(expected);
         }
 
         // Check all tasks
 
-        todo!();
+        expected_tasks.sort_by(|task1, task2| task1.id.cmp(&task2.id));
+        let mut db_tasks = server
+            .get(&format!("/api/boards/{board_name}/tasks"))
+            .await
+            .json::<Vec<TaskEntry>>();
+        db_tasks.sort_by(|task1, task2| task1.id.cmp(&task2.id));
+        assert_eq!(db_tasks, expected_tasks);
 
         // Check task deletion
 

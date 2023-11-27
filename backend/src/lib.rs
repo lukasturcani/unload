@@ -78,7 +78,7 @@ impl Display for BoardName {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct UserId(i64);
 
 impl Display for UserId {
@@ -87,7 +87,7 @@ impl Display for UserId {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct TaskId(i64);
 
 impl Display for TaskId {
@@ -133,7 +133,7 @@ pub struct TaskEntry {
 }
 
 impl TaskEntry {
-    fn from_task_row(row: TaskRow, assignees: Vec<UserId>) -> Result<Self> {
+    fn from_row(row: TaskRow, assignees: Vec<UserId>) -> Result<Self> {
         Ok(Self {
             id: TaskId(row.id),
             title: row.title,
@@ -148,11 +148,27 @@ impl TaskEntry {
     }
 }
 
+struct UserRow {
+    id: i64,
+    name: String,
+    color: String,
+}
+
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserEntry {
     pub id: UserId,
     pub name: String,
     pub color: Color,
+}
+
+impl UserEntry {
+    fn from_row(row: UserRow) -> Result<Self> {
+        Ok(Self {
+            id: UserId(row.id),
+            name: row.name,
+            color: Color::from_str(&row.color)?,
+        })
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
@@ -303,7 +319,7 @@ WHERE
     .fetch_all(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(Json(TaskEntry::from_task_row(
+    Ok(Json(TaskEntry::from_row(
         task,
         assignees
             .into_iter()
@@ -354,7 +370,7 @@ WHERE
         .into_iter()
         .map(|task_row| {
             let task_id = task_row.id;
-            TaskEntry::from_task_row(
+            TaskEntry::from_row(
                 task_row,
                 task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
             )
@@ -445,7 +461,23 @@ pub async fn show_users(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<Vec<UserEntry>>> {
-    todo!()
+    let mut tx = pool.begin().await?;
+    let users = sqlx::query_as!(
+        UserRow,
+        "
+SELECT
+    id, name, color
+FROM
+    users
+WHERE
+    board_name = ?",
+        board_name.0
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    let entries: Result<Vec<UserEntry>> = users.into_iter().map(UserEntry::from_row).collect();
+    Ok(Json(entries?))
 }
 
 pub async fn create_user(
