@@ -7,8 +7,8 @@ use sqlx::SqlitePool;
 use std::collections::HashMap;
 use std::fmt::Display;
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-enum TaskSize {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum TaskSize {
     Small,
     Medium,
     Large,
@@ -35,8 +35,8 @@ impl Display for TaskSize {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-enum TaskStatus {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum TaskStatus {
     ToDo,
     InProgress,
     Done,
@@ -72,22 +72,40 @@ impl BoardName {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+impl Display for BoardName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserId(i64);
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+impl Display for UserId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TaskId(i64);
 
-#[derive(Debug, PartialEq, Eq, Deserialize)]
+impl Display for TaskId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TaskData {
-    title: String,
-    description: String,
-    created: i64,
-    updated: i64,
-    due: Option<i64>,
-    size: TaskSize,
-    status: TaskStatus,
-    assignees: Vec<UserId>,
+    pub title: String,
+    pub description: String,
+    pub created: i64,
+    pub updated: i64,
+    pub due: Option<i64>,
+    pub size: TaskSize,
+    pub status: TaskStatus,
+    pub assignees: Vec<UserId>,
 }
 
 struct TaskRow {
@@ -101,17 +119,17 @@ struct TaskRow {
     status: String,
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TaskEntry {
-    id: TaskId,
-    title: String,
-    description: String,
-    created: i64,
-    updated: i64,
-    due: Option<i64>,
-    size: TaskSize,
-    status: TaskStatus,
-    assignees: Vec<UserId>,
+    pub id: TaskId,
+    pub title: String,
+    pub description: String,
+    pub created: i64,
+    pub updated: i64,
+    pub due: Option<i64>,
+    pub size: TaskSize,
+    pub status: TaskStatus,
+    pub assignees: Vec<UserId>,
 }
 
 impl TaskEntry {
@@ -130,21 +148,21 @@ impl TaskEntry {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize)]
-pub struct UserEntry {
-    id: UserId,
-    name: String,
-    color: Color,
-}
-
-#[derive(Debug, PartialEq, Eq, Deserialize)]
-pub struct UserData {
-    name: String,
-    color: Color,
-}
-
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-enum Color {
+pub struct UserEntry {
+    pub id: UserId,
+    pub name: String,
+    pub color: Color,
+}
+
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct UserData {
+    pub name: String,
+    pub color: Color,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Color {
     Black,
     White,
     Gray,
