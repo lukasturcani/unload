@@ -54,7 +54,7 @@ CREATE INDEX IF NOT EXISTS users_board_name_idx ON users (board_name);
 CREATE TABLE
 IF NOT EXISTS task_assignments (
     id INTEGER PRIMARY KEY NOT NULL,
-    board_name INTEGER NOT NULL,
+    board_name TEXT NOT NULL,
     user_id INTEGER NOT NULL,
     task_id INTEGER NOT NULL,
     UNIQUE (user_id, task_id),
@@ -75,7 +75,7 @@ CREATE INDEX IF NOT EXISTS task_assignments_task_id_idx ON task_assignments (
 
 CREATE TABLE IF NOT EXISTS task_dependencies (
     id INTEGER PRIMARY KEY NOT NULL,
-    board_name INTEGER NOT NULL,
+    board_name TEXT NOT NULL,
     task_id INTEGER NOT NULL,
     blocks_id INTEGER NOT NULL,
     UNIQUE (task_id, blocks_id),
