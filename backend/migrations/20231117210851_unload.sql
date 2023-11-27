@@ -46,6 +46,7 @@ IF NOT EXISTS users (
         'AQUA'
 
     )) NOT NULL,
+    UNIQUE (board_name, name, color),
     FOREIGN KEY (board_name) REFERENCES boards (name)
 );
 CREATE INDEX IF NOT EXISTS users_board_name_idx ON users (board_name);

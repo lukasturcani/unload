@@ -181,6 +181,29 @@ pub enum Color {
     Aqua,
 }
 
+impl Display for Color {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Color::Black => write!(f, "BLACK"),
+            Color::White => write!(f, "WHITE"),
+            Color::Gray => write!(f, "GRAY"),
+            Color::Silver => write!(f, "SILVER"),
+            Color::Maroon => write!(f, "MAROON"),
+            Color::Red => write!(f, "RED"),
+            Color::Purple => write!(f, "PURPLE"),
+            Color::Fushsia => write!(f, "FUSHSIA"),
+            Color::Green => write!(f, "GREEN"),
+            Color::Lime => write!(f, "LIME"),
+            Color::Olive => write!(f, "OLIVE"),
+            Color::Yellow => write!(f, "YELLOW"),
+            Color::Navy => write!(f, "NAVY"),
+            Color::Blue => write!(f, "BLUE"),
+            Color::Teal => write!(f, "TEAL"),
+            Color::Aqua => write!(f, "AQUA"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct AppError(anyhow::Error);
 
@@ -385,7 +408,23 @@ pub async fn create_user(
     Path(board_name): Path<BoardName>,
     Json(user_data): Json<UserData>,
 ) -> Result<Json<UserId>> {
-    todo!()
+    let color = user_data.color.to_string();
+    let mut tx = pool.begin().await?;
+    let user_id = UserId(
+        sqlx::query!(
+            "
+INSERT INTO users (board_name, name, color)
+VALUES (?, ?, ?)",
+            board_name.0,
+            user_data.name,
+            color,
+        )
+        .execute(&mut *tx)
+        .await?
+        .last_insert_rowid(),
+    );
+    tx.commit().await?;
+    Ok(Json(user_id))
 }
 
 pub async fn delete_user(

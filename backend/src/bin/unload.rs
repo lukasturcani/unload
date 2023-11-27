@@ -98,7 +98,7 @@ mod tests {
 
         for (user_id, user_data) in user_ids.iter().zip(users.iter()) {
             let user_entry = server
-                .get(&format!("/api/boards{board_name}/users/{user_id}"))
+                .get(&format!("/api/boards/{board_name}/users/{user_id}"))
                 .await
                 .json::<UserEntry>();
             let expected = UserEntry {
