@@ -2,6 +2,11 @@
 default:
   @just --list
 
+# make a release binary
+release:
+  cd backend && cargo build --release
+  upx --best --lzma backend/target/release/unload
+
 # create the database
 create-db database:
   sqlx db create --database-url "sqlite:{{database}}"
