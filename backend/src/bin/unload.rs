@@ -191,7 +191,22 @@ mod tests {
 
         // Check task deletion
 
-        todo!();
+        let removed_task = expected_tasks.pop().unwrap();
+        let _ = dbg!(
+            server
+                .delete(&format!(
+                    "/api/boards/{board_name}/tasks/{}",
+                    removed_task.id
+                ))
+                .await
+        )
+        .json::<()>();
+        let mut db_tasks = server
+            .get(&format!("/api/boards/{board_name}/tasks"))
+            .await
+            .json::<Vec<TaskEntry>>();
+        db_tasks.sort_by(|task1, task2| task1.id.cmp(&task2.id));
+        assert_eq!(db_tasks, expected_tasks);
 
         // Check user deletion
 

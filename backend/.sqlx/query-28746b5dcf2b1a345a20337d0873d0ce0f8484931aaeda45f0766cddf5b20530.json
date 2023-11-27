@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nDELETE FROM\n    task_dependencies\nWHERE\n    board_name = ? and task_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "28746b5dcf2b1a345a20337d0873d0ce0f8484931aaeda45f0766cddf5b20530"
+}
