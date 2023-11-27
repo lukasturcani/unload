@@ -7,10 +7,7 @@ use tokio::runtime::Runtime;
 use unload::{show_tasks, BoardName};
 
 fn bench_show_tasks(c: &mut Criterion) {
-    let bench_db = std::env::vars()
-        .find(|(key, _)| key == "BENCH_DATABASE_URL")
-        .unwrap()
-        .1;
+    let bench_db = std::env::var("BENCH_DATABASE_URL").unwrap();
     let runtime = Runtime::new().unwrap();
     let pool = State(
         Runtime::new()
