@@ -426,20 +426,7 @@ pub async fn delete_task(
     State(pool): State<SqlitePool>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
 ) -> Result<Json<()>> {
-    // TODO: handle dangling assignments
-
     let mut tx = pool.begin().await?;
-    sqlx::query!(
-        "
-DELETE FROM
-    tasks
-WHERE
-    board_name = ? AND id = ?",
-        board_name.0,
-        task_id.0,
-    )
-    .execute(&mut *tx)
-    .await?;
 
     sqlx::query!(
         "
@@ -459,6 +446,18 @@ DELETE FROM
     task_dependencies
 WHERE
     board_name = ? and task_id = ?",
+        board_name.0,
+        task_id.0,
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
+    tasks
+WHERE
+    board_name = ? AND id = ?",
         board_name.0,
         task_id.0,
     )

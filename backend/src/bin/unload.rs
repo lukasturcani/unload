@@ -192,15 +192,13 @@ mod tests {
         // Check task deletion
 
         let removed_task = expected_tasks.pop().unwrap();
-        let _ = dbg!(
-            server
-                .delete(&format!(
-                    "/api/boards/{board_name}/tasks/{}",
-                    removed_task.id
-                ))
-                .await
-        )
-        .json::<()>();
+        let _ = server
+            .delete(&format!(
+                "/api/boards/{board_name}/tasks/{}",
+                removed_task.id
+            ))
+            .await
+            .json::<()>();
         let mut db_tasks = server
             .get(&format!("/api/boards/{board_name}/tasks"))
             .await
