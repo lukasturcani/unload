@@ -4,7 +4,7 @@ use sqlx::SqlitePool;
 use tokio;
 use unload::{
     create_board, create_task, create_user, delete_task, delete_user, show_task, show_tasks,
-    show_user, show_users, BoardName, Result,
+    show_user, show_users, Result,
 };
 
 #[derive(Parser, Debug)]
@@ -53,14 +53,18 @@ async fn main() -> Result<()> {
 mod tests {
     use super::*;
     use axum_test::TestServer;
+    use unload::BoardName;
 
     #[tokio::test]
     async fn adding_tasks() {
-        let pool = SqlitePool::connect("sqlite::memory").await.unwrap();
+        let pool = SqlitePool::connect(&std::env::var("TEST_DATABASE_URL").unwrap())
+            .await
+            .unwrap();
         let app = router().with_state(pool);
         let server = TestServer::new(app).unwrap();
         let board_name = BoardName::new("test-board-0");
         let response = server.post("/api/boards").json(&board_name).await;
+        dbg!(&response);
         assert_eq!(response.json::<BoardName>(), board_name);
     }
 }

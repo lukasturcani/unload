@@ -191,7 +191,18 @@ pub async fn create_board(
     State(pool): State<SqlitePool>,
     Json(board_name): Json<BoardName>,
 ) -> Result<Json<BoardName>> {
-    todo!()
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+INSERT INTO boards (name, title)
+VALUES (?, ?)",
+        board_name.0,
+        board_name.0
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(board_name))
 }
 
 pub async fn show_task(

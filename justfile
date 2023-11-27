@@ -6,11 +6,13 @@ default:
 create-db database:
   sqlx db create --database-url "sqlite:{{database}}"
   cd backend && sqlx migrate run --database-url "sqlite:{{database}}"
-  cd backend && cargo sqlx prepare --database-url "sqlite:{{database}}"
 
 # prepare the database
 prepare-db database:
   cd backend && cargo sqlx prepare --database-url "sqlite:{{database}}"
+
+# create and prepare the database
+init-db database: (create-db database) (prepare-db database)
 
 # prepare the bench database
 create-bench-db database:
@@ -21,6 +23,17 @@ create-bench-db database:
 # run benchmarks
 bench database:
   cd backend && BENCH_DATABASE_URL={{database}} cargo bench
+
+# run tests
+test:
+  #!/usr/bin/env bash
+
+  set -x
+  database=$(mktemp)
+  just create-db $database
+  cd backend
+  TEST_DATABASE_URL="sqlite:$database" cargo test
+  rm $database
 
 # run code checks
 check:
@@ -34,6 +47,16 @@ check:
 
   echo
   (set -x; cd backend && cargo clippy)
+
+  echo
+  (
+    set -x;
+    cd backend &&
+    database=$(mktemp) &&
+    just create-db $database &&
+    TEST_DATABASE_URL=$database cargo test
+    rm $database
+  )
 
   echo
   (set -x; sqlfluff lint .)
