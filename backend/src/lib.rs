@@ -172,7 +172,8 @@ pub async fn show_task(
     State(pool): State<SqlitePool>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
 ) -> Result<Json<TaskEntry>> {
-    let task_query = sqlx::query_as!(
+    let mut tx = pool.begin().await?;
+    let task = sqlx::query_as!(
         TaskRow,
         "
 SELECT
@@ -185,8 +186,9 @@ LIMIT 1",
         task_id.0,
         board_name.0,
     )
-    .fetch_one(&pool);
-    let assignees_query = sqlx::query!(
+    .fetch_one(&mut *tx)
+    .await?;
+    let assignees = sqlx::query!(
         "
 SELECT
     user_id
@@ -196,18 +198,16 @@ WHERE
     task_id = ?",
         task_id.0,
     )
-    .fetch_all(&pool);
-    match join!(task_query, assignees_query) {
-        (Ok(task), Ok(assignees)) => Ok(Json(TaskEntry::from_task_row(
-            task,
-            assignees
-                .into_iter()
-                .map(|record| UserId(record.user_id))
-                .collect(),
-        )?)),
-        (Err(err), _) => Err(err.into()),
-        (_, Err(err)) => Err(err.into()),
-    }
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(TaskEntry::from_task_row(
+        task,
+        assignees
+            .into_iter()
+            .map(|record| UserId(record.user_id))
+            .collect(),
+    )?))
 }
 
 pub async fn show_tasks(
@@ -221,7 +221,8 @@ async fn show_tasks_1(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<Vec<TaskEntry>>> {
-    let tasks_query = sqlx::query_as!(
+    let mut tx = pool.begin().await?;
+    let tasks = sqlx::query_as!(
         TaskRow,
         "
 SELECT
@@ -232,8 +233,9 @@ WHERE
     board_name = ?",
         board_name.0
     )
-    .fetch_all(&pool);
-    let assignments_query = sqlx::query!(
+    .fetch_all(&mut *tx)
+    .await?;
+    let assignments = sqlx::query!(
         "
 SELECT
     task_id, user_id
@@ -243,33 +245,28 @@ WHERE
     board_name = ?",
         board_name.0,
     )
-    .fetch_all(&pool);
-    match join!(tasks_query, assignments_query) {
-        (Ok(tasks), Ok(assignments)) => {
-            let mut task_assignments =
-                assignments
-                    .into_iter()
-                    .fold(HashMap::new(), |mut map, record| {
-                        map.entry(record.task_id)
-                            .or_insert_with(Vec::new)
-                            .push(UserId(record.user_id));
-                        map
-                    });
-            let task_entries: Result<Vec<TaskEntry>> = tasks
-                .into_iter()
-                .map(|task_row| {
-                    let task_id = task_row.id;
-                    TaskEntry::from_task_row(
-                        task_row,
-                        task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
-                    )
-                })
-                .collect();
-            Ok(Json(task_entries?))
-        }
-        (Err(err), _) => Err(err.into()),
-        (_, Err(err)) => Err(err.into()),
-    }
+    .fetch_all(&mut *tx)
+    .await?;
+    let mut task_assignments = assignments
+        .into_iter()
+        .fold(HashMap::new(), |mut map, record| {
+            map.entry(record.task_id)
+                .or_insert_with(Vec::new)
+                .push(UserId(record.user_id));
+            map
+        });
+    let task_entries: Result<Vec<TaskEntry>> = tasks
+        .into_iter()
+        .map(|task_row| {
+            let task_id = task_row.id;
+            TaskEntry::from_task_row(
+                task_row,
+                task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
+            )
+        })
+        .collect();
+    tx.commit().await?;
+    Ok(Json(task_entries?))
 }
 
 async fn show_tasks_2(
