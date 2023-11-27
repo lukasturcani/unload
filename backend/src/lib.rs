@@ -5,8 +5,6 @@ use axum::{extract::Path, extract::State, response::Json};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::collections::HashMap;
-use tokio;
-use tokio::join;
 
 #[derive(Serialize, Deserialize)]
 enum TaskSize {
@@ -273,7 +271,42 @@ async fn show_tasks_2(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<Vec<TaskEntry>>> {
-    todo!()
+    let mut tx = pool.begin().await?;
+    let tasks = sqlx::query_as!(
+        TaskRow,
+        "
+SELECT
+    id, title, description, created, updated, due, size, status
+FROM
+    tasks
+WHERE
+    board_name = ?",
+        board_name.0,
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    let mut task_entries = Vec::with_capacity(tasks.len());
+    for task_row in tasks {
+        let assignments = sqlx::query!(
+            "
+SELECT
+    user_id
+FROM
+    task_assignments
+WHERE
+    task_id = ? AND board_name = ?",
+            task_row.id,
+            board_name.0,
+        )
+        .fetch_all(&mut *tx)
+        .await?
+        .into_iter()
+        .map(|record| UserId(record.user_id))
+        .collect();
+        task_entries.push(TaskEntry::from_task_row(task_row, assignments)?);
+    }
+    tx.commit().await?;
+    Ok(Json(task_entries))
 }
 
 pub async fn show_tasks_using_map(
