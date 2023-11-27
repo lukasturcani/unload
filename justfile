@@ -51,7 +51,7 @@ check:
   (set -x; cd backend && cargo check)
 
   echo
-  (set -x; cd backend && cargo clippy)
+  (set -x; cd backend && cargo clippy -- -D warnings)
 
   echo
   (set -x; just cargo-test)

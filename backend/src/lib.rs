@@ -361,6 +361,7 @@ WHERE
     let mut task_assignments = assignments
         .into_iter()
         .fold(HashMap::new(), |mut map, record| {
+            #[allow(clippy::unwrap_or_default)]
             map.entry(record.task_id)
                 .or_insert_with(Vec::new)
                 .push(UserId(record.user_id));
