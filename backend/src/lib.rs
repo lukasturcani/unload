@@ -5,6 +5,7 @@ use axum::{extract::Path, extract::State, response::Json};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::collections::HashMap;
+use std::fmt::Display;
 
 #[derive(Serialize, Deserialize)]
 enum TaskSize {
@@ -24,6 +25,16 @@ impl TaskSize {
     }
 }
 
+impl Display for TaskSize {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TaskSize::Small => write!(f, "SMALL"),
+            TaskSize::Medium => write!(f, "MEDIUM"),
+            TaskSize::Large => write!(f, "LARGE"),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 enum TaskStatus {
     ToDo,
@@ -38,6 +49,16 @@ impl TaskStatus {
             "IN_PROGRESS" => Ok(TaskStatus::InProgress),
             "DONE" => Ok(TaskStatus::Done),
             _ => Err(AppError(anyhow::anyhow!("invalid task status"))),
+        }
+    }
+}
+
+impl Display for TaskStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TaskStatus::ToDo => write!(f, "TO_DO"),
+            TaskStatus::InProgress => write!(f, "IN_PROGRESS"),
+            TaskStatus::Done => write!(f, "DONE"),
         }
     }
 }
@@ -265,7 +286,41 @@ pub async fn create_task(
     Path(board_name): Path<BoardName>,
     Json(task_data): Json<TaskData>,
 ) -> Result<Json<TaskId>> {
-    todo!()
+    let mut tx = pool.begin().await?;
+    let size = task_data.size.to_string();
+    let status = task_data.status.to_string();
+    let task_id = TaskId(
+        sqlx::query!(
+            "
+INSERT INTO tasks (board_name, title, description, created, updated, due, size, status)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            board_name.0,
+            task_data.title,
+            task_data.description,
+            task_data.created,
+            task_data.updated,
+            task_data.due,
+            size,
+            status,
+        )
+        .execute(&mut *tx)
+        .await?
+        .last_insert_rowid(),
+    );
+    for assignee in task_data.assignees {
+        sqlx::query!(
+            "
+INSERT INTO task_assignments (board_name, user_id, task_id)
+VALUES (?, ?, ?)",
+            board_name.0,
+            assignee.0,
+            task_id.0,
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+    tx.commit().await?;
+    Ok(Json(task_id))
 }
 
 pub async fn delete_task(
