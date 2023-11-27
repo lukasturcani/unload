@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nDELETE FROM\n    users\nWHERE\n    board_name = ? AND id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "cfa03ff15c23bf63b2b1de7cc0014398b7eb3033bb9cafbfdd796b04022d9516"
+}

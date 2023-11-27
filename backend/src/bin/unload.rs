@@ -208,6 +208,19 @@ mod tests {
 
         // Check user deletion
 
-        todo!();
+        let removed_user = expected_users.pop().unwrap();
+        let _ = server
+            .delete(&format!(
+                "/api/boards/{board_name}/users/{}",
+                removed_user.id
+            ))
+            .await
+            .json::<()>();
+        let mut db_users = server
+            .get(&format!("/api/boards/{board_name}/users"))
+            .await
+            .json::<Vec<UserEntry>>();
+        db_users.sort_by(|user1, user2| user1.id.cmp(&user2.id));
+        assert_eq!(expected_users, db_users);
     }
 }

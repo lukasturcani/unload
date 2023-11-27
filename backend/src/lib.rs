@@ -546,6 +546,31 @@ pub async fn delete_user(
     State(pool): State<SqlitePool>,
     Path((board_name, user_id)): Path<(BoardName, UserId)>,
 ) -> Result<Json<()>> {
-    // handle dangling assignments
-    todo!()
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    task_assignments
+WHERE
+    board_name = ? AND user_id = ?",
+        board_name.0,
+        user_id.0
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
+    users
+WHERE
+    board_name = ? AND id = ?",
+        board_name.0,
+        user_id.0
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(Json(()))
 }
