@@ -7,7 +7,7 @@ use sqlx::SqlitePool;
 use std::collections::HashMap;
 use std::fmt::Display;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 enum TaskSize {
     Small,
     Medium,
@@ -35,7 +35,7 @@ impl Display for TaskSize {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 enum TaskStatus {
     ToDo,
     InProgress,
@@ -63,7 +63,7 @@ impl Display for TaskStatus {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BoardName(String);
 
 impl BoardName {
@@ -72,13 +72,13 @@ impl BoardName {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserId(i64);
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TaskId(i64);
 
-#[derive(Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct TaskData {
     title: String,
     description: String,
@@ -101,7 +101,7 @@ struct TaskRow {
     status: String,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct TaskEntry {
     id: TaskId,
     title: String,
@@ -130,20 +130,20 @@ impl TaskEntry {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct UserEntry {
     id: UserId,
     name: String,
     color: Color,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct UserData {
     name: String,
     color: Color,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 enum Color {
     Black,
     White,
@@ -186,6 +186,13 @@ where
 }
 
 pub type Result<T> = std::result::Result<T, AppError>;
+
+pub async fn create_board(
+    State(pool): State<SqlitePool>,
+    Json(board_name): Json<BoardName>,
+) -> Result<Json<BoardName>> {
+    todo!()
+}
 
 pub async fn show_task(
     State(pool): State<SqlitePool>,

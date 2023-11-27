@@ -3,8 +3,8 @@ use clap::Parser;
 use sqlx::SqlitePool;
 use tokio;
 use unload::{
-    create_task, create_user, delete_task, delete_user, show_task, show_tasks, show_user,
-    show_users, Result,
+    create_board, create_task, create_user, delete_task, delete_user, show_task, show_tasks,
+    show_user, show_users, BoardName, Result,
 };
 
 #[derive(Parser, Debug)]
@@ -19,11 +19,9 @@ struct Args {
     server_address: std::net::SocketAddr,
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    let args = Args::parse();
-    let pool = SqlitePool::connect(&args.database_url).await?;
-    let app = Router::new()
+fn router() -> Router<SqlitePool> {
+    Router::new()
+        .route("/api/boards", post(create_board))
         .route("/api/boards/:board_name/tasks/:task_id", get(show_task))
         .route(
             "/api/boards/:board_name/tasks/:task_id",
@@ -38,9 +36,31 @@ async fn main() -> Result<()> {
         )
         .route("/api/boards/:board_name/users", get(show_users))
         .route("/api/boards/:board_name/users", post(create_user))
-        .with_state(pool);
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let args = Args::parse();
+    let pool = SqlitePool::connect(&args.database_url).await?;
+    let app = router().with_state(pool);
     axum::Server::bind(&args.server_address)
         .serve(app.into_make_service())
         .await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum_test::TestServer;
+
+    #[tokio::test]
+    async fn adding_tasks() {
+        let pool = SqlitePool::connect("sqlite::memory").await.unwrap();
+        let app = router().with_state(pool);
+        let server = TestServer::new(app).unwrap();
+        let board_name = BoardName::new("test-board-0");
+        let response = server.post("/api/boards").json(&board_name).await;
+        assert_eq!(response.json::<BoardName>(), board_name);
+    }
 }
