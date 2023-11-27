@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nINSERT INTO tasks (board_name, title, description, created, updated, due, size, status)\nVALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 8
+    },
+    "nullable": []
+  },
+  "hash": "ec7f37e66bb2b8193f64b126d740afe988aec81c42f7bef19f528ed390f48a4b"
+}
