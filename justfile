@@ -24,16 +24,21 @@ create-bench-db database:
 bench database:
   cd backend && BENCH_DATABASE_URL={{database}} cargo bench
 
-# run tests
-test:
+# run cargo tests
+cargo-test:
   #!/usr/bin/env bash
 
+  error=0
+  trap error=1 ERR
+
   set -x
-  database=$(mktemp)
-  just create-db $database
-  cd backend
+  database=$(mktemp) &&
+  just create-db $database &&
+  cd backend &&
   TEST_DATABASE_URL="sqlite:$database" cargo test
   rm $database
+
+  test $error = 0
 
 # run code checks
 check:
@@ -49,14 +54,7 @@ check:
   (set -x; cd backend && cargo clippy)
 
   echo
-  (
-    set -x;
-    cd backend &&
-    database=$(mktemp) &&
-    just create-db $database &&
-    TEST_DATABASE_URL=$database cargo test
-    rm $database
-  )
+  (set -x; just cargo-test)
 
   echo
   (set -x; sqlfluff lint .)
