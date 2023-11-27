@@ -410,6 +410,7 @@ pub async fn delete_task(
     State(pool): State<SqlitePool>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
 ) -> Result<Json<()>> {
+    // handle dangling assignments
     todo!()
 }
 
@@ -475,5 +476,6 @@ pub async fn delete_user(
     State(pool): State<SqlitePool>,
     Path((board_name, user_id)): Path<(BoardName, UserId)>,
 ) -> Result<Json<()>> {
+    // handle dangling assignments
     todo!()
 }

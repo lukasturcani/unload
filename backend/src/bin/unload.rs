@@ -94,7 +94,7 @@ mod tests {
             )
         }
 
-        // Check users
+        // Check users one by one
 
         for (user_id, user_data) in user_ids.iter().zip(users.iter()) {
             let user_entry = server
@@ -108,6 +108,10 @@ mod tests {
             };
             assert_eq!(user_entry, expected);
         }
+
+        // Check all users
+
+        todo!();
 
         // Create tasks
 
@@ -144,7 +148,7 @@ mod tests {
             )
         }
 
-        // Check tasks
+        // Check tasks one by one
 
         for (task_id, task_data) in task_ids.iter().zip(tasks.iter()) {
             let task_entry = server
@@ -164,5 +168,17 @@ mod tests {
             };
             assert_eq!(task_entry, expected);
         }
+
+        // Check all tasks
+
+        todo!();
+
+        // Check task deletion
+
+        todo!();
+
+        // Check user deletion
+
+        todo!();
     }
 }
