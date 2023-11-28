@@ -268,10 +268,7 @@ where
 
 pub type Result<T> = std::result::Result<T, AppError>;
 
-pub async fn create_board(
-    State(pool): State<SqlitePool>,
-    Json(board_name): Json<BoardName>,
-) -> Result<Json<BoardName>> {
+pub async fn create_board(State(pool): State<SqlitePool>) -> Result<Json<BoardName>> {
     let mut tx = pool.begin().await?;
     sqlx::query!(
         "
