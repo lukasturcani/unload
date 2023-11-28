@@ -11,5 +11,5 @@ RUN cargo install --path .
 RUN upx --best --lzma /usr/local/cargo/bin/unload
 
 FROM gcr.io/distroless/cc-debian12:debug
-COPY --from=builder /usr/local/cargo/bin/unload /unload
-ENTRYPOINT ["/unload", "-h"]
+COPY --from=builder /usr/local/cargo/bin/unload /usr/local/bin/unload
+ENTRYPOINT ["unload"]
