@@ -2,6 +2,10 @@
 default:
   @just --list
 
+# build a docker image
+build-image:
+  docker buildx build -t unload --file backend/Dockerfile backend
+
 # make a release binary
 release:
   cd backend && cargo build --release
