@@ -1,22 +1,9 @@
 use axum::{routing::delete, routing::get, routing::post, Router};
-use clap::Parser;
 use sqlx::SqlitePool;
 use unload::{
     create_board, create_task, create_user, delete_task, delete_user, show_task, show_tasks,
     show_user, show_users, Result,
 };
-
-#[derive(Parser, Debug)]
-struct Args {
-    /// Database URL
-    database_url: String,
-    /// Maximum number of messages which can be queued vefore blocking
-    #[clap(short, long, default_value = "1000000")]
-    message_queue_size: usize,
-    /// Server address
-    #[clap(short, long, default_value = "0.0.0.0:3000")]
-    server_address: std::net::SocketAddr,
-}
 
 fn router() -> Router<SqlitePool> {
     Router::new()
@@ -39,10 +26,17 @@ fn router() -> Router<SqlitePool> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = Args::parse();
-    let pool = SqlitePool::connect(&args.database_url).await?;
+    let database_url = std::env::var("UNLOAD_DATABASE_URL")?;
+    let server_address = {
+        if let Ok(address) = std::env::var("UNLOAD_SERVER_ADDRESS") {
+            address.parse()?
+        } else {
+            std::net::SocketAddr::from(([0, 0, 0, 0], 8080))
+        }
+    };
+    let pool = SqlitePool::connect(&database_url).await?;
     let app = router().with_state(pool);
-    axum::Server::bind(&args.server_address)
+    axum::Server::bind(&server_address)
         .serve(app.into_make_service())
         .await?;
     Ok(())
