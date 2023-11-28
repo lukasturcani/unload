@@ -7,7 +7,7 @@ WORKDIR /usr/src/unload
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 COPY .sqlx ./.sqlx
-RUN cargo install --path .
+RUN cargo install --bin unload --path .
 RUN upx --best --lzma /usr/local/cargo/bin/unload
 
 FROM gcr.io/distroless/cc-debian12:debug
