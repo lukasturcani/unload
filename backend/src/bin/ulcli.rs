@@ -120,9 +120,9 @@ async fn main() -> Result<(), anyhow::Error> {
             BoardAction::AddTask => {
                 let title = Text::new("Title:").prompt()?;
                 let description = Text::new("Description:").prompt()?;
-                let due = if let Some(due_date) = DateSelect::new("Due date:").prompt_skippable()? {
+                let due = if let Some(due_date) = DateSelect::new("Due Date:").prompt_skippable()? {
                     let time_fmt = "%I:%M %p";
-                    let time = Text::new("Time due (HH:MM tt):")
+                    let time = Text::new("Time Due (HH:MM tt):")
                         .with_validator(|time: &str| {
                             match NaiveTime::parse_from_str(time, time_fmt) {
                                 Ok(_) => Ok(Validation::Valid),
@@ -189,10 +189,27 @@ async fn main() -> Result<(), anyhow::Error> {
                     .await?;
                 println!("{tasks:#?}");
             }
-            BoardAction::DeleteTask => todo!(),
-            BoardAction::GetUser => todo!(),
+            BoardAction::DeleteTask => {
+                let task_id = Text::new("Task Id:").prompt()?;
+                client
+                    .delete(url.join(&format!("/api/boards/{board_name}/tasks/{task_id}"))?)
+                    .send()
+                    .await?
+                    .json::<()>()
+                    .await?;
+            }
+            BoardAction::GetUser => {
+                let user_id = Text::new("User Id:").prompt()?;
+                let user = client
+                    .get(url.join(&format!("/api/boards/{board_name}/users/{user_id}"))?)
+                    .send()
+                    .await?
+                    .json::<UserEntry>()
+                    .await?;
+                println!("{user:#?}");
+            }
             BoardAction::AddUser => {
-                let name = Text::new("User name:").prompt()?;
+                let name = Text::new("User Name:").prompt()?;
                 let color = Select::new(
                     "Color:",
                     vec![
@@ -233,7 +250,15 @@ async fn main() -> Result<(), anyhow::Error> {
                     .await?;
                 println!("{users:#?}");
             }
-            BoardAction::DeleteUser => todo!(),
+            BoardAction::DeleteUser => {
+                let user_id = Text::new("User Id:").prompt()?;
+                client
+                    .delete(url.join(&format!("/api/boards/{board_name}/users/{user_id}"))?)
+                    .send()
+                    .await?
+                    .json::<()>()
+                    .await?;
+            }
         }
     }
 }
