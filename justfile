@@ -69,3 +69,7 @@ check:
 
 run database:
   cd backend && UNLOAD_DATABASE_URL="sqlite:{{database}}" cargo run --release --bin unload
+
+# connect to fly.io volume
+fly-volume:
+  cd backend && fly machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
