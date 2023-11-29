@@ -38,5 +38,6 @@ async fn main() -> Result<(), anyhow::Error> {
             .await?;
     }
     tx.commit().await?;
+    pool.close().await;
     Ok(())
 }
