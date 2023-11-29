@@ -61,9 +61,7 @@ mod tests {
 
         // Create board
 
-        let board_name = BoardName::new("test-board-0");
-        let response = server.post("/api/boards").json(&board_name).await;
-        assert_eq!(response.json::<BoardName>(), board_name);
+        let board_name = server.post("/api/boards").await.json::<BoardName>();
 
         // Create users
 
