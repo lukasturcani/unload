@@ -15,6 +15,7 @@ release:
 create-db database:
   sqlx db create --database-url "sqlite:{{database}}"
   cd backend && sqlx migrate run --database-url "sqlite:{{database}}"
+  cd backend && cargo run --release --bin create_initial_db -- "sqlite:{{database}}" data/nouns.txt data/adjectives.txt
 
 # prepare the database
 prepare-db database:
