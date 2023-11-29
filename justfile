@@ -15,19 +15,15 @@ release:
 create-db database:
   sqlx db create --database-url "sqlite:{{database}}"
   cd backend && sqlx migrate run --database-url "sqlite:{{database}}"
+  cd backend && cargo sqlx prepare --database-url "sqlite:{{database}}"
   cd backend && cargo run --release --bin create_initial_db -- "sqlite:{{database}}" data/nouns.txt data/adjectives.txt
 
 # prepare the database
 prepare-db database:
   cd backend && cargo sqlx prepare --database-url "sqlite:{{database}}"
 
-# create and prepare the database
-init-db database: (create-db database) (prepare-db database)
-
 # prepare the bench database
-create-bench-db database:
-  sqlx db create --database-url "sqlite:{{database}}"
-  cd backend && sqlx migrate run --database-url "sqlite:{{database}}"
+create-bench-db database: (create-db database)
   cd backend && cargo run --release --bin create_bench_db -- "sqlite:{{database}}"
 
 # run benchmarks

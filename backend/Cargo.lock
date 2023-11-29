@@ -2268,6 +2268,7 @@ dependencies = [
  "criterion",
  "indicatif",
  "inquire",
+ "rand",
  "serde",
  "serde_json",
  "sqlx",

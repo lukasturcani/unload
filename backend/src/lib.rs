@@ -269,7 +269,7 @@ where
 pub type Result<T> = std::result::Result<T, AppError>;
 
 pub async fn create_board(State(pool): State<SqlitePool>) -> Result<Json<BoardName>> {
-    let board_name: BoardName = todo!();
+    let board_name = new_unique_board_name(&pool).await?;
     let mut tx = pool.begin().await?;
     sqlx::query!(
         "
@@ -282,6 +282,37 @@ VALUES (?, ?)",
     .await?;
     tx.commit().await?;
     Ok(Json(board_name))
+}
+
+async fn new_unique_board_name(pool: &SqlitePool) -> Result<BoardName> {
+    let mut tx = pool.begin().await?;
+    let num_boards = sqlx::query!("SELECT COUNT(*) AS count FROM boards")
+        .fetch_one(&mut *tx)
+        .await?
+        .count;
+    let num_nouns = sqlx::query!("SELECT COUNT(*) AS count FROM nouns")
+        .fetch_one(&mut *tx)
+        .await?
+        .count;
+    let num_adjectives = sqlx::query!("SELECT COUNT(*) AS count FROM adjectives")
+        .fetch_one(&mut *tx)
+        .await?
+        .count;
+    let noun_id = (rand::random::<f32>() * num_nouns as f32).trunc() as i64;
+    let adjective_id = (rand::random::<f32>() * num_adjectives as f32).trunc() as i64;
+    let noun = sqlx::query!("SELECT noun FROM nouns WHERE id = ?", noun_id)
+        .fetch_one(&mut *tx)
+        .await?
+        .noun;
+    let adjective = sqlx::query!(
+        "SELECT adjective FROM adjectives WHERE id = ?",
+        adjective_id
+    )
+    .fetch_one(&mut *tx)
+    .await?
+    .adjective;
+    tx.commit().await?;
+    Ok(BoardName(format!("{adjective}-{noun}-{num_boards}")))
 }
 
 pub async fn show_task(

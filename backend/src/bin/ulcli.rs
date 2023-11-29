@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::net::SocketAddr;
 
 use inquire::{Select, Text};
 use unload::Color;
@@ -18,6 +19,7 @@ impl Display for BoardAction {
 }
 
 fn main() -> Result<(), anyhow::Error> {
+    let url = Text::new("Unload URL:").prompt()?.parse::<SocketAddr>()?;
     let board_name = match Select::new(
         "What would you like to do?",
         vec![BoardAction::JoinBoard, BoardAction::CreateBoard],

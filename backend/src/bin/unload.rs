@@ -1,5 +1,6 @@
 use axum::{routing::delete, routing::get, routing::post, Router};
 use sqlx::SqlitePool;
+use std::net::SocketAddr;
 use unload::{
     create_board, create_task, create_user, delete_task, delete_user, show_task, show_tasks,
     show_user, show_users, Result,
@@ -31,7 +32,7 @@ async fn main() -> Result<()> {
         if let Ok(address) = std::env::var("UNLOAD_SERVER_ADDRESS") {
             address.parse()?
         } else {
-            std::net::SocketAddr::from(([0, 0, 0, 0], 8080))
+            SocketAddr::from(([0, 0, 0, 0], 8080))
         }
     };
     let pool = SqlitePool::connect(&database_url).await?;

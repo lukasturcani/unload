@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT noun FROM nouns WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "noun",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "5a713879b2ef999bf3bc4d333a114b10670addae50c93bf704755c5c996b37d6"
+}
