@@ -2,6 +2,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::collections::HashMap;
@@ -100,8 +101,6 @@ impl Display for TaskId {
 pub struct TaskData {
     pub title: String,
     pub description: String,
-    pub created: i64,
-    pub updated: i64,
     pub due: Option<i64>,
     pub size: TaskSize,
     pub status: TaskStatus,
@@ -154,7 +153,7 @@ struct UserRow {
     color: String,
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserEntry {
     pub id: UserId,
     pub name: String,
@@ -415,6 +414,7 @@ pub async fn create_task(
     Path(board_name): Path<BoardName>,
     Json(task_data): Json<TaskData>,
 ) -> Result<Json<TaskId>> {
+    let created = Utc::now().timestamp();
     let mut tx = pool.begin().await?;
     let size = task_data.size.to_string();
     let status = task_data.status.to_string();
@@ -426,8 +426,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             board_name.0,
             task_data.title,
             task_data.description,
-            task_data.created,
-            task_data.updated,
+            created,
+            created,
             task_data.due,
             size,
             status,

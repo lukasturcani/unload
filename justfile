@@ -66,3 +66,6 @@ check:
   (set -x; sqlfluff lint .)
 
   test $error = 0
+
+run database:
+  cd backend && UNLOAD_DATABASE_URL="sqlite:{{database}}" cargo run --release --bin unload
