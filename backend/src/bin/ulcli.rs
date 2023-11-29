@@ -3,7 +3,10 @@ use std::fmt::Display;
 use chrono::NaiveTime;
 use inquire::{validator::Validation, DateSelect, MultiSelect, Select, Text};
 use reqwest::{Client, Url};
-use unload::{BoardName, TaskData, TaskEntry, TaskId, TaskSize, TaskStatus, UserEntry};
+use unload::{
+    BoardName, Color, TaskData, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry,
+    UserId,
+};
 
 struct UserDisplay(UserEntry);
 
@@ -188,7 +191,39 @@ async fn main() -> Result<(), anyhow::Error> {
             }
             BoardAction::DeleteTask => todo!(),
             BoardAction::GetUser => todo!(),
-            BoardAction::AddUser => todo!(),
+            BoardAction::AddUser => {
+                let name = Text::new("User name:").prompt()?;
+                let color = Select::new(
+                    "Color:",
+                    vec![
+                        Color::Black,
+                        Color::White,
+                        Color::Gray,
+                        Color::Silver,
+                        Color::Maroon,
+                        Color::Red,
+                        Color::Purple,
+                        Color::Fushsia,
+                        Color::Green,
+                        Color::Lime,
+                        Color::Olive,
+                        Color::Yellow,
+                        Color::Navy,
+                        Color::Blue,
+                        Color::Teal,
+                        Color::Aqua,
+                    ],
+                )
+                .prompt()?;
+                let user_id = client
+                    .post(url.join(&format!("/api/boards/{board_name}/users"))?)
+                    .json(&UserData { name, color })
+                    .send()
+                    .await?
+                    .json::<UserId>()
+                    .await?;
+                println!("Created user {user_id}!")
+            }
             BoardAction::GetAllUsers => {
                 let users = client
                     .get(url.join(&format!("/api/boards/{board_name}/users"))?)
