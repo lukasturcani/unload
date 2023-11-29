@@ -1,3 +1,17 @@
+CREATE TABLE nouns (
+    id INTEGER PRIMARY KEY NOT NULL,
+    noun TEXT NOT NULL,
+    UNIQUE (noun)
+
+);
+
+CREATE TABLE adjectives (
+    id INTEGER PRIMARY KEY NOT NULL,
+    adjective TEXT NOT NULL,
+    UNIQUE (adjective)
+
+);
+
 CREATE TABLE
 IF NOT EXISTS boards (
     name TEXT PRIMARY KEY NOT NULL,

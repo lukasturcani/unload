@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT adjective FROM adjectives WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "adjective",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "9ddba7f0de24d905f157c25a8a9355be934a163de2ffe5eeb38cde61e624190a"
+}
