@@ -210,6 +210,18 @@ mod tests {
         // Check task deletion
 
         let removed_task = expected_tasks.pop().unwrap();
+        for expected_task in expected_tasks.iter_mut() {
+            expected_task.blocks = expected_task
+                .blocks
+                .iter()
+                .filter_map(|&task_id| (task_id != removed_task.id).then_some(task_id))
+                .collect();
+            expected_task.blocked_by = expected_task
+                .blocked_by
+                .iter()
+                .filter_map(|&task_id| (task_id != removed_task.id).then_some(task_id))
+                .collect();
+        }
         let _ = server
             .delete(&format!(
                 "/api/boards/{board_name}/tasks/{}",
