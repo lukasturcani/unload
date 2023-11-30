@@ -576,7 +576,10 @@ WHERE
 DELETE FROM
     task_dependencies
 WHERE
-    board_name = ? and task_id = ?",
+    (board_name = ? AND task_id = ?)
+    OR (board_name = ? AND blocks_id = ?)",
+        board_name.0,
+        task_id.0,
         board_name.0,
         task_id.0,
     )
