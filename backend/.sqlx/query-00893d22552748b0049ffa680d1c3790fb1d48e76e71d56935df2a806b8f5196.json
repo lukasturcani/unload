@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nINSERT INTO task_dependencies (board_name, task_id, blocks_id)\nVALUES (?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "00893d22552748b0049ffa680d1c3790fb1d48e76e71d56935df2a806b8f5196"
+}

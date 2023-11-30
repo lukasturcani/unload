@@ -16,6 +16,14 @@ impl Display for UserDisplay {
     }
 }
 
+struct TaskDisplay(TaskEntry);
+
+impl Display for TaskDisplay {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0.title)
+    }
+}
+
 enum BoardChoice {
     JoinBoard,
     CreateBoard,
@@ -164,6 +172,35 @@ async fn main() -> Result<(), anyhow::Error> {
                 } else {
                     Vec::new()
                 };
+                let blocks = if tasks.len() > 0 {
+                    MultiSelect::new(
+                        "Blocks:",
+                        tasks.iter().map(|task| TaskDisplay(task.clone())).collect(),
+                    )
+                    .prompt()?
+                    .into_iter()
+                    .map(|task| task.0.id)
+                    .collect()
+                } else {
+                    Vec::new()
+                };
+                let blocked_by = if tasks.len() > 0 {
+                    MultiSelect::new(
+                        "Blocked By:",
+                        tasks
+                            .iter()
+                            .filter_map(|task| {
+                                (!blocks.contains(&task.id)).then(|| TaskDisplay(task.clone()))
+                            })
+                            .collect(),
+                    )
+                    .prompt()?
+                    .into_iter()
+                    .map(|task| task.0.id)
+                    .collect()
+                } else {
+                    Vec::new()
+                };
                 let task_id = client
                     .post(url.join(&format!("/api/boards/{board_name}/tasks"))?)
                     .json(&TaskData {
@@ -173,6 +210,8 @@ async fn main() -> Result<(), anyhow::Error> {
                         size,
                         status,
                         assignees,
+                        blocks,
+                        blocked_by,
                     })
                     .send()
                     .await?
