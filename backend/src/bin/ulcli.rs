@@ -270,6 +270,7 @@ async fn main() -> Result<(), anyhow::Error> {
                         Color::Aqua,
                     ],
                 )
+                .with_vim_mode(true)
                 .prompt()?;
                 let user_id = client
                     .post(url.join(&format!("/api/boards/{board_name}/users"))?)
