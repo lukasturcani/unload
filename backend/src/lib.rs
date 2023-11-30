@@ -20,8 +20,8 @@ impl TaskSize {
         match size {
             "SMALL" => Ok(TaskSize::Small),
             "MEDIUM" => Ok(TaskSize::Medium),
-            "Large" => Ok(TaskSize::Large),
-            _ => Err(AppError(anyhow::anyhow!("invalid task size"))),
+            "LARGE" => Ok(TaskSize::Large),
+            _ => Err(AppError(anyhow::anyhow!("invalid task size: {size}"))),
         }
     }
 }
@@ -49,7 +49,7 @@ impl TaskStatus {
             "TO_DO" => Ok(TaskStatus::ToDo),
             "IN_PROGRESS" => Ok(TaskStatus::InProgress),
             "DONE" => Ok(TaskStatus::Done),
-            _ => Err(AppError(anyhow::anyhow!("invalid task status"))),
+            _ => Err(AppError(anyhow::anyhow!("invalid task status: {status}"))),
         }
     }
 }
@@ -105,6 +105,8 @@ pub struct TaskData {
     pub size: TaskSize,
     pub status: TaskStatus,
     pub assignees: Vec<UserId>,
+    pub blocks: Vec<TaskId>,
+    pub blocked_by: Vec<TaskId>,
 }
 
 struct TaskRow {
@@ -118,7 +120,7 @@ struct TaskRow {
     status: String,
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TaskEntry {
     pub id: TaskId,
     pub title: String,
@@ -129,10 +131,17 @@ pub struct TaskEntry {
     pub size: TaskSize,
     pub status: TaskStatus,
     pub assignees: Vec<UserId>,
+    pub blocks: Vec<TaskId>,
+    pub blocked_by: Vec<TaskId>,
 }
 
 impl TaskEntry {
-    fn from_row(row: TaskRow, assignees: Vec<UserId>) -> Result<Self> {
+    fn from_row(
+        row: TaskRow,
+        assignees: Vec<UserId>,
+        blocks: Vec<TaskId>,
+        blocked_by: Vec<TaskId>,
+    ) -> Result<Self> {
         Ok(Self {
             id: TaskId(row.id),
             title: row.title,
@@ -143,6 +152,8 @@ impl TaskEntry {
             size: TaskSize::from_str(&row.size)?,
             status: TaskStatus::from_str(&row.status)?,
             assignees,
+            blocks,
+            blocked_by,
         })
     }
 }
@@ -346,12 +357,48 @@ WHERE
     )
     .fetch_all(&mut *tx)
     .await?;
+    let blocks = sqlx::query!(
+        "
+SELECT
+    blocks_id
+FROM
+    task_dependencies
+WHERE
+    board_name = ? AND task_id = ?
+",
+        board_name.0,
+        task_id.0,
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    let blocked_by = sqlx::query!(
+        "
+SELECT
+    task_id
+FROM
+    task_dependencies
+WHERE
+    board_name = ? and blocks_id = ?
+",
+        board_name.0,
+        task_id.0,
+    )
+    .fetch_all(&mut *tx)
+    .await?;
     tx.commit().await?;
     Ok(Json(TaskEntry::from_row(
         task,
         assignees
             .into_iter()
             .map(|record| UserId(record.user_id))
+            .collect(),
+        blocks
+            .into_iter()
+            .map(|record| TaskId(record.blocks_id))
+            .collect(),
+        blocked_by
+            .into_iter()
+            .map(|record| TaskId(record.task_id))
             .collect(),
     )?))
 }
@@ -395,6 +442,32 @@ WHERE
                 .push(UserId(record.user_id));
             map
         });
+    let blocks = sqlx::query!(
+        "
+SELECT
+    task_id, blocks_id
+FROM
+    task_dependencies
+WHERE
+    board_name = ?",
+        board_name.0
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    let (mut blocks_assignments, mut blocked_by_assignmnets) = blocks.into_iter().fold(
+        (HashMap::new(), HashMap::new()),
+        |(mut blocks, mut blocked_by), record| {
+            blocks
+                .entry(record.task_id)
+                .or_insert_with(Vec::new)
+                .push(TaskId(record.blocks_id));
+            blocked_by
+                .entry(record.blocks_id)
+                .or_insert_with(Vec::new)
+                .push(TaskId(record.task_id));
+            (blocks, blocked_by)
+        },
+    );
     let task_entries: Result<Vec<TaskEntry>> = tasks
         .into_iter()
         .map(|task_row| {
@@ -402,6 +475,10 @@ WHERE
             TaskEntry::from_row(
                 task_row,
                 task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
+                blocks_assignments.remove(&task_id).unwrap_or_else(Vec::new),
+                blocked_by_assignmnets
+                    .remove(&task_id)
+                    .unwrap_or_else(Vec::new),
             )
         })
         .collect();
@@ -448,6 +525,30 @@ VALUES (?, ?, ?)",
         .execute(&mut *tx)
         .await?;
     }
+    for other in task_data.blocks {
+        sqlx::query!(
+            "
+INSERT INTO task_dependencies (board_name, task_id, blocks_id)
+VALUES (?, ?, ?)",
+            board_name.0,
+            task_id.0,
+            other.0
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+    for other in task_data.blocked_by {
+        sqlx::query!(
+            "
+INSERT INTO task_dependencies (board_name, task_id, blocks_id)
+VALUES (?, ?, ?)",
+            board_name.0,
+            other.0,
+            task_id.0,
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
     tx.commit().await?;
     Ok(Json(task_id))
 }
@@ -475,7 +576,10 @@ WHERE
 DELETE FROM
     task_dependencies
 WHERE
-    board_name = ? and task_id = ?",
+    (board_name = ? AND task_id = ?)
+    OR (board_name = ? AND blocks_id = ?)",
+        board_name.0,
+        task_id.0,
         board_name.0,
         task_id.0,
     )

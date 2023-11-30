@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\nSELECT\n    task_id, blocks_id\nFROM\n    task_dependencies\nWHERE\n    board_name = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "task_id",
+        "ordinal": 0,
+        "type_info": "Int64"
+      },
+      {
+        "name": "blocks_id",
+        "ordinal": 1,
+        "type_info": "Int64"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "e7a6cf4e2cb2a65868aafd0149c509441d47a33e5f4da2aefffe3e3636869cf4"
+}
