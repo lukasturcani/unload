@@ -159,7 +159,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 )
                 .with_vim_mode(true)
                 .prompt()?;
-                let assignees = if users.len() > 0 {
+                let assignees = if !users.is_empty() {
                     MultiSelect::new(
                         "Assignees:",
                         users.iter().map(|user| UserDisplay(user.clone())).collect(),
@@ -172,7 +172,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 } else {
                     Vec::new()
                 };
-                let blocks = if tasks.len() > 0 {
+                let blocks = if !tasks.is_empty() {
                     MultiSelect::new(
                         "Blocks:",
                         tasks.iter().map(|task| TaskDisplay(task.clone())).collect(),
@@ -184,14 +184,13 @@ async fn main() -> Result<(), anyhow::Error> {
                 } else {
                     Vec::new()
                 };
-                let blocked_by = if tasks.len() > 0 {
+                let blocked_by = if !tasks.is_empty() {
                     MultiSelect::new(
                         "Blocked By:",
                         tasks
                             .iter()
-                            .filter_map(|task| {
-                                (!blocks.contains(&task.id)).then(|| TaskDisplay(task.clone()))
-                            })
+                            .filter(|task| !blocks.contains(&task.id))
+                            .map(|task| TaskDisplay(task.clone()))
                             .collect(),
                     )
                     .prompt()?
