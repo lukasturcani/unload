@@ -20,8 +20,8 @@ impl TaskSize {
         match size {
             "SMALL" => Ok(TaskSize::Small),
             "MEDIUM" => Ok(TaskSize::Medium),
-            "Large" => Ok(TaskSize::Large),
-            _ => Err(AppError(anyhow::anyhow!("invalid task size"))),
+            "LARGE" => Ok(TaskSize::Large),
+            _ => Err(AppError(anyhow::anyhow!("invalid task size: {size}"))),
         }
     }
 }
@@ -49,7 +49,7 @@ impl TaskStatus {
             "TO_DO" => Ok(TaskStatus::ToDo),
             "IN_PROGRESS" => Ok(TaskStatus::InProgress),
             "DONE" => Ok(TaskStatus::Done),
-            _ => Err(AppError(anyhow::anyhow!("invalid task status"))),
+            _ => Err(AppError(anyhow::anyhow!("invalid task status: {status}"))),
         }
     }
 }

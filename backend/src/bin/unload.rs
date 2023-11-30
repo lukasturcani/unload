@@ -115,41 +115,65 @@ mod tests {
 
         // Create tasks
 
-        let tasks = vec![
-            TaskData {
-                title: "first".to_string(),
-                description: "first description".to_string(),
-                created: 1,
-                updated: 2,
-                due: Some(3),
-                size: TaskSize::Small,
-                status: TaskStatus::ToDo,
-                assignees: user_ids.clone(),
-            },
-            TaskData {
-                title: "second".to_string(),
-                description: "second description".to_string(),
-                created: 10,
-                updated: 20,
-                due: Some(30),
-                size: TaskSize::Medium,
-                status: TaskStatus::InProgress,
-                assignees: user_ids.clone(),
-            },
-        ];
-        let mut task_ids = Vec::with_capacity(tasks.len());
-        for task in tasks.iter() {
-            task_ids.push(
-                server
-                    .post(&format!("/api/boards/{board_name}/tasks"))
-                    .json(task)
-                    .await
-                    .json(),
-            )
-        }
+        let mut task_ids = Vec::new();
+        let mut task1 = TaskData {
+            title: "first".to_string(),
+            description: "first description".to_string(),
+            due: Some(3),
+            size: TaskSize::Small,
+            status: TaskStatus::ToDo,
+            assignees: user_ids.clone(),
+            blocks: Vec::new(),
+            blocked_by: Vec::new(),
+        };
+        task_ids.push(
+            server
+                .post(&format!("/api/boards/{board_name}/tasks"))
+                .json(&task1)
+                .await
+                .json(),
+        );
+        let mut task2 = TaskData {
+            title: "second".to_string(),
+            description: "second description".to_string(),
+            due: Some(30),
+            size: TaskSize::Medium,
+            status: TaskStatus::InProgress,
+            assignees: user_ids.clone(),
+            blocks: vec![task_ids[0]],
+            blocked_by: Vec::new(),
+        };
+        task_ids.push(
+            server
+                .post(&format!("/api/boards/{board_name}/tasks"))
+                .json(&task2)
+                .await
+                .json(),
+        );
+        task1.blocked_by.push(*task_ids.last().unwrap());
+        let task3 = TaskData {
+            title: "third".to_string(),
+            description: "third description".to_string(),
+            due: Some(30),
+            size: TaskSize::Large,
+            status: TaskStatus::Done,
+            assignees: user_ids.clone(),
+            blocks: vec![task_ids[0]],
+            blocked_by: vec![task_ids[1]],
+        };
+        task_ids.push(
+            server
+                .post(&format!("/api/boards/{board_name}/tasks"))
+                .json(&task3)
+                .await
+                .json(),
+        );
+        task1.blocked_by.push(*task_ids.last().unwrap());
+        task2.blocks.push(*task_ids.last().unwrap());
 
         // Check tasks one by one
 
+        let tasks = vec![task1, task2, task3];
         let mut expected_tasks = Vec::with_capacity(tasks.len());
         for (task_id, task_data) in task_ids.iter().zip(tasks.iter()) {
             let task_entry = server
@@ -160,12 +184,14 @@ mod tests {
                 id: *task_id,
                 title: task_data.title.clone(),
                 description: task_data.description.clone(),
-                created: task_data.created,
-                updated: task_data.updated,
+                created: task_entry.created,
+                updated: task_entry.updated,
                 due: task_data.due,
                 size: task_data.size.clone(),
                 status: task_data.status.clone(),
                 assignees: task_data.assignees.clone(),
+                blocks: task_data.blocks.clone(),
+                blocked_by: task_data.blocked_by.clone(),
             };
             assert_eq!(task_entry, expected);
             expected_tasks.push(expected);
