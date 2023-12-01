@@ -4,10 +4,12 @@ RUN \
   tar xf upx-4.2.1-amd64_linux.tar.xz && \
   mv upx-4.2.1-amd64_linux/upx /usr/local/bin
 WORKDIR /usr/src/unload
-COPY Cargo.toml Cargo.lock ./
-COPY src ./src
-COPY .sqlx ./.sqlx
-RUN cargo install --bin unload --path .
+COPY Cargo.lock Cargo.toml ./
+COPY frontend ./frontend/
+COPY shared_models ./shared_models/
+COPY backend ./backend/
+COPY .sqlx ./sqlx/
+RUN cargo install --bin unload --path backend
 RUN upx --best --lzma /usr/local/cargo/bin/unload
 
 FROM gcr.io/distroless/cc-debian12:debug
