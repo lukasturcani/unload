@@ -24,6 +24,55 @@ impl Display for TaskDisplay {
     }
 }
 
+struct ColorDisplay(Color);
+
+impl Display for ColorDisplay {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ColorDisplay(Color::Black) => write!(f, "Black"),
+            ColorDisplay(Color::White) => write!(f, "White"),
+            ColorDisplay(Color::Gray) => write!(f, "Gray"),
+            ColorDisplay(Color::Silver) => write!(f, "Silver"),
+            ColorDisplay(Color::Maroon) => write!(f, "Maroon"),
+            ColorDisplay(Color::Red) => write!(f, "Red"),
+            ColorDisplay(Color::Purple) => write!(f, "Purple"),
+            ColorDisplay(Color::Fushsia) => write!(f, "Fushsia"),
+            ColorDisplay(Color::Green) => write!(f, "Green"),
+            ColorDisplay(Color::Lime) => write!(f, "Lime"),
+            ColorDisplay(Color::Olive) => write!(f, "Olive"),
+            ColorDisplay(Color::Yellow) => write!(f, "Yellow"),
+            ColorDisplay(Color::Navy) => write!(f, "Navy"),
+            ColorDisplay(Color::Blue) => write!(f, "Blue"),
+            ColorDisplay(Color::Teal) => write!(f, "Teal"),
+            ColorDisplay(Color::Aqua) => write!(f, "Aqua"),
+        }
+    }
+}
+
+struct TaskSizeDisplay(TaskSize);
+
+impl Display for TaskSizeDisplay {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TaskSizeDisplay(TaskSize::Small) => write!(f, "Small"),
+            TaskSizeDisplay(TaskSize::Medium) => write!(f, "Medium"),
+            TaskSizeDisplay(TaskSize::Large) => write!(f, "Large"),
+        }
+    }
+}
+
+struct TaskStatusDisplay(TaskStatus);
+
+impl Display for TaskStatusDisplay {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TaskStatusDisplay(TaskStatus::ToDo) => write!(f, "To Do"),
+            TaskStatusDisplay(TaskStatus::InProgress) => write!(f, "In Progress"),
+            TaskStatusDisplay(TaskStatus::Done) => write!(f, "Done"),
+        }
+    }
+}
+
 enum BoardChoice {
     JoinBoard,
     CreateBoard,
@@ -149,16 +198,26 @@ async fn main() -> Result<(), anyhow::Error> {
                 };
                 let size = Select::new(
                     "Size:",
-                    vec![TaskSize::Small, TaskSize::Medium, TaskSize::Large],
+                    vec![
+                        TaskSizeDisplay(TaskSize::Small),
+                        TaskSizeDisplay(TaskSize::Medium),
+                        TaskSizeDisplay(TaskSize::Large),
+                    ],
                 )
                 .with_vim_mode(true)
-                .prompt()?;
+                .prompt()?
+                .0;
                 let status = Select::new(
                     "Status:",
-                    vec![TaskStatus::ToDo, TaskStatus::InProgress, TaskStatus::Done],
+                    vec![
+                        TaskStatusDisplay(TaskStatus::ToDo),
+                        TaskStatusDisplay(TaskStatus::InProgress),
+                        TaskStatusDisplay(TaskStatus::Done),
+                    ],
                 )
                 .with_vim_mode(true)
-                .prompt()?;
+                .prompt()?
+                .0;
                 let assignees = if !users.is_empty() {
                     MultiSelect::new(
                         "Assignees:",
@@ -251,26 +310,27 @@ async fn main() -> Result<(), anyhow::Error> {
                 let color = Select::new(
                     "Color:",
                     vec![
-                        Color::Black,
-                        Color::White,
-                        Color::Gray,
-                        Color::Silver,
-                        Color::Maroon,
-                        Color::Red,
-                        Color::Purple,
-                        Color::Fushsia,
-                        Color::Green,
-                        Color::Lime,
-                        Color::Olive,
-                        Color::Yellow,
-                        Color::Navy,
-                        Color::Blue,
-                        Color::Teal,
-                        Color::Aqua,
+                        ColorDisplay(Color::Black),
+                        ColorDisplay(Color::White),
+                        ColorDisplay(Color::Gray),
+                        ColorDisplay(Color::Silver),
+                        ColorDisplay(Color::Maroon),
+                        ColorDisplay(Color::Red),
+                        ColorDisplay(Color::Purple),
+                        ColorDisplay(Color::Fushsia),
+                        ColorDisplay(Color::Green),
+                        ColorDisplay(Color::Lime),
+                        ColorDisplay(Color::Olive),
+                        ColorDisplay(Color::Yellow),
+                        ColorDisplay(Color::Navy),
+                        ColorDisplay(Color::Blue),
+                        ColorDisplay(Color::Teal),
+                        ColorDisplay(Color::Aqua),
                     ],
                 )
                 .with_vim_mode(true)
-                .prompt()?;
+                .prompt()?
+                .0;
                 let user_id = client
                     .post(url.join(&format!("/api/boards/{board_name}/users"))?)
                     .json(&UserData { name, color })
