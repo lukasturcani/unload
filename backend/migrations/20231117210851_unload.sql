@@ -25,9 +25,9 @@ IF NOT EXISTS tasks (
     board_name TEXT NOT NULL,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
-    created INTEGER NOT NULL,
-    updated INTEGER NOT NULL,
-    due INTEGER,
+    created DATETIME NOT NULL,
+    updated DATETIME NOT NULL,
+    due DATETIME,
     size TEXT CHECK (size IN ('Small', 'Medium', 'Large')) NOT NULL,
     status TEXT CHECK (status IN ('ToDo', 'InProgress', 'Done')) NOT NULL,
     FOREIGN KEY (board_name) REFERENCES boards (name)

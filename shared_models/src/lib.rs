@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -77,7 +78,7 @@ impl Display for UserId {
 pub struct TaskData {
     pub title: String,
     pub description: String,
-    pub due: Option<i64>,
+    pub due: Option<DateTime<Utc>>,
     pub size: TaskSize,
     pub status: TaskStatus,
     pub assignees: Vec<UserId>,
@@ -90,9 +91,9 @@ pub struct TaskEntry {
     pub id: TaskId,
     pub title: String,
     pub description: String,
-    pub created: i64,
-    pub updated: i64,
-    pub due: Option<i64>,
+    pub created: DateTime<Utc>,
+    pub updated: DateTime<Utc>,
+    pub due: Option<DateTime<Utc>>,
     pub size: TaskSize,
     pub status: TaskStatus,
     pub assignees: Vec<UserId>,

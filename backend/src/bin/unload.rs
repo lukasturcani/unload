@@ -47,6 +47,7 @@ async fn main() -> Result<()> {
 mod tests {
     use super::*;
     use axum_test::TestServer;
+    use chrono::Utc;
     use shared_models::{
         BoardName, Color, TaskData, TaskEntry, TaskSize, TaskStatus, UserData, UserEntry,
     };
@@ -119,7 +120,7 @@ mod tests {
         let mut task1 = TaskData {
             title: "first".to_string(),
             description: "first description".to_string(),
-            due: Some(3),
+            due: Some(Utc::now()),
             size: TaskSize::Small,
             status: TaskStatus::ToDo,
             assignees: user_ids.clone(),
@@ -136,7 +137,7 @@ mod tests {
         let mut task2 = TaskData {
             title: "second".to_string(),
             description: "second description".to_string(),
-            due: Some(30),
+            due: Some(Utc::now()),
             size: TaskSize::Medium,
             status: TaskStatus::InProgress,
             assignees: user_ids.clone(),
@@ -154,7 +155,7 @@ mod tests {
         let task3 = TaskData {
             title: "third".to_string(),
             description: "third description".to_string(),
-            due: Some(30),
+            due: None,
             size: TaskSize::Large,
             status: TaskStatus::Done,
             assignees: user_ids.clone(),

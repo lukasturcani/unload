@@ -190,8 +190,7 @@ async fn main() -> Result<(), anyhow::Error> {
                     Some(
                         due_date
                             .and_time(NaiveTime::parse_from_str(&time, time_fmt)?)
-                            .and_utc()
-                            .timestamp(),
+                            .and_utc(),
                     )
                 } else {
                     None

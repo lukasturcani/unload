@@ -2,7 +2,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use shared_models::{
     BoardName, Color, TaskData, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry,
     UserId,
@@ -14,9 +14,9 @@ struct TaskRow {
     id: TaskId,
     title: String,
     description: String,
-    created: i64,
-    updated: i64,
-    due: Option<i64>,
+    created: DateTime<Utc>,
+    updated: DateTime<Utc>,
+    due: Option<DateTime<Utc>>,
     size: TaskSize,
     status: TaskStatus,
 }
@@ -124,8 +124,12 @@ pub async fn show_task(
         TaskRow,
         r#"
 SELECT
-    id, title, description, created, updated, due,
-    size AS "size: TaskSize", status AS "status: TaskStatus"
+    id, title, description,
+    created AS "created: DateTime<Utc>",
+    updated AS "updated: DateTime<Utc>",
+    due AS "due: DateTime<Utc>",
+    size AS "size: TaskSize",
+    status AS "status: TaskStatus"
 FROM
     tasks
 WHERE
@@ -211,7 +215,10 @@ pub async fn show_tasks(
         TaskRow,
         r#"
 SELECT
-    id, title, description, created, updated, due,
+    id, title, description,
+    created AS "created: DateTime<Utc>",
+    updated AS "updated: DateTime<Utc>",
+    due AS "due: DateTime<Utc>",
     size AS "size: TaskSize", status AS "status: TaskStatus"
 FROM
     tasks
@@ -302,7 +309,7 @@ pub async fn create_task(
     Path(board_name): Path<BoardName>,
     Json(task_data): Json<TaskData>,
 ) -> Result<Json<TaskId>> {
-    let created = Utc::now().timestamp();
+    let created = Utc::now();
     let mut tx = pool.begin().await?;
     let task_id = sqlx::query!(
         "

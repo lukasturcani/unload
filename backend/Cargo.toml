@@ -16,7 +16,7 @@ indicatif = "0.17.7"
 inquire = { version = "0.6.2", features = ["date"] }
 rand = "0.8.5"
 reqwest = { version = "0.11.22", features = ["json"] }
-sqlx = { version = "0.7.2", features = ["runtime-tokio", "sqlite"] }
+sqlx = { version = "0.7.2", features = ["runtime-tokio", "sqlite", "chrono"] }
 tokio = { version = "1.34.0", features = ["full"] }
 
 [dev-dependencies]
