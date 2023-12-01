@@ -2619,8 +2619,6 @@ dependencies = [
  "inquire",
  "rand",
  "reqwest",
- "serde",
- "serde_json",
  "shared_models",
  "sqlx",
  "tokio",
