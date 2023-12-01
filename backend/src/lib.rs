@@ -241,11 +241,11 @@ WHERE
     .await?;
     let mut task_assignments = assignments
         .into_iter()
-        .fold(HashMap::new(), |mut map, record| {
+        .fold(HashMap::new(), |mut map, row| {
             #[allow(clippy::unwrap_or_default)]
-            map.entry(record.task_id)
+            map.entry(row.task_id)
                 .or_insert_with(Vec::new)
-                .push(record.user_id.into());
+                .push(row.user_id);
             map
         });
 
@@ -268,15 +268,15 @@ WHERE
     .await?;
     let (mut blocks_assignments, mut blocked_by_assignmnets) = blocks.into_iter().fold(
         (HashMap::new(), HashMap::new()),
-        |(mut blocks, mut blocked_by), record| {
+        |(mut blocks, mut blocked_by), row| {
             blocks
-                .entry(record.task_id)
+                .entry(row.task_id)
                 .or_insert_with(Vec::new)
-                .push(record.blocks_id.into());
+                .push(row.blocks_id);
             blocked_by
-                .entry(record.blocks_id)
+                .entry(row.blocks_id)
                 .or_insert_with(Vec::new)
-                .push(record.task_id.into());
+                .push(row.task_id);
             (blocks, blocked_by)
         },
     );
