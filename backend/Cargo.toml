@@ -7,7 +7,7 @@ default-run = "unload"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-shared_models = { path = "../shared_models" }
+shared_models = { path = "../shared_models", features = ["sqlx"] }
 anyhow = "1.0.75"
 axum = "0.6.20"
 chrono = "0.4.31"
