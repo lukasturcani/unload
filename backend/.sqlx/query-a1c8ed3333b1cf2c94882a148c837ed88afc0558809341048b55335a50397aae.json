@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\nSELECT\n    id, title, description, created, updated, due, size, status\nFROM\n    tasks\nWHERE\n    board_name = ?",
+  "query": "\nSELECT\n    id, title, description, created, updated, due,\n    size AS \"size: TaskSize\", status AS \"status: TaskStatus\"\nFROM\n    tasks\nWHERE\n    board_name = ?",
   "describe": {
     "columns": [
       {
@@ -34,12 +34,12 @@
         "type_info": "Int64"
       },
       {
-        "name": "size",
+        "name": "size: TaskSize",
         "ordinal": 6,
         "type_info": "Text"
       },
       {
-        "name": "status",
+        "name": "status: TaskStatus",
         "ordinal": 7,
         "type_info": "Text"
       }
@@ -58,5 +58,5 @@
       false
     ]
   },
-  "hash": "2a844193a2bf20a226a53a2bf912b51268261be23201c3fa7236728f195b0478"
+  "hash": "a1c8ed3333b1cf2c94882a148c837ed88afc0558809341048b55335a50397aae"
 }

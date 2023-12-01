@@ -1957,6 +1957,11 @@ dependencies = [
 [[package]]
 name = "shared_models"
 version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sqlx",
+]
 
 [[package]]
 name = "signal-hook"

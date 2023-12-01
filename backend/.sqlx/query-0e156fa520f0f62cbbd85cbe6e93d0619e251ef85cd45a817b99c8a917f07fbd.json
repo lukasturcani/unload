@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\nSELECT\n    id, name, color\nFROM\n    users\nWHERE\n    board_name = ? AND id = ?\nLIMIT 1",
+  "query": "\nSELECT\n    id, name, color AS \"color: Color\"\nFROM\n    users\nWHERE\n    board_name = ?",
   "describe": {
     "columns": [
       {
@@ -14,13 +14,13 @@
         "type_info": "Text"
       },
       {
-        "name": "color",
+        "name": "color: Color",
         "ordinal": 2,
         "type_info": "Text"
       }
     ],
     "parameters": {
-      "Right": 2
+      "Right": 1
     },
     "nullable": [
       false,
@@ -28,5 +28,5 @@
       false
     ]
   },
-  "hash": "a56c0744fbfdc5df39889cfd857c494044e31e379e6f9768ab27a093774b5f90"
+  "hash": "0e156fa520f0f62cbbd85cbe6e93d0619e251ef85cd45a817b99c8a917f07fbd"
 }

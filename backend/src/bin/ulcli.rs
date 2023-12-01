@@ -3,7 +3,7 @@ use std::fmt::Display;
 use chrono::NaiveTime;
 use inquire::{validator::Validation, DateSelect, MultiSelect, Select, Text};
 use reqwest::{Client, Url};
-use unload::{
+use shared_models::{
     BoardName, Color, TaskData, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry,
     UserId,
 };
@@ -83,7 +83,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 .json::<BoardName>()
                 .await?
         }
-        BoardChoice::JoinBoard => BoardName::new(&Text::new("Board Name:").prompt()?),
+        BoardChoice::JoinBoard => Text::new("Board Name:").prompt()?.into(),
     };
     println!("Your board is {board_name}!");
     loop {

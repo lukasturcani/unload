@@ -47,7 +47,7 @@ async fn main() -> Result<()> {
 mod tests {
     use super::*;
     use axum_test::TestServer;
-    use unload::{
+    use shared_models::{
         BoardName, Color, TaskData, TaskEntry, TaskSize, TaskStatus, UserData, UserEntry,
     };
 
