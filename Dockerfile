@@ -8,7 +8,7 @@ COPY Cargo.lock Cargo.toml ./
 COPY frontend ./frontend/
 COPY shared_models ./shared_models/
 COPY backend ./backend/
-COPY .sqlx ./sqlx/
+COPY .sqlx ./.sqlx/
 RUN cargo install --bin unload --path backend
 RUN upx --best --lzma /usr/local/cargo/bin/unload
 

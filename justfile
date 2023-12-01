@@ -69,4 +69,4 @@ ulcli:
 
 # connect to fly.io volume
 fly-volume:
-  cd backend && fly machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
+  fly machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
