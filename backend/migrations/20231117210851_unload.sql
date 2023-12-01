@@ -28,8 +28,8 @@ IF NOT EXISTS tasks (
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL,
     due INTEGER,
-    size TEXT CHECK (size IN ('SMALL', 'MEDIUM', 'LARGE')) NOT NULL,
-    status TEXT CHECK (status IN ('TO_DO', 'IN_PROGRESS', 'DONE')) NOT NULL,
+    size TEXT CHECK (size IN ('Small', 'Medium', 'Large')) NOT NULL,
+    status TEXT CHECK (status IN ('ToDo', 'InProgress', 'Done')) NOT NULL,
     FOREIGN KEY (board_name) REFERENCES boards (name)
 );
 CREATE INDEX IF NOT EXISTS tasks_board_name_idx ON tasks (board_name);
@@ -42,22 +42,22 @@ IF NOT EXISTS users (
     name TEXT NOT NULL,
     color TEXT CHECK (color IN (
 
-        'BLACK',
-        'WHITE',
-        'GRAY',
-        'SILVER',
-        'MAROON',
-        'RED',
-        'PURPLE',
-        'FUSHSIA',
-        'GREEN',
-        'LIME',
-        'OLIVE',
-        'YELLOW',
-        'NAVY',
-        'BLUE',
-        'TEAL',
-        'AQUA'
+        'Black',
+        'White',
+        'Gray',
+        'Silver',
+        'Maroon',
+        'Red',
+        'Purple',
+        'Fushsia',
+        'Green',
+        'Lime',
+        'Olive',
+        'Yellow',
+        'Navy',
+        'Blue',
+        'Teal',
+        'Aqua'
 
     )) NOT NULL,
     UNIQUE (board_name, name, color),
