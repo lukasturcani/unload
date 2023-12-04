@@ -1,6 +1,5 @@
-use frontend::app;
-use dioxus::prelude::*;
+use frontend::App;
 
 fn main() {
-    dioxus_web::launch(app);
+    dioxus_web::launch(App);
 }
