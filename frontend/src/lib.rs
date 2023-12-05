@@ -12,25 +12,27 @@ pub fn App(cx: Scope) -> Element {
 }
 
 #[allow(non_snake_case)]
-fn Board(cx: Scope) -> Element {
-    let to_do_tasks = HashMap::from([
-        (),
-        (),
-    ])
+#[inline_props]
+fn Board(
+    cx: Scope,
+    to_do_tasks: Vec<TaskData>,
+    in_progress_tasks: Vec<TaskData>,
+    done_tasks: Vec<TaskData>,
+) -> Element {
     cx.render(rsx! {
         div {
             class: "grid-cols-3",
             display: "grid",
             TaskColumn {
-                title: "To Do".to_string(),
+                title: "To Do",
                 tasks: to_do_tasks,
             },
             TaskColumn {
-                title: "In Progress".to_string(),
+                title: "In Progress",
                 tasks: in_progress_tasks,
             },
             TaskColumn {
-                title: "Done".to_string(),
+                title: "Done",
                 tasks: done_tasks,
             },
         }
@@ -39,51 +41,67 @@ fn Board(cx: Scope) -> Element {
 
 #[allow(non_snake_case)]
 #[inline_props]
-fn TaskColumn(cx: Scope, title: String, tasks: HashMap<TaskId, TaskData>) -> Element {
+fn TaskColumn<'a>(cx: Scope, title: &'a str, tasks: &'a Vec<TaskData>) -> Element {
     cx.render(rsx! {
         div {
             div { "{title}" },
-            div {
-                for (_, task) in tasks {
-                    Task {
-                        title: task.title,
-                    }
-                }
-            },
+            div { "items" },
         }
     })
 }
 
 #[allow(non_snake_case)]
-#[inline_props]
-fn Task(cx: Scope, title: String) -> Element {
+fn CollapsedTask(cx: Scope<CollapsedTaskData>) -> Element {
     cx.render(rsx! {
         div {
-            "{title}"
+            "{cx.props.title}"
         }
     })
 }
 
-
-struct TaskData {
-    pub title: String,
-    pub description: String,
-    pub created: DateTime<Utc>,
-    pub updated: DateTime<Utc>,
-    pub due: Option<DateTime<Utc>>,
-    pub size: TaskSize,
-    pub assignees: Vec<UserId>,
-    pub blocks: Vec<TaskId>,
-    pub blocked_by: Vec<TaskId>,
+#[allow(non_snake_case)]
+fn ExpandedTask(cx: Scope<ExpandedTaskData>) -> Element {
+    cx.render(rsx! {
+        div {
+            "{cx.props.title}"
+        }
+    })
 }
 
-struct Tasks {
-    to_do: HashMap<TaskId, TaskData>,
-    in_progress: HashMap<TaskId, TaskData>,
-    done: HashMap<TaskId, TaskData>,
+#[derive(PartialEq, Eq, Props)]
+struct CollapsedTaskData {
+    title: String,
+    due: Option<DateTime<Utc>>,
+    size: TaskSize,
+    assignees: Vec<UserData>,
 }
 
-async fn tasks() -> Tasks {
+#[derive(PartialEq, Eq, Props)]
+struct ExpandedTaskData {
+    title: String,
+    description: String,
+    created: DateTime<Utc>,
+    updated: DateTime<Utc>,
+    due: Option<DateTime<Utc>>,
+    size: TaskSize,
+    assignees: Vec<UserData>,
+    blocks: Vec<TaskLink>,
+    blocked_by: Vec<TaskLink>,
+}
+
+#[derive(PartialEq, Eq)]
+enum TaskData {
+    Collapsed(CollapsedTaskData),
+    Expanded(ExpandedTaskData),
+}
+
+#[derive(PartialEq, Eq)]
+struct TaskLink {
+    task_id: TaskId,
+    title: String,
+}
+
+async fn tasks() {
     todo!()
 }
 
