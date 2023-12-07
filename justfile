@@ -61,9 +61,11 @@ check:
 
   test $error = 0
 
-run database:
+# run the backend
+backend database:
   UNLOAD_DATABASE_URL="sqlite:{{database}}" cargo run --release --bin unload
 
+# run ulcli
 ulcli:
   cargo run --release --bin ulcli
 

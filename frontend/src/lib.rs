@@ -1,12 +1,30 @@
+use reqwest::{Client, Url};
 use std::collections::HashMap;
+use tokio::join;
 
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
-use shared_models::{TaskId, TaskSize, TaskStatus, UserData, UserId};
+use shared_models::{
+    BoardName, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry, UserId,
+};
 
 #[allow(non_snake_case)]
 pub fn App(cx: Scope) -> Element {
-    let model = use_shared_state_provider(cx, Model::default);
+    let url = "http://localhost:8080".parse::<Url>().unwrap();
+    let board_name = BoardName::from("buzzing-unique-0");
+    use_shared_state_provider(cx, Model::default);
+    if let Some((Ok(users), Ok(tasks))) = use_future(cx, (), |_| async move {
+        join!(users(&url, &board_name), tasks(&url, &board_name))
+    })
+    .value()
+    {
+        let mut model = use_shared_state::<Model>(cx).unwrap().write();
+        model.users = users.clone();
+        model.tasks = tasks.tasks.clone();
+        model.to_do = tasks.to_do.clone();
+        model.in_progress = tasks.in_progress.clone();
+        model.done = tasks.done.clone();
+    }
     cx.render(rsx! {
         Board {}
     })
@@ -92,14 +110,72 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
     })
 }
 
-async fn tasks() {
-    todo!()
+#[derive(Default)]
+struct Tasks {
+    tasks: HashMap<TaskId, TaskData>,
+    to_do: Vec<TaskId>,
+    in_progress: Vec<TaskId>,
+    done: Vec<TaskId>,
 }
 
-async fn users() -> HashMap<UserId, UserData> {
-    todo!()
+async fn tasks(url: &Url, board_name: &BoardName) -> Result<Tasks, anyhow::Error> {
+    let client = Client::new();
+    Ok(client
+        .get(url.join(&format!("/api/boards/{board_name}/tasks"))?)
+        .send()
+        .await?
+        .json::<Vec<TaskEntry>>()
+        .await?
+        .into_iter()
+        .fold(Tasks::default(), |mut tasks, task| {
+            tasks.tasks.insert(
+                task.id,
+                TaskData {
+                    title: task.title,
+                    description: task.description,
+                    created: task.created,
+                    updated: task.updated,
+                    due: task.due,
+                    size: task.size,
+                    assignees: task.assignees,
+                    blocks: task.blocks,
+                    blocked_by: task.blocked_by,
+                },
+            );
+            match task.status {
+                TaskStatus::ToDo => tasks.to_do.push(task.id),
+                TaskStatus::InProgress => tasks.in_progress.push(task.id),
+                TaskStatus::Done => tasks.done.push(task.id),
+            }
+            tasks
+        }))
 }
 
+async fn users(
+    url: &Url,
+    board_name: &BoardName,
+) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
+    let client = Client::new();
+    Ok(client
+        .get(url.join(&format!("/api/boards/{board_name}/users"))?)
+        .send()
+        .await?
+        .json::<Vec<UserEntry>>()
+        .await?
+        .into_iter()
+        .fold(HashMap::new(), |mut users, user| {
+            users.insert(
+                user.id,
+                UserData {
+                    name: user.name,
+                    color: user.color,
+                },
+            );
+            users
+        }))
+}
+
+#[derive(Clone)]
 struct TaskData {
     title: String,
     description: String,
@@ -107,28 +183,16 @@ struct TaskData {
     updated: DateTime<Utc>,
     due: Option<DateTime<Utc>>,
     size: TaskSize,
-    status: TaskStatus,
     assignees: Vec<UserId>,
     blocks: Vec<TaskId>,
     blocked_by: Vec<TaskId>,
 }
 
+#[derive(Default)]
 struct Model {
     tasks: HashMap<TaskId, TaskData>,
     users: HashMap<UserId, UserData>,
     to_do: Vec<TaskId>,
     in_progress: Vec<TaskId>,
     done: Vec<TaskId>,
-}
-
-impl Default for Model {
-    fn default() -> Self {
-        Self {
-            tasks: HashMap::default(),
-            users: HashMap::default(),
-            to_do: Vec::default(),
-            in_progress: Vec::default(),
-            done: Vec::default(),
-        }
-    }
 }

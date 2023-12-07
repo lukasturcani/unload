@@ -1089,11 +1089,13 @@ dependencies = [
 name = "frontend"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "chrono",
  "dioxus",
  "dioxus-web",
  "reqwest",
  "shared_models",
+ "tokio",
 ]
 
 [[package]]
