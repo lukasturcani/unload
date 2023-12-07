@@ -2,79 +2,40 @@ use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
-use shared_models::{Color, TaskId, TaskSize, TaskStatus, UserData, UserId};
+use shared_models::{TaskId, TaskSize, TaskStatus, UserData, UserId};
 
 #[allow(non_snake_case)]
 pub fn App(cx: Scope) -> Element {
-    let model = use_ref(cx, Model::default);
-    let to_do_tasks = model.read().to_do_props();
+    let model = use_shared_state_provider(cx, Model::default);
     cx.render(rsx! {
-        Board {
-            to_do_tasks: to_do_tasks.clone(),
-            in_progress_tasks: to_do_tasks.clone(),
-            done_tasks: to_do_tasks.clone(),
-        }
+        Board {}
     })
 }
 
 #[allow(non_snake_case)]
-#[inline_props]
-fn Board<'a>(
-    cx: Scope,
-    to_do_tasks: Vec<TaskProps<'a>>,
-    in_progress_tasks: Vec<TaskProps<'a>>,
-    done_tasks: Vec<TaskProps<'a>>,
-) -> Element {
+fn Board(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: "grid-cols-3",
             display: "grid",
-            TaskColumn {
-                title: "To Do",
-                tasks: to_do_tasks,
-            },
-            TaskColumn {
-                title: "In Progress",
-                tasks: in_progress_tasks,
-            },
-            TaskColumn {
-                title: "Done",
-                tasks: done_tasks,
-            },
+            ToDoColumn {},
+            InProgressColumn {},
+            DoneColumn {},
         }
     })
 }
 
 #[allow(non_snake_case)]
-#[inline_props]
-fn TaskColumn<'a>(cx: Scope, title: &'a str, tasks: &'a Vec<TaskProps<'a>>) -> Element {
+fn ToDoColumn(cx: Scope) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
-            div { "{title}" },
+            div { "To Do" },
             div {
-                for task in tasks {
-                    match task {
-                        TaskProps::Collapsed(props) => rsx! { CollapsedTask {
-                            key: "{props.task_id}",
-                            task_id: props.task_id,
-                            title: props.title,
-                            due: props.due,
-                            size: props.size,
-                            assignees: props.assignees
-                        } },
-                        TaskProps::Expanded(props) => rsx! { ExpandedTask {
-                            key: "{props.task_id}",
-                            task_id: props.task_id,
-                            title: props.title,
-                            description: props.description,
-                            created: props.created,
-                            updated: props.updated,
-                            due: props.due,
-                            size: props.size,
-                            assignees: props.assignees,
-                            blocks: props.blocks,
-                            blocked_by: props.blocked_by,
-                        } }
+                for task_id in model.to_do.iter() {
+                    Task {
+                        key: "{task_id}",
+                        task_id: *task_id,
                     }
                 }
             },
@@ -83,68 +44,52 @@ fn TaskColumn<'a>(cx: Scope, title: &'a str, tasks: &'a Vec<TaskProps<'a>>) -> E
 }
 
 #[allow(non_snake_case)]
-fn CollapsedTask<'a>(cx: Scope<'a, CollapsedTaskProps<'a>>) -> Element<'a> {
+fn InProgressColumn(cx: Scope) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
-            "{cx.props.title}"
+            div { "In Progress" },
+            div {
+                for task_id in model.to_do.iter() {
+                    Task {
+                        key: "{task_id}",
+                        task_id: *task_id,
+                    }
+                }
+            },
         }
     })
 }
 
 #[allow(non_snake_case)]
-fn ExpandedTask<'a>(cx: Scope<'a, ExpandedTaskProps<'a>>) -> Element<'a> {
+fn DoneColumn(cx: Scope) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
-            "{cx.props.title}"
+            div { "Done" },
+            div {
+                for task_id in model.to_do.iter() {
+                    Task {
+                        key: "{task_id}",
+                        task_id: *task_id,
+                    }
+                }
+            },
         }
     })
 }
 
-#[derive(PartialEq, Eq, Props, Clone)]
-struct CollapsedTaskProps<'a> {
-    task_id: TaskId,
-    title: &'a str,
-    #[props(!optional)]
-    due: Option<DateTime<Utc>>,
-    size: TaskSize,
-    assignees: &'a Vec<UserLink<'a>>,
-}
-
-#[derive(PartialEq, Eq, Props, Clone)]
-struct ExpandedTaskProps<'a> {
-    task_id: TaskId,
-    title: &'a str,
-    description: &'a str,
-    #[props(!optional)]
-    created: DateTime<Utc>,
-    #[props(!optional)]
-    updated: DateTime<Utc>,
-    #[props(!optional)]
-    due: Option<DateTime<Utc>>,
-    size: TaskSize,
-    assignees: &'a Vec<UserLink<'a>>,
-    blocks: &'a Vec<TaskLink<'a>>,
-    blocked_by: &'a Vec<TaskLink<'a>>,
-}
-
-#[derive(PartialEq, Eq, Clone)]
-enum TaskProps<'a> {
-    Collapsed(CollapsedTaskProps<'a>),
-    Expanded(ExpandedTaskProps<'a>),
-}
-
-#[derive(PartialEq, Eq, Clone)]
-struct TaskLink<'a> {
-    task_id: TaskId,
-    title: &'a str,
-    status: TaskStatus,
-}
-
-#[derive(PartialEq, Eq, Clone)]
-struct UserLink<'a> {
-    user_id: UserId,
-    name: &'a str,
-    color: Color,
+#[allow(non_snake_case)]
+#[inline_props]
+fn Task(cx: Scope, task_id: TaskId) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap().read();
+    let expanded = use_state(cx, || false);
+    let data = &model.tasks[task_id];
+    cx.render(rsx! {
+        div {
+            "{data.title}"
+        }
+    })
 }
 
 async fn tasks() {
@@ -174,20 +119,6 @@ struct Model {
     to_do: Vec<TaskId>,
     in_progress: Vec<TaskId>,
     done: Vec<TaskId>,
-}
-
-impl Model {
-    fn to_do_props(&self) -> Vec<TaskProps> {
-        todo!()
-    }
-
-    fn in_progress_props(&self) -> Vec<TaskProps> {
-        todo!()
-    }
-
-    fn done_props(&self) -> Vec<TaskProps> {
-        todo!()
-    }
 }
 
 impl Default for Model {
