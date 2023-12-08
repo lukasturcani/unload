@@ -8,29 +8,28 @@ use shared_models::{
     BoardName, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry, UserId,
 };
 
-#[allow(non_snake_case)]
+#[component]
 pub fn App(cx: Scope) -> Element {
-    let url = "http://localhost:8080".parse::<Url>().unwrap();
-    let board_name = BoardName::from("buzzing-unique-0");
     use_shared_state_provider(cx, Model::default);
-    if let Some((Ok(users), Ok(tasks))) = use_future(cx, (), |_| async move {
-        join!(users(&url, &board_name), tasks(&url, &board_name))
-    })
-    .value()
-    {
-        let mut model = use_shared_state::<Model>(cx).unwrap().write();
-        model.users = users.clone();
-        model.tasks = tasks.tasks.clone();
-        model.to_do = tasks.to_do.clone();
-        model.in_progress = tasks.in_progress.clone();
-        model.done = tasks.done.clone();
-    }
+    let model = use_shared_state::<Model>(cx).unwrap().clone();
+    use_future(cx, (), |_| async move {
+        let url = "http://localhost:8080".parse::<Url>().unwrap();
+        let board_name = BoardName::from("buzzing-unique-0");
+        if let (Ok(users), Ok(tasks)) = join!(users(&url, &board_name), tasks(&url, &board_name)) {
+            let mut model = model.write();
+            model.users = users;
+            model.tasks = tasks.tasks;
+            model.to_do = tasks.to_do;
+            model.in_progress = tasks.in_progress;
+            model.done = tasks.done;
+        }
+    });
     cx.render(rsx! {
         Board {}
     })
 }
 
-#[allow(non_snake_case)]
+#[component]
 fn Board(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
@@ -43,7 +42,7 @@ fn Board(cx: Scope) -> Element {
     })
 }
 
-#[allow(non_snake_case)]
+#[component]
 fn ToDoColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
@@ -61,14 +60,14 @@ fn ToDoColumn(cx: Scope) -> Element {
     })
 }
 
-#[allow(non_snake_case)]
+#[component]
 fn InProgressColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
             div { "In Progress" },
             div {
-                for task_id in model.to_do.iter() {
+                for task_id in model.in_progress.iter() {
                     Task {
                         key: "{task_id}",
                         task_id: *task_id,
@@ -79,14 +78,14 @@ fn InProgressColumn(cx: Scope) -> Element {
     })
 }
 
-#[allow(non_snake_case)]
+#[component]
 fn DoneColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
             div { "Done" },
             div {
-                for task_id in model.to_do.iter() {
+                for task_id in model.done.iter() {
                     Task {
                         key: "{task_id}",
                         task_id: *task_id,
@@ -97,8 +96,7 @@ fn DoneColumn(cx: Scope) -> Element {
     })
 }
 
-#[allow(non_snake_case)]
-#[inline_props]
+#[component]
 fn Task(cx: Scope, task_id: TaskId) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     let expanded = use_state(cx, || false);

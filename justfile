@@ -63,6 +63,7 @@ check:
 
 # build the frontend
 frontend:
+  rm -rf frontend/dist
   cd frontend && dx build --release
   rm -rf target/release/unload/frontend
   cp -r frontend/dist target/release/frontend
@@ -70,7 +71,7 @@ frontend:
 # run the backend
 backend database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
-  UNLOAD_SERVE_DIR="target/release/frontend" \
+  UNLOAD_SERVE_DIR="frontend/dist" \
   cargo run --release --bin unload
 
 # run ulcli
