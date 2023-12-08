@@ -11,7 +11,7 @@ fly-deploy-image:
   docker push registry.fly.io/unload
   fly deploy --image registry.fly.io/unload
 
-# run in docker image
+# run docker image
 docker-run mount:
   docker run --rm --detach \
   -p 8080:8080 \
