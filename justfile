@@ -61,9 +61,17 @@ check:
 
   test $error = 0
 
+# build the frontend
+frontend:
+  cd frontend && dx build --release
+  rm -rf target/release/unload/frontend
+  cp -r frontend/dist target/release/frontend
+
 # run the backend
-backend database:
-  UNLOAD_DATABASE_URL="sqlite:{{database}}" cargo run --release --bin unload
+backend database: frontend
+  UNLOAD_DATABASE_URL="sqlite:{{database}}" \
+  UNLOAD_SERVE_DIR="target/release/frontend" \
+  cargo run --release --bin unload
 
 # run ulcli
 ulcli:

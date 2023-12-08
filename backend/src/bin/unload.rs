@@ -1,12 +1,13 @@
 use axum::{routing::delete, routing::get, routing::post, Router};
 use sqlx::SqlitePool;
-use std::net::SocketAddr;
+use std::{net::SocketAddr, path::PathBuf};
+use tokio::net::TcpListener;
+use tower_http::services::ServeDir;
 use unload::{
     create_board, create_task, create_user, delete_task, delete_user, show_task, show_tasks,
     show_user, show_users, Result,
 };
-
-fn router() -> Router<SqlitePool> {
+fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
     Router::new()
         .route("/api/boards", post(create_board))
         .route("/api/boards/:board_name/tasks/:task_id", get(show_task))
@@ -23,6 +24,7 @@ fn router() -> Router<SqlitePool> {
         )
         .route("/api/boards/:board_name/users", get(show_users))
         .route("/api/boards/:board_name/users", post(create_user))
+        .nest_service("/", ServeDir::new(serve_dir))
 }
 
 #[tokio::main]
@@ -36,10 +38,9 @@ async fn main() -> Result<()> {
         }
     };
     let pool = SqlitePool::connect(&database_url).await?;
-    let app = router().with_state(pool);
-    axum::Server::bind(&server_address)
-        .serve(app.into_make_service())
-        .await?;
+    let app = router(&std::env::var("UNLOAD_SERVE_DIR")?.parse::<PathBuf>()?).with_state(pool);
+    let listener = TcpListener::bind(server_address).await?;
+    axum::serve(listener, app).await?;
     Ok(())
 }
 
@@ -57,7 +58,7 @@ mod tests {
         let pool = SqlitePool::connect(&std::env::var("TEST_DATABASE_URL").unwrap())
             .await
             .unwrap();
-        let app = router().with_state(pool);
+        let app = router(&PathBuf::from("does_not_matter")).with_state(pool);
         let server = TestServer::new(app).unwrap();
 
         // Create board
