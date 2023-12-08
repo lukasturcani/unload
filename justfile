@@ -65,8 +65,6 @@ check:
 frontend:
   rm -rf frontend/dist
   cd frontend && dx build --release
-  rm -rf target/release/unload/frontend
-  cp -r frontend/dist target/release/frontend
 
 # run the backend
 backend database: frontend

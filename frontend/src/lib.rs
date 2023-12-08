@@ -38,7 +38,7 @@ fn Board(cx: Scope) -> Element {
             ToDoColumn {},
             InProgressColumn {},
             DoneColumn {},
-        }
+        },
     })
 }
 
