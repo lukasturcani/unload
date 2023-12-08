@@ -11,6 +11,15 @@ fly-deploy-image:
   docker push registry.fly.io/unload
   fly deploy --image registry.fly.io/unload
 
+# run in docker image
+docker-run mount:
+  docker run --rm --detach \
+  -p 8080:8080 \
+  --mount type=bind,source={{mount}},target=/mnt/unload_data \
+  -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
+  -e UNLOAD_SERVE_DIR="/var/www" \
+  registry.fly.io/unload
+
 # create the database
 create-db database:
   sqlx db create --database-url "sqlite:{{database}}"
