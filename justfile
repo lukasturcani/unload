@@ -4,7 +4,12 @@ default:
 
 # build a docker image
 build-image:
-  docker buildx build -t unload .
+  docker buildx build -t registry.fly.io/unload .
+
+# deploy image to fly.io
+fly-deploy-image:
+  docker push registry.fly.io/unload
+  fly deploy --image registry.fly.io/unload
 
 # create the database
 create-db database:
