@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\nSELECT\n    id, title, description, created, updated, due, size, status\nFROM\n    tasks\nWHERE\n    board_name = ?",
+  "query": "\nSELECT\n    id, title, description,\n    created AS \"created: DateTime<Utc>\",\n    updated AS \"updated: DateTime<Utc>\",\n    due AS \"due: DateTime<Utc>\",\n    size AS \"size: TaskSize\",\n    status AS \"status: TaskStatus\"\nFROM\n    tasks\nWHERE\n    id = ? AND board_name = ?\nLIMIT 1",
   "describe": {
     "columns": [
       {
@@ -19,33 +19,33 @@
         "type_info": "Text"
       },
       {
-        "name": "created",
+        "name": "created: DateTime<Utc>",
         "ordinal": 3,
-        "type_info": "Int64"
+        "type_info": "Datetime"
       },
       {
-        "name": "updated",
+        "name": "updated: DateTime<Utc>",
         "ordinal": 4,
-        "type_info": "Int64"
+        "type_info": "Datetime"
       },
       {
-        "name": "due",
+        "name": "due: DateTime<Utc>",
         "ordinal": 5,
-        "type_info": "Int64"
+        "type_info": "Datetime"
       },
       {
-        "name": "size",
+        "name": "size: TaskSize",
         "ordinal": 6,
         "type_info": "Text"
       },
       {
-        "name": "status",
+        "name": "status: TaskStatus",
         "ordinal": 7,
         "type_info": "Text"
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 2
     },
     "nullable": [
       false,
@@ -58,5 +58,5 @@
       false
     ]
   },
-  "hash": "2a844193a2bf20a226a53a2bf912b51268261be23201c3fa7236728f195b0478"
+  "hash": "cf8f4dc6c9ff8d0c8901d7415c81c537a2214ca10503d395181ac9b0afcdfed3"
 }

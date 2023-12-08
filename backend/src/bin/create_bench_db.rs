@@ -1,5 +1,6 @@
 use clap::Parser;
 use indicatif::ProgressBar;
+use shared_models::{Color, TaskSize, TaskStatus};
 use sqlx::SqlitePool;
 
 #[derive(Parser)]
@@ -42,7 +43,7 @@ async fn main() -> Result<(), anyhow::Error> {
             .bind(board_id * args.num_users_per_board + user_id)
             .bind(format!("board-{}", board_id))
             .bind(format!("user-{}", user_id))
-            .bind("PURPLE")
+            .bind(Color::Purple)
             .execute(&mut *tx)
             .await?;
         }
@@ -59,8 +60,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             .bind(task_id)
             .bind(task_id)
             .bind(Some(task_id))
-            .bind("SMALL")
-            .bind("TO_DO")
+            .bind(TaskSize::Small)
+            .bind(TaskStatus::ToDo)
             .execute(&mut *tx)
             .await?;
             for assignment in 0..args.num_assignees_per_task {

@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\nSELECT\n    task_id\nFROM\n    task_dependencies\nWHERE\n    board_name = ? and blocks_id = ?\n",
+  "query": "\nSELECT\n    task_id\nFROM\n    task_dependencies\nWHERE\n    board_name = ? and blocks_id = ?",
   "describe": {
     "columns": [
       {
@@ -16,5 +16,5 @@
       false
     ]
   },
-  "hash": "d36440c2fbccfabf30e939e0a828a201351b46209e9aa44ee346b3cc6262f00d"
+  "hash": "79b8b396a38c3067140d0c7f26aba0e41283ee7504ae6a35088eddd4128d4e7c"
 }

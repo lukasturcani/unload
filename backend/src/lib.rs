@@ -2,254 +2,44 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
-use chrono::Utc;
-use serde::{Deserialize, Serialize};
+use chrono::{DateTime, Utc};
+use shared_models::{
+    BoardName, Color, TaskData, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry,
+    UserId,
+};
 use sqlx::SqlitePool;
 use std::collections::HashMap;
-use std::fmt::Display;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum TaskSize {
-    Small,
-    Medium,
-    Large,
-}
-
-impl TaskSize {
-    fn from_str(size: &str) -> Result<Self> {
-        match size {
-            "SMALL" => Ok(TaskSize::Small),
-            "MEDIUM" => Ok(TaskSize::Medium),
-            "LARGE" => Ok(TaskSize::Large),
-            _ => Err(AppError(anyhow::anyhow!("invalid task size: {size}"))),
-        }
-    }
-}
-
-impl Display for TaskSize {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            TaskSize::Small => write!(f, "SMALL"),
-            TaskSize::Medium => write!(f, "MEDIUM"),
-            TaskSize::Large => write!(f, "LARGE"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum TaskStatus {
-    ToDo,
-    InProgress,
-    Done,
-}
-
-impl TaskStatus {
-    fn from_str(status: &str) -> Result<Self> {
-        match status {
-            "TO_DO" => Ok(TaskStatus::ToDo),
-            "IN_PROGRESS" => Ok(TaskStatus::InProgress),
-            "DONE" => Ok(TaskStatus::Done),
-            _ => Err(AppError(anyhow::anyhow!("invalid task status: {status}"))),
-        }
-    }
-}
-
-impl Display for TaskStatus {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            TaskStatus::ToDo => write!(f, "TO_DO"),
-            TaskStatus::InProgress => write!(f, "IN_PROGRESS"),
-            TaskStatus::Done => write!(f, "DONE"),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct BoardName(String);
-
-impl BoardName {
-    pub fn new(board_name: &str) -> Self {
-        Self(board_name.to_string())
-    }
-}
-
-impl Display for BoardName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct UserId(i64);
-
-impl Display for UserId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct TaskId(i64);
-
-impl Display for TaskId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
-pub struct TaskData {
-    pub title: String,
-    pub description: String,
-    pub due: Option<i64>,
-    pub size: TaskSize,
-    pub status: TaskStatus,
-    pub assignees: Vec<UserId>,
-    pub blocks: Vec<TaskId>,
-    pub blocked_by: Vec<TaskId>,
-}
 
 struct TaskRow {
-    id: i64,
+    id: TaskId,
     title: String,
     description: String,
-    created: i64,
-    updated: i64,
-    due: Option<i64>,
-    size: String,
-    status: String,
+    created: DateTime<Utc>,
+    updated: DateTime<Utc>,
+    due: Option<DateTime<Utc>>,
+    size: TaskSize,
+    status: TaskStatus,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct TaskEntry {
-    pub id: TaskId,
-    pub title: String,
-    pub description: String,
-    pub created: i64,
-    pub updated: i64,
-    pub due: Option<i64>,
-    pub size: TaskSize,
-    pub status: TaskStatus,
-    pub assignees: Vec<UserId>,
-    pub blocks: Vec<TaskId>,
-    pub blocked_by: Vec<TaskId>,
-}
-
-impl TaskEntry {
-    fn from_row(
-        row: TaskRow,
+impl TaskRow {
+    fn into_entry(
+        self,
         assignees: Vec<UserId>,
         blocks: Vec<TaskId>,
         blocked_by: Vec<TaskId>,
-    ) -> Result<Self> {
-        Ok(Self {
-            id: TaskId(row.id),
-            title: row.title,
-            description: row.description,
-            created: row.created,
-            updated: row.updated,
-            due: row.due,
-            size: TaskSize::from_str(&row.size)?,
-            status: TaskStatus::from_str(&row.status)?,
+    ) -> TaskEntry {
+        TaskEntry {
+            id: self.id,
+            title: self.title,
+            description: self.description,
+            created: self.created,
+            updated: self.updated,
+            due: self.due,
+            size: self.size,
+            status: self.status,
             assignees,
             blocks,
             blocked_by,
-        })
-    }
-}
-
-struct UserRow {
-    id: i64,
-    name: String,
-    color: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct UserEntry {
-    pub id: UserId,
-    pub name: String,
-    pub color: Color,
-}
-
-impl UserEntry {
-    fn from_row(row: UserRow) -> Result<Self> {
-        Ok(Self {
-            id: UserId(row.id),
-            name: row.name,
-            color: Color::from_str(&row.color)?,
-        })
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
-pub struct UserData {
-    pub name: String,
-    pub color: Color,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Color {
-    Black,
-    White,
-    Gray,
-    Silver,
-    Maroon,
-    Red,
-    Purple,
-    Fushsia,
-    Green,
-    Lime,
-    Olive,
-    Yellow,
-    Navy,
-    Blue,
-    Teal,
-    Aqua,
-}
-
-impl Color {
-    fn from_str(color: &str) -> Result<Color> {
-        match color {
-            "BLACK" => Ok(Color::Black),
-            "WHITE" => Ok(Color::White),
-            "GRAY" => Ok(Color::Gray),
-            "SILVER" => Ok(Color::Silver),
-            "MAROON" => Ok(Color::Maroon),
-            "RED" => Ok(Color::Red),
-            "PURPLE" => Ok(Color::Purple),
-            "FUSHSIA" => Ok(Color::Fushsia),
-            "GREEN" => Ok(Color::Green),
-            "LIME" => Ok(Color::Lime),
-            "OLIVE" => Ok(Color::Olive),
-            "YELLOW" => Ok(Color::Yellow),
-            "NAVY" => Ok(Color::Navy),
-            "BLUE" => Ok(Color::Blue),
-            "TEAL" => Ok(Color::Teal),
-            "AQUA" => Ok(Color::Aqua),
-            _ => Err(AppError(anyhow::anyhow!("invalid color"))),
-        }
-    }
-}
-
-impl Display for Color {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Color::Black => write!(f, "BLACK"),
-            Color::White => write!(f, "WHITE"),
-            Color::Gray => write!(f, "GRAY"),
-            Color::Silver => write!(f, "SILVER"),
-            Color::Maroon => write!(f, "MAROON"),
-            Color::Red => write!(f, "RED"),
-            Color::Purple => write!(f, "PURPLE"),
-            Color::Fushsia => write!(f, "FUSHSIA"),
-            Color::Green => write!(f, "GREEN"),
-            Color::Lime => write!(f, "LIME"),
-            Color::Olive => write!(f, "OLIVE"),
-            Color::Yellow => write!(f, "YELLOW"),
-            Color::Navy => write!(f, "NAVY"),
-            Color::Blue => write!(f, "BLUE"),
-            Color::Teal => write!(f, "TEAL"),
-            Color::Aqua => write!(f, "AQUA"),
         }
     }
 }
@@ -285,8 +75,8 @@ pub async fn create_board(State(pool): State<SqlitePool>) -> Result<Json<BoardNa
         "
 INSERT INTO boards (name, title)
 VALUES (?, ?)",
-        board_name.0,
-        board_name.0
+        board_name,
+        board_name,
     )
     .execute(&mut *tx)
     .await?;
@@ -322,7 +112,7 @@ async fn new_unique_board_name(pool: &SqlitePool) -> Result<BoardName> {
     .await?
     .adjective;
     tx.commit().await?;
-    Ok(BoardName(format!("{adjective}-{noun}-{num_boards}")))
+    Ok(format!("{adjective}-{noun}-{num_boards}").into())
 }
 
 pub async fn show_task(
@@ -332,20 +122,30 @@ pub async fn show_task(
     let mut tx = pool.begin().await?;
     let task = sqlx::query_as!(
         TaskRow,
-        "
+        r#"
 SELECT
-    id, title, description, created, updated, due, size, status
+    id, title, description,
+    created AS "created: DateTime<Utc>",
+    updated AS "updated: DateTime<Utc>",
+    due AS "due: DateTime<Utc>",
+    size AS "size: TaskSize",
+    status AS "status: TaskStatus"
 FROM
     tasks
 WHERE
     id = ? AND board_name = ?
-LIMIT 1",
-        task_id.0,
-        board_name.0,
+LIMIT 1"#,
+        task_id,
+        board_name,
     )
     .fetch_one(&mut *tx)
     .await?;
-    let assignees = sqlx::query!(
+
+    struct AssigneeRow {
+        user_id: UserId,
+    }
+    let assignees = sqlx::query_as!(
+        AssigneeRow,
         "
 SELECT
     user_id
@@ -353,54 +153,57 @@ FROM
     task_assignments
 WHERE
     task_id = ?",
-        task_id.0,
+        task_id,
     )
     .fetch_all(&mut *tx)
-    .await?;
-    let blocks = sqlx::query!(
+    .await?
+    .into_iter()
+    .map(|AssigneeRow { user_id }| user_id)
+    .collect();
+
+    struct BlocksRow {
+        blocks_id: TaskId,
+    }
+    let blocks = sqlx::query_as!(
+        BlocksRow,
         "
 SELECT
     blocks_id
 FROM
     task_dependencies
 WHERE
-    board_name = ? AND task_id = ?
-",
-        board_name.0,
-        task_id.0,
+    board_name = ? AND task_id = ?",
+        board_name,
+        task_id,
     )
     .fetch_all(&mut *tx)
-    .await?;
-    let blocked_by = sqlx::query!(
+    .await?
+    .into_iter()
+    .map(|BlocksRow { blocks_id }| blocks_id)
+    .collect();
+
+    struct BlockedByRow {
+        task_id: TaskId,
+    }
+    let blocked_by = sqlx::query_as!(
+        BlockedByRow,
         "
 SELECT
     task_id
 FROM
     task_dependencies
 WHERE
-    board_name = ? and blocks_id = ?
-",
-        board_name.0,
-        task_id.0,
+    board_name = ? and blocks_id = ?",
+        board_name,
+        task_id,
     )
     .fetch_all(&mut *tx)
-    .await?;
+    .await?
+    .into_iter()
+    .map(|BlockedByRow { task_id }| task_id)
+    .collect();
     tx.commit().await?;
-    Ok(Json(TaskEntry::from_row(
-        task,
-        assignees
-            .into_iter()
-            .map(|record| UserId(record.user_id))
-            .collect(),
-        blocks
-            .into_iter()
-            .map(|record| TaskId(record.blocks_id))
-            .collect(),
-        blocked_by
-            .into_iter()
-            .map(|record| TaskId(record.task_id))
-            .collect(),
-    )?))
+    Ok(Json(task.into_entry(assignees, blocks, blocked_by)))
 }
 
 pub async fn show_tasks(
@@ -410,18 +213,28 @@ pub async fn show_tasks(
     let mut tx = pool.begin().await?;
     let tasks = sqlx::query_as!(
         TaskRow,
-        "
+        r#"
 SELECT
-    id, title, description, created, updated, due, size, status
+    id, title, description,
+    created AS "created: DateTime<Utc>",
+    updated AS "updated: DateTime<Utc>",
+    due AS "due: DateTime<Utc>",
+    size AS "size: TaskSize", status AS "status: TaskStatus"
 FROM
     tasks
 WHERE
-    board_name = ?",
-        board_name.0
+    board_name = ?"#,
+        board_name
     )
     .fetch_all(&mut *tx)
     .await?;
-    let assignments = sqlx::query!(
+
+    struct TaskAssignmentRow {
+        task_id: TaskId,
+        user_id: UserId,
+    }
+    let assignments = sqlx::query_as!(
+        TaskAssignmentRow,
         "
 SELECT
     task_id, user_id
@@ -429,20 +242,26 @@ FROM
     task_assignments
 WHERE
     board_name = ?",
-        board_name.0,
+        board_name,
     )
     .fetch_all(&mut *tx)
     .await?;
     let mut task_assignments = assignments
         .into_iter()
-        .fold(HashMap::new(), |mut map, record| {
+        .fold(HashMap::new(), |mut map, row| {
             #[allow(clippy::unwrap_or_default)]
-            map.entry(record.task_id)
+            map.entry(row.task_id)
                 .or_insert_with(Vec::new)
-                .push(UserId(record.user_id));
+                .push(row.user_id);
             map
         });
-    let blocks = sqlx::query!(
+
+    struct BlocksRow {
+        task_id: TaskId,
+        blocks_id: TaskId,
+    }
+    let blocks = sqlx::query_as!(
+        BlocksRow,
         "
 SELECT
     task_id, blocks_id
@@ -450,30 +269,29 @@ FROM
     task_dependencies
 WHERE
     board_name = ?",
-        board_name.0
+        board_name,
     )
     .fetch_all(&mut *tx)
     .await?;
     let (mut blocks_assignments, mut blocked_by_assignmnets) = blocks.into_iter().fold(
         (HashMap::new(), HashMap::new()),
-        |(mut blocks, mut blocked_by), record| {
+        |(mut blocks, mut blocked_by), row| {
             blocks
-                .entry(record.task_id)
+                .entry(row.task_id)
                 .or_insert_with(Vec::new)
-                .push(TaskId(record.blocks_id));
+                .push(row.blocks_id);
             blocked_by
-                .entry(record.blocks_id)
+                .entry(row.blocks_id)
                 .or_insert_with(Vec::new)
-                .push(TaskId(record.task_id));
+                .push(row.task_id);
             (blocks, blocked_by)
         },
     );
-    let task_entries: Result<Vec<TaskEntry>> = tasks
+    let task_entries: Vec<TaskEntry> = tasks
         .into_iter()
         .map(|task_row| {
             let task_id = task_row.id;
-            TaskEntry::from_row(
-                task_row,
+            task_row.into_entry(
                 task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
                 blocks_assignments.remove(&task_id).unwrap_or_else(Vec::new),
                 blocked_by_assignmnets
@@ -483,7 +301,7 @@ WHERE
         })
         .collect();
     tx.commit().await?;
-    Ok(Json(task_entries?))
+    Ok(Json(task_entries))
 }
 
 pub async fn create_task(
@@ -491,36 +309,33 @@ pub async fn create_task(
     Path(board_name): Path<BoardName>,
     Json(task_data): Json<TaskData>,
 ) -> Result<Json<TaskId>> {
-    let created = Utc::now().timestamp();
+    let created = Utc::now();
     let mut tx = pool.begin().await?;
-    let size = task_data.size.to_string();
-    let status = task_data.status.to_string();
-    let task_id = TaskId(
-        sqlx::query!(
-            "
+    let task_id = sqlx::query!(
+        "
 INSERT INTO tasks (board_name, title, description, created, updated, due, size, status)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            board_name.0,
-            task_data.title,
-            task_data.description,
-            created,
-            created,
-            task_data.due,
-            size,
-            status,
-        )
-        .execute(&mut *tx)
-        .await?
-        .last_insert_rowid(),
-    );
+        board_name,
+        task_data.title,
+        task_data.description,
+        created,
+        created,
+        task_data.due,
+        task_data.size,
+        task_data.status,
+    )
+    .execute(&mut *tx)
+    .await?
+    .last_insert_rowid()
+    .into();
     for assignee in task_data.assignees {
         sqlx::query!(
             "
 INSERT INTO task_assignments (board_name, user_id, task_id)
 VALUES (?, ?, ?)",
-            board_name.0,
-            assignee.0,
-            task_id.0,
+            board_name,
+            assignee,
+            task_id,
         )
         .execute(&mut *tx)
         .await?;
@@ -530,9 +345,9 @@ VALUES (?, ?, ?)",
             "
 INSERT INTO task_dependencies (board_name, task_id, blocks_id)
 VALUES (?, ?, ?)",
-            board_name.0,
-            task_id.0,
-            other.0
+            board_name,
+            task_id,
+            other
         )
         .execute(&mut *tx)
         .await?;
@@ -542,9 +357,9 @@ VALUES (?, ?, ?)",
             "
 INSERT INTO task_dependencies (board_name, task_id, blocks_id)
 VALUES (?, ?, ?)",
-            board_name.0,
-            other.0,
-            task_id.0,
+            board_name,
+            other,
+            task_id,
         )
         .execute(&mut *tx)
         .await?;
@@ -565,8 +380,8 @@ DELETE FROM
     task_assignments
 WHERE
     board_name = ? AND task_id = ?",
-        board_name.0,
-        task_id.0,
+        board_name,
+        task_id,
     )
     .execute(&mut *tx)
     .await?;
@@ -578,10 +393,10 @@ DELETE FROM
 WHERE
     (board_name = ? AND task_id = ?)
     OR (board_name = ? AND blocks_id = ?)",
-        board_name.0,
-        task_id.0,
-        board_name.0,
-        task_id.0,
+        board_name,
+        task_id,
+        board_name,
+        task_id,
     )
     .execute(&mut *tx)
     .await?;
@@ -592,8 +407,8 @@ DELETE FROM
     tasks
 WHERE
     board_name = ? AND id = ?",
-        board_name.0,
-        task_id.0,
+        board_name,
+        task_id,
     )
     .execute(&mut *tx)
     .await?;
@@ -607,26 +422,23 @@ pub async fn show_user(
     Path((board_name, user_id)): Path<(BoardName, UserId)>,
 ) -> Result<Json<UserEntry>> {
     let mut tx = pool.begin().await?;
-    let user_row = sqlx::query!(
-        "
+    let user_entry = sqlx::query_as!(
+        UserEntry,
+        r#"
 SELECT
-    id, name, color
+    id, name, color AS "color: Color"
 FROM
     users
 WHERE
     board_name = ? AND id = ?
-LIMIT 1",
-        board_name.0,
-        user_id.0
+LIMIT 1"#,
+        board_name,
+        user_id
     )
     .fetch_one(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(Json(UserEntry {
-        id: UserId(user_row.id),
-        name: user_row.name,
-        color: Color::from_str(&user_row.color)?,
-    }))
+    Ok(Json(user_entry))
 }
 
 pub async fn show_users(
@@ -635,43 +447,40 @@ pub async fn show_users(
 ) -> Result<Json<Vec<UserEntry>>> {
     let mut tx = pool.begin().await?;
     let users = sqlx::query_as!(
-        UserRow,
-        "
+        UserEntry,
+        r#"
 SELECT
-    id, name, color
+    id, name, color AS "color: Color"
 FROM
     users
 WHERE
-    board_name = ?",
-        board_name.0
+    board_name = ?"#,
+        board_name
     )
     .fetch_all(&mut *tx)
     .await?;
     tx.commit().await?;
-    let entries: Result<Vec<UserEntry>> = users.into_iter().map(UserEntry::from_row).collect();
-    Ok(Json(entries?))
+    Ok(Json(users))
 }
 
 pub async fn create_user(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
-    Json(user_data): Json<UserData>,
+    Json(UserData { name, color }): Json<UserData>,
 ) -> Result<Json<UserId>> {
-    let color = user_data.color.to_string();
     let mut tx = pool.begin().await?;
-    let user_id = UserId(
-        sqlx::query!(
-            "
+    let user_id = sqlx::query!(
+        "
 INSERT INTO users (board_name, name, color)
 VALUES (?, ?, ?)",
-            board_name.0,
-            user_data.name,
-            color,
-        )
-        .execute(&mut *tx)
-        .await?
-        .last_insert_rowid(),
-    );
+        board_name,
+        name,
+        color,
+    )
+    .execute(&mut *tx)
+    .await?
+    .last_insert_rowid()
+    .into();
     tx.commit().await?;
     Ok(Json(user_id))
 }
@@ -687,8 +496,8 @@ DELETE FROM
     task_assignments
 WHERE
     board_name = ? AND user_id = ?",
-        board_name.0,
-        user_id.0
+        board_name,
+        user_id
     )
     .execute(&mut *tx)
     .await?;
@@ -699,8 +508,8 @@ DELETE FROM
     users
 WHERE
     board_name = ? AND id = ?",
-        board_name.0,
-        user_id.0
+        board_name,
+        user_id
     )
     .execute(&mut *tx)
     .await?;
