@@ -46,7 +46,6 @@ fn BoardSettings(cx: Scope) -> Element {
                 },
             }
             button {
-                class: "bg-indigo-500",
                 onclick: move |_| {
                     cx.spawn(request_board_data(model.clone(), url.clone(), board_name.clone()));
                 },
@@ -78,8 +77,7 @@ async fn request_board_data(
 fn Board(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
-            class: "grid grid-cols-3 gap-4 bg-violet-50",
-            display: "grid",
+            class: "grid grid-cols-3",
             ToDoColumn {},
             InProgressColumn {},
             DoneColumn {},
@@ -92,7 +90,7 @@ fn ToDoColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
-            class: "bg-violet-950",
+            class: "grid grid-cols-1",
             div { "To Do" },
             div {
                 for task_id in model.to_do.iter() {
@@ -111,7 +109,7 @@ fn InProgressColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
-            class: "bg-violet-950",
+            class: "grid grid-cols-1",
             div { "In Progress" },
             div {
                 for task_id in model.in_progress.iter() {
@@ -130,7 +128,7 @@ fn DoneColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
-            class: "bg-violet-950",
+            class: "grid grid-cols-1",
             div { "Done" },
             div {
                 for task_id in model.done.iter() {

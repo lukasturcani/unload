@@ -25,6 +25,10 @@ docker-run mount:
 docker-kill:
   docker container kill unload
 
+# enter image
+enter-image:
+  docker run --rm -it --entrypoint sh registry.fly.io/unload
+
 # create the database
 create-db database:
   sqlx db create --database-url "sqlite:{{database}}"
@@ -83,7 +87,7 @@ check:
 # build the frontend
 frontend:
   rm -rf ./frontend/dist ./frontend/public
-  npx tailwindcss -i ./frontend/input.css -o ./frontend/public/tailwind.css
+  cd frontend && npx tailwindcss -i ./input.css -o ./public/tailwind.css
   cd frontend && dx build --release
 
 # run the backend
