@@ -11,10 +11,58 @@ use shared_models::{
 #[component]
 pub fn App(cx: Scope) -> Element {
     use_shared_state_provider(cx, Model::default);
-    let model = use_shared_state::<Model>(cx).unwrap().clone();
-    use_future(cx, (), |_| async move {
-        let url = "http://localhost:8080".parse::<Url>().unwrap();
-        let board_name = BoardName::from("buzzing-unique-0");
+    cx.render(rsx! {
+        div {
+            class: "grid grid-rows-2",
+            BoardSettings {},
+            Board {}
+        }
+    })
+}
+
+#[component]
+fn BoardSettings(cx: Scope) -> Element {
+    let url = use_state(cx, || String::from(""));
+    let board_name = use_state(cx, || String::from(""));
+    let model = use_shared_state::<Model>(cx).unwrap();
+    cx.render(rsx! {
+        div {
+            label {
+                "URL: ",
+                input {
+                    value: "{url}",
+                    oninput: |event| {
+                        url.set(event.data.value.clone());
+                    },
+                },
+            }
+            label {
+                "Board Name: "
+                input {
+                    value: "{board_name}",
+                    oninput: |event| {
+                        board_name.set(event.data.value.clone());
+                    },
+                },
+            }
+            button {
+                class: "bg-indigo-500",
+                onclick: move |_| {
+                    cx.spawn(request_board_data(model.clone(), url.clone(), board_name.clone()));
+                },
+                "Load",
+            },
+        }
+    })
+}
+
+async fn request_board_data(
+    model: UseSharedState<Model>,
+    url: UseState<String>,
+    board_name: UseState<String>,
+) {
+    if let Ok(url) = url.parse::<Url>() {
+        let board_name = BoardName::from(&**board_name);
         if let (Ok(users), Ok(tasks)) = join!(users(&url, &board_name), tasks(&url, &board_name)) {
             let mut model = model.write();
             model.users = users;
@@ -23,17 +71,14 @@ pub fn App(cx: Scope) -> Element {
             model.in_progress = tasks.in_progress;
             model.done = tasks.done;
         }
-    });
-    cx.render(rsx! {
-        Board {}
-    })
+    }
 }
 
 #[component]
 fn Board(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
-            class: "grid-cols-3",
+            class: "grid grid-cols-3 gap-4 bg-violet-50",
             display: "grid",
             ToDoColumn {},
             InProgressColumn {},
@@ -47,6 +92,7 @@ fn ToDoColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
+            class: "bg-violet-950",
             div { "To Do" },
             div {
                 for task_id in model.to_do.iter() {
@@ -65,6 +111,7 @@ fn InProgressColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
+            class: "bg-violet-950",
             div { "In Progress" },
             div {
                 for task_id in model.in_progress.iter() {
@@ -83,6 +130,7 @@ fn DoneColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     cx.render(rsx! {
         div {
+            class: "bg-violet-950",
             div { "Done" },
             div {
                 for task_id in model.done.iter() {
@@ -108,7 +156,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
     })
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct Tasks {
     tasks: HashMap<TaskId, TaskData>,
     to_do: Vec<TaskId>,
@@ -173,7 +221,7 @@ async fn users(
         }))
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct TaskData {
     title: String,
     description: String,

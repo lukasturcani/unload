@@ -77,7 +77,8 @@ check:
 
 # build the frontend
 frontend:
-  rm -rf frontend/dist
+  rm -rf ./frontend/dist ./frontend/public
+  npx tailwindcss -i ./frontend/input.css -o ./frontend/public/tailwind.css
   cd frontend && dx build --release
 
 # run the backend
