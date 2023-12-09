@@ -18,7 +18,12 @@ docker-run mount:
   --mount type=bind,source={{mount}},target=/mnt/unload_data \
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
   -e UNLOAD_SERVE_DIR="/var/www" \
+  --name unload \
   registry.fly.io/unload
+
+# kill docker container
+docker-kill:
+  docker container kill unload
 
 # create the database
 create-db database:
