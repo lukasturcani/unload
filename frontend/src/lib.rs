@@ -5,35 +5,59 @@ use tokio::join;
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use shared_models::{
-    BoardName, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry, UserId,
+    BoardName, Color, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry, UserId,
 };
 
 enum Page {
     Board,
     AddUser,
+    ShowUsers,
 }
 
 #[component]
 pub fn App(cx: Scope) -> Element {
     use_shared_state_provider(cx, Model::default);
     use_shared_state_provider(cx, || Page::Board);
+    let model = use_shared_state::<Model>(cx).unwrap();
     let page = use_shared_state::<Page>(cx).unwrap();
     cx.render(rsx! {
         match *page.read() {
             Page::Board => rsx!(div {
-                class: "grid grid-flow-row",
+                class: "bg-gray-900 h-screen w-screen",
                 BoardSettings {},
                 Board {}
                 button {
+                    class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800",
                     onclick: |_| {
                         *page.write() = Page::AddUser;
                     },
                     "Add User",
                 }
+                button {
+                    class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800",
+                    onclick: |_| {
+                        *page.write() = Page::ShowUsers;
+                    },
+                    "Show Users",
+                }
             }),
-            Page::AddUser => rsx!(
-                AddUserForm {},
-            )
+            Page::AddUser => rsx!{
+                div {
+                    class: "bg-gray-900 h-screen w-screen",
+                    AddUserForm {},
+                }
+            },
+            Page::ShowUsers => rsx!{
+                div {
+                    class: "bg-gray-900 h-screen w-screen",
+                    for user in model.read().users.values() {
+                        div {
+                            class: "bg-gray-700 rounded-lg p-2.5 m-2",
+                            "{user.name}"
+                        }
+                    }
+                }
+            },
         }
     })
 }
@@ -53,6 +77,7 @@ fn BoardSettings(cx: Scope) -> Element {
                 },
             }
             button {
+                class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800",
                 onclick: move |_| {
                     cx.spawn(request_board_data(model.clone()));
                 },
@@ -164,23 +189,35 @@ fn AddUserForm(cx: Scope) -> Element {
     let page = use_shared_state::<Page>(cx).unwrap();
     let model = use_shared_state::<Model>(cx).unwrap();
     cx.render(rsx! {
-        div {
-            class: "grid grid-flow-row",
-            label {
-                "Name: ",
+        form { class:"max-w-sm mx-auto",
+            div {
+                class: "mb-5",
+                label {
+                    r#for: "name",
+                    class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white",
+                    "Name: "
+                },
                 input {
+                    r#type: "text",
+                    id: "name",
+                    class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 focus:outline-none",
+                    placeholder: "Scarlett",
+                    required: true,
                     value: "{name}",
-                    oninput: |event| name.set(event.data.value.clone())
-                }
+                    oninput: |event| {
+                        name.set(event.value.clone())
+                    },
+                },
             }
             button {
+                r#type: "submit",
+                class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
                 onclick: |_| {
+                    cx.spawn(create_user(model.clone(), (**name).clone()));
                     *page.write() = Page::Board;
-                    cx.spawn(create_user(model.clone(), (**name).clone()))
                 },
-                "Add User"
+                "Submit"
             }
-
         }
     })
 }
@@ -251,7 +288,36 @@ async fn users(
 }
 
 async fn create_user(model: UseSharedState<Model>, name: String) {
-    todo!()
+    let color = Color::Black;
+    if let Ok(user_id) = send_create_user_request(&model, &name, color).await {
+        model
+            .write()
+            .users
+            .insert(user_id, UserData { name, color });
+    }
+}
+
+async fn send_create_user_request(
+    model: &UseSharedState<Model>,
+    name: &str,
+    color: Color,
+) -> Result<UserId, anyhow::Error> {
+    let model = model.read();
+    let client = Client::new();
+    Ok(client
+        .post(
+            model
+                .url
+                .join(&format!("/api/boards/{}/users", model.board_name))?,
+        )
+        .json(&UserData {
+            name: name.to_string(),
+            color,
+        })
+        .send()
+        .await?
+        .json::<UserId>()
+        .await?)
 }
 
 #[derive(Clone, Debug)]
