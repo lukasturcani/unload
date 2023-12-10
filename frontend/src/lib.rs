@@ -162,6 +162,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
 fn AddUserForm(cx: Scope) -> Element {
     let name = use_state(cx, String::default);
     let page = use_shared_state::<Page>(cx).unwrap();
+    let model = use_shared_state::<Model>(cx).unwrap();
     cx.render(rsx! {
         div {
             class: "grid grid-flow-row",
@@ -175,7 +176,7 @@ fn AddUserForm(cx: Scope) -> Element {
             button {
                 onclick: |_| {
                     *page.write() = Page::Board;
-                    // cx.spawn(create_user())
+                    cx.spawn(create_user(model.clone(), (**name).clone()))
                 },
                 "Add User"
             }
@@ -249,7 +250,7 @@ async fn users(
         }))
 }
 
-async fn create_user(board_name: &BoardName, name: &str) -> Result<UserId, anyhow::Error> {
+async fn create_user(model: UseSharedState<Model>, name: String) {
     todo!()
 }
 
