@@ -57,8 +57,16 @@ pub fn App(cx: Scope) -> Element {
                             *page.write() = Page::Board;
                             request_board_data(model.clone())
                         },
-                        "Submit"
+                        "Join"
                     }
+                },
+                button {
+                    class: BUTTON_CLASS,
+                    onclick: |_| {
+                        *page.write() = Page::Board;
+                        create_board(model.clone())
+                    },
+                    "Create New Board",
                 }
 
             }},
@@ -95,7 +103,6 @@ pub fn App(cx: Scope) -> Element {
                                 class: TEXT_INPUT_CLASS,
                                 r#type: "text",
                                 id: "name",
-                                placeholder: "Scarlett",
                                 required: true,
                                 value: "{add_user_form_name}",
                                 oninput: |event| {
@@ -125,10 +132,35 @@ pub fn App(cx: Scope) -> Element {
                             "{user.name}"
                         }
                     }
+                    button {
+                        class: BUTTON_CLASS,
+                        onclick: |_| {
+                            *page.write() = Page::Board;
+                        },
+                        "Back",
+                    }
                 }
             },
         }
     })
+}
+
+async fn create_board(model: UseSharedState<Model>) {
+    if let Ok(board_name) = send_create_board_request(&model).await {
+        model.write().board_name = board_name;
+    }
+}
+
+async fn send_create_board_request(
+    model: &UseSharedState<Model>,
+) -> Result<BoardName, anyhow::Error> {
+    let request = {
+        let model = model.read();
+        let client = Client::new();
+        let url = model.url.join("/api/boards")?;
+        client.post(url).json(&model.board_name)
+    };
+    Ok(request.send().await?.json::<BoardName>().await?)
 }
 
 async fn request_board_data(model: UseSharedState<Model>) {
