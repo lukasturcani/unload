@@ -92,11 +92,7 @@ fn BoardSettings(cx: Scope) -> Element {
 }
 
 async fn request_board_data(model: UseSharedState<Model>) {
-    if let (Ok(users), Ok(tasks)) = {
-        let url = &model.read().url;
-        let board_name = &model.read().board_name;
-        join!(users(url, board_name), tasks(url, board_name))
-    } {
+    if let (Ok(users), Ok(tasks)) = join!(users(&model), tasks(&model)) {
         let mut model = model.write();
         model.users = users;
         model.tasks = tasks.tasks;
@@ -234,10 +230,16 @@ struct Tasks {
     done: Vec<TaskId>,
 }
 
-async fn tasks(url: &Url, board_name: &BoardName) -> Result<Tasks, anyhow::Error> {
+async fn tasks(model: &UseSharedState<Model>) -> Result<Tasks, anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model
+            .url
+            .join(&format!("/api/boards/{}/tasks", model.board_name))?
+    };
     let client = Client::new();
     Ok(client
-        .get(url.join(&format!("/api/boards/{board_name}/tasks"))?)
+        .get(url)
         .send()
         .await?
         .json::<Vec<TaskEntry>>()
@@ -267,13 +269,16 @@ async fn tasks(url: &Url, board_name: &BoardName) -> Result<Tasks, anyhow::Error
         }))
 }
 
-async fn users(
-    url: &Url,
-    board_name: &BoardName,
-) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
+async fn users(model: &UseSharedState<Model>) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model
+            .url
+            .join(&format!("/api/boards/{}/users", model.board_name))?
+    };
     let client = Client::new();
     Ok(client
-        .get(url.join(&format!("/api/boards/{board_name}/users"))?)
+        .get(url)
         .send()
         .await?
         .json::<Vec<UserEntry>>()
@@ -293,20 +298,15 @@ async fn users(
 
 async fn create_user(model: UseSharedState<Model>, name: String) {
     let color = Color::Black;
-    if let Ok(user_id) = {
-        let model = model.read();
-        let url = &model.url;
-        let board_name = &model.board_name;
-        send_create_user_request(
-            url,
-            board_name,
-            &UserData {
-                name: name.to_string(),
-                color,
-            },
-        )
-        .await
-    } {
+    if let Ok(user_id) = send_create_user_request(
+        &model,
+        &UserData {
+            name: name.to_string(),
+            color,
+        },
+    )
+    .await
+    {
         model
             .write()
             .users
@@ -315,13 +315,18 @@ async fn create_user(model: UseSharedState<Model>, name: String) {
 }
 
 async fn send_create_user_request(
-    url: &Url,
-    board_name: &BoardName,
+    model: &UseSharedState<Model>,
     user_data: &UserData,
 ) -> Result<UserId, anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model
+            .url
+            .join(&format!("/api/boards/{}/users", model.board_name))?
+    };
     let client = Client::new();
     Ok(client
-        .post(url.join(&format!("/api/boards/{board_name}/users"))?)
+        .post(url)
         .json(user_data)
         .send()
         .await?
