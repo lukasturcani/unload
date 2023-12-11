@@ -82,7 +82,7 @@ fn BoardSettings(cx: Scope) -> Element {
             }
             button {
                 class: BUTTON_CLASS,
-                onclick: move |_| {
+                onclick: |_| {
                     cx.spawn(request_board_data(model.clone()));
                 },
                 "Load",
