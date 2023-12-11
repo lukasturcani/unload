@@ -50,8 +50,9 @@ pub fn App(cx: Scope) -> Element {
             Page::ShowUsers => rsx!{
                 div {
                     class: "bg-gray-900 h-screen w-screen",
-                    for user in model.read().users.values() {
+                    for (id, user) in model.read().users.iter() {
                         div {
+                            key: "{id}",
                             class: "bg-gray-700 rounded-lg p-2.5 m-2",
                             "{user.name}"
                         }
@@ -91,7 +92,7 @@ async fn request_board_data(model: UseSharedState<Model>) {
     if let (Ok(users), Ok(tasks)) = {
         let url = &model.read().url;
         let board_name = &model.read().board_name;
-        join!(users(&url, &board_name), tasks(&url, &board_name))
+        join!(users(url, board_name), tasks(url, board_name))
     } {
         let mut model = model.write();
         model.users = users;
@@ -289,7 +290,20 @@ async fn users(
 
 async fn create_user(model: UseSharedState<Model>, name: String) {
     let color = Color::Black;
-    if let Ok(user_id) = send_create_user_request(&model, &name, color).await {
+    if let Ok(user_id) = {
+        let model = model.read();
+        let url = &model.url;
+        let board_name = &model.board_name;
+        send_create_user_request(
+            url,
+            board_name,
+            &UserData {
+                name: name.to_string(),
+                color,
+            },
+        )
+        .await
+    } {
         model
             .write()
             .users
@@ -298,22 +312,14 @@ async fn create_user(model: UseSharedState<Model>, name: String) {
 }
 
 async fn send_create_user_request(
-    model: &UseSharedState<Model>,
-    name: &str,
-    color: Color,
+    url: &Url,
+    board_name: &BoardName,
+    user_data: &UserData,
 ) -> Result<UserId, anyhow::Error> {
-    let model = model.read();
     let client = Client::new();
     Ok(client
-        .post(
-            model
-                .url
-                .join(&format!("/api/boards/{}/users", model.board_name))?,
-        )
-        .json(&UserData {
-            name: name.to_string(),
-            color,
-        })
+        .post(url.join(&format!("/api/boards/{board_name}/users"))?)
+        .json(user_data)
         .send()
         .await?
         .json::<UserId>()
