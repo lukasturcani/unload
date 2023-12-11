@@ -9,6 +9,7 @@ use shared_models::{
 };
 
 enum Page {
+    JoinBoard,
     Board,
     AddUser,
     ShowUsers,
@@ -20,7 +21,7 @@ const TEXT_INPUT_CLASS: &str = "bg-gray-50 border border-gray-300 text-gray-900 
 #[component]
 pub fn App(cx: Scope) -> Element {
     use_shared_state_provider(cx, Model::default);
-    use_shared_state_provider(cx, || Page::Board);
+    use_shared_state_provider(cx, || Page::JoinBoard);
     let model = use_shared_state::<Model>(cx).unwrap();
     let page = use_shared_state::<Page>(cx).unwrap();
 
@@ -28,9 +29,41 @@ pub fn App(cx: Scope) -> Element {
 
     cx.render(rsx! {
         match *page.read() {
+            Page::JoinBoard => rsx!{div{
+                class: "bg-gray-900 h-screen w-screen",
+                form { class:"max-w-sm mx-auto",
+                    div {
+                        class: "mb-5",
+                        label {
+                            r#for: "board_name",
+                            class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white",
+                            "Board Name: "
+                        },
+                        input {
+                            class: TEXT_INPUT_CLASS,
+                            r#type: "text",
+                            id: "board_name",
+                            required: true,
+                            value: "{model.read().board_name}",
+                            oninput: |event| {
+                                model.write().board_name = event.value.clone().into()
+                            },
+                        },
+                    }
+                    button {
+                        class: BUTTON_CLASS,
+                        r#type: "submit",
+                        onclick: |_| {
+                            *page.write() = Page::Board;
+                            request_board_data(model.clone())
+                        },
+                        "Submit"
+                    }
+                }
+
+            }},
             Page::Board => rsx!(div {
                 class: "bg-gray-900 h-screen w-screen",
-                BoardSettings {},
                 Board {}
                 button {
                     class: BUTTON_CLASS,
@@ -93,31 +126,6 @@ pub fn App(cx: Scope) -> Element {
                         }
                     }
                 }
-            },
-        }
-    })
-}
-
-#[component]
-fn BoardSettings(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    cx.render(rsx! {
-        div {
-            label {
-                "Board Name: "
-                input {
-                    value: "{model.read().board_name}",
-                    oninput: |event| {
-                        model.write().board_name = event.data.value.clone().into();
-                    },
-                },
-            }
-            button {
-                class: BUTTON_CLASS,
-                onclick: |_| {
-                    request_board_data(model.clone())
-                },
-                "Load",
             },
         }
     })
