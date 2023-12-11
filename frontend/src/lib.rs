@@ -14,6 +14,9 @@ enum Page {
     ShowUsers,
 }
 
+const BUTTON_CLASS: &str = "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800";
+const TEXT_INPUT_CLASS: &str = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 focus:outline-none";
+
 #[component]
 pub fn App(cx: Scope) -> Element {
     use_shared_state_provider(cx, Model::default);
@@ -27,14 +30,14 @@ pub fn App(cx: Scope) -> Element {
                 BoardSettings {},
                 Board {}
                 button {
-                    class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800",
+                    class: BUTTON_CLASS,
                     onclick: |_| {
                         *page.write() = Page::AddUser;
                     },
                     "Add User",
                 }
                 button {
-                    class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800",
+                    class: BUTTON_CLASS,
                     onclick: |_| {
                         *page.write() = Page::ShowUsers;
                     },
@@ -78,7 +81,7 @@ fn BoardSettings(cx: Scope) -> Element {
                 },
             }
             button {
-                class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800",
+                class: BUTTON_CLASS,
                 onclick: move |_| {
                     cx.spawn(request_board_data(model.clone()));
                 },
@@ -199,9 +202,9 @@ fn AddUserForm(cx: Scope) -> Element {
                     "Name: "
                 },
                 input {
+                    class: TEXT_INPUT_CLASS,
                     r#type: "text",
                     id: "name",
-                    class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 focus:outline-none",
                     placeholder: "Scarlett",
                     required: true,
                     value: "{name}",
@@ -211,8 +214,8 @@ fn AddUserForm(cx: Scope) -> Element {
                 },
             }
             button {
+                class: BUTTON_CLASS,
                 r#type: "submit",
-                class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
                 onclick: |_| {
                     cx.spawn(create_user(model.clone(), (**name).clone()));
                     *page.write() = Page::Board;
