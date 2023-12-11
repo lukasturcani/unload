@@ -23,6 +23,9 @@ pub fn App(cx: Scope) -> Element {
     use_shared_state_provider(cx, || Page::Board);
     let model = use_shared_state::<Model>(cx).unwrap();
     let page = use_shared_state::<Page>(cx).unwrap();
+
+    let add_user_form_name = use_state(cx, String::default);
+
     cx.render(rsx! {
         match *page.read() {
             Page::Board => rsx!(div {
@@ -47,7 +50,36 @@ pub fn App(cx: Scope) -> Element {
             Page::AddUser => rsx!{
                 div {
                     class: "bg-gray-900 h-screen w-screen",
-                    AddUserForm {},
+                    form { class:"max-w-sm mx-auto",
+                        div {
+                            class: "mb-5",
+                            label {
+                                r#for: "name",
+                                class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white",
+                                "Name: "
+                            },
+                            input {
+                                class: TEXT_INPUT_CLASS,
+                                r#type: "text",
+                                id: "name",
+                                placeholder: "Scarlett",
+                                required: true,
+                                value: "{add_user_form_name}",
+                                oninput: |event| {
+                                    add_user_form_name.set(event.value.clone())
+                                },
+                            },
+                        }
+                        button {
+                            class: BUTTON_CLASS,
+                            r#type: "submit",
+                            onclick: |_| {
+                                *page.write() = Page::Board;
+                                create_user(model.clone(), (**add_user_form_name).clone())
+                            },
+                            "Submit"
+                        }
+                    }
                 }
             },
             Page::ShowUsers => rsx!{
