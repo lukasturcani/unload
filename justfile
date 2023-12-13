@@ -84,6 +84,9 @@ check:
 
   test $error = 0
 
+install-deps:
+  cd frontend && npm install
+
 # build the frontend
 frontend:
   cd frontend && npx tailwindcss -i ./input.css -o ./public/tailwind.css
