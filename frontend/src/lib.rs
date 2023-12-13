@@ -208,9 +208,12 @@ pub fn App(cx: Scope) -> Element {
                                 placeholder: "Give a description...",
                             },
                         },
-                        TaskSearch{
-                            id: "task_search",
-                        },
+                        div {
+                            class: "mb-5",
+                            TaskSearch{
+                                id: "blocked_by_search",
+                            },
+                        }
                         button {
                             class: BUTTON_CLASS,
                             r#type: "submit",
@@ -488,11 +491,12 @@ async fn send_create_user_request(
 
 #[component]
 fn TaskSearch<'a>(cx: Scope, id: &'a str) -> Element<'a> {
+    let has_focus = use_state(cx, || false);
     cx.render(rsx! {
         label {
             r#for: *id,
-            class: "mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white",
-            "Search"
+            class: TEXT_INPUT_LABEL_CLASS,
+            "Blocked by"
         },
         div {
             class: "relative",
@@ -519,8 +523,26 @@ fn TaskSearch<'a>(cx: Scope, id: &'a str) -> Element<'a> {
                 class: "block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                 placeholder: "Search",
                 required: true,
+                onfocusin: |_| has_focus.set(true),
+                onfocusout: |_| has_focus.set(false),
             },
         },
+        if **has_focus {rsx!{
+            div {
+                class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700",
+                ul {
+                    class: "py-2 text-sm text-gray-700 dark:text-gray-200",
+                    li {
+                        class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                        "First title",
+                    },
+                    li {
+                        class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                        "Second title",
+                    },
+                }
+            }
+        }}
     })
 }
 
