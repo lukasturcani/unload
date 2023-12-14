@@ -527,7 +527,7 @@ fn TaskSearch<'a>(cx: Scope, id: &'a str) -> Element<'a> {
                 placeholder: "Search",
                 onfocusin: |_| has_focus.set(true),
                 onfocusout: |_| has_focus.set(false),
-                onchange: |event| search_input.set(event.data.value.clone())
+                oninput: |event| search_input.set(event.data.value.clone())
             },
         },
         if **has_focus {rsx!{
