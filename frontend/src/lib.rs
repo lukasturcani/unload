@@ -491,7 +491,10 @@ async fn send_create_user_request(
 
 #[component]
 fn TaskSearch<'a>(cx: Scope, id: &'a str) -> Element<'a> {
+    let model = use_shared_state::<Model>(cx).unwrap();
     let has_focus = use_state(cx, || false);
+    let search_input = use_state(cx, String::default);
+    let selected = use_ref(cx, Vec::<String>::new);
     cx.render(rsx! {
         label {
             r#for: *id,
@@ -522,14 +525,14 @@ fn TaskSearch<'a>(cx: Scope, id: &'a str) -> Element<'a> {
                 id: *id,
                 class: "block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                 placeholder: "Search",
-                required: true,
                 onfocusin: |_| has_focus.set(true),
                 onfocusout: |_| has_focus.set(false),
+                onchange: |event| search_input.set(event.data.value.clone())
             },
         },
         if **has_focus {rsx!{
             div {
-                class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700",
+                class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700",
                 ul {
                     class: "py-2 text-sm text-gray-700 dark:text-gray-200",
                     li {
