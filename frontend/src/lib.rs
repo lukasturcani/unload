@@ -535,14 +535,25 @@ fn TaskSearch<'a>(cx: Scope, id: &'a str) -> Element<'a> {
                 class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700",
                 ul {
                     class: "py-2 text-sm text-gray-700 dark:text-gray-200",
-                    li {
-                        class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
-                        "First title",
-                    },
-                    li {
-                        class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
-                        "Second title",
-                    },
+                    if search_input.is_empty() {rsx!{
+                        li {
+                            class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                            "First title",
+                        },
+                        li {
+                            class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                            "Second title",
+                        },
+                    }} else {rsx!{
+                        li {
+                            class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                            "Third",
+                        },
+                        li {
+                            class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                            "Fourth",
+                        },
+                    }}
                 }
             }
         }}
