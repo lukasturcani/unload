@@ -7,6 +7,7 @@ use dioxus::prelude::*;
 use shared_models::{
     BoardName, Color, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry, UserId,
 };
+use tasks::Tasks;
 
 enum Page {
     JoinBoard,
@@ -331,7 +332,7 @@ fn DoneColumn(cx: Scope) -> Element {
 fn Task(cx: Scope, task_id: TaskId) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     let expanded = use_state(cx, || false);
-    let data = &model.tasks[task_id];
+    let data = model.tasks.get(task_id);
     cx.render(rsx! {
         div {
             "{data.title}"
@@ -378,14 +379,50 @@ fn AddUserForm(cx: Scope) -> Element {
 }
 
 #[derive(Default, Debug)]
-struct Tasks {
-    tasks: HashMap<TaskId, TaskData>,
+struct TasksResponse {
+    tasks: Tasks,
     to_do: Vec<TaskId>,
     in_progress: Vec<TaskId>,
     done: Vec<TaskId>,
 }
 
-async fn tasks(model: &UseSharedState<Model>) -> Result<Tasks, anyhow::Error> {
+impl From<Vec<TaskEntry>> for TasksResponse {
+    fn from(value: Vec<TaskEntry>) -> Self {
+        let mut to_do = Vec::new();
+        let mut in_progress = Vec::new();
+        let mut done = Vec::new();
+        let mut tasks = Tasks::with_capacity(value.len());
+        for task in value {
+            tasks.insert(
+                task.id,
+                TaskData {
+                    title: task.title,
+                    description: task.description,
+                    created: task.created,
+                    updated: task.updated,
+                    due: task.due,
+                    size: task.size,
+                    assignees: task.assignees,
+                    blocks: task.blocks,
+                    blocked_by: task.blocked_by,
+                },
+            );
+            match task.status {
+                TaskStatus::ToDo => to_do.push(task.id),
+                TaskStatus::InProgress => in_progress.push(task.id),
+                TaskStatus::Done => done.push(task.id),
+            }
+        }
+        Self {
+            tasks,
+            to_do,
+            in_progress,
+            done,
+        }
+    }
+}
+
+async fn tasks(model: &UseSharedState<Model>) -> Result<TasksResponse, anyhow::Error> {
     let url = {
         let model = model.read();
         model
@@ -400,7 +437,7 @@ async fn tasks(model: &UseSharedState<Model>) -> Result<Tasks, anyhow::Error> {
         .json::<Vec<TaskEntry>>()
         .await?
         .into_iter()
-        .fold(Tasks::default(), |mut tasks, task| {
+        .fold(TasksResponse::default(), |mut tasks, task| {
             tasks.tasks.insert(
                 task.id,
                 TaskData {
@@ -490,7 +527,7 @@ async fn send_create_user_request(
 }
 
 #[component]
-fn TaskSearch<'a>(cx: Scope, id: &'a str) -> Element<'a> {
+fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let has_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
@@ -535,28 +572,66 @@ fn TaskSearch<'a>(cx: Scope, id: &'a str) -> Element<'a> {
                 class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700",
                 ul {
                     class: "py-2 text-sm text-gray-700 dark:text-gray-200",
-                    if search_input.is_empty() {rsx!{
-                        li {
-                            class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
-                            "First title",
-                        },
-                        li {
-                            class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
-                            "Second title",
-                        },
+                    if search_input.is_empty() {
+                    rsx!{
+                        for title in model.read().most_recent_titles() {rsx!{
+                            li {
+                                key: "{title}",
+                                class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                                onclick: move |_| {
+                                    selected.write().push(title.clone());
+                                },
+                                title.clone(),
+                            },
+                        }}
                     }} else {rsx!{
-                        li {
-                            class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
-                            "Third",
-                        },
-                        li {
-                            class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
-                            "Fourth",
-                        },
+                        for title in model.read().find_titles(search_input) {rsx!{
+                            li {
+                                key: "{title}",
+                                class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                                onclick: move |_| {
+                                    selected.write().push(title.clone());
+                                },
+                                title.clone(),
+                            },
+                        }}
                     }}
                 }
             }
-        }}
+        }},
+        div {
+            for title in selected.read().iter() {rsx!{
+                span {
+                    id: "badge-dismiss-dark-{title}",
+                    class: "inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-gray-800 bg-gray-100 rounded dark:bg-gray-700 dark:text-gray-300",
+                    title.clone(),
+                    button {
+                        r#type: "button",
+                        class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-gray-300",
+                        "data-dismiss-target": "#badge-dismiss-dark-{title}",
+                        "aria-label": "Remove",
+                        svg {
+                            class: "w-2 h-2",
+                            "aria-hidden": "true",
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 14 14",
+                            path {
+                                stroke: "currentColor",
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                "stroke-width": "2",
+                                d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6",
+                            },
+                        },
+                        span {
+                            class: "sr-only",
+                            "Remove badge",
+                        },
+                    },
+                },
+            }},
+        },
     })
 }
 
@@ -576,11 +651,27 @@ struct TaskData {
 struct Model {
     url: Url,
     board_name: BoardName,
-    tasks: HashMap<TaskId, TaskData>,
+    tasks: Tasks,
     users: HashMap<UserId, UserData>,
     to_do: Vec<TaskId>,
     in_progress: Vec<TaskId>,
     done: Vec<TaskId>,
+}
+
+impl Model {
+    fn most_recent_titles(&self) -> Vec<String> {
+        vec!["one", "two", "three"]
+            .into_iter()
+            .map(|x| x.into())
+            .collect()
+    }
+
+    fn find_titles(&self, search_input: &str) -> Vec<String> {
+        vec!["four", "five", "six"]
+            .into_iter()
+            .map(|x| x.into())
+            .collect()
+    }
 }
 
 impl Default for Model {
@@ -588,11 +679,54 @@ impl Default for Model {
         Self {
             url: Url::from_str("http://localhost:8080").unwrap(),
             board_name: BoardName::from(""),
-            tasks: HashMap::default(),
+            tasks: Tasks::default(),
             users: HashMap::default(),
             to_do: Vec::default(),
             in_progress: Vec::default(),
             done: Vec::default(),
+        }
+    }
+}
+
+mod tasks {
+    use super::TaskData;
+    use shared_models::TaskId;
+    use std::collections::{BinaryHeap, HashMap};
+
+    const NUM_MOST_RECENTLY_UPDATED: usize = 5;
+
+    #[derive(Default, Debug)]
+    pub struct Tasks {
+        tasks: HashMap<TaskId, TaskData>,
+        most_recently_updated: BinaryHeap<(i64, TaskId)>,
+    }
+
+    impl Tasks {
+        pub fn with_capacity(capacity: usize) -> Self {
+            Self {
+                tasks: HashMap::with_capacity(capacity),
+                most_recently_updated: BinaryHeap::with_capacity(NUM_MOST_RECENTLY_UPDATED),
+            }
+        }
+
+        pub fn get(&self, task_id: &TaskId) -> &TaskData {
+            &self.tasks[task_id]
+        }
+
+        pub fn insert(&mut self, task_id: TaskId, task_data: TaskData) -> Option<TaskData> {
+            self.most_recently_updated
+                .retain(|(task_id, _)| task_id != task_id);
+            let timestamp = task_data.updated.timestamp();
+            if self.most_recently_updated.len() < NUM_MOST_RECENTLY_UPDATED
+                || self
+                    .most_recently_updated
+                    .peek()
+                    .map_or(false, |value| timestamp < value.0)
+            {
+                self.most_recently_updated.pop();
+                self.most_recently_updated.push((timestamp, task_id));
+            }
+            self.tasks.insert(task_id, task_data)
         }
     }
 }
