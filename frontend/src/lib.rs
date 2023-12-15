@@ -532,7 +532,6 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
     let has_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<String>::new);
-    log::info!("{:#?}", *selected.read());
     cx.render(rsx! {
         label {
             r#for: *id,
@@ -564,19 +563,10 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                 class: "block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                 placeholder: "Search",
                 onfocusin: |_| has_focus.set(true),
-                onfocusout: |_| has_focus.set(false),
+                // onfocusout: |_| has_focus.set(false),
                 oninput: |event| search_input.set(event.data.value.clone())
             },
         },
-        button {
-            r#type: "button",
-            class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
-            onclick: move |_| {
-                log::info!("clicked2");
-                selected.write().push("HI".into());
-            },
-            "HI"
-        }
         if **has_focus {rsx!{
             div {
                 class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700",
@@ -587,12 +577,10 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                         for title in model.read().most_recent_titles() {rsx!{
                             li {
                                 key: "{title}",
-                                class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
                                 button {
                                     r#type: "button",
-                                    class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                                    class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
                                     onclick: move |_| {
-                                        log::info!("clicked1");
                                         selected.write().push(title.clone());
                                     },
                                     title.clone(),
@@ -602,13 +590,11 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                     }} else {rsx!{
                         for title in model.read().find_titles(search_input) {rsx!{
                             li {
-                                class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
                                 key: "{title}",
                                 button {
                                     r#type: "button",
-                                    class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                                    class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
                                     onclick: move |_| {
-                                        log::info!("clicked2");
                                         selected.write().push(title.clone());
                                     },
                                     title.clone(),
@@ -620,6 +606,7 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
             }
         }},
         div {
+            class: "mt-2",
             for title in selected.read().iter() {rsx!{
                 span {
                     id: "badge-dismiss-dark-{title}",
