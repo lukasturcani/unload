@@ -531,7 +531,7 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let has_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
-    let selected = use_ref(cx, Vec::<String>::new);
+    let selected = use_ref(cx, Vec::<(TaskId, String)>::new);
     cx.render(rsx! {
         label {
             r#for: *id,
@@ -574,30 +574,30 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                     class: "py-2 text-sm text-gray-700 dark:text-gray-200",
                     if search_input.is_empty() {
                     rsx!{
-                        for title in model.read().most_recent_titles() {rsx!{
+                        for task in model.read().most_recent_titles() {rsx!{
                             li {
-                                key: "{title}",
+                                key: "{task.1}",
                                 button {
                                     r#type: "button",
                                     class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
                                     onclick: move |_| {
-                                        selected.write().push(title.clone());
+                                        selected.write().push(task.clone());
                                     },
-                                    title.clone(),
+                                    task.1.clone(),
                                 }
                             },
                         }}
                     }} else {rsx!{
-                        for title in model.read().find_titles(search_input) {rsx!{
+                        for task in model.read().find_titles(search_input) {rsx!{
                             li {
-                                key: "{title}",
+                                key: "{task.1}",
                                 button {
                                     r#type: "button",
                                     class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
                                     onclick: move |_| {
-                                        selected.write().push(title.clone());
+                                        selected.write().push(task.clone());
                                     },
-                                    title.clone(),
+                                    task.1.clone(),
                                 }
                             },
                         }}
@@ -607,14 +607,17 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
         }},
         div {
             class: "mt-2",
-            for title in selected.read().iter() {rsx!{
+            for task in selected.read().iter().map(|x| x.clone()) {rsx!{
                 span {
                     class: "inline-flex items-center px-2 py-1 me-2 mt-2 text-sm font-medium text-gray-800 bg-gray-100 rounded dark:bg-gray-700 dark:text-gray-300",
-                    title.clone(),
+                    task.1.clone(),
                     button {
                         r#type: "button",
                         class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-gray-300",
                         "aria-label": "Remove",
+                        onclick: move |_| {
+                            selected.write().retain(|this| this.0 != task.0);
+                        },
                         svg {
                             class: "w-2 h-2",
                             "aria-hidden": "true",
@@ -664,18 +667,20 @@ struct Model {
 }
 
 impl Model {
-    fn most_recent_titles(&self) -> Vec<String> {
-        vec!["one", "two", "three"]
-            .into_iter()
-            .map(|x| x.into())
-            .collect()
+    fn most_recent_titles(&self) -> Vec<(TaskId, String)> {
+        vec![
+            (1.into(), "one".into()),
+            (2.into(), "two".into()),
+            (3.into(), "three".into()),
+        ]
     }
 
-    fn find_titles(&self, search_input: &str) -> Vec<String> {
-        vec!["four", "five", "six"]
-            .into_iter()
-            .map(|x| x.into())
-            .collect()
+    fn find_titles(&self, search_input: &str) -> Vec<(TaskId, String)> {
+        vec![
+            (4.into(), "four".into()),
+            (5.into(), "five".into()),
+            (6.into(), "six".into()),
+        ]
     }
 }
 
