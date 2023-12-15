@@ -532,6 +532,7 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
     let has_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<String>::new);
+    log::info!("{:#?}", *selected.read());
     cx.render(rsx! {
         label {
             r#for: *id,
@@ -567,6 +568,15 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                 oninput: |event| search_input.set(event.data.value.clone())
             },
         },
+        button {
+            r#type: "button",
+            class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+            onclick: move |_| {
+                log::info!("clicked2");
+                selected.write().push("HI".into());
+            },
+            "HI"
+        }
         if **has_focus {rsx!{
             div {
                 class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700",
@@ -578,21 +588,31 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                             li {
                                 key: "{title}",
                                 class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
-                                onclick: move |_| {
-                                    selected.write().push(title.clone());
-                                },
-                                title.clone(),
+                                button {
+                                    r#type: "button",
+                                    class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                                    onclick: move |_| {
+                                        log::info!("clicked1");
+                                        selected.write().push(title.clone());
+                                    },
+                                    title.clone(),
+                                }
                             },
                         }}
                     }} else {rsx!{
                         for title in model.read().find_titles(search_input) {rsx!{
                             li {
-                                key: "{title}",
                                 class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
-                                onclick: move |_| {
-                                    selected.write().push(title.clone());
-                                },
-                                title.clone(),
+                                key: "{title}",
+                                button {
+                                    r#type: "button",
+                                    class: "block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white",
+                                    onclick: move |_| {
+                                        log::info!("clicked2");
+                                        selected.write().push(title.clone());
+                                    },
+                                    title.clone(),
+                                }
                             },
                         }}
                     }}
