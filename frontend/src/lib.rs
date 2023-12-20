@@ -570,28 +570,20 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
         },
         if **has_input_focus || **has_mouseover {rsx!{
             div {
-                prevent_default: "onpointerdown",
-                prevent_default: "onmousedown",
                 onmouseenter: |_| has_mouseover.set(true),
                 onmouseleave: |_| has_mouseover.set(false),
                 class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
                 ul {
-                    prevent_default: "onpointerdown",
-                    prevent_default: "onmousedown",
                     class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
                     if search_input.is_empty() {
                     rsx!{
                         for task in model.read().most_recent_titles() {rsx!{
                             li {
-                                prevent_default: "onpointerdown",
-                                prevent_default: "onmousedown",
                                 class: "focus:border-blue-500",
                                 key: "{task.1}",
                                 button {
                                     r#type: "button",
                                     class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
-                                    prevent_default: "onpointerdown",
-                                    prevent_default: "onmousedown",
                                     onclick: move |_| {
                                         selected.write().push(task.clone());
                                     },
@@ -602,15 +594,11 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                     }} else {rsx!{
                         for task in model.read().find_titles(search_input) {rsx!{
                             li {
-                                prevent_default: "onpointerdown",
-                                prevent_default: "onmousedown",
                                 class: "focus:border-blue-500",
                                 key: "{task.1}",
                                 button {
                                     r#type: "button",
                                     class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
-                                    prevent_default: "onpointerdown",
-                                    prevent_default: "onmousedown",
                                     onclick: move |_| {
                                         selected.write().push(task.clone());
                                     },
