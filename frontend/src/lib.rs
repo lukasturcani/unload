@@ -530,7 +530,6 @@ async fn send_create_user_request(
 fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let has_input_focus = use_state(cx, || false);
-    let has_mouseover = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<(TaskId, String)>::new);
     cx.render(rsx! {
@@ -568,10 +567,8 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                 oninput: |event| search_input.set(event.data.value.clone())
             },
         },
-        if **has_input_focus || **has_mouseover {rsx!{
+        if **has_input_focus {rsx!{
             div {
-                onmouseenter: |_| has_mouseover.set(true),
-                onmouseleave: |_| has_mouseover.set(false),
                 class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
                 ul {
                     class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
@@ -584,6 +581,8 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                                 button {
                                     r#type: "button",
                                     class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
+                                    prevent_default: "onmousedown",
+                                    onmousedown: |_| {},
                                     onclick: move |_| {
                                         selected.write().push(task.clone());
                                     },
@@ -599,6 +598,8 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                                 button {
                                     r#type: "button",
                                     class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
+                                    prevent_default: "onmousedown",
+                                    onmousedown: |_| {},
                                     onclick: move |_| {
                                         selected.write().push(task.clone());
                                     },
