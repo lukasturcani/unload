@@ -30,6 +30,8 @@ pub fn App(cx: Scope) -> Element {
 
     let add_user_form_name = use_state(cx, String::default);
     let add_task_form_title = use_state(cx, String::default);
+    let add_task_blocked_by = use_ref(cx, Vec::new);
+    let add_task_blocks = use_ref(cx, Vec::new);
 
     cx.render(rsx! {
         match *page.read() {
@@ -213,6 +215,16 @@ pub fn App(cx: Scope) -> Element {
                             class: "mb-5",
                             TaskSearch{
                                 id: "blocked_by_search",
+                                on_select_task: |task_id| add_task_blocked_by.write().push(task_id),
+                                on_remove_task: |task_id| add_task_blocked_by.write().retain(|&value| value != task_id),
+                            },
+                        }
+                        div {
+                            class: "mb-5",
+                            TaskSearch{
+                                id: "blocks_search",
+                                on_select_task: |task_id| add_task_blocks.write().push(task_id),
+                                on_remove_task: |task_id| add_task_blocks.write().retain(|&value| value != task_id),
                             },
                         }
                         button {
@@ -527,7 +539,12 @@ async fn send_create_user_request(
 }
 
 #[component]
-fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
+fn TaskSearch<'a>(
+    cx: Scope<'a>,
+    id: &'a str,
+    on_select_task: EventHandler<'a, TaskId>,
+    on_remove_task: EventHandler<'a, TaskId>,
+) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
@@ -585,6 +602,7 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                                     onmousedown: |_| {},
                                     onclick: move |_| {
                                         selected.write().push(task.clone());
+                                        on_select_task.call(task.0);
                                     },
                                     task.1.clone(),
                                 }
@@ -602,6 +620,7 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                                     onmousedown: |_| {},
                                     onclick: move |_| {
                                         selected.write().push(task.clone());
+                                        on_select_task.call(task.0);
                                     },
                                     task.1.clone(),
                                 }
@@ -623,6 +642,7 @@ fn TaskSearch<'a>(cx: Scope<'a>, id: &'a str) -> Element<'a> {
                         "aria-label": "Remove",
                         onclick: move |_| {
                             selected.write().retain(|this| this.0 != task.0);
+                            on_remove_task.call(task.0);
                         },
                         svg {
                             class: "w-2 h-2",
