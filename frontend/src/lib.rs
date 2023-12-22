@@ -32,6 +32,7 @@ pub fn App(cx: Scope) -> Element {
     let add_task_form_title = use_state(cx, String::default);
     let add_task_blocked_by = use_ref(cx, Vec::new);
     let add_task_blocks = use_ref(cx, Vec::new);
+    let add_task_assigned_to = use_ref(cx, Vec::new);
 
     cx.render(rsx! {
         match *page.read() {
@@ -196,6 +197,14 @@ pub fn App(cx: Scope) -> Element {
                                     "Large",
                                 }
                             }
+                        },
+                        div {
+                            class: "mb-5",
+                            UserSearch{
+                                id: "user_search",
+                                on_select_user: |user_id| add_task_assigned_to.write().push(user_id),
+                                on_remove_user: |user_id| add_task_assigned_to.write().retain(|&value| value != user_id),
+                            },
                         },
                         div {
                             class: "mb-5",
@@ -615,7 +624,7 @@ fn TaskSearch<'a>(
                                 li {
                                     class: "focus:border-blue-500",
                                     // TODO: check key have correct value
-                                    key: "{task.1}",
+                                    key: "{task.0}",
                                     button {
                                         r#type: "button",
                                         class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
@@ -647,6 +656,139 @@ fn TaskSearch<'a>(
                         onclick: move |_| {
                             selected.write().retain(|this| this.0 != task.0);
                             on_remove_task.call(task.0);
+                        },
+                        svg {
+                            class: "w-2 h-2",
+                            "aria-hidden": "true",
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 14 14",
+                            path {
+                                stroke: "currentColor",
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                "stroke-width": "2",
+                                d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6",
+                            },
+                        },
+                        span {
+                            class: "sr-only",
+                            "Remove badge",
+                        },
+                    },
+                },
+            }},
+        },
+    })
+}
+
+#[component]
+fn UserSearch<'a>(
+    cx: Scope<'a>,
+    id: &'a str,
+    on_select_user: EventHandler<'a, UserId>,
+    on_remove_user: EventHandler<'a, UserId>,
+) -> Element<'a> {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let has_input_focus = use_state(cx, || false);
+    let search_input = use_state(cx, String::default);
+    let selected = use_ref(cx, Vec::<(UserId, String)>::new);
+    let users: Vec<_> = model
+        .read()
+        .users
+        .iter()
+        .filter(|(_, user)| user.name.find(&**search_input).is_some())
+        .map(|(id, user)| (*id, user.name.clone()))
+        .collect();
+    cx.render(rsx! {
+        label {
+            r#for: *id,
+            class: TEXT_INPUT_LABEL_CLASS,
+            "Assigned to"
+        },
+        div {
+            class: "relative",
+            div {
+                class: "absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none",
+                svg {
+                    class: "w-4 h-4 text-gray-500 dark:text-gray-400",
+                    "aria-hidden": "true",
+                    xmlns: "http://www.w3.org/2000/svg",
+                    fill: "none" ,
+                    "viewBox": "0 0 20 20",
+                    path {
+                        d: "m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z",
+                        stroke: "currentColor",
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        "stroke-width", "2",
+                    },
+                },
+            },
+            input {
+                r#type: "search",
+                id: *id,
+                class: "block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                placeholder: "Search",
+                onfocusin: |_| has_input_focus.set(true),
+                onfocusout: |_| has_input_focus.set(false),
+                oninput: |event| search_input.set(event.data.value.clone())
+            },
+        },
+        if **has_input_focus && !search_input.is_empty() {rsx!{
+            div {
+                class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
+                ul {
+                    class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
+                    rsx!{
+                        for user in users {rsx!{
+                            li {
+                                class: "focus:border-blue-500",
+                                // TODO: check key have correct value
+                                key: "{user.0}",
+                                button {
+                                    r#type: "button",
+                                    class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
+                                    prevent_default: "onmousedown",
+                                    onmousedown: |_| {},
+                                    onclick: move |_| {
+                                        selected.write().push(user.clone());
+                                        on_select_user.call(user.0);
+                                    },
+                                    user.1.clone(),
+                                }
+                            },
+                        }}
+                    }
+                    li {
+                        key: "add user",
+                        class: "focus:border-blue-500",
+                        button {
+                            r#type: "button",
+                            class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            onclick: move |_| {},
+                            "Add user"
+                        }
+
+                    },
+                }
+            }
+        }}
+        div {
+            class: "mt-2",
+            for user in selected.read().iter().map(|x| x.clone()) {rsx!{
+                span {
+                    class: "inline-flex items-center px-2 py-1 me-2 mt-2 text-sm font-medium text-gray-800 bg-gray-100 rounded dark:bg-gray-700 dark:text-gray-300",
+                    user.1.clone(),
+                    button {
+                        r#type: "button",
+                        class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-gray-300",
+                        "aria-label": "Remove",
+                        onclick: move |_| {
+                            selected.write().retain(|this| this.0 != user.0);
+                            on_remove_user.call(user.0);
                         },
                         svg {
                             class: "w-2 h-2",
