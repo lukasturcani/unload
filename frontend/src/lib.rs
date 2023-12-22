@@ -36,7 +36,7 @@ pub fn App(cx: Scope) -> Element {
     let add_task_form_blocks = use_ref(cx, Vec::new);
     let add_task_form_assigned_to = use_ref(cx, Vec::new);
     let add_task_form_due_date = use_state(cx, || None::<NaiveDate>);
-    let add_task_form_due_time = use_state(cx, || None::<NaiveTime>);
+    let add_task_form_due_time = use_state(cx, || NaiveTime::from_hms_opt(0, 0, 0).unwrap());
 
     cx.render(rsx! {
         match *page.read() {
@@ -304,6 +304,11 @@ pub fn App(cx: Scope) -> Element {
                                     select {
                                         id: "task_due_time",
                                         class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                        onchange: |event| {
+                                            if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
+                                                add_task_form_due_time.set(time)
+                                            }
+                                        },
                                         for hour in 0..24 {
                                             for minute in [0, 15, 30, 45] {
                                                 rsx!{
