@@ -29,10 +29,12 @@ pub fn App(cx: Scope) -> Element {
     let page = use_shared_state::<Page>(cx).unwrap();
 
     let add_user_form_name = use_state(cx, String::default);
+
     let add_task_form_title = use_state(cx, String::default);
-    let add_task_blocked_by = use_ref(cx, Vec::new);
-    let add_task_blocks = use_ref(cx, Vec::new);
-    let add_task_assigned_to = use_ref(cx, Vec::new);
+    let add_task_form_description = use_state(cx, String::default);
+    let add_task_form_blocked_by = use_ref(cx, Vec::new);
+    let add_task_form_blocks = use_ref(cx, Vec::new);
+    let add_task_form_assigned_to = use_ref(cx, Vec::new);
 
     cx.render(rsx! {
         match *page.read() {
@@ -186,6 +188,30 @@ pub fn App(cx: Scope) -> Element {
                                 button {
                                     r#type: "button",
                                     class: "px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 rounded-s-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700",
+                                    "To do",
+                                },
+                                button {
+                                    r#type: "button",
+                                    class: "px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border-t border-b border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700",
+                                    "In progress",
+                                },
+                                button {
+                                    r#type: "button",
+                                    class: "px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 rounded-e-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700",
+                                    "Done",
+                                }
+                            }
+                        },
+                        div {
+                            class: "mb-5",
+                            // TODO: a button should be a clicked at the start by default
+                            // TODO: selecting the button should update some kind of persistent state
+                            div {
+                                class: "inline-flex rounded-md shadow-sm",
+                                role: "group",
+                                button {
+                                    r#type: "button",
+                                    class: "px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 rounded-s-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700",
                                     "Small",
                                 },
                                 button {
@@ -204,8 +230,8 @@ pub fn App(cx: Scope) -> Element {
                             class: "mb-5",
                             UserSearch{
                                 id: "user_search",
-                                on_select_user: |user_id| add_task_assigned_to.write().push(user_id),
-                                on_remove_user: |user_id| add_task_assigned_to.write().retain(|&value| value != user_id),
+                                on_select_user: |user_id| add_task_form_assigned_to.write().push(user_id),
+                                on_remove_user: |user_id| add_task_form_assigned_to.write().retain(|&value| value != user_id),
                             },
                         },
                         div {
@@ -220,6 +246,9 @@ pub fn App(cx: Scope) -> Element {
                                 rows: "4",
                                 class: "block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                                 placeholder: "Give a description...",
+                                oninput: |event| {
+                                    add_task_form_description.set(event.value.clone())
+                                },
                             },
                         },
                         div {
@@ -227,8 +256,12 @@ pub fn App(cx: Scope) -> Element {
                             TaskSearch{
                                 id: "blocked_by_search",
                                 title: "Blocked by",
-                                on_select_task: |task_id| add_task_blocked_by.write().push(task_id),
-                                on_remove_task: |task_id| add_task_blocked_by.write().retain(|&value| value != task_id),
+                                on_select_task: |task_id| add_task_form_blocked_by.write().push(task_id),
+                                on_remove_task: |task_id| {
+                                    add_task_form_blocked_by
+                                    .write()
+                                    .retain(|&value| value != task_id)
+                                },
                             },
                         }
                         div {
@@ -236,8 +269,26 @@ pub fn App(cx: Scope) -> Element {
                             TaskSearch{
                                 id: "blocks_search",
                                 title: "Blocks",
-                                on_select_task: |task_id| add_task_blocks.write().push(task_id),
-                                on_remove_task: |task_id| add_task_blocks.write().retain(|&value| value != task_id),
+                                on_select_task: |task_id| add_task_form_blocks.write().push(task_id),
+                                on_remove_task: |task_id| {
+                                    add_task_form_blocks
+                                    .write()
+                                    .retain(|&value| value != task_id)
+                                },
+                            },
+                        }
+                        div {
+                            class: "mb-5",
+                            label {
+                                r#for: "task_due_date",
+                                class: TEXT_INPUT_LABEL_CLASS,
+                                "Due Date"
+                            },
+                            input {
+                                id: "task_due_date",
+                                class: TEXT_INPUT_CLASS,
+                                r#type: "datetime-local",
+                                oninput: |event| {},
                             },
                         }
                         button {
