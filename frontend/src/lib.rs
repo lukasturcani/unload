@@ -192,6 +192,7 @@ pub fn App(cx: Scope) -> Element {
                                     r#type: "radio",
                                     value: "To do",
                                     name: "status",
+                                    checked: true,
                                     oninput: |_| add_task_form_status.set(TaskStatus::ToDo),
                                 },
                                 label {
