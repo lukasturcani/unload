@@ -302,10 +302,16 @@ pub fn App(cx: Scope) -> Element {
                                     select {
                                         id: "task_due_time",
                                         class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
-                                        option {
-                                            value: "00:00",
-                                            "00:00"
-                                        },
+                                        for hour in 0..24 {
+                                            for minute in [0, 15, 30, 45] {
+                                                rsx!{
+                                                    option {
+                                                        value: "{hour:02}:{minute:02}",
+                                                        "{hour:02}:{minute:02}"
+                                                    },
+                                                }
+                                            }
+                                        }
                                     },
                                 }}
                             },
