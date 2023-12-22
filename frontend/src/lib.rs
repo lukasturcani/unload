@@ -293,7 +293,9 @@ pub fn App(cx: Scope) -> Element {
                                     class: "mb-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                                     r#type: "date",
                                     oninput: |event| {
-                                        if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                        if event.value.is_empty() {
+                                            add_task_form_due_date.set(None)
+                                        } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
                                             add_task_form_due_date.set(Some(date))
                                         }
                                     },
