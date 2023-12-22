@@ -2,7 +2,7 @@ use reqwest::{Client, Url};
 use std::{collections::HashMap, str::FromStr};
 use tokio::join;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
 use dioxus::prelude::*;
 use shared_models::{
     BoardName, Color, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry, UserId,
@@ -35,6 +35,8 @@ pub fn App(cx: Scope) -> Element {
     let add_task_form_blocked_by = use_ref(cx, Vec::new);
     let add_task_form_blocks = use_ref(cx, Vec::new);
     let add_task_form_assigned_to = use_ref(cx, Vec::new);
+    let add_task_form_due_date = use_state(cx, || None::<NaiveDate>);
+    let add_task_form_due_time = use_state(cx, || None::<NaiveTime>);
 
     cx.render(rsx! {
         match *page.read() {
@@ -282,13 +284,17 @@ pub fn App(cx: Scope) -> Element {
                             label {
                                 r#for: "task_due_date",
                                 class: TEXT_INPUT_LABEL_CLASS,
-                                "Due Date"
+                                "Due"
                             },
                             input {
                                 id: "task_due_date",
                                 class: TEXT_INPUT_CLASS,
-                                r#type: "datetime-local",
-                                oninput: |event| {},
+                                r#type: "date",
+                                oninput: |event| {
+                                    if let Ok(date) = NaiveDate::parse_from_str(&event.value, "YYYY-MM-DD") {
+                                        add_task_form_due_date.set(Some(date))
+                                    }
+                                },
                             },
                         }
                         button {
