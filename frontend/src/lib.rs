@@ -282,19 +282,32 @@ pub fn App(cx: Scope) -> Element {
                         div {
                             class: "mb-5",
                             label {
-                                r#for: "task_due_date",
+                                r#for: "task_due",
                                 class: TEXT_INPUT_LABEL_CLASS,
                                 "Due"
                             },
-                            input {
-                                id: "task_due_date",
-                                class: TEXT_INPUT_CLASS,
-                                r#type: "date",
-                                oninput: |event| {
-                                    if let Ok(date) = NaiveDate::parse_from_str(&event.value, "YYYY-MM-DD") {
-                                        add_task_form_due_date.set(Some(date))
-                                    }
+                            div {
+                                id: "task_due",
+                                input {
+                                    id: "task_due_date",
+                                    class: "mb-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                    r#type: "date",
+                                    oninput: |event| {
+                                        if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                            add_task_form_due_date.set(Some(date))
+                                        }
+                                    },
                                 },
+                                if add_task_form_due_date.is_some() {rsx!{
+                                    select {
+                                        id: "task_due_time",
+                                        class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                        option {
+                                            value: "00:00",
+                                            "00:00"
+                                        },
+                                    },
+                                }}
                             },
                         }
                         button {
