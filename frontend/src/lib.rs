@@ -614,6 +614,7 @@ fn TaskSearch<'a>(
                             for task in suggestions {rsx!{
                                 li {
                                     class: "focus:border-blue-500",
+                                    // TODO: check key have correct value
                                     key: "{task.1}",
                                     button {
                                         r#type: "button",
