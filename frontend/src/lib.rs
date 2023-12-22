@@ -178,6 +178,8 @@ pub fn App(cx: Scope) -> Element {
                         }
                         div {
                             class: "mb-5",
+                            // TODO: a button should be a clicked at the start by default
+                            // TODO: selecting the button should update some kind of persistent state
                             div {
                                 class: "inline-flex rounded-md shadow-sm",
                                 role: "group",
@@ -224,6 +226,7 @@ pub fn App(cx: Scope) -> Element {
                             class: "mb-5",
                             TaskSearch{
                                 id: "blocked_by_search",
+                                title: "Blocked by",
                                 on_select_task: |task_id| add_task_blocked_by.write().push(task_id),
                                 on_remove_task: |task_id| add_task_blocked_by.write().retain(|&value| value != task_id),
                             },
@@ -232,6 +235,7 @@ pub fn App(cx: Scope) -> Element {
                             class: "mb-5",
                             TaskSearch{
                                 id: "blocks_search",
+                                title: "Blocks",
                                 on_select_task: |task_id| add_task_blocks.write().push(task_id),
                                 on_remove_task: |task_id| add_task_blocks.write().retain(|&value| value != task_id),
                             },
@@ -240,6 +244,7 @@ pub fn App(cx: Scope) -> Element {
                             class: BUTTON_CLASS,
                             r#type: "submit",
                             onclick: |_| {
+                                // TODO: needs to send a request and update state
                                 *page.write() = Page::Board;
                             },
                             "Submit"
@@ -551,6 +556,7 @@ async fn send_create_user_request(
 fn TaskSearch<'a>(
     cx: Scope<'a>,
     id: &'a str,
+    title: &'a str,
     on_select_task: EventHandler<'a, TaskId>,
     on_remove_task: EventHandler<'a, TaskId>,
 ) -> Element<'a> {
@@ -558,6 +564,7 @@ fn TaskSearch<'a>(
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<(TaskId, String)>::new);
+    // TODO: Can this holad a Vec<(TaskId, &String)>?
     let dropdown_data = has_input_focus.then(|| {
         if search_input.is_empty() {
             model.read().most_recent_titles()
@@ -569,7 +576,7 @@ fn TaskSearch<'a>(
         label {
             r#for: *id,
             class: TEXT_INPUT_LABEL_CLASS,
-            "Blocked by"
+            title,
         },
         div {
             class: "relative",
@@ -693,6 +700,7 @@ fn UserSearch<'a>(
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<(UserId, String)>::new);
+    // TODO: Can this holad a Vec<(TaskId, &String)>?
     let users: Vec<_> = model
         .read()
         .users
@@ -765,6 +773,8 @@ fn UserSearch<'a>(
                         class: "focus:border-blue-500",
                         button {
                             r#type: "button",
+                            // TODO: Change color of Add user text
+                            // TODO: Add user needs to open a model for selecting color
                             class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},
