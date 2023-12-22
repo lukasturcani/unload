@@ -32,6 +32,8 @@ pub fn App(cx: Scope) -> Element {
 
     let add_task_form_title = use_state(cx, String::default);
     let add_task_form_description = use_state(cx, String::default);
+    let add_task_form_size = use_state(cx, || TaskSize::Small);
+    let add_task_form_status = use_state(cx, || TaskStatus::ToDo);
     let add_task_form_blocked_by = use_ref(cx, Vec::new);
     let add_task_form_blocks = use_ref(cx, Vec::new);
     let add_task_form_assigned_to = use_ref(cx, Vec::new);
@@ -182,27 +184,54 @@ pub fn App(cx: Scope) -> Element {
                         }
                         div {
                             class: "mb-5",
-                            // TODO: a button should be a clicked at the start by default
-                            // TODO: selecting the button should update some kind of persistent state
                             div {
-                                class: "inline-flex rounded-md shadow-sm",
-                                role: "group",
-                                button {
-                                    r#type: "button",
-                                    class: "px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 rounded-s-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700",
+                                class: "flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700",
+                                input {
+                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    id: "status_to_do",
+                                    r#type: "radio",
+                                    value: "To do",
+                                    name: "status",
+                                    oninput: |_| add_task_form_status.set(TaskStatus::ToDo),
+                                },
+                                label {
+                                    r#for: "status_to_do",
+                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
                                     "To do",
                                 },
-                                button {
-                                    r#type: "button",
-                                    class: "px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border-t border-b border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700",
+                            },
+                            div {
+                                class: "flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700",
+                                input {
+                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    id: "status_in_progress",
+                                    r#type: "radio",
+                                    value: "In progress",
+                                    name: "status",
+                                    oninput: |_| add_task_form_status.set(TaskStatus::InProgress),
+                                },
+                                label {
+                                    r#for: "status_in_progress",
+                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
                                     "In progress",
                                 },
-                                button {
-                                    r#type: "button",
-                                    class: "px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 rounded-e-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700",
+                            },
+                            div {
+                                class: "flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700",
+                                input {
+                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    id: "status_done",
+                                    r#type: "radio",
+                                    value: "Done",
+                                    name: "status",
+                                    oninput: |_| add_task_form_status.set(TaskStatus::Done),
+                                },
+                                label {
+                                    r#for: "status_done",
+                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
                                     "Done",
-                                }
-                            }
+                                },
+                            },
                         },
                         div {
                             class: "mb-5",
