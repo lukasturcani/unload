@@ -549,6 +549,13 @@ fn TaskSearch<'a>(
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<(TaskId, String)>::new);
+    let dropdown_data = has_input_focus.then(|| {
+        if search_input.is_empty() {
+            model.read().most_recent_titles()
+        } else {
+            model.read().find_titles(search_input)
+        }
+    });
     cx.render(rsx! {
         label {
             r#for: *id,
@@ -584,52 +591,48 @@ fn TaskSearch<'a>(
                 oninput: |event| search_input.set(event.data.value.clone())
             },
         },
-        if **has_input_focus {rsx!{
-            div {
-                class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
-                ul {
-                    class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
-                    if search_input.is_empty() {
-                    rsx!{
-                        for task in model.read().most_recent_titles() {rsx!{
-                            li {
-                                class: "focus:border-blue-500",
-                                key: "{task.1}",
-                                button {
-                                    r#type: "button",
-                                    class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
-                                    prevent_default: "onmousedown",
-                                    onmousedown: |_| {},
-                                    onclick: move |_| {
-                                        selected.write().push(task.clone());
-                                        on_select_task.call(task.0);
-                                    },
-                                    task.1.clone(),
-                                }
-                            },
-                        }}
-                    }} else {rsx!{
-                        for task in model.read().find_titles(search_input) {rsx!{
-                            li {
-                                class: "focus:border-blue-500",
-                                key: "{task.1}",
-                                button {
-                                    r#type: "button",
-                                    class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
-                                    prevent_default: "onmousedown",
-                                    onmousedown: |_| {},
-                                    onclick: move |_| {
-                                        selected.write().push(task.clone());
-                                        on_select_task.call(task.0);
-                                    },
-                                    task.1.clone(),
-                                }
-                            },
-                        }}
-                    }}
+        if let Some(suggestions) = dropdown_data {
+            if suggestions.is_empty() {rsx!{
+                div {
+                    class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
+                    ul {
+                        class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
+                        li {
+                            class: "italic text-gray-500 dark:text-gray-400 block text-left w-full px-4 py-2",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            "No matches"
+                        },
+                    }
                 }
+            }} else {rsx!{
+                div {
+                    class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
+                    ul {
+                        class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
+                        rsx!{
+                            for task in suggestions {rsx!{
+                                li {
+                                    class: "focus:border-blue-500",
+                                    key: "{task.1}",
+                                    button {
+                                        r#type: "button",
+                                        class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
+                                        prevent_default: "onmousedown",
+                                        onmousedown: |_| {},
+                                        onclick: move |_| {
+                                            selected.write().push(task.clone());
+                                            on_select_task.call(task.0);
+                                        },
+                                        task.1.clone(),
+                                    }
+                                },
+                            }}
+                        }
+                    }
+                }}
             }
-        }},
+        }
         div {
             class: "mt-2",
             for task in selected.read().iter().map(|x| x.clone()) {rsx!{
@@ -694,19 +697,24 @@ struct Model {
 
 impl Model {
     fn most_recent_titles(&self) -> Vec<(TaskId, String)> {
-        vec![
-            (1.into(), "one".into()),
-            (2.into(), "two".into()),
-            (3.into(), "three".into()),
-        ]
+        let tasks = self.tasks.tasks();
+        let mut titles = Vec::with_capacity(self.tasks.most_recently_updated().len());
+        for (_, task_id) in self.tasks.most_recently_updated() {
+            titles.push((*task_id, tasks[task_id].title.clone()))
+        }
+        titles
     }
 
     fn find_titles(&self, search_input: &str) -> Vec<(TaskId, String)> {
-        vec![
-            (4.into(), "four".into()),
-            (5.into(), "five".into()),
-            (6.into(), "six".into()),
-        ]
+        self.tasks
+            .tasks()
+            .iter()
+            .filter(|(task_id, task)| {
+                task.title.find(search_input).is_some()
+                    || task.description.find(search_input).is_some()
+            })
+            .map(|(task_id, task)| (*task_id, task.title.clone()))
+            .collect()
     }
 }
 
@@ -763,6 +771,14 @@ mod tasks {
                 self.most_recently_updated.push((timestamp, task_id));
             }
             self.tasks.insert(task_id, task_data)
+        }
+
+        pub fn tasks(&self) -> &HashMap<TaskId, TaskData> {
+            &self.tasks
+        }
+
+        pub fn most_recently_updated(&self) -> &BinaryHeap<(i64, TaskId)> {
+            &self.most_recently_updated
         }
     }
 }
