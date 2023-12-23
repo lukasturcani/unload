@@ -720,6 +720,7 @@ fn TaskSearch<'a>(
     on_select_task: EventHandler<'a, TaskId>,
     on_remove_task: EventHandler<'a, TaskId>,
 ) -> Element<'a> {
+    // TODO: multiple clicks on task do not add extra buttons
     let model = use_shared_state::<Model>(cx).unwrap();
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
@@ -856,6 +857,7 @@ fn UserSearch<'a>(
     on_select_user: EventHandler<'a, UserId>,
     on_remove_user: EventHandler<'a, UserId>,
 ) -> Element<'a> {
+    // TODO: multiple clicks on user do not add extra buttons
     let model = use_shared_state::<Model>(cx).unwrap();
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
