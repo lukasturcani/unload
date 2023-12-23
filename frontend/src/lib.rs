@@ -2,7 +2,7 @@ use reqwest::{Client, Url};
 use std::{collections::HashMap, str::FromStr};
 use tokio::join;
 
-use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
+use chrono::{offset::Local, DateTime, NaiveDate, NaiveTime, TimeZone, Utc};
 use dioxus::prelude::*;
 use shared_models::{
     BoardName, Color, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry, UserId,
@@ -134,9 +134,13 @@ pub fn App(cx: Scope) -> Element {
                             r#type: "submit",
                             onclick: |_| {
                                 *page.write() = Page::Board;
-                                let create_user = create_user(model.clone(), (**add_user_form_name).clone());
-                                add_user_form_name.set(String::new());
-                                create_user
+                                create_user(
+                                    model.clone(),
+                                    UserData{
+                                        name: add_user_form_name.make_mut().drain(..).collect(),
+                                        color: Color::Black,
+                                    },
+                                )
                             },
                             "Submit"
                         }
@@ -404,8 +408,25 @@ pub fn App(cx: Scope) -> Element {
                             class: BUTTON_CLASS,
                             r#type: "submit",
                             onclick: |_| {
-                                // TODO: needs to send a request and update state
+                                let create_task = create_task(
+                                    model.clone(),
+                                    shared_models::TaskData {
+                                        title: add_task_form_title.make_mut().drain(..).collect(),
+                                        description: add_task_form_description.make_mut().drain(..).collect(),
+                                        due: add_task_form_due_date.map(|date| {
+                                            Local.from_local_datetime(&date.and_time(**add_task_form_due_time))
+                                            .unwrap()
+                                            .into()
+                                        }),
+                                        size: **add_task_form_size,
+                                        status: **add_task_form_status,
+                                        assignees: add_task_form_assigned_to.write().drain(..).collect(),
+                                        blocks: add_task_form_blocks.write().drain(..).collect(),
+                                        blocked_by: add_task_form_blocked_by.write().drain(..).collect(),
+                                    }
+                                );
                                 *page.write() = Page::Board;
+                                create_task
                             },
                             "Submit"
                         }
@@ -526,44 +547,6 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
     })
 }
 
-#[component]
-fn AddUserForm(cx: Scope) -> Element {
-    let name = use_state(cx, String::default);
-    let page = use_shared_state::<Page>(cx).unwrap();
-    let model = use_shared_state::<Model>(cx).unwrap();
-    cx.render(rsx! {
-        form { class:"max-w-sm mx-auto",
-            div {
-                class: "mb-5",
-                label {
-                    r#for: "name",
-                    class: TEXT_INPUT_LABEL_CLASS,
-                    "Name"
-                },
-                input {
-                    class: TEXT_INPUT_CLASS,
-                    r#type: "text",
-                    id: "name",
-                    required: true,
-                    value: "{name}",
-                    oninput: |event| {
-                        name.set(event.value.clone())
-                    },
-                },
-            }
-            button {
-                class: BUTTON_CLASS,
-                r#type: "submit",
-                onclick: |_| {
-                    cx.spawn_forever(create_user(model.clone(), (**name).clone()));
-                    *page.write() = Page::Board;
-                },
-                "Submit"
-            }
-        }
-    })
-}
-
 #[derive(Default, Debug)]
 struct TasksResponse {
     tasks: Tasks,
@@ -674,21 +657,9 @@ async fn users(model: &UseSharedState<Model>) -> Result<HashMap<UserId, UserData
         }))
 }
 
-async fn create_user(model: UseSharedState<Model>, name: String) {
-    let color = Color::Black;
-    if let Ok(user_id) = send_create_user_request(
-        &model,
-        &UserData {
-            name: name.to_string(),
-            color,
-        },
-    )
-    .await
-    {
-        model
-            .write()
-            .users
-            .insert(user_id, UserData { name, color });
+async fn create_user(model: UseSharedState<Model>, user_data: UserData) {
+    if let Ok(user_id) = send_create_user_request(&model, &user_data).await {
+        model.write().users.insert(user_id, user_data);
     }
 }
 
@@ -702,13 +673,35 @@ async fn send_create_user_request(
             .url
             .join(&format!("/api/boards/{}/users", model.board_name))?
     };
-    let client = Client::new();
-    Ok(client
+    Ok(Client::new()
         .post(url)
         .json(user_data)
         .send()
         .await?
         .json::<UserId>()
+        .await?)
+}
+
+async fn create_task(model: UseSharedState<Model>, task_data: shared_models::TaskData) {
+    todo!()
+}
+
+async fn send_create_task_request(
+    model: &UseSharedState<Model>,
+    task_data: &shared_models::TaskData,
+) -> Result<TaskId, anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model
+            .url
+            .join(&format!("/api/boards/{}/tasks", model.board_name))?
+    };
+    Ok(Client::new()
+        .post(url)
+        .json(task_data)
+        .send()
+        .await?
+        .json::<TaskId>()
         .await?)
 }
 
