@@ -308,7 +308,7 @@ pub async fn create_task(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
     Json(task_data): Json<TaskData>,
-) -> Result<Json<TaskId>> {
+) -> Result<Json<TaskEntry>> {
     let created = Utc::now();
     let mut tx = pool.begin().await?;
     let task_id = sqlx::query!(
@@ -328,7 +328,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     .await?
     .last_insert_rowid()
     .into();
-    for assignee in task_data.assignees {
+    for assignee in task_data.assignees.iter() {
         sqlx::query!(
             "
 INSERT INTO task_assignments (board_name, user_id, task_id)
@@ -340,7 +340,7 @@ VALUES (?, ?, ?)",
         .execute(&mut *tx)
         .await?;
     }
-    for other in task_data.blocks {
+    for other in task_data.blocks.iter() {
         sqlx::query!(
             "
 INSERT INTO task_dependencies (board_name, task_id, blocks_id)
@@ -352,7 +352,7 @@ VALUES (?, ?, ?)",
         .execute(&mut *tx)
         .await?;
     }
-    for other in task_data.blocked_by {
+    for other in task_data.blocked_by.iter() {
         sqlx::query!(
             "
 INSERT INTO task_dependencies (board_name, task_id, blocks_id)
@@ -365,7 +365,19 @@ VALUES (?, ?, ?)",
         .await?;
     }
     tx.commit().await?;
-    Ok(Json(task_id))
+    Ok(Json(TaskEntry {
+        id: task_id,
+        title: task_data.title,
+        description: task_data.description,
+        created,
+        updated: created,
+        due: task_data.due,
+        size: task_data.size,
+        status: task_data.status,
+        assignees: task_data.assignees,
+        blocks: task_data.blocks,
+        blocked_by: task_data.blocked_by,
+    }))
 }
 
 pub async fn delete_task(

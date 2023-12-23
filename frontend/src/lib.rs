@@ -683,13 +683,21 @@ async fn send_create_user_request(
 }
 
 async fn create_task(model: UseSharedState<Model>, task_data: shared_models::TaskData) {
-    todo!()
+    if let Ok(task_entry) = send_create_task_request(&model, &task_data).await {
+        let mut model = model.write();
+        match task_entry.status {
+            TaskStatus::ToDo => model.to_do.push(task_entry.id),
+            TaskStatus::InProgress => model.in_progress.push(task_entry.id),
+            TaskStatus::Done => model.done.push(task_entry.id),
+        }
+        model.tasks.insert(task_entry.id, task_entry.into());
+    }
 }
 
 async fn send_create_task_request(
     model: &UseSharedState<Model>,
     task_data: &shared_models::TaskData,
-) -> Result<TaskId, anyhow::Error> {
+) -> Result<TaskEntry, anyhow::Error> {
     let url = {
         let model = model.read();
         model
@@ -701,7 +709,7 @@ async fn send_create_task_request(
         .json(task_data)
         .send()
         .await?
-        .json::<TaskId>()
+        .json::<TaskEntry>()
         .await?)
 }
 
@@ -993,6 +1001,22 @@ struct TaskData {
     assignees: Vec<UserId>,
     blocks: Vec<TaskId>,
     blocked_by: Vec<TaskId>,
+}
+
+impl From<TaskEntry> for TaskData {
+    fn from(value: TaskEntry) -> Self {
+        Self {
+            title: value.title,
+            description: value.description,
+            created: value.created,
+            updated: value.updated,
+            due: value.due,
+            size: value.size,
+            assignees: value.assignees,
+            blocks: value.blocks,
+            blocked_by: value.blocked_by,
+        }
+    }
 }
 
 struct Model {
