@@ -134,7 +134,9 @@ pub fn App(cx: Scope) -> Element {
                             r#type: "submit",
                             onclick: |_| {
                                 *page.write() = Page::Board;
-                                create_user(model.clone(), (**add_user_form_name).clone())
+                                let create_user = create_user(model.clone(), (**add_user_form_name).clone());
+                                add_user_form_name.set(String::new());
+                                create_user
                             },
                             "Submit"
                         }
@@ -901,7 +903,7 @@ fn UserSearch<'a>(
                 oninput: |event| search_input.set(event.data.value.clone())
             },
         },
-        if **has_input_focus && !search_input.is_empty() {rsx!{
+        if **has_input_focus && (!users.is_empty() || !search_input.is_empty()) {rsx!{
             div {
                 class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
                 ul {
@@ -926,21 +928,23 @@ fn UserSearch<'a>(
                             },
                         }}
                     }
-                    li {
-                        key: "add user",
-                        class: "focus:border-blue-500",
-                        button {
-                            r#type: "button",
-                            // TODO: Change color of Add user text
-                            // TODO: Add user needs to open a model for selecting color
-                            class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
-                            prevent_default: "onmousedown",
-                            onmousedown: |_| {},
-                            onclick: move |_| {},
-                            "Add user"
-                        }
+                    if !search_input.is_empty() {rsx!{
+                        li {
+                            key: "add user",
+                            class: "focus:border-blue-500",
+                            button {
+                                r#type: "button",
+                                // TODO: Change color of Add user text
+                                // TODO: Add user needs to open a model for selecting color
+                                class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
+                                prevent_default: "onmousedown",
+                                onmousedown: |_| {},
+                                onclick: move |_| {},
+                                "Add user"
+                            }
 
-                    },
+                        },
+                    }}
                 }
             }
         }}
