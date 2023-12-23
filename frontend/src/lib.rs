@@ -184,79 +184,124 @@ pub fn App(cx: Scope) -> Element {
                         }
                         div {
                             class: "mb-5",
-                            div {
-                                class: "flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700",
-                                input {
-                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                                    id: "status_to_do",
-                                    r#type: "radio",
-                                    value: "To do",
-                                    name: "status",
-                                    checked: true,
-                                    oninput: |_| add_task_form_status.set(TaskStatus::ToDo),
-                                },
-                                label {
-                                    r#for: "status_to_do",
-                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
-                                    "To do",
-                                },
+                            label {
+                                r#for: "status",
+                                class: TEXT_INPUT_LABEL_CLASS,
+                                "Status"
                             },
                             div {
-                                class: "flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700",
-                                input {
-                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                                    id: "status_in_progress",
-                                    r#type: "radio",
-                                    value: "In progress",
-                                    name: "status",
-                                    oninput: |_| add_task_form_status.set(TaskStatus::InProgress),
+                                class: "flex flex-row w-full gap-x-2",
+                                div {
+                                    class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                    input {
+                                        class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                        id: "status_to_do",
+                                        r#type: "radio",
+                                        value: "To do",
+                                        name: "status",
+                                        checked: true,
+                                        oninput: |_| add_task_form_status.set(TaskStatus::ToDo),
+                                    },
+                                    label {
+                                        r#for: "status_to_do",
+                                        class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                        "To do",
+                                    },
                                 },
-                                label {
-                                    r#for: "status_in_progress",
-                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
-                                    "In progress",
+                                div {
+                                    class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                    input {
+                                        class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                        id: "status_in_progress",
+                                        r#type: "radio",
+                                        value: "In progress",
+                                        name: "status",
+                                        oninput: |_| add_task_form_status.set(TaskStatus::InProgress),
+                                    },
+                                    label {
+                                        r#for: "status_in_progress",
+                                        class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                        "In progress",
+                                    },
                                 },
-                            },
-                            div {
-                                class: "flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700",
-                                input {
-                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                                    id: "status_done",
-                                    r#type: "radio",
-                                    value: "Done",
-                                    name: "status",
-                                    oninput: |_| add_task_form_status.set(TaskStatus::Done),
-                                },
-                                label {
-                                    r#for: "status_done",
-                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
-                                    "Done",
+                                div {
+                                    class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                    input {
+                                        class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                        id: "status_done",
+                                        r#type: "radio",
+                                        value: "Done",
+                                        name: "status",
+                                        oninput: |_| add_task_form_status.set(TaskStatus::Done),
+                                    },
+                                    label {
+                                        r#for: "status_done",
+                                        class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                        "Done",
+                                    },
                                 },
                             },
                         },
                         div {
                             class: "mb-5",
-                            // TODO: a button should be a clicked at the start by default
-                            // TODO: selecting the button should update some kind of persistent state
+                            label {
+                                r#for: "size",
+                                class: TEXT_INPUT_LABEL_CLASS,
+                                "Size"
+                            },
                             div {
-                                class: "inline-flex rounded-md shadow-sm",
-                                role: "group",
-                                button {
-                                    r#type: "button",
-                                    class: "px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 rounded-s-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700",
-                                    "Small",
+                                class: "flex flex-row w-full gap-x-2",
+                                div {
+                                    class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                    input {
+                                        class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                        id: "size_small",
+                                        r#type: "radio",
+                                        value: "Small",
+                                        name: "size",
+                                        checked: true,
+                                        oninput: |_| add_task_form_size.set(TaskSize::Small),
+                                    },
+                                    label {
+                                        r#for: "size_small",
+                                        class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                        "Small",
+                                    },
                                 },
-                                button {
-                                    r#type: "button",
-                                    class: "px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border-t border-b border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700",
-                                    "Medium",
+                                div {
+                                    class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                    input {
+                                        class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                        id: "size_medium",
+                                        r#type: "radio",
+                                        value: "Medium",
+                                        name: "size",
+                                        oninput: |_| add_task_form_size.set(TaskSize::Medium),
+                                    },
+                                    label {
+                                        r#for: "size_medium",
+                                        class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                        "Medium",
+                                    },
                                 },
-                                button {
-                                    r#type: "button",
-                                    class: "px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 rounded-e-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700",
-                                    "Large",
-                                }
-                            }
+                                div {
+                                    class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                    input {
+                                        class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                        id: "size_large",
+                                        r#type: "radio",
+                                        value: "Large",
+                                        name: "size",
+                                        oninput: |_| add_task_form_size.set(TaskSize::Large),
+                                    },
+                                    label {
+                                        r#for: "size_large",
+                                        class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                        "Large",
+                                    },
+                                },
+
+                            },
                         },
                         div {
                             class: "mb-5",
