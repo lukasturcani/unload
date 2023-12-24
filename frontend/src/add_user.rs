@@ -1,11 +1,13 @@
-use crate::{model::Model, styles};
+use crate::{model::Model, route::Route, styles};
 use dioxus::prelude::*;
+use dioxus_router::hooks::use_navigator;
 use reqwest::Client;
 use shared_models::{BoardName, Color, UserData, UserId};
 
 #[component]
 pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
     let name = use_state(cx, String::default);
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
@@ -36,6 +38,9 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                     class: styles::BUTTON,
                     r#type: "submit",
                     onclick: |_| {
+                        nav.push(Route::Board {
+                            board_name: board_name.clone(),
+                        });
                         create_user(
                             model.clone(),
                             UserData{

@@ -1,6 +1,7 @@
 use crate::add_user::AddUser;
 use crate::board::Board;
 use crate::join_board::JoinBoard;
+use crate::users::Users;
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 use shared_models::BoardName;
@@ -13,4 +14,6 @@ pub enum Route {
     Board { board_name: BoardName },
     #[route("/boards/:board_name/add-user")]
     AddUser { board_name: BoardName },
+    #[route("/boards/:board_name/users")]
+    Users { board_name: BoardName },
 }

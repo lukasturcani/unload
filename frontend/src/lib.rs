@@ -4,6 +4,7 @@ pub mod app;
 pub mod board;
 pub mod join_board;
 pub mod model;
+pub mod requests;
 pub mod route;
 pub mod styles;
 pub mod users;

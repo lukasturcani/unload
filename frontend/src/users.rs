@@ -1,9 +1,16 @@
-use crate::{model::Model, styles};
+use crate::{model::Model, requests, route::Route, styles};
 use dioxus::prelude::*;
+use dioxus_router::hooks::use_navigator;
+use shared_models::BoardName;
 
 #[component]
-fn Users(cx: Scope) -> Element {
+pub fn Users(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
+    if &model.read().board_name != board_name {
+        model.write().board_name = board_name.clone()
+    }
+    use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
             class: "bg-gray-900 h-screen w-screen",
@@ -16,7 +23,11 @@ fn Users(cx: Scope) -> Element {
             }
             button {
                 class: styles::BUTTON,
-                onclick: |_| {},
+                onclick: |_| {
+                    nav.push(Route::Board {
+                        board_name: board_name.clone(),
+                    });
+                },
                 "Back",
             }
         }
