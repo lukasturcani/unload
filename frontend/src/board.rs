@@ -10,6 +10,9 @@ use tokio::join;
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    if &model.read().board_name != board_name {
+        model.write().board_name = board_name.clone()
+    }
     use_future(cx, (), |_| request_board_data(model.clone()));
     cx.render(rsx! {
         div {

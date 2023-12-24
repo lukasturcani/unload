@@ -1,6 +1,9 @@
 use crate::model::Model;
+use crate::route::Route;
 use crate::styles;
 use dioxus::prelude::*;
+use dioxus_router::hooks::use_navigator;
+use dioxus_router::prelude::Navigator;
 use reqwest::Client;
 use shared_models::BoardName;
 
@@ -14,6 +17,7 @@ const TEXT_INPUT: &str = "
 #[component]
 pub fn JoinBoard(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
     cx.render(rsx! {
         div{
             class: "bg-gray-900 h-screen w-screen",
@@ -52,7 +56,7 @@ pub fn JoinBoard(cx: Scope) -> Element {
                 class: "inline-flex items-center justify-center w-full py-5",
                 button {
                     class: styles::BUTTON,
-                    onclick: |_| create_board(model.clone()),
+                    onclick: |_| create_board(model.clone(), nav.clone()),
                     "Create New Board",
                 },
             },
@@ -60,9 +64,9 @@ pub fn JoinBoard(cx: Scope) -> Element {
     })
 }
 
-async fn create_board(model: UseSharedState<Model>) {
+async fn create_board(model: UseSharedState<Model>, nav: Navigator) {
     if let Ok(board_name) = send_create_board_request(&model).await {
-        model.write().board_name = board_name;
+        nav.push(Route::Board { board_name });
     }
 }
 
