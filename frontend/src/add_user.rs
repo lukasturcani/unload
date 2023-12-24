@@ -38,6 +38,7 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                 button {
                     class: styles::BUTTON,
                     r#type: "submit",
+                    prevent_default: "onclick",
                     onclick: |_| {
                         // TODO: once future issue is fixed change page
                         // as first thing
@@ -62,11 +63,14 @@ async fn create_user(model: UseSharedState<Model>, user_data: UserData, nav: Nav
         return;
     }
     log::info!("sending create user request");
-    if let Ok(user_id) = send_create_user_request(&model, &user_data).await {
-        log::info!("created user");
-        model.write().users.insert(user_id, user_data);
-    } else {
-        log::info!("failed to create user");
+    match send_create_user_request(&model, &user_data).await {
+        Ok(user_id) => {
+            log::info!("created user");
+            model.write().users.insert(user_id, user_data);
+        }
+        Err(e) => {
+            log::info!("failed to create user: {}", e);
+        }
     }
     nav.push(Route::Board {
         board_name: model.read().board_name.clone(),
