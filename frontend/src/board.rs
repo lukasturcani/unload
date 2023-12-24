@@ -1,3 +1,5 @@
+use crate::route::Route;
+use dioxus_router::hooks::use_navigator;
 use std::collections::HashMap;
 
 use crate::model::{Model, TaskData, Tasks};
@@ -10,6 +12,7 @@ use tokio::join;
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
@@ -25,7 +28,11 @@ pub fn Board(cx: Scope, board_name: BoardName) -> Element {
             },
             button {
                 class: styles::BUTTON,
-                onclick: |_| {},
+                onclick: |_| {
+                    nav.push(Route::AddUser {
+                        board_name: model.read().board_name.clone(),
+                    });
+                },
                 "Add User",
             }
             button {

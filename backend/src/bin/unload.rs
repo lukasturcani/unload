@@ -25,6 +25,8 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
         .route("/api/boards/:board_name/users", get(show_users))
         .route("/api/boards/:board_name/users", post(create_user))
         .nest_service("/", ServeDir::new(serve_dir))
+        .nest_service("/boards/:board_name", ServeDir::new(serve_dir))
+        .nest_service("/boards/:board_name/add-user", ServeDir::new(serve_dir))
 }
 
 #[tokio::main]

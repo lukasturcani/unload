@@ -1,12 +1,15 @@
 use crate::{model::Model, styles};
 use dioxus::prelude::*;
 use reqwest::Client;
-use shared_models::{Color, UserData, UserId};
+use shared_models::{BoardName, Color, UserData, UserId};
 
 #[component]
-fn AddUser(cx: Scope) -> Element {
+pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let name = use_state(cx, String::default);
+    if &model.read().board_name != board_name {
+        model.write().board_name = board_name.clone()
+    }
     cx.render(rsx! {
         div {
             class: "bg-gray-900 h-screen w-screen",
