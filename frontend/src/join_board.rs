@@ -20,7 +20,7 @@ pub fn JoinBoard(cx: Scope) -> Element {
             form {
                 class:"max-w-sm mx-auto",
                 div {
-                    class: "w-full inline-flex items-center justify-center gap-4 py-5",
+                    class: "w-full inline-flex items-center justify-center gap-3 py-5",
                     input {
                         class: TEXT_INPUT,
                         r#type: "text",
