@@ -7,13 +7,17 @@ use std::collections::HashMap;
 use tokio::join;
 
 pub async fn board(model: UseSharedState<Model>) {
+    log::info!("sending board data request");
     if let (Ok(users), Ok(tasks)) = join!(users(&model), tasks(&model)) {
+        log::info!("got board data");
         let mut model = model.write();
         model.users = users;
         model.tasks = tasks.tasks;
         model.to_do = tasks.to_do;
         model.in_progress = tasks.in_progress;
         model.done = tasks.done;
+    } else {
+        log::info!("failed to get board data")
     }
 }
 

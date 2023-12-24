@@ -1,6 +1,6 @@
 use crate::{model::Model, route::Route, styles};
 use dioxus::prelude::*;
-use dioxus_router::hooks::use_navigator;
+use dioxus_router::{hooks::use_navigator, prelude::Navigator};
 use reqwest::Client;
 use shared_models::{BoardName, Color, UserData, UserId};
 
@@ -15,7 +15,8 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
     cx.render(rsx! {
         div {
             class: "bg-gray-900 h-screen w-screen",
-            form { class:"max-w-sm mx-auto",
+            form {
+                class:"max-w-sm mx-auto",
                 div {
                     class: "mb-5",
                     label {
@@ -38,15 +39,15 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                     class: styles::BUTTON,
                     r#type: "submit",
                     onclick: |_| {
-                        nav.push(Route::Board {
-                            board_name: board_name.clone(),
-                        });
+                        // TODO: once future issue is fixed change page
+                        // as first thing
                         create_user(
                             model.clone(),
                             UserData{
                                 name: name.make_mut().drain(..).collect(),
                                 color: Color::Black,
                             },
+                            nav.clone(),
                         )
                     },
                     "Submit"
@@ -56,10 +57,20 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
     })
 }
 
-async fn create_user(model: UseSharedState<Model>, user_data: UserData) {
-    if let Ok(user_id) = send_create_user_request(&model, &user_data).await {
-        model.write().users.insert(user_id, user_data);
+async fn create_user(model: UseSharedState<Model>, user_data: UserData, nav: Navigator) {
+    if user_data.name.is_empty() {
+        return;
     }
+    log::info!("sending create user request");
+    if let Ok(user_id) = send_create_user_request(&model, &user_data).await {
+        log::info!("created user");
+        model.write().users.insert(user_id, user_data);
+    } else {
+        log::info!("failed to create user");
+    }
+    nav.push(Route::Board {
+        board_name: model.read().board_name.clone(),
+    });
 }
 
 async fn send_create_user_request(
