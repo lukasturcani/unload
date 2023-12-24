@@ -38,6 +38,11 @@ pub fn JoinBoard(cx: Scope) -> Element {
                     button {
                         class: styles::BUTTON,
                         r#type: "submit",
+                        onclick: |_| {
+                            nav.push(Route::Board {
+                                board_name: model.read().board_name.clone(),
+                            });
+                        },
                         "Join"
                     },
                 },
