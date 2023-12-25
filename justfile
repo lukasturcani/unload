@@ -4,7 +4,30 @@ default:
 
 # build a docker image
 build-image:
-  docker buildx build -t unload .
+  docker buildx build -t registry.fly.io/unload .
+
+# deploy image to fly.io
+fly-deploy-image:
+  docker push registry.fly.io/unload
+  fly deploy --image registry.fly.io/unload
+
+# run docker image
+docker-run mount:
+  docker run --rm --detach \
+  -p 8080:8080 \
+  --mount type=bind,source={{mount}},target=/mnt/unload_data \
+  -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
+  -e UNLOAD_SERVE_DIR="/var/www" \
+  --name unload \
+  registry.fly.io/unload
+
+# kill docker container
+docker-kill:
+  docker container kill unload
+
+# enter image
+enter-image:
+  docker run --rm -it --entrypoint sh registry.fly.io/unload
 
 # create the database
 create-db database:
@@ -61,9 +84,12 @@ check:
 
   test $error = 0
 
+install-deps:
+  cd frontend && npm install
+
 # build the frontend
 frontend:
-  rm -rf frontend/dist
+  cd frontend && npx tailwindcss -i ./input.css -o ./public/tailwind.css
   cd frontend && dx build --release
 
 # run the backend

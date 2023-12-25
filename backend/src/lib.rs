@@ -328,7 +328,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     .await?
     .last_insert_rowid()
     .into();
-    for assignee in task_data.assignees {
+    for assignee in task_data.assignees.iter() {
         sqlx::query!(
             "
 INSERT INTO task_assignments (board_name, user_id, task_id)
@@ -340,7 +340,7 @@ VALUES (?, ?, ?)",
         .execute(&mut *tx)
         .await?;
     }
-    for other in task_data.blocks {
+    for other in task_data.blocks.iter() {
         sqlx::query!(
             "
 INSERT INTO task_dependencies (board_name, task_id, blocks_id)
@@ -352,7 +352,7 @@ VALUES (?, ?, ?)",
         .execute(&mut *tx)
         .await?;
     }
-    for other in task_data.blocked_by {
+    for other in task_data.blocked_by.iter() {
         sqlx::query!(
             "
 INSERT INTO task_dependencies (board_name, task_id, blocks_id)

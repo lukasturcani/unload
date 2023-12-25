@@ -1,3 +1,4 @@
 frontend/dist
 frontend/public
+frontend/node_modules
 /target
