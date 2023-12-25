@@ -30,9 +30,7 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                         id: "user_name",
                         required: true,
                         value: "{name}",
-                        oninput: |event| {
-                            name.set(event.value.clone())
-                        },
+                        oninput: |event| name.set(event.value.clone()),
                     },
                 }
                 button {
@@ -45,7 +43,12 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                         create_user(
                             model.clone(),
                             UserData{
-                                name: name.make_mut().drain(..).collect(),
+                                name:
+                                    name
+                                    .make_mut()
+                                    .drain(..)
+                                    .filter(|c| !c.is_whitespace())
+                                    .collect(),
                                 color: Color::Black,
                             },
                             nav.clone(),
