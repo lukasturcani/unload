@@ -44,7 +44,11 @@ pub fn Board(cx: Scope, board_name: BoardName) -> Element {
             }
             button {
                 class: styles::BUTTON,
-                onclick: |_| {},
+                onclick: |_| {
+                    nav.push(Route::AddTask {
+                        board_name: board_name.clone(),
+                    });
+                },
                 "Add Task",
             }
         }

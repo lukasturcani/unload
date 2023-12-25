@@ -1,3 +1,4 @@
+use crate::add_task::AddTask;
 use crate::add_user::AddUser;
 use crate::board::Board;
 use crate::join_board::JoinBoard;
@@ -16,4 +17,6 @@ pub enum Route {
     AddUser { board_name: BoardName },
     #[route("/boards/:board_name/users")]
     Users { board_name: BoardName },
+    #[route("/boards/:board_name/add-task")]
+    AddTask { board_name: BoardName },
 }

@@ -1,11 +1,12 @@
+use crate::requests;
 use crate::{model::Model, styles};
 use chrono::{offset::Local, NaiveDate, NaiveTime, TimeZone};
 use dioxus::prelude::*;
 use reqwest::Client;
-use shared_models::{TaskEntry, TaskId, TaskSize, TaskStatus, UserId};
+use shared_models::{BoardName, TaskEntry, TaskId, TaskSize, TaskStatus, UserId};
 
 #[component]
-fn AddTask(cx: Scope) -> Element {
+pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let title = use_state(cx, String::default);
     let description = use_state(cx, String::default);
@@ -16,6 +17,10 @@ fn AddTask(cx: Scope) -> Element {
     let assigned_to = use_ref(cx, Vec::new);
     let due_date = use_state(cx, || None::<NaiveDate>);
     let due_time = use_state(cx, || NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+    if &model.read().board_name != board_name {
+        model.write().board_name = board_name.clone()
+    }
+    use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
             class: "bg-gray-900 h-screen w-screen",
