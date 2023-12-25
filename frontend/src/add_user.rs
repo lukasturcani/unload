@@ -28,7 +28,6 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                         class: styles::TEXT_INPUT,
                         r#type: "text",
                         id: "user_name",
-                        required: true,
                         value: "{name}",
                         oninput: |event| name.set(event.value.clone()),
                     },
@@ -47,8 +46,9 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                                     name
                                     .make_mut()
                                     .drain(..)
-                                    .filter(|c| !c.is_whitespace())
-                                    .collect(),
+                                    .collect::<String>()
+                                    .trim()
+                                    .to_string(),
                                 color: Color::Black,
                             },
                             nav.clone(),
