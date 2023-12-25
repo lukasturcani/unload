@@ -68,8 +68,7 @@ async fn create_user(model: UseSharedState<Model>, user_data: UserData, nav: Nav
     log::info!("sending create user request");
     match send_create_user_request(&model, &user_data).await {
         Ok(user_id) => {
-            log::info!("created user");
-            model.write().users.insert(user_id, user_data);
+            log::info!("created user: {user_id}");
         }
         Err(e) => {
             log::info!("failed to create user: {}", e);

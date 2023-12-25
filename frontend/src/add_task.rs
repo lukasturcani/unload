@@ -1,13 +1,17 @@
 use crate::requests;
+use crate::route::Route;
 use crate::{model::Model, styles};
 use chrono::{offset::Local, NaiveDate, NaiveTime, TimeZone};
 use dioxus::prelude::*;
+use dioxus_router::hooks::use_navigator;
+use dioxus_router::prelude::Navigator;
 use reqwest::Client;
-use shared_models::{BoardName, TaskEntry, TaskId, TaskSize, TaskStatus, UserId};
+use shared_models::{BoardName, TaskId, TaskSize, TaskStatus, UserId};
 
 #[component]
 pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
     let title = use_state(cx, String::default);
     let description = use_state(cx, String::default);
     let size = use_state(cx, || TaskSize::Small);
@@ -36,7 +40,6 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
                         class: styles::TEXT_INPUT,
                         r#type: "text",
                         id: "task_title",
-                        required: true,
                         value: "{title}",
                         oninput: |event| {
                             title.set(event.value.clone())
@@ -262,8 +265,9 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
                 button {
                     class: styles::BUTTON,
                     r#type: "submit",
+                    prevent_default: "onclick",
                     onclick: |_| {
-                        let create_task = create_task(
+                        create_task(
                             model.clone(),
                             shared_models::TaskData {
                                 title: title.make_mut().drain(..).collect(),
@@ -278,9 +282,9 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
                                 assignees: assigned_to.write().drain(..).collect(),
                                 blocks: blocks.write().drain(..).collect(),
                                 blocked_by: blocked_by.write().drain(..).collect(),
-                            }
-                        );
-                        create_task
+                            },
+                            nav.clone(),
+                        )
                     },
                     "Submit"
                 }
@@ -566,22 +570,23 @@ fn UserSearch<'a>(
     })
 }
 
-async fn create_task(model: UseSharedState<Model>, task_data: shared_models::TaskData) {
-    if let Ok(task_entry) = send_create_task_request(&model, &task_data).await {
-        let mut model = model.write();
-        match task_entry.status {
-            TaskStatus::ToDo => model.to_do.push(task_entry.id),
-            TaskStatus::InProgress => model.in_progress.push(task_entry.id),
-            TaskStatus::Done => model.done.push(task_entry.id),
-        }
-        model.tasks.insert(task_entry.id, task_entry.into());
+async fn create_task(
+    model: UseSharedState<Model>,
+    task_data: shared_models::TaskData,
+    nav: Navigator,
+) {
+    if let Ok(task_id) = send_create_task_request(&model, &task_data).await {
+        log::info!("created task: {task_id}");
     }
+    nav.push(Route::Board {
+        board_name: model.read().board_name.clone(),
+    });
 }
 
 async fn send_create_task_request(
     model: &UseSharedState<Model>,
     task_data: &shared_models::TaskData,
-) -> Result<TaskEntry, anyhow::Error> {
+) -> Result<TaskId, anyhow::Error> {
     let url = {
         let model = model.read();
         model
@@ -593,6 +598,6 @@ async fn send_create_task_request(
         .json(task_data)
         .send()
         .await?
-        .json::<TaskEntry>()
+        .json::<TaskId>()
         .await?)
 }

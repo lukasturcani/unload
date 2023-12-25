@@ -308,7 +308,7 @@ pub async fn create_task(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
     Json(task_data): Json<TaskData>,
-) -> Result<Json<TaskEntry>> {
+) -> Result<Json<TaskId>> {
     let created = Utc::now();
     let mut tx = pool.begin().await?;
     let task_id = sqlx::query!(
@@ -365,19 +365,7 @@ VALUES (?, ?, ?)",
         .await?;
     }
     tx.commit().await?;
-    Ok(Json(TaskEntry {
-        id: task_id,
-        title: task_data.title,
-        description: task_data.description,
-        created,
-        updated: created,
-        due: task_data.due,
-        size: task_data.size,
-        status: task_data.status,
-        assignees: task_data.assignees,
-        blocks: task_data.blocks,
-        blocked_by: task_data.blocked_by,
-    }))
+    Ok(Json(task_id))
 }
 
 pub async fn delete_task(
