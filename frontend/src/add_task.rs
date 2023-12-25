@@ -560,9 +560,9 @@ fn UserSearch<'a>(
                                 class: "focus:border-blue-500",
                                 button {
                                     r#type: "button",
-                                    // TODO: Change color of Add user text
                                     // TODO: Add user needs to open a model for selecting color
                                     class: "block text-left w-full px-4 py-2
+                                        hover:bg-gray-100 dark:hover:bg-gray-600
                                         font-medium text-blue-600 dark:text-blue-500 hover:underline",
                                     prevent_default: "onmousedown",
                                     onmousedown: |_| {},
