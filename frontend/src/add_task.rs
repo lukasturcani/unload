@@ -481,7 +481,7 @@ fn UserSearch<'a>(
             .users
             .iter()
             .filter(|(id, user)| {
-                user.name.find(&**search_input).is_some()
+                user.name.contains(&**search_input)
                     && selected.iter().all(|(selected_id, _)| selected_id != *id)
             })
             .map(|(id, user)| (*id, user.name.clone()))
@@ -666,7 +666,7 @@ async fn send_create_task_request(
 }
 
 async fn create_user(model: UseSharedState<Model>, name: String) {
-    if let Ok(_) = requests::create_user(
+    if requests::create_user(
         model.clone(),
         UserData {
             name,
@@ -674,6 +674,7 @@ async fn create_user(model: UseSharedState<Model>, name: String) {
         },
     )
     .await
+    .is_ok()
     {
         requests::board(model).await;
     }
