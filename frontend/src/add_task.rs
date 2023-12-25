@@ -269,6 +269,8 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
                     r#type: "submit",
                     prevent_default: "onclick",
                     onclick: |_| {
+                        // TODO: once future issue is fixed change page
+                        // as first thing
                         create_task(
                             model.clone(),
                             shared_models::TaskData {
@@ -310,7 +312,6 @@ fn TaskSearch<'a>(
     on_select_task: EventHandler<'a, TaskId>,
     on_remove_task: EventHandler<'a, TaskId>,
 ) -> Element<'a> {
-    // TODO: multiple clicks on task do not add extra buttons
     let model = use_shared_state::<Model>(cx).unwrap();
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
