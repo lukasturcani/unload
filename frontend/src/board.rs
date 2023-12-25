@@ -116,7 +116,7 @@ fn DoneColumn(cx: Scope) -> Element {
 fn Task(cx: Scope, task_id: TaskId) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     let expanded = use_state(cx, || false);
-    let data = model.tasks.get(task_id);
+    let data = &model.tasks[task_id];
     cx.render(rsx! {
         div {
             "{data.title}"

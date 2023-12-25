@@ -1,5 +1,5 @@
 use crate::model::Model;
-use crate::model::{TaskData, Tasks};
+use crate::model::TaskData;
 use dioxus::prelude::*;
 use reqwest::Client;
 use shared_models::{TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId};
@@ -88,7 +88,7 @@ async fn tasks(model: &UseSharedState<Model>) -> Result<TasksResponse, anyhow::E
 
 #[derive(Default, Debug)]
 struct TasksResponse {
-    tasks: Tasks,
+    tasks: HashMap<TaskId, TaskData>,
     to_do: Vec<TaskId>,
     in_progress: Vec<TaskId>,
     done: Vec<TaskId>,
@@ -99,7 +99,7 @@ impl From<Vec<TaskEntry>> for TasksResponse {
         let mut to_do = Vec::new();
         let mut in_progress = Vec::new();
         let mut done = Vec::new();
-        let mut tasks = Tasks::with_capacity(value.len());
+        let mut tasks = HashMap::with_capacity(value.len());
         for task in value {
             tasks.insert(
                 task.id,

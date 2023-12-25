@@ -306,12 +306,32 @@ fn TaskSearch<'a>(
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<(TaskId, String)>::new);
-    // TODO: Can this holad a Vec<(TaskId, &String)>?
-    let dropdown_data = has_input_focus.then(|| {
+    // TODO: Can this hold a Vec<(TaskId, &String)>?
+    let dropdown_data: Option<Vec<_>> = has_input_focus.then(|| {
+        let model = model.read();
+        let selected = selected.read();
         if search_input.is_empty() {
-            model.read().most_recent_titles()
+            let mut data = model
+                .tasks
+                .iter()
+                .filter(|(id1, _)| selected.iter().all(|(id2, _)| *id1 != id2))
+                .collect::<Vec<_>>();
+            data.sort_by(|(_, a), (_, b)| a.updated.cmp(&b.updated));
+            data.truncate(5);
+            data.into_iter()
+                .map(|(id, task)| (*id, task.title.clone()))
+                .collect()
         } else {
-            model.read().find_titles(search_input)
+            model
+                .tasks
+                .iter()
+                .filter(|(id, task)| {
+                    (task.title.contains(&**search_input)
+                        || task.description.contains(&**search_input))
+                        && selected.iter().all(|(selected_id, _)| *id != selected_id)
+                })
+                .map(|(id, task)| (*id, task.title.clone()))
+                .collect()
         }
     });
     cx.render(rsx! {
@@ -438,19 +458,30 @@ fn UserSearch<'a>(
     on_select_user: EventHandler<'a, UserId>,
     on_remove_user: EventHandler<'a, UserId>,
 ) -> Element<'a> {
-    // TODO: multiple clicks on user do not add extra buttons
     let model = use_shared_state::<Model>(cx).unwrap();
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<(UserId, String)>::new);
     // TODO: Can this holad a Vec<(TaskId, &String)>?
-    let users: Vec<_> = model
-        .read()
-        .users
-        .iter()
-        .filter(|(_, user)| user.name.find(&**search_input).is_some())
-        .map(|(id, user)| (*id, user.name.clone()))
-        .collect();
+    let user_data = has_input_focus.then(|| {
+        let model = model.read();
+        let selected = selected.read();
+        let users: Vec<_> = model
+            .users
+            .iter()
+            .filter(|(id, user)| {
+                user.name.find(&**search_input).is_some()
+                    && selected.iter().all(|(selected_id, _)| selected_id != *id)
+            })
+            .map(|(id, user)| (*id, user.name.clone()))
+            .collect();
+        let show_add_user_button = !search_input.is_empty()
+            && model
+                .users
+                .iter()
+                .all(|(_, user)| user.name != search_input.trim());
+        (users, show_add_user_button)
+    });
     cx.render(rsx! {
         label {
             r#for: *id,
@@ -486,51 +517,53 @@ fn UserSearch<'a>(
                 oninput: |event| search_input.set(event.data.value.clone())
             },
         },
-        if **has_input_focus && (!users.is_empty() || !search_input.is_empty()) {rsx!{
-            div {
-                class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
-                ul {
-                    class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
-                    rsx!{
-                        for user in users {rsx!{
+        if let Some((users, show_add_user_button)) = user_data {rsx!{
+            if
+                !users.is_empty() || show_add_user_button {rsx!{
+                div {
+                    class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
+                    ul {
+                        class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
+                        rsx!{
+                            for user in users {rsx!{
+                                li {
+                                    class: "focus:border-blue-500",
+                                    // TODO: check key have correct value
+                                    key: "{user.0}",
+                                    button {
+                                        r#type: "button",
+                                        class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
+                                        prevent_default: "onmousedown",
+                                        onmousedown: |_| {},
+                                        onclick: move |_| {
+                                            selected.write().push(user.clone());
+                                            on_select_user.call(user.0);
+                                        },
+                                        user.1.clone(),
+                                    }
+                                },
+                            }}
+                        }
+                        if show_add_user_button {rsx!{
                             li {
+                                key: "add user",
                                 class: "focus:border-blue-500",
-                                // TODO: check key have correct value
-                                key: "{user.0}",
                                 button {
                                     r#type: "button",
+                                    // TODO: Change color of Add user text
+                                    // TODO: Add user needs to open a model for selecting color
                                     class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
                                     prevent_default: "onmousedown",
                                     onmousedown: |_| {},
-                                    onclick: move |_| {
-                                        selected.write().push(user.clone());
-                                        on_select_user.call(user.0);
-                                    },
-                                    user.1.clone(),
+                                    onclick: move |_| {},
+                                    "Add user"
                                 }
+
                             },
                         }}
                     }
-                    if !search_input.is_empty() {rsx!{
-                        li {
-                            key: "add user",
-                            class: "focus:border-blue-500",
-                            button {
-                                r#type: "button",
-                                // TODO: Change color of Add user text
-                                // TODO: Add user needs to open a model for selecting color
-                                class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
-                                prevent_default: "onmousedown",
-                                onmousedown: |_| {},
-                                onclick: move |_| {},
-                                "Add user"
-                            }
-
-                        },
-                    }}
                 }
-            }
-        }}
+        }}}}
         div {
             class: "mt-2",
             for user in selected.read().iter().map(|x| x.clone()) {rsx!{
