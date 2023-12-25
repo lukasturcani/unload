@@ -11,7 +11,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "bg-gray-900 h-screen w-screen grid justify-items-center",
+            class: "bg-gray-900 min-h-screen min-w-screen grid justify-items-center",
             ul {
                 class: "max-w-md divide-y divide-gray-200 dark:divide-gray-700",
                 for (id, user) in model.read().users.iter() {

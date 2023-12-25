@@ -17,7 +17,7 @@ pub fn Board(cx: Scope, board_name: BoardName) -> Element {
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "bg-gray-900 h-screen w-screen",
+            class: "bg-gray-900 min-h-screen min-w-screen",
             div {
                 class: "grid grid-cols-3",
                 ToDoColumn {},

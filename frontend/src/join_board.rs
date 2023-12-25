@@ -20,7 +20,7 @@ pub fn JoinBoard(cx: Scope) -> Element {
     let nav = use_navigator(cx);
     cx.render(rsx! {
         div{
-            class: "bg-gray-900 h-screen w-screen",
+            class: "bg-gray-900 min-h-screen min-w-screen",
             form {
                 class:"max-w-sm mx-auto",
                 div {
