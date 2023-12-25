@@ -197,6 +197,7 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
                     TaskSearch{
                         id: "blocked_by_search",
                         title: "Blocked by",
+                        banned: blocks.read().clone(),
                         on_select_task: |task_id| blocked_by.write().push(task_id),
                         on_remove_task: |task_id| {
                             blocked_by
@@ -210,6 +211,7 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
                     TaskSearch{
                         id: "blocks_search",
                         title: "Blocks",
+                        banned: blocked_by.read().clone(),
                         on_select_task: |task_id| blocks.write().push(task_id),
                         on_remove_task: |task_id| {
                             blocks
@@ -298,6 +300,7 @@ fn TaskSearch<'a>(
     cx: Scope<'a>,
     id: &'a str,
     title: &'a str,
+    banned: Vec<TaskId>,
     on_select_task: EventHandler<'a, TaskId>,
     on_remove_task: EventHandler<'a, TaskId>,
 ) -> Element<'a> {
@@ -313,7 +316,10 @@ fn TaskSearch<'a>(
             let mut data = model
                 .tasks
                 .iter()
-                .filter(|(id1, _)| selected.iter().all(|(id2, _)| *id1 != id2))
+                .filter(|(id1, _)| {
+                    selected.iter().all(|(id2, _)| *id1 != id2)
+                        && banned.iter().all(|id2| *id1 != id2)
+                })
                 .collect::<Vec<_>>();
             data.sort_by(|(_, a), (_, b)| a.updated.cmp(&b.updated));
             data.truncate(5);
@@ -516,8 +522,7 @@ fn UserSearch<'a>(
             },
         },
         if let Some((users, show_add_user_button)) = user_data {rsx!{
-            if
-                !users.is_empty() || show_add_user_button {rsx!{
+            if !users.is_empty() || show_add_user_button {rsx!{
                 div {
                     class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
                     ul {
@@ -561,7 +566,22 @@ fn UserSearch<'a>(
                         }}
                     }
                 }
-        }}}}
+            }}
+            else {rsx!{
+                div {
+                    class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
+                    ul {
+                        class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
+                        li {
+                            class: "italic text-gray-500 dark:text-gray-400 block text-left w-full px-4 py-2",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            "No matches"
+                        },
+                    }
+                }
+            }}
+        }}
         div {
             class: "mt-2",
             for user in selected.read().iter().map(|x| x.clone()) {rsx!{
@@ -606,6 +626,10 @@ async fn create_task(
     task_data: shared_models::TaskData,
     nav: Navigator,
 ) {
+    if task_data.title.is_empty() {
+        log::info!("empty task title, doing nothing");
+        return;
+    }
     if let Ok(task_id) = send_create_task_request(&model, &task_data).await {
         log::info!("created task: {task_id}");
     }

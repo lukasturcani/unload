@@ -63,6 +63,7 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
 
 async fn create_user(model: UseSharedState<Model>, user_data: UserData, nav: Navigator) {
     if user_data.name.is_empty() {
+        log::info!("empty user name, doing nothing");
         return;
     }
     log::info!("sending create user request");
