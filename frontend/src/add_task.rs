@@ -272,7 +272,13 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
                         create_task(
                             model.clone(),
                             shared_models::TaskData {
-                                title: title.make_mut().drain(..).collect(),
+                                title:
+                                    title
+                                    .make_mut()
+                                    .drain(..)
+                                    .collect::<String>()
+                                    .trim()
+                                    .to_string(),
                                 description: description.make_mut().drain(..).collect(),
                                 due: due_date.map(|date| {
                                     Local.from_local_datetime(&date.and_time(**due_time))
