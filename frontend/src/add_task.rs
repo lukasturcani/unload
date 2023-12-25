@@ -462,7 +462,6 @@ fn UserSearch<'a>(
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<(UserId, String)>::new);
-    // TODO: Can this holad a Vec<(TaskId, &String)>?
     let user_data = has_input_focus.then(|| {
         let model = model.read();
         let selected = selected.read();
@@ -555,7 +554,7 @@ fn UserSearch<'a>(
                                     class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
                                     prevent_default: "onmousedown",
                                     onmousedown: |_| {},
-                                    onclick: move |_| {},
+                                    onclick: |_| {},
                                     "Add user"
                                 }
 
