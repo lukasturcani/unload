@@ -306,7 +306,6 @@ fn TaskSearch<'a>(
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<(TaskId, String)>::new);
-    // TODO: Can this hold a Vec<(TaskId, &String)>?
     let dropdown_data: Option<Vec<_>> = has_input_focus.then(|| {
         let model = model.read();
         let selected = selected.read();
