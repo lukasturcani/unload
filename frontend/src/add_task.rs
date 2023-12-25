@@ -6,7 +6,7 @@ use dioxus::prelude::*;
 use dioxus_router::hooks::use_navigator;
 use dioxus_router::prelude::Navigator;
 use reqwest::Client;
-use shared_models::{BoardName, TaskId, TaskSize, TaskStatus, UserId};
+use shared_models::{BoardName, Color, TaskId, TaskSize, TaskStatus, UserData, UserId};
 
 #[component]
 pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
@@ -566,7 +566,7 @@ fn UserSearch<'a>(
                                         font-medium text-blue-600 dark:text-blue-500 hover:underline",
                                     prevent_default: "onmousedown",
                                     onmousedown: |_| {},
-                                    onclick: |_| {},
+                                    onclick: |_| create_user(model.clone(), (**search_input).clone()),
                                     "Add User"
                                 }
 
@@ -663,4 +663,18 @@ async fn send_create_task_request(
         .await?
         .json::<TaskId>()
         .await?)
+}
+
+async fn create_user(model: UseSharedState<Model>, name: String) {
+    if let Ok(_) = requests::create_user(
+        model.clone(),
+        UserData {
+            name,
+            color: Color::Black,
+        },
+    )
+    .await
+    {
+        requests::board(model).await;
+    }
 }

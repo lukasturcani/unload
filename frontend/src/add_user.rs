@@ -1,8 +1,7 @@
-use crate::{model::Model, route::Route, styles};
+use crate::{model::Model, requests, route::Route, styles};
 use dioxus::prelude::*;
 use dioxus_router::{hooks::use_navigator, prelude::Navigator};
-use reqwest::Client;
-use shared_models::{BoardName, Color, UserData, UserId};
+use shared_models::{BoardName, Color, UserData};
 
 #[component]
 pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
@@ -46,9 +45,7 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                                     name
                                     .make_mut()
                                     .drain(..)
-                                    .collect::<String>()
-                                    .trim()
-                                    .to_string(),
+                                    .collect(),
                                 color: Color::Black,
                             },
                             nav.clone(),
@@ -67,7 +64,7 @@ async fn create_user(model: UseSharedState<Model>, user_data: UserData, nav: Nav
         return;
     }
     log::info!("sending create user request");
-    match send_create_user_request(&model, &user_data).await {
+    match requests::create_user(model.clone(), user_data).await {
         Ok(user_id) => {
             log::info!("created user: {user_id}");
         }
@@ -78,23 +75,4 @@ async fn create_user(model: UseSharedState<Model>, user_data: UserData, nav: Nav
     nav.push(Route::Board {
         board_name: model.read().board_name.clone(),
     });
-}
-
-async fn send_create_user_request(
-    model: &UseSharedState<Model>,
-    user_data: &UserData,
-) -> Result<UserId, anyhow::Error> {
-    let url = {
-        let model = model.read();
-        model
-            .url
-            .join(&format!("/api/boards/{}/users", model.board_name))?
-    };
-    Ok(Client::new()
-        .post(url)
-        .json(user_data)
-        .send()
-        .await?
-        .json::<UserId>()
-        .await?)
 }
