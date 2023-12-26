@@ -1,4 +1,4 @@
-use crate::{model::Model, requests, route::Route, styles};
+use crate::{color_picker::ColorPicker, model::Model, requests, route::Route, styles};
 use dioxus::prelude::*;
 use dioxus_router::{hooks::use_navigator, prelude::Navigator};
 use shared_models::{BoardName, Color, UserData};
@@ -31,27 +31,34 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                         oninput: |event| name.set(event.value.clone()),
                     },
                 }
-                button {
-                    class: styles::BUTTON,
-                    r#type: "submit",
-                    prevent_default: "onclick",
-                    onclick: |_| {
-                        // TODO: once future issue is fixed change page
-                        // as first thing
-                        create_user(
-                            model.clone(),
-                            UserData{
-                                name:
-                                    name
-                                    .make_mut()
-                                    .drain(..)
-                                    .collect(),
-                                color: Color::Black,
-                            },
-                            nav.clone(),
-                        )
-                    },
-                    "Submit"
+                div {
+                    class: "mb-5 flex justify-center",
+                    ColorPicker{},
+                }
+                div {
+                    class: "flex justify-center",
+                    button {
+                        class: styles::BUTTON,
+                        r#type: "submit",
+                        prevent_default: "onclick",
+                        onclick: |_| {
+                            // TODO: once future issue is fixed change page
+                            // as first thing
+                            create_user(
+                                model.clone(),
+                                UserData{
+                                    name:
+                                        name
+                                        .make_mut()
+                                        .drain(..)
+                                        .collect(),
+                                    color: Color::Black,
+                                },
+                                nav.clone(),
+                            )
+                        },
+                        "Submit"
+                    }
                 }
             }
         }
