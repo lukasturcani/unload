@@ -8,6 +8,8 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let nav = use_navigator(cx);
     let name = use_state(cx, String::default);
+    let default_color = Color::Black;
+    let color = use_state(cx, || default_color);
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
@@ -33,7 +35,10 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                 }
                 div {
                     class: "mb-5 flex justify-center",
-                    ColorPicker{},
+                    ColorPicker{
+                        default_color: default_color,
+                        on_pick_color: |c| color.set(c),
+                    },
                 }
                 div {
                     class: "flex justify-center",
@@ -41,9 +46,11 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                         class: styles::BUTTON,
                         r#type: "submit",
                         prevent_default: "onclick",
-                        onclick: |_| {
+                        onclick: move |_| {
                             // TODO: once future issue is fixed change page
                             // as first thing
+                            let user_color = **color;
+                            color.set(default_color);
                             create_user(
                                 model.clone(),
                                 UserData{
@@ -52,7 +59,7 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                                         .make_mut()
                                         .drain(..)
                                         .collect(),
-                                    color: Color::Black,
+                                    color: user_color,
                                 },
                                 nav.clone(),
                             )

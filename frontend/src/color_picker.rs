@@ -21,8 +21,12 @@ const COLORS: [(Color, &str, &str); 16] = [
 ];
 
 #[component]
-pub fn ColorPicker(cx: Scope) -> Element {
-    let selected = use_state(cx, || Color::Black);
+pub fn ColorPicker<'a>(
+    cx: Scope<'a>,
+    default_color: Color,
+    on_pick_color: EventHandler<'a, Color>,
+) -> Element<'a> {
+    let selected = use_state(cx, || *default_color);
     cx.render(rsx! {
         div {
             class: "flex-1 flex grid grid-cols-4 gap-4 justify-items-center",
@@ -34,7 +38,10 @@ pub fn ColorPicker(cx: Scope) -> Element {
                             class: "
                                 w-8 h-8 rounded cursor-pointer {class}
                                 ring-blue-500 dark:ring-blue-600 ring-2",
-                            onclick: |_| selected.set(*color),
+                            onclick: |_| {
+                                selected.set(*color);
+                                on_pick_color.call(*color);
+                            },
                         },
                         div {
                             class: "
@@ -54,7 +61,10 @@ pub fn ColorPicker(cx: Scope) -> Element {
                         class: "group relative",
                         div {
                             class: "w-8 h-8 rounded cursor-pointer {class}",
-                            onclick: |_| selected.set(*color),
+                            onclick: |_| {
+                                selected.set(*color);
+                                on_pick_color.call(*color);
+                            },
                         },
                         div {
                             class: "
