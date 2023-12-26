@@ -27,17 +27,21 @@ pub fn ColorPicker(cx: Scope) -> Element {
             class: "flex-1 flex grid grid-cols-4 gap-4 justify-items-center",
             for (color, name, class) in COLORS.iter() {rsx! {
                 div {
-                    "data-tooltip-target": "{name}-tooltip",
-                    class: "w-8 h-8 rounded cursor-pointer {class}",
-                },
-                div {
-                    id: "{name}-tooltip",
-                    role: "tooltip",
-                    class: "absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700",
-                    "{name}"
+                    class: "group relative",
                     div {
-                        class: "tooltip-arrow",
-                        "data-popper-arrow": "",
+                        class: "w-8 h-8 rounded cursor-pointer {class}",
+                    },
+                    div {
+                        class: "
+                            pointer-events-none absolute -top-10 left-0 w-max
+                            opacity-0 transition-opacity group-hover:opacity-100
+                            z-10 inline-block px-3 py-2 text-sm font-medium text-white
+                            bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-800",
+                        "{name}"
+                        div {
+                            class: "tooltip-arrow",
+                            "data-popper-arrow": "",
+                        }
                     }
                 }
             }}
