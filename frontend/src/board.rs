@@ -164,9 +164,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                 flex flex-col gap-2 block w-full p-3 border rounded-lg shadow
                 bg-gray-700 border-gray-600 hover:bg-gray-600",
             h5 {
-                class: "
-                    text-xl font-bold tracking-tight text-gray-900 dark:text-white
-                    underline underline-offset-8",
+                class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
                 "{data.title}",
             },
             div{
