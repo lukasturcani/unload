@@ -9,7 +9,7 @@ use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
 pub const COLUMN: &str = "flex flex-col gap-2 flex-1 rounded bg-white dark:bg-gray-800 p-4";
-pub const COLUMN_HEADING: &str = "text-4xl font-extrabold dark:text-white";
+pub const COLUMN_HEADING: &str = "text-3xl font-extrabold dark:text-white";
 pub const COLUMN_TASK_LIST: &str = "flex flex-col gap-2 w-full h-full";
 
 #[component]
@@ -161,28 +161,31 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                 block w-full p-6 bg-white border border-gray-200 rounded-lg shadow
                 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-700 dark:hover:bg-gray-600",
             h5 {
-                class: "mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white",
+                class: "mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white",
                 "{data.title}",
             },
-            for user in users {
-                div {
-                    class: "group relative",
+            div {
+                class: "flex flex-row gap-2",
+                for user in users {rsx!{
                     div {
-                        class: "w-8 h-8 rounded cursor-pointer {color_picker::class(&user.color)}",
-                    },
-                    div {
-                        class: "
-                            pointer-events-none absolute -top-10 left-0 w-max
-                            opacity-0 transition-opacity group-hover:opacity-100
-                            z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                            bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-800",
-                        "{user.name}"
+                        class: "group relative",
                         div {
-                            class: "tooltip-arrow",
-                            "data-popper-arrow": "",
+                            class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&user.color)}",
+                        },
+                        div {
+                            class: "
+                                pointer-events-none absolute -top-10 left-0 w-max
+                                opacity-0 transition-opacity group-hover:opacity-100
+                                z-10 inline-block px-3 py-2 text-sm font-medium text-white
+                                bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-800",
+                            "{user.name}"
+                            div {
+                                class: "tooltip-arrow",
+                                "data-popper-arrow": "",
+                            }
                         }
                     }
-                }
+                }}
             }
         }
     })
