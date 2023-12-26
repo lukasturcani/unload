@@ -537,28 +537,28 @@ fn UserSearch<'a>(
                 onfocusout: |_| has_input_focus.set(false),
                 oninput: |event| search_input.set(event.data.value.clone())
             },
-            if **show_color_picker {rsx!{
-                div {
-                    class: "absolute z-10 top-16 w-full rounded bg-gray-900 dark:bg-gray-800 p-4",
-                    ColorPicker {
-                        on_pick_color: |color| {
-                            show_color_picker.set(false);
-                            cx.spawn(create_user(
-                                model.clone(),
-                                UserData {
-                                    name: search_input.make_mut().drain(..).collect(),
-                                    color
-                                },
-                            ));
-                        },
-                    }
-                }
-            }}
         },
+        if **show_color_picker {rsx!{
+            div {
+                class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 p-4",
+                ColorPicker {
+                    on_pick_color: |color| {
+                        show_color_picker.set(false);
+                        cx.spawn(create_user(
+                            model.clone(),
+                            UserData {
+                                name: search_input.make_mut().drain(..).collect(),
+                                color
+                            },
+                        ));
+                    },
+                }
+            }
+        }}
         if let Some((users, show_add_user_button)) = user_data {rsx!{
             if !users.is_empty() || show_add_user_button {rsx!{
                 div {
-                    class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
+                    class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700",
                     ul {
                         class: "py-2 text-sm text-gray-700 dark:text-gray-200",
                         rsx!{
