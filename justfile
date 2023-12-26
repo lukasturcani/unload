@@ -84,11 +84,17 @@ check:
 
   test $error = 0
 
+# install dependencies
 install-deps:
   cd frontend && npm install
 
 # build the frontend
 frontend:
+  cd frontend && npx tailwindcss -i ./input.css -o ./public/tailwind.css
+  cd frontend && dx build
+
+# build the frontend
+frontend-release:
   cd frontend && npx tailwindcss -i ./input.css -o ./public/tailwind.css
   cd frontend && dx build --release
 
