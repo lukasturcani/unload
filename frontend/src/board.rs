@@ -158,12 +158,16 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
     cx.render(rsx! {
         div {
             draggable: true,
+            prevent_default: "onclick",
+            onclick: |_| expanded.set(!**expanded),
             class: "
                 flex flex-col gap-2
                 block w-full p-3 bg-white border border-gray-200 rounded-lg shadow
-                hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-700 dark:hover:bg-gray-600",
+                hover:bg-gray-100 dark:bg-gray-700 dark:border-black dark:border-2 dark:hover:bg-gray-600",
             h5 {
-                class: "text-xl font-bold tracking-tight text-gray-900 dark:text-white",
+                class: "
+                    text-xl font-bold tracking-tight text-gray-900 dark:text-white
+                    underline underline-offset-8",
                 "{data.title}",
             },
             div{
@@ -211,6 +215,14 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                     }
                 }}
             }
+            if **expanded {rsx!{
+                div {
+                    pre {
+                        class: "mb-3 text-gray-900 dark:text-white",
+                        "{data.description}"
+                    }
+                }
+            }}
         }
     })
 }
