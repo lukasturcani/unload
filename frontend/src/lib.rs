@@ -2,6 +2,7 @@ pub mod add_task;
 pub mod add_user;
 pub mod app;
 pub mod board;
+pub mod color_picker;
 pub mod join_board;
 pub mod model;
 pub mod requests;

@@ -12,6 +12,7 @@ pub struct Model {
     pub to_do: Vec<TaskId>,
     pub in_progress: Vec<TaskId>,
     pub done: Vec<TaskId>,
+    pub user_search_created_user: Option<(UserId, String)>,
 }
 
 impl Default for Model {
@@ -24,6 +25,7 @@ impl Default for Model {
             to_do: Vec::default(),
             in_progress: Vec::default(),
             done: Vec::default(),
+            user_search_created_user: Option::default(),
         }
     }
 }
