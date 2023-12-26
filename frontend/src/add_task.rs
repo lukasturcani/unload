@@ -404,7 +404,6 @@ fn TaskSearch<'a>(
                             for task in suggestions {rsx!{
                                 li {
                                     class: "focus:border-blue-500",
-                                    // TODO: check key have correct value
                                     key: "{task.0}",
                                     button {
                                         r#type: "button",
@@ -537,8 +536,6 @@ fn UserSearch<'a>(
                         rsx!{
                             for user in users {rsx!{
                                 li {
-                                    class: "focus:border-blue-500",
-                                    // TODO: check key have correct value
                                     key: "{user.0}",
                                     button {
                                         r#type: "button",
@@ -557,7 +554,6 @@ fn UserSearch<'a>(
                         if show_add_user_button {rsx!{
                             li {
                                 key: "add user",
-                                class: "focus:border-blue-500",
                                 button {
                                     r#type: "button",
                                     // TODO: Add user needs to open a model for selecting color
