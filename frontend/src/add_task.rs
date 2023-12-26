@@ -386,7 +386,7 @@ fn TaskSearch<'a>(
                 div {
                     class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
                     ul {
-                        class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
+                        class: "py-2 text-sm text-gray-700 dark:text-gray-200",
                         li {
                             class: "italic text-gray-500 dark:text-gray-400 block text-left w-full px-4 py-2",
                             prevent_default: "onmousedown",
@@ -399,7 +399,7 @@ fn TaskSearch<'a>(
                 div {
                     class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
                     ul {
-                        class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
+                        class: "py-2 text-sm text-gray-700 dark:text-gray-200",
                         rsx!{
                             for task in suggestions {rsx!{
                                 li {
