@@ -1,5 +1,6 @@
 use crate::route::Route;
 use dioxus_router::hooks::use_navigator;
+use shared_models::TaskSize;
 
 use crate::color_picker;
 use crate::model::Model;
@@ -158,11 +159,34 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
         div {
             draggable: true,
             class: "
+                flex flex-col gap-2
                 block w-full p-3 bg-white border border-gray-200 rounded-lg shadow
                 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-700 dark:hover:bg-gray-600",
             h5 {
-                class: "mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white",
+                class: "text-xl font-bold tracking-tight text-gray-900 dark:text-white",
                 "{data.title}",
+            },
+            div{
+                match data.size {
+                    TaskSize::Small => {rsx!{
+                        span {
+                            class: "bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300",
+                            "Small",
+                        }
+                    }}
+                    TaskSize::Medium => {rsx!{
+                        span {
+                            class: "bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300",
+                            "Medium",
+                        }
+                    }}
+                    TaskSize::Large => {rsx!{
+                        span {
+                            class: "bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300",
+                            "Large",
+                        }
+                    }}
+                }
             },
             div {
                 class: "flex flex-row gap-2",
