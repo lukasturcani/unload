@@ -1,3 +1,4 @@
+use crate::color_picker::ColorPicker;
 use crate::requests;
 use crate::route::Route;
 use crate::{model::Model, styles};
@@ -6,7 +7,7 @@ use dioxus::prelude::*;
 use dioxus_router::hooks::use_navigator;
 use dioxus_router::prelude::Navigator;
 use reqwest::Client;
-use shared_models::{BoardName, Color, TaskId, TaskSize, TaskStatus, UserData, UserId};
+use shared_models::{BoardName, TaskId, TaskSize, TaskStatus, UserData, UserId};
 
 #[component]
 pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
@@ -469,10 +470,11 @@ fn UserSearch<'a>(
     on_remove_user: EventHandler<'a, UserId>,
 ) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let show_color_picker = use_state(cx, || false);
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<(UserId, String)>::new);
-    let user_data = has_input_focus.then(|| {
+    let user_data = if **has_input_focus && !**show_color_picker {
         let model = model.read();
         let selected = selected.read();
         let users: Vec<_> = model
@@ -489,8 +491,10 @@ fn UserSearch<'a>(
                 .users
                 .iter()
                 .all(|(_, user)| user.name != search_input.trim());
-        (users, show_add_user_button)
-    });
+        Some((users, show_add_user_button))
+    } else {
+        None
+    };
     cx.render(rsx! {
         label {
             r#for: *id,
@@ -521,17 +525,34 @@ fn UserSearch<'a>(
                 id: *id,
                 class: "block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                 placeholder: "Search",
+                value: "{search_input}",
                 onfocusin: |_| has_input_focus.set(true),
                 onfocusout: |_| has_input_focus.set(false),
                 oninput: |event| search_input.set(event.data.value.clone())
             },
+            if **show_color_picker {rsx!{
+                div {
+                    class: "absolute z-10 top-16 w-full rounded bg-gray-900 dark:bg-gray-800 p-4",
+                    ColorPicker {
+                        on_pick_color: |color| {
+                            let name = search_input.make_mut().drain(..).collect();
+                            selected.write().push((name));
+                            show_color_picker.set(false);
+                            cx.spawn(create_user(
+                                model.clone(),
+                                UserData{ name, color },
+                            ));
+                        },
+                    }
+                }
+            }}
         },
         if let Some((users, show_add_user_button)) = user_data {rsx!{
             if !users.is_empty() || show_add_user_button {rsx!{
                 div {
                     class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
                     ul {
-                        class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
+                        class: "py-2 text-sm text-gray-700 dark:text-gray-200",
                         rsx!{
                             for user in users {rsx!{
                                 li {
@@ -561,10 +582,9 @@ fn UserSearch<'a>(
                                         font-medium text-blue-600 dark:text-blue-500 hover:underline",
                                     prevent_default: "onmousedown",
                                     onmousedown: |_| {},
-                                    onclick: |_| create_user(model.clone(), (**search_input).clone()),
+                                    onclick: |_| show_color_picker.set(true),
                                     "Add User"
                                 }
-
                             },
                         }}
                     }
@@ -660,16 +680,10 @@ async fn send_create_task_request(
         .await?)
 }
 
-async fn create_user(model: UseSharedState<Model>, name: String) {
-    if requests::create_user(
-        model.clone(),
-        UserData {
-            name,
-            color: Color::Black,
-        },
-    )
-    .await
-    .is_ok()
+async fn create_user(model: UseSharedState<Model>, user_data: UserData) {
+    if requests::create_user(model.clone(), user_data)
+        .await
+        .is_ok()
     {
         requests::board(model).await;
     }

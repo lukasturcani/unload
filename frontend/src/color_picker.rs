@@ -23,7 +23,7 @@ const COLORS: [(Color, &str, &str); 16] = [
 #[component]
 pub fn ColorPicker<'a>(
     cx: Scope<'a>,
-    default_color: Color,
+    default_color: Option<Color>,
     on_pick_color: EventHandler<'a, Color>,
 ) -> Element<'a> {
     let selected = use_state(cx, || *default_color);
@@ -31,7 +31,7 @@ pub fn ColorPicker<'a>(
         div {
             class: "flex-1 flex grid grid-cols-4 gap-4 justify-items-center",
             for (color, name, class) in COLORS.iter() {rsx! {
-                if color == &**selected {rsx!{
+                if selected.map_or(false, |selected_color| selected_color == *color) {rsx!{
                     div {
                         class: "group relative",
                         div {
@@ -39,7 +39,7 @@ pub fn ColorPicker<'a>(
                                 w-8 h-8 rounded cursor-pointer {class}
                                 ring-blue-500 dark:ring-blue-600 ring-2",
                             onclick: |_| {
-                                selected.set(*color);
+                                selected.set(Some(*color));
                                 on_pick_color.call(*color);
                             },
                         },
@@ -62,7 +62,7 @@ pub fn ColorPicker<'a>(
                         div {
                             class: "w-8 h-8 rounded cursor-pointer {class}",
                             onclick: |_| {
-                                selected.set(*color);
+                                selected.set(Some(*color));
                                 on_pick_color.call(*color);
                             },
                         },
