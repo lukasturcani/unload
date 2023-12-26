@@ -1,6 +1,7 @@
 use crate::route::Route;
 use dioxus_router::hooks::use_navigator;
 
+use crate::color_picker;
 use crate::model::Model;
 use crate::requests;
 use crate::styles;
@@ -148,6 +149,11 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap().read();
     let expanded = use_state(cx, || false);
     let data = &model.tasks[task_id];
+    let users: Vec<_> = data
+        .assignees
+        .iter()
+        .map(|user_id| &model.users[user_id])
+        .collect();
     cx.render(rsx! {
         div {
             draggable: true,
@@ -158,9 +164,25 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                 class: "mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white",
                 "{data.title}",
             },
-            p {
-                class: "font-normal text-gray-700 dark:text-gray-400",
-                "{data.description}",
+            for user in users {
+                div {
+                    class: "group relative",
+                    div {
+                        class: "w-8 h-8 rounded cursor-pointer {color_picker::class(&user.color)}",
+                    },
+                    div {
+                        class: "
+                            pointer-events-none absolute -top-10 left-0 w-max
+                            opacity-0 transition-opacity group-hover:opacity-100
+                            z-10 inline-block px-3 py-2 text-sm font-medium text-white
+                            bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-800",
+                        "{user.name}"
+                        div {
+                            class: "tooltip-arrow",
+                            "data-popper-arrow": "",
+                        }
+                    }
+                }
             }
         }
     })
