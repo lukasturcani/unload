@@ -32,7 +32,7 @@ pub fn Board(cx: Scope, board_name: BoardName) -> Element {
                 },
             }
             div {
-                class: "flex flex-row justify-center gap-2",
+                class: "flex flex-row justify-center gap-2 mb-4",
                 button {
                     class: styles::BUTTON,
                     onclick: |_| {
