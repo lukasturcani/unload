@@ -569,6 +569,7 @@ fn UserSearch<'a>(
                                         prevent_default: "onmousedown",
                                         onmousedown: |_| {},
                                         onclick: move |_| {
+                                            search_input.set(String::new());
                                             selected.write().push(user.clone());
                                             on_select_user.call(user.0);
                                         },
