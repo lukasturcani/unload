@@ -79,7 +79,7 @@ async fn create_user(model: UseSharedState<Model>, user_data: UserData, nav: Nav
     }
     log::info!("sending create user request");
     match requests::create_user(model.clone(), user_data).await {
-        Ok(user_id) => {
+        Ok((user_id, _)) => {
             log::info!("created user: {user_id}");
         }
         Err(e) => {

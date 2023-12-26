@@ -474,6 +474,11 @@ fn UserSearch<'a>(
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
     let selected = use_ref(cx, Vec::<(UserId, String)>::new);
+    if model.read().user_search_created_user.is_some() {
+        if let Some(user) = model.write().user_search_created_user.take() {
+            selected.write().push(user);
+        }
+    }
     let user_data = if **has_input_focus && !**show_color_picker {
         let model = model.read();
         let selected = selected.read();
@@ -535,12 +540,13 @@ fn UserSearch<'a>(
                     class: "absolute z-10 top-16 w-full rounded bg-gray-900 dark:bg-gray-800 p-4",
                     ColorPicker {
                         on_pick_color: |color| {
-                            let name = search_input.make_mut().drain(..).collect();
-                            selected.write().push((name));
                             show_color_picker.set(false);
                             cx.spawn(create_user(
                                 model.clone(),
-                                UserData{ name, color },
+                                UserData {
+                                    name: search_input.make_mut().drain(..).collect(),
+                                    color
+                                },
                             ));
                         },
                     }
@@ -681,10 +687,8 @@ async fn send_create_task_request(
 }
 
 async fn create_user(model: UseSharedState<Model>, user_data: UserData) {
-    if requests::create_user(model.clone(), user_data)
-        .await
-        .is_ok()
-    {
-        requests::board(model).await;
+    if let Ok(user_data) = requests::create_user(model.clone(), user_data).await {
+        requests::board(model.clone()).await;
+        model.write().user_search_created_user = Some(user_data);
     }
 }

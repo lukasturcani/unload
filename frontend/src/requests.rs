@@ -133,7 +133,7 @@ impl From<Vec<TaskEntry>> for TasksResponse {
 pub async fn create_user(
     model: UseSharedState<Model>,
     mut user_data: UserData,
-) -> Result<UserId, anyhow::Error> {
+) -> Result<(UserId, String), anyhow::Error> {
     user_data.name = user_data.name.trim().to_string();
     let url = {
         let model = model.read();
@@ -141,11 +141,14 @@ pub async fn create_user(
             .url
             .join(&format!("/api/boards/{}/users", model.board_name))?
     };
-    Ok(Client::new()
-        .post(url)
-        .json(&user_data)
-        .send()
-        .await?
-        .json::<UserId>()
-        .await?)
+    Ok((
+        Client::new()
+            .post(url)
+            .json(&user_data)
+            .send()
+            .await?
+            .json::<UserId>()
+            .await?,
+        user_data.name,
+    ))
 }
