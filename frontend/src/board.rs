@@ -73,8 +73,11 @@ fn ToDoColumn(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: COLUMN,
-            div {
-                class: "w-full",
+            span {
+                class: "flex items-center",
+                span {
+                    class: "flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
+                }
                 h2 {
                     class: COLUMN_HEADING,
                     "To Do"
@@ -99,8 +102,11 @@ fn InProgressColumn(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: COLUMN,
-            div {
-                class: "w-full",
+            span {
+                class: "flex items-center",
+                span {
+                    class: "flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
+                }
                 h2 {
                     class: COLUMN_HEADING,
                     "In Progress"
@@ -125,8 +131,11 @@ fn DoneColumn(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: COLUMN,
-            div {
-                class: "w-full",
+            span {
+                class: "flex items-center",
+                span {
+                    class: "flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
+                }
                 h2 {
                     class: COLUMN_HEADING,
                     "Done"
@@ -163,10 +172,16 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
             class: "
                 flex flex-col gap-2 block w-full p-3 border rounded-lg shadow
                 bg-gray-700 border-gray-600 hover:bg-gray-600",
-            h5 {
-                class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
-                "{data.title}",
-            },
+            div {
+                class: "flex flow-row",
+                h5 {
+                    class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
+                    "{data.title}",
+                },
+                div {
+
+                }
+            }
             div{
                 match data.size {
                     TaskSize::Small => {rsx!{
