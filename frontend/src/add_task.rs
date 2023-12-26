@@ -403,7 +403,6 @@ fn TaskSearch<'a>(
                         rsx!{
                             for task in suggestions {rsx!{
                                 li {
-                                    class: "focus:border-blue-500",
                                     key: "{task.0}",
                                     button {
                                         r#type: "button",
