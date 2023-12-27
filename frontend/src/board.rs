@@ -14,6 +14,12 @@ pub const COLUMN: &str = "
 ";
 pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
 pub const COLUMN_TASK_LIST: &str = "flex flex-col gap-2 w-full h-full";
+pub const TOOLTIP: &str = "
+    pointer-events-none absolute -top-10 -left-2 w-max
+    opacity-0 transition-opacity group-hover:opacity-100
+    z-10 inline-block px-3 py-2 text-sm font-medium text-white
+    rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
+    border border-gray-700";
 
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
@@ -193,12 +199,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                                 }
                             }
                             div {
-                                class: "
-                                    pointer-events-none absolute -top-10 -left-2 w-max
-                                    opacity-0 transition-opacity group-hover:opacity-100
-                                    z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                                    rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
-                                    border border-gray-700",
+                                class: TOOLTIP,
                                 "To Do"
                                 div {
                                     class: "tooltip-arrow",
@@ -212,12 +213,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                                 class: "cursor-pointer flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
                             }
                             div {
-                                class: "
-                                    pointer-events-none absolute -top-10 -left-2 w-max
-                                    opacity-0 transition-opacity group-hover:opacity-100
-                                    z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                                    rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
-                                    border border-gray-700",
+                                class: TOOLTIP,
                                 "In Progress"
                                 div {
                                     class: "tooltip-arrow",
@@ -231,12 +227,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                                 class: "cursor-pointer flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
                             }
                             div {
-                                class: "
-                                    pointer-events-none absolute -top-10 -left-2 w-max
-                                    opacity-0 transition-opacity group-hover:opacity-100
-                                    z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                                    rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
-                                    border border-gray-700",
+                                class: TOOLTIP,
                                 "Done"
                                 div {
                                     class: "tooltip-arrow",
@@ -278,12 +269,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                             class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&user.color)}",
                         },
                         div {
-                            class: "
-                                pointer-events-none absolute -top-10 -left-2 w-max
-                                opacity-0 transition-opacity group-hover:opacity-100
-                                z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                                rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
-                                border border-gray-700",
+                            class: TOOLTIP,
                             "{user.name}"
                             div {
                                 class: "tooltip-arrow",
