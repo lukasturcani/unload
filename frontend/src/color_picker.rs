@@ -73,7 +73,8 @@ pub fn ColorPicker<'a>(
                                 pointer-events-none absolute -top-10 left-0 w-max
                                 opacity-0 transition-opacity group-hover:opacity-100
                                 z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                                bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-800",
+                                rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
+                                border border-gray-700",
                             "{name}"
                             div {
                                 class: "tooltip-arrow",
@@ -96,7 +97,8 @@ pub fn ColorPicker<'a>(
                                 pointer-events-none absolute -top-10 left-0 w-max
                                 opacity-0 transition-opacity group-hover:opacity-100
                                 z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                                bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-800",
+                                rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
+                                border border-gray-700",
                             "{name}"
                             div {
                                 class: "tooltip-arrow",

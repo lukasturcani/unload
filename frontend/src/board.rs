@@ -9,8 +9,10 @@ use crate::styles;
 use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
-pub const COLUMN: &str = "flex flex-col gap-2 flex-1 rounded bg-white dark:bg-gray-800 p-4";
-pub const COLUMN_HEADING: &str = "text-3xl font-extrabold dark:text-white";
+pub const COLUMN: &str = "
+    flex flex-col gap-2 flex-1 rounded bg-gray-900 border border-gray-700 p-4
+";
+pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
 pub const COLUMN_TASK_LIST: &str = "flex flex-col gap-2 w-full h-full";
 
 #[component]
@@ -73,7 +75,7 @@ fn ToDoColumn(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: COLUMN,
-            span {
+            div {
                 class: "flex items-center",
                 span {
                     class: "flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
@@ -102,7 +104,7 @@ fn InProgressColumn(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: COLUMN,
-            span {
+            div {
                 class: "flex items-center",
                 span {
                     class: "flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
@@ -131,7 +133,7 @@ fn DoneColumn(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: COLUMN,
-            span {
+            div {
                 class: "flex items-center",
                 span {
                     class: "flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
@@ -171,7 +173,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
             onclick: |_| expanded.set(!**expanded),
             class: "
                 flex flex-col gap-2 block w-full p-3 border rounded-lg shadow
-                bg-gray-700 border-gray-600 hover:bg-gray-600",
+                bg-gray-800 border-gray-700 hover:bg-gray-700",
             div {
                 class: "grid grid-cols-2",
                 h5 {
@@ -196,7 +198,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                                     opacity-0 transition-opacity group-hover:opacity-100
                                     z-10 inline-block px-3 py-2 text-sm font-medium text-white
                                     rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
-                                    border border-gray-600",
+                                    border border-gray-700",
                                 "To Do"
                                 div {
                                     class: "tooltip-arrow",
@@ -215,7 +217,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                                     opacity-0 transition-opacity group-hover:opacity-100
                                     z-10 inline-block px-3 py-2 text-sm font-medium text-white
                                     rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
-                                    border border-gray-600",
+                                    border border-gray-700",
                                 "In Progress"
                                 div {
                                     class: "tooltip-arrow",
@@ -234,7 +236,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                                     opacity-0 transition-opacity group-hover:opacity-100
                                     z-10 inline-block px-3 py-2 text-sm font-medium text-white
                                     rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
-                                    border border-gray-600",
+                                    border border-gray-700",
                                 "Done"
                                 div {
                                     class: "tooltip-arrow",
@@ -277,10 +279,11 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                         },
                         div {
                             class: "
-                                pointer-events-none absolute -top-10 left-0 w-max
+                                pointer-events-none absolute -top-10 -left-2 w-max
                                 opacity-0 transition-opacity group-hover:opacity-100
                                 z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                                rounded-lg shadow-sm opacity-0 tooltip bg-gray-800",
+                                rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
+                                border border-gray-700",
                             "{user.name}"
                             div {
                                 class: "tooltip-arrow",
@@ -292,7 +295,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
             }
             if **expanded {rsx!{
                 div {
-                    class: "p-4 bg-gray-800 rounded",
+                    class: "p-4 bg-gray-900 rounded border border-gray-700",
                     pre {
                         class: "mb-3 text-white",
                         "{data.description}"
