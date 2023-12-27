@@ -1,4 +1,8 @@
+use std::fmt::Display;
+
 use crate::route::Route;
+use chrono::DateTime;
+use chrono::Utc;
 use dioxus_router::hooks::use_navigator;
 use reqwest::Client;
 use shared_models::TaskSize;
@@ -175,6 +179,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
         .iter()
         .map(|user_id| &read_model.users[user_id])
         .collect();
+    let now = chrono::offset::Utc::now();
     cx.render(rsx! {
         div {
             draggable: true,
@@ -272,6 +277,26 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                     }}
                 }
             },
+            if let Some(due) = data.due {rsx!{
+                div {
+                    class: "flex flex-row gap-2",
+                    svg {
+                        class: "w-6 h-6 text-gray-400",
+                        "aria-hidden": "true",
+                        "xmlns": "http://www.w3.org/2000/svg",
+                        "fill": "none",
+                        "viewBox": "0 0 20 20",
+                        path {
+                            fill: "currentColor",
+                            d: "M6 1a1 1 0 0 0-2 0h2ZM4 4a1 1 0 0 0 2 0H4Zm7-3a1 1 0 1 0-2 0h2ZM9 4a1 1 0 1 0 2 0H9Zm7-3a1 1 0 1 0-2 0h2Zm-2 3a1 1 0 1 0 2 0h-2ZM1 6a1 1 0 0 0 0 2V6Zm18 2a1 1 0 1 0 0-2v2ZM5 11v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 11v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 15v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 15v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 11v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM5 15v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM2 4h16V2H2v2Zm16 0h2a2 2 0 0 0-2-2v2Zm0 0v14h2V4h-2Zm0 14v2a2 2 0 0 0 2-2h-2Zm0 0H2v2h16v-2ZM2 18H0a2 2 0 0 0 2 2v-2Zm0 0V4H0v14h2ZM2 4V2a2 2 0 0 0-2 2h2Zm2-3v3h2V1H4Zm5 0v3h2V1H9Zm5 0v3h2V1h-2ZM1 8h18V6H1v2Zm3 3v.01h2V11H4Zm1 1.01h.01v-2H5v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H5v2h.01v-2ZM9 11v.01h2V11H9Zm1 1.01h.01v-2H10v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM9 15v.01h2V15H9Zm1 1.01h.01v-2H10v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM14 15v.01h2V15h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM14 11v.01h2V11h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM4 15v.01h2V15H4Zm1 1.01h.01v-2H5v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H5v2h.01v-2Z",
+                        }
+                    }
+                    p {
+                        class: "font-normal text-gray-400",
+                        "{due} ({time_delta(&now, &due)})"
+                    }
+                }
+            }}
             div {
                 class: "flex flex-row gap-2",
                 for user in users {rsx!{
@@ -302,6 +327,30 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
             }}
         }
     })
+}
+
+struct TimeDelta {
+    days: i32,
+    hours: i8,
+    minutes: i8,
+}
+
+impl Display for TimeDelta {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}d {}h {}m", self.days, self.hours, self.minutes)
+    }
+}
+
+fn time_delta(start: &DateTime<Utc>, stop: &DateTime<Utc>) -> TimeDelta {
+    let duration = stop.naive_utc() - start.naive_utc();
+    let days = duration.num_days();
+    let hours = duration.num_hours() - duration.num_days() * 24;
+    let minutes = duration.num_minutes() - (days * 24 * 60) - (hours * 60);
+    TimeDelta {
+        days: days as i32,
+        hours: hours as i8,
+        minutes: minutes as i8,
+    }
 }
 
 async fn set_task_status(model: UseSharedState<Model>, task_id: TaskId, status: TaskStatus) {
