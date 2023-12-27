@@ -289,8 +289,9 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
             }
             if **expanded {rsx!{
                 div {
+                    class: "p-4 bg-gray-800 rounded",
                     pre {
-                        class: "mb-3 text-gray-900 dark:text-white",
+                        class: "mb-3 text-white",
                         "{data.description}"
                     }
                 }
