@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::route::Route;
 use chrono::DateTime;
-use chrono::Utc;
+use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
 use reqwest::Client;
 use shared_models::TaskSize;
@@ -182,7 +182,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
         .iter()
         .map(|user_id| &read_model.users[user_id])
         .collect();
-    let now = chrono::offset::Utc::now();
+    let now = Utc::now();
     cx.render(rsx! {
         div {
             draggable: true,
@@ -316,8 +316,10 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     p {
                         class: "font-normal text-gray-400",
                         match status {
-                            TaskStatus::ToDo | TaskStatus::InProgress => rsx!{"{due} ({time_delta(&now, &due)})"},
-                            TaskStatus::Done => rsx!{"{due}"},
+                            TaskStatus::ToDo | TaskStatus::InProgress => {
+                                rsx!{"{utc_to_local(&due)} ({time_delta(&now, &due)})"}
+                            },
+                            TaskStatus::Done => rsx!{"{utc_to_local(&due)}"},
                         }
                     }
                 }
@@ -371,6 +373,13 @@ fn time_delta(start: &DateTime<Utc>, stop: &DateTime<Utc>) -> TimeDelta {
         hours: hours as i8,
         minutes: minutes as i8,
     }
+}
+
+fn utc_to_local(time: &DateTime<Utc>) -> DateTime<Local> {
+    chrono::DateTime::<chrono::offset::Local>::from_naive_utc_and_offset(
+        time.naive_utc(),
+        *chrono::offset::Local::now().offset(),
+    )
 }
 
 async fn set_task_status(model: UseSharedState<Model>, task_id: TaskId, status: TaskStatus) {
