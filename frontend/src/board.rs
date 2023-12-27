@@ -317,9 +317,10 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         class: "font-normal text-gray-400",
                         match status {
                             TaskStatus::ToDo | TaskStatus::InProgress => {
-                                rsx!{"{utc_to_local(&due)} ({time_delta(&now, &due)})"}
+                                rsx!{
+                                    "{format_datetime(utc_to_local(&due))} ({time_delta(&now, &due)})"}
                             },
-                            TaskStatus::Done => rsx!{"{utc_to_local(&due)}"},
+                            TaskStatus::Done => rsx!{"{format_datetime(utc_to_local(&due))}"},
                         }
                     }
                 }
@@ -380,6 +381,10 @@ fn utc_to_local(time: &DateTime<Utc>) -> DateTime<Local> {
         time.naive_utc(),
         *chrono::offset::Local::now().offset(),
     )
+}
+
+fn format_datetime(time: DateTime<Local>) -> String {
+    format!("{}", time.format("%Y-%m-%d %I:%m %p"))
 }
 
 async fn set_task_status(model: UseSharedState<Model>, task_id: TaskId, status: TaskStatus) {
