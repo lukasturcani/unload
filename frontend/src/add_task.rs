@@ -477,6 +477,7 @@ fn UserSearch<'a>(
     let selected = use_ref(cx, Vec::<(UserId, String)>::new);
     if model.read().user_search_created_user.is_some() {
         if let Some(user) = model.write().user_search_created_user.take() {
+            on_select_user.call(user.0);
             selected.write().push(user);
         }
     }

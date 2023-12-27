@@ -1,16 +1,23 @@
-use axum::{routing::delete, routing::get, routing::post, Router};
+use axum::{
+    routing::{delete, get, post, put},
+    Router,
+};
 use sqlx::SqlitePool;
 use std::{net::SocketAddr, path::PathBuf};
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use unload::{
     create_board, create_task, create_user, delete_task, delete_user, show_task, show_tasks,
-    show_user, show_users, Result,
+    show_user, show_users, update_task_status, Result,
 };
 fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
     Router::new()
         .route("/api/boards", post(create_board))
         .route("/api/boards/:board_name/tasks/:task_id", get(show_task))
+        .route(
+            "/api/boards/:board_name/tasks/:task_id/status",
+            put(update_task_status),
+        )
         .route(
             "/api/boards/:board_name/tasks/:task_id",
             delete(delete_task),
