@@ -173,21 +173,24 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                 flex flex-col gap-2 block w-full p-3 border rounded-lg shadow
                 bg-gray-700 border-gray-600 hover:bg-gray-600",
             div {
-                class: "grid",
+                class: "grid grid-cols-2",
                 h5 {
-                    class: "justify-self-start text-xl font-bold tracking-tight text-white underline underline-offset-8",
+                    class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
                     "{data.title}",
                 },
                 div {
-                    class: "justify-self-end flex flex-row items-center",
-                    span {
-                        class: "flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
-                    }
-                    span {
-                        class: "flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
-                    }
-                    span {
-                        class: "flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
+                    class: "grid grid-rows-1 justify-items-end",
+                    div {
+                        class: "flex flex-row items-center",
+                        div {
+                            class: "flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
+                        }
+                        div {
+                            class: "flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
+                        }
+                        div {
+                            class: "flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
+                        }
                     }
                 }
             }
