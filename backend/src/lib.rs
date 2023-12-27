@@ -542,3 +542,28 @@ WHERE
     tx.commit().await?;
     Ok(Json(()))
 }
+
+pub async fn update_task_title(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(title): Json<String>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tasks
+SET
+    title = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        title,
+        board_name,
+        task_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}

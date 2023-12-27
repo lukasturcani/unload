@@ -175,6 +175,8 @@ fn DoneColumn(cx: Scope) -> Element {
 fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let expanded = use_state(cx, || false);
+    let editing_title = use_state(cx, || false);
+    let new_title = use_state(cx, || String::new());
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
     let users: Vec<_> = data
@@ -183,6 +185,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
         .map(|user_id| &read_model.users[user_id])
         .collect();
     let now = Utc::now();
+    let title = data.title.clone();
     cx.render(rsx! {
         div {
             draggable: true,
@@ -193,10 +196,30 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 bg-gray-800 border-gray-700 hover:bg-gray-700",
             div {
                 class: "grid grid-cols-2",
-                h5 {
-                    class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
-                    "{data.title}",
-                },
+                if **editing_title {rsx!{
+                    input {
+                        class: "
+                            bg-gray-700 text-xl font-bold tracking-tight
+                            text-white underline underline-offset-8 rounded
+                        ",
+                        r#type: "text",
+                        oninput: |event| new_title.set(event.value.clone()),
+                        onfocusout: |_| {
+                            editing_title.set(false);
+                            set_task_title(model.clone(), *task_id, (**new_title).clone())
+                        },
+                        value: "{new_title}",
+                    }
+                }} else {rsx!{
+                    h5 {
+                        class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
+                        onclick: move |_| {
+                            editing_title.set(true);
+                            new_title.set(title.clone());
+                        },
+                        "{data.title}",
+                    },
+                }}
                 div {
                     class: "grid grid-rows-1 justify-items-end",
                     div {
@@ -411,6 +434,39 @@ async fn send_set_task_status_request(
     Ok(Client::new()
         .put(url)
         .json(&status)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn set_task_title(model: UseSharedState<Model>, task_id: TaskId, title: String) {
+    if title.is_empty() {
+        return;
+    }
+    if send_set_task_title_request(model.clone(), task_id, title)
+        .await
+        .is_ok()
+    {
+        requests::board(model.clone()).await;
+    }
+}
+
+async fn send_set_task_title_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    title: String,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/title",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&title)
         .send()
         .await?
         .json::<()>()
