@@ -103,6 +103,7 @@ fn ToDoColumn(cx: Scope) -> Element {
                     Task {
                         key: "{task_id}",
                         task_id: *task_id,
+                        status: TaskStatus::ToDo,
                     }
                 }
             },
@@ -132,6 +133,7 @@ fn InProgressColumn(cx: Scope) -> Element {
                     Task {
                         key: "{task_id}",
                         task_id: *task_id,
+                        status: TaskStatus::InProgress,
                     }
                 }
             },
@@ -161,6 +163,7 @@ fn DoneColumn(cx: Scope) -> Element {
                     Task {
                         key: "{task_id}",
                         task_id: *task_id,
+                        status: TaskStatus::Done,
                     }
                 }
             },
@@ -169,7 +172,7 @@ fn DoneColumn(cx: Scope) -> Element {
 }
 
 #[component]
-fn Task(cx: Scope, task_id: TaskId) -> Element {
+fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let expanded = use_state(cx, || false);
     let read_model = model.read();
@@ -312,7 +315,10 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                     }
                     p {
                         class: "font-normal text-gray-400",
-                        "{due} ({time_delta(&now, &due)})"
+                        match status {
+                            TaskStatus::ToDo | TaskStatus::InProgress => rsx!{"{due} ({time_delta(&now, &due)})"},
+                            TaskStatus::Done => rsx!{"{due}"},
+                        }
                     }
                 }
             }}
