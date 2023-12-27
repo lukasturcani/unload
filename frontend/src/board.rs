@@ -186,6 +186,9 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                             class: "group relative",
                             div {
                                 class: "cursor-pointer flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
+                                onclick: |_| {
+
+                                }
                             }
                             div {
                                 class: "
