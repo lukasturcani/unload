@@ -1,6 +1,8 @@
 use crate::route::Route;
 use dioxus_router::hooks::use_navigator;
+use reqwest::Client;
 use shared_models::TaskSize;
+use shared_models::TaskStatus;
 
 use crate::color_picker;
 use crate::model::Model;
@@ -164,13 +166,14 @@ fn DoneColumn(cx: Scope) -> Element {
 
 #[component]
 fn Task(cx: Scope, task_id: TaskId) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap().read();
+    let model = use_shared_state::<Model>(cx).unwrap();
     let expanded = use_state(cx, || false);
-    let data = &model.tasks[task_id];
+    let read_model = model.read();
+    let data = &read_model.tasks[task_id];
     let users: Vec<_> = data
         .assignees
         .iter()
-        .map(|user_id| &model.users[user_id])
+        .map(|user_id| &read_model.users[user_id])
         .collect();
     cx.render(rsx! {
         div {
@@ -194,9 +197,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                             class: "group relative",
                             div {
                                 class: "cursor-pointer flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
-                                onclick: |_| {
-
-                                }
+                                onclick: |_| set_task_status(model.clone(), *task_id, TaskStatus::ToDo),
                             }
                             div {
                                 class: TOOLTIP,
@@ -211,6 +212,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                             class: "group relative",
                             div {
                                 class: "cursor-pointer flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
+                                onclick: |_| set_task_status(model.clone(), *task_id, TaskStatus::InProgress),
                             }
                             div {
                                 class: TOOLTIP,
@@ -225,6 +227,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                             class: "group relative",
                             div {
                                 class: "cursor-pointer flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
+                                onclick: |_| set_task_status(model.clone(), *task_id, TaskStatus::Done),
                             }
                             div {
                                 class: TOOLTIP,
@@ -290,4 +293,34 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
             }}
         }
     })
+}
+
+async fn set_task_status(model: UseSharedState<Model>, task_id: TaskId, status: TaskStatus) {
+    if send_set_task_status_request(model.clone(), task_id, status)
+        .await
+        .is_ok()
+    {
+        requests::board(model.clone()).await;
+    }
+}
+
+async fn send_set_task_status_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    status: TaskStatus,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/status",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&status)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
 }
