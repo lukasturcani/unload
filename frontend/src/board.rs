@@ -183,13 +183,61 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                     div {
                         class: "flex flex-row items-center",
                         div {
-                            class: "flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
+                            class: "group relative",
+                            div {
+                                class: "cursor-pointer flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
+                            }
+                            div {
+                                class: "
+                                    pointer-events-none absolute -top-10 -left-2 w-max
+                                    opacity-0 transition-opacity group-hover:opacity-100
+                                    z-10 inline-block px-3 py-2 text-sm font-medium text-white
+                                    rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
+                                    border border-gray-600",
+                                "To Do"
+                                div {
+                                    class: "tooltip-arrow",
+                                    "data-popper-arrow": "",
+                                }
+                            }
                         }
                         div {
-                            class: "flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
+                            class: "group relative",
+                            div {
+                                class: "cursor-pointer flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
+                            }
+                            div {
+                                class: "
+                                    pointer-events-none absolute -top-10 -left-2 w-max
+                                    opacity-0 transition-opacity group-hover:opacity-100
+                                    z-10 inline-block px-3 py-2 text-sm font-medium text-white
+                                    rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
+                                    border border-gray-600",
+                                "In Progress"
+                                div {
+                                    class: "tooltip-arrow",
+                                    "data-popper-arrow": "",
+                                }
+                            }
                         }
                         div {
-                            class: "flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
+                            class: "group relative",
+                            div {
+                                class: "cursor-pointer flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
+                            }
+                            div {
+                                class: "
+                                    pointer-events-none absolute -top-10 -left-2 w-max
+                                    opacity-0 transition-opacity group-hover:opacity-100
+                                    z-10 inline-block px-3 py-2 text-sm font-medium text-white
+                                    rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
+                                    border border-gray-600",
+                                "Done"
+                                div {
+                                    class: "tooltip-arrow",
+                                    "data-popper-arrow": "",
+                                }
+                            }
                         }
                     }
                 }
@@ -229,7 +277,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                                 pointer-events-none absolute -top-10 left-0 w-max
                                 opacity-0 transition-opacity group-hover:opacity-100
                                 z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                                bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-800",
+                                rounded-lg shadow-sm opacity-0 tooltip bg-gray-800",
                             "{user.name}"
                             div {
                                 class: "tooltip-arrow",
