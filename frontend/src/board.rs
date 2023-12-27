@@ -197,7 +197,10 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                             class: "group relative",
                             div {
                                 class: "cursor-pointer flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
-                                onclick: |_| set_task_status(model.clone(), *task_id, TaskStatus::ToDo),
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
+                                },
                             }
                             div {
                                 class: TOOLTIP,
@@ -212,7 +215,10 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                             class: "group relative",
                             div {
                                 class: "cursor-pointer flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
-                                onclick: |_| set_task_status(model.clone(), *task_id, TaskStatus::InProgress),
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
+                                },
                             }
                             div {
                                 class: TOOLTIP,
@@ -227,7 +233,10 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                             class: "group relative",
                             div {
                                 class: "cursor-pointer flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
-                                onclick: |_| set_task_status(model.clone(), *task_id, TaskStatus::Done),
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    set_task_status(model.clone(), *task_id, TaskStatus::Done)
+                                },
                             }
                             div {
                                 class: TOOLTIP,
