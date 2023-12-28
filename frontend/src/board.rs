@@ -179,6 +179,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let new_title = use_state(cx, || String::new());
     let editing_description = use_state(cx, || false);
     let new_description = use_state(cx, || String::new());
+    let editing_size = use_state(cx, || false);
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
     let users: Vec<_> = data
@@ -284,28 +285,60 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
             }
-            div{
-                match data.size {
-                    TaskSize::Small => {rsx!{
-                        span {
-                            class: "bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300",
-                            "Small",
-                        }
-                    }}
-                    TaskSize::Medium => {rsx!{
-                        span {
-                            class: "bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300",
-                            "Medium",
-                        }
-                    }}
-                    TaskSize::Large => {rsx!{
-                        span {
-                            class: "bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300",
-                            "Large",
-                        }
-                    }}
-                }
-            },
+            if **editing_size {rsx!{
+                div {
+                    span {
+                        class: "bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 cursor-pointer",
+                        onclick: |_| {
+                            editing_size.set(false);
+                            set_task_size(model.clone(), *task_id, TaskSize::Small)
+                        },
+                        "Small",
+                    }
+                    span {
+                        class: "bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300 cursor-pointer",
+                        onclick: |_| {
+                            editing_size.set(false);
+                            set_task_size(model.clone(), *task_id, TaskSize::Medium)
+                        },
+                        "Medium",
+                    }
+                    span {
+                        class: "bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300 cursor-pointer",
+                        onclick: |_| {
+                            editing_size.set(false);
+                            set_task_size(model.clone(), *task_id, TaskSize::Large)
+                        },
+                        "Large",
+                    }
+                },
+            }} else {rsx!{
+                div {
+                    match data.size {
+                        TaskSize::Small => {rsx!{
+                            span {
+                                class: "bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 cursor-pointer",
+                                onclick: |_| editing_size.set(true),
+                                "Small",
+                            }
+                        }}
+                        TaskSize::Medium => {rsx!{
+                            span {
+                                class: "bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300 cursor-pointer",
+                                onclick: |_| editing_size.set(true),
+                                "Medium",
+                            }
+                        }}
+                        TaskSize::Large => {rsx!{
+                            span {
+                                class: "bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300 cursor-pointer",
+                                onclick: |_| editing_size.set(true),
+                                "Large",
+                            }
+                        }}
+                    }
+                },
+            }}
             div {
                 class: "flex flex-row gap-2",
                 for user in users {rsx!{
@@ -518,6 +551,36 @@ async fn send_set_task_description_request(
     Ok(Client::new()
         .put(url)
         .json(&description)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn set_task_size(model: UseSharedState<Model>, task_id: TaskId, size: TaskSize) {
+    if send_set_task_size_request(model.clone(), task_id, size)
+        .await
+        .is_ok()
+    {
+        requests::board(model.clone()).await;
+    }
+}
+
+async fn send_set_task_size_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    size: TaskSize,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/size",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&size)
         .send()
         .await?
         .json::<()>()
