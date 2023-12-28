@@ -177,6 +177,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let expanded = use_state(cx, || false);
     let editing_title = use_state(cx, || false);
     let new_title = use_state(cx, || String::new());
+    let editing_description = use_state(cx, || false);
+    let new_description = use_state(cx, || String::new());
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
     let users: Vec<_> = data
@@ -186,6 +188,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
         .collect();
     let now = Utc::now();
     let title = data.title.clone();
+    let description = data.description.clone();
     cx.render(rsx! {
         div {
             draggable: true,
@@ -199,7 +202,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 if **editing_title {rsx!{
                     input {
                         class: "
-                            bg-gray-700 text-xl font-bold tracking-tight
+                            bg-inherit text-xl font-bold tracking-tight
                             text-white underline underline-offset-8 rounded
                         ",
                         r#type: "text",
@@ -363,13 +366,31 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
 
             }}
             if **expanded {rsx!{
-                div {
-                    class: "p-4 bg-gray-900 rounded border border-gray-700",
-                    pre {
-                        class: "mb-3 text-white",
-                        "{data.description}"
+                if **editing_description {rsx!{
+                    textarea {
+                        class: "p-4 bg-gray-900 rounded border border-gray-700 text-white",
+                        rows: data.description.lines().count() as i64,
+                        oninput: |event| new_description.set(event.value.clone()),
+                        onfocusout: |_| {
+                            editing_description.set(false);
+                            set_task_description(model.clone(), *task_id, (**new_description).clone())
+                        },
+                        value: "{new_description}",
                     }
-                }
+
+                }} else {rsx!{
+                    div {
+                        class: "p-4 bg-gray-900 rounded border border-gray-700",
+                        onclick: move |_| {
+                            editing_description.set(true);
+                            new_description.set(description.clone());
+                        },
+                        pre {
+                            class: "mb-3 text-white",
+                            "{data.description}"
+                        }
+                    }
+                }}
             }}
         }
     })
@@ -467,6 +488,36 @@ async fn send_set_task_title_request(
     Ok(Client::new()
         .put(url)
         .json(&title)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn set_task_description(model: UseSharedState<Model>, task_id: TaskId, description: String) {
+    if send_set_task_description_request(model.clone(), task_id, description)
+        .await
+        .is_ok()
+    {
+        requests::board(model.clone()).await;
+    }
+}
+
+async fn send_set_task_description_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    description: String,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/description",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&description)
         .send()
         .await?
         .json::<()>()

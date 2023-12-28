@@ -8,7 +8,7 @@ use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use unload::{
     create_board, create_task, create_user, delete_task, delete_user, show_task, show_tasks,
-    show_user, show_users, update_task_status, update_task_title, Result,
+    show_user, show_users, update_task_description, update_task_status, update_task_title, Result,
 };
 fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
     Router::new()
@@ -21,6 +21,10 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
         .route(
             "/api/boards/:board_name/tasks/:task_id/title",
             put(update_task_title),
+        )
+        .route(
+            "/api/boards/:board_name/tasks/:task_id/description",
+            put(update_task_description),
         )
         .route(
             "/api/boards/:board_name/tasks/:task_id",
