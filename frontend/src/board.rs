@@ -366,19 +366,20 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 if **editing_due {rsx!{
                     div {
                         class: "grid grid-cols-2 gap-2 place-items-center",
-                        input {
-                            class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
-                            r#type: "date",
-                            value: "{new_due_date.unwrap().format(\"%Y-%m-%d\")}",
-                            oninput: |event| {
-                                if event.value.is_empty() {
-                                    new_due_date.set(None)
-                                } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                    new_due_date.set(Some(date))
-                                }
+                        if let Some(new_due_date_value) = **new_due_date {rsx!{
+                            input {
+                                class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                r#type: "date",
+                                value: "{new_due_date_value.format(\"%Y-%m-%d\")}",
+                                oninput: |event| {
+                                    if event.value.is_empty() {
+                                        new_due_date.set(None);
+                                        new_due_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                                    } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                        new_due_date.set(Some(date))
+                                    }
+                                },
                             },
-                        },
-                        if new_due_date.is_some() {rsx!{
                             select {
                                 class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                                 value: "{format_due_time(&**new_due_time)}",
@@ -401,6 +402,18 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                         }
                                     }
                                 }
+                            },
+                        }} else {rsx!{
+                            input {
+                                class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                r#type: "date",
+                                oninput: |event| {
+                                    if event.value.is_empty() {
+                                        new_due_date.set(None)
+                                    } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                        new_due_date.set(Some(date))
+                                    }
+                                },
                             },
                         }}
                     }
@@ -445,7 +458,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             r#type: "date",
                             oninput: |event| {
                                 if event.value.is_empty() {
-                                    new_due_date.set(None)
+                                    new_due_date.set(None);
+                                    new_due_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
                                 } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
                                     new_due_date.set(Some(date))
                                 }
