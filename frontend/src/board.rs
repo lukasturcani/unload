@@ -365,9 +365,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             if let Some(due_value) = data.due {rsx!{
                 if **editing_due {rsx!{
                     div {
-                        class: "grid grid-cols-2 gap-2",
+                        class: "grid grid-cols-2 gap-2 place-items-center",
                         input {
-                            class: "bg-inherit mb-2 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                             r#type: "date",
                             value: "{new_due_date.unwrap().format(\"%Y-%m-%d\")}",
                             oninput: |event| {
@@ -441,7 +441,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     div {
                         class: "grid grid-cols-2 gap-2",
                         input {
-                            class: "bg-inherit mb-2 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                             r#type: "date",
                             oninput: |event| {
                                 if event.value.is_empty() {
