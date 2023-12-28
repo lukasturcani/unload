@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::route::Route;
-use chrono::DateTime;
+use chrono::{DateTime, NaiveDate, NaiveTime};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
 use reqwest::Client;
@@ -180,6 +180,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let editing_description = use_state(cx, || false);
     let new_description = use_state(cx, || String::new());
     let editing_size = use_state(cx, || false);
+    let editing_due = use_state(cx, || false);
+    let new_due_date = use_state(cx, || None::<NaiveDate>);
+    let new_due_time = use_state(cx, || NaiveTime::from_hms_opt(0, 0, 0).unwrap());
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
     let users: Vec<_> = data
@@ -190,6 +193,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let now = Utc::now();
     let title = data.title.clone();
     let description = data.description.clone();
+    let due = data.due;
     cx.render(rsx! {
         div {
             draggable: true,
@@ -358,11 +362,119 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }}
             }
-            if let Some(due) = data.due {rsx!{
-                div {
-                    class: "flex flex-row gap-2",
+            if let Some(due_value) = data.due {rsx!{
+                if **editing_due {rsx!{
+                    div {
+                        class: "grid grid-cols-2 gap-2",
+                        input {
+                            class: "bg-inherit mb-2 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            r#type: "date",
+                            value: "{due_value.format(\"%Y-%m-%d\")}",
+                            oninput: |event| {
+                                // if event.value.is_empty() {
+                                //     due_date.set(None)
+                                // } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                //     due_date.set(Some(date))
+                                // }
+                            },
+                        },
+                        if new_due_date.is_some() {rsx!{
+                            select {
+                                class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                onchange: |event| {
+                                    if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
+                                        new_due_time.set(time);
+                                    }
+                                },
+                                for hour in 0..24 {
+                                    for minute in [0, 15, 30, 45] {
+                                        rsx!{
+                                            option {
+                                                value: "{hour:02}:{minute:02}",
+                                                "{hour:02}:{minute:02}"
+                                            },
+                                        }
+                                    }
+                                }
+                            },
+                        }}
+                    }
+                }} else {rsx!{
+                    div {
+                        class: "flex flex-row gap-2",
+                        onclick: move |_| {
+                            editing_due.set(true);
+                            new_due_date.set(Some(due_value.date_naive()));
+                            new_due_time.set(due_value.time());
+                        },
+                        svg {
+                            class: "w-6 h-6 text-gray-400",
+                            "aria-hidden": "true",
+                            "xmlns": "http://www.w3.org/2000/svg",
+                            "fill": "none",
+                            "viewBox": "0 0 20 20",
+                            path {
+                                fill: "currentColor",
+                                d: "M6 1a1 1 0 0 0-2 0h2ZM4 4a1 1 0 0 0 2 0H4Zm7-3a1 1 0 1 0-2 0h2ZM9 4a1 1 0 1 0 2 0H9Zm7-3a1 1 0 1 0-2 0h2Zm-2 3a1 1 0 1 0 2 0h-2ZM1 6a1 1 0 0 0 0 2V6Zm18 2a1 1 0 1 0 0-2v2ZM5 11v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 11v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 15v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 15v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 11v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM5 15v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM2 4h16V2H2v2Zm16 0h2a2 2 0 0 0-2-2v2Zm0 0v14h2V4h-2Zm0 14v2a2 2 0 0 0 2-2h-2Zm0 0H2v2h16v-2ZM2 18H0a2 2 0 0 0 2 2v-2Zm0 0V4H0v14h2ZM2 4V2a2 2 0 0 0-2 2h2Zm2-3v3h2V1H4Zm5 0v3h2V1H9Zm5 0v3h2V1h-2ZM1 8h18V6H1v2Zm3 3v.01h2V11H4Zm1 1.01h.01v-2H5v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H5v2h.01v-2ZM9 11v.01h2V11H9Zm1 1.01h.01v-2H10v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM9 15v.01h2V15H9Zm1 1.01h.01v-2H10v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM14 15v.01h2V15h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM14 11v.01h2V11h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM4 15v.01h2V15H4Zm1 1.01h.01v-2H5v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H5v2h.01v-2Z",
+                            }
+                        }
+                        p {
+                            class: "font-normal text-gray-400",
+                            match status {
+                                TaskStatus::ToDo | TaskStatus::InProgress => {
+                                    rsx!{
+                                        "{format_datetime(utc_to_local(&due_value))} ({time_delta(&now, &due_value)})"}
+                                },
+                                TaskStatus::Done => rsx!{"{format_datetime(utc_to_local(&due_value))}"},
+                            }
+                        }
+                    }
+                }}
+            }}
+            if **expanded && data.due.is_none() {rsx!{
+                if **editing_due {rsx!{
+                    div {
+                        class: "grid grid-cols-2 gap-2",
+                        input {
+                            class: "bg-inherit mb-2 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            r#type: "date",
+                            oninput: |event| {
+                                // if event.value.is_empty() {
+                                //     due_date.set(None)
+                                // } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                //     due_date.set(Some(date))
+                                // }
+                            },
+                        },
+                        if new_due_date.is_some() {rsx!{
+                            select {
+                                class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                onchange: |event| {
+                                    if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
+                                        new_due_time.set(time);
+                                    }
+                                },
+                                for hour in 0..24 {
+                                    for minute in [0, 15, 30, 45] {
+                                        rsx!{
+                                            option {
+                                                value: "{hour:02}:{minute:02}",
+                                                "{hour:02}:{minute:02}"
+                                            },
+                                        }
+                                    }
+                                }
+                            },
+                        }}
+                    }
+                }} else {rsx!{
                     svg {
                         class: "w-6 h-6 text-gray-400",
+                        onclick: move |_| {
+                            editing_due.set(true);
+                            new_due_date.set(None);
+                            new_due_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                        },
                         "aria-hidden": "true",
                         "xmlns": "http://www.w3.org/2000/svg",
                         "fill": "none",
@@ -372,31 +484,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             d: "M6 1a1 1 0 0 0-2 0h2ZM4 4a1 1 0 0 0 2 0H4Zm7-3a1 1 0 1 0-2 0h2ZM9 4a1 1 0 1 0 2 0H9Zm7-3a1 1 0 1 0-2 0h2Zm-2 3a1 1 0 1 0 2 0h-2ZM1 6a1 1 0 0 0 0 2V6Zm18 2a1 1 0 1 0 0-2v2ZM5 11v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 11v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 15v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 15v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 11v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM5 15v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM2 4h16V2H2v2Zm16 0h2a2 2 0 0 0-2-2v2Zm0 0v14h2V4h-2Zm0 14v2a2 2 0 0 0 2-2h-2Zm0 0H2v2h16v-2ZM2 18H0a2 2 0 0 0 2 2v-2Zm0 0V4H0v14h2ZM2 4V2a2 2 0 0 0-2 2h2Zm2-3v3h2V1H4Zm5 0v3h2V1H9Zm5 0v3h2V1h-2ZM1 8h18V6H1v2Zm3 3v.01h2V11H4Zm1 1.01h.01v-2H5v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H5v2h.01v-2ZM9 11v.01h2V11H9Zm1 1.01h.01v-2H10v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM9 15v.01h2V15H9Zm1 1.01h.01v-2H10v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM14 15v.01h2V15h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM14 11v.01h2V11h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM4 15v.01h2V15H4Zm1 1.01h.01v-2H5v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H5v2h.01v-2Z",
                         }
                     }
-                    p {
-                        class: "font-normal text-gray-400",
-                        match status {
-                            TaskStatus::ToDo | TaskStatus::InProgress => {
-                                rsx!{
-                                    "{format_datetime(utc_to_local(&due))} ({time_delta(&now, &due)})"}
-                            },
-                            TaskStatus::Done => rsx!{"{format_datetime(utc_to_local(&due))}"},
-                        }
-                    }
-                }
-            }}
-            if **expanded && data.due.is_none() {rsx!{
-                svg {
-                    class: "w-6 h-6 text-gray-400",
-                    "aria-hidden": "true",
-                    "xmlns": "http://www.w3.org/2000/svg",
-                    "fill": "none",
-                    "viewBox": "0 0 20 20",
-                    path {
-                        fill: "currentColor",
-                        d: "M6 1a1 1 0 0 0-2 0h2ZM4 4a1 1 0 0 0 2 0H4Zm7-3a1 1 0 1 0-2 0h2ZM9 4a1 1 0 1 0 2 0H9Zm7-3a1 1 0 1 0-2 0h2Zm-2 3a1 1 0 1 0 2 0h-2ZM1 6a1 1 0 0 0 0 2V6Zm18 2a1 1 0 1 0 0-2v2ZM5 11v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 11v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 15v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 15v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 11v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM5 15v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM2 4h16V2H2v2Zm16 0h2a2 2 0 0 0-2-2v2Zm0 0v14h2V4h-2Zm0 14v2a2 2 0 0 0 2-2h-2Zm0 0H2v2h16v-2ZM2 18H0a2 2 0 0 0 2 2v-2Zm0 0V4H0v14h2ZM2 4V2a2 2 0 0 0-2 2h2Zm2-3v3h2V1H4Zm5 0v3h2V1H9Zm5 0v3h2V1h-2ZM1 8h18V6H1v2Zm3 3v.01h2V11H4Zm1 1.01h.01v-2H5v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H5v2h.01v-2ZM9 11v.01h2V11H9Zm1 1.01h.01v-2H10v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM9 15v.01h2V15H9Zm1 1.01h.01v-2H10v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM14 15v.01h2V15h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM14 11v.01h2V11h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM4 15v.01h2V15H4Zm1 1.01h.01v-2H5v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H5v2h.01v-2Z",
-                    }
-                }
-
+                }}
             }}
             if **expanded {rsx!{
                 if **editing_description {rsx!{
