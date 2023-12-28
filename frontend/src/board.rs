@@ -369,22 +369,27 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         input {
                             class: "bg-inherit mb-2 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                             r#type: "date",
-                            value: "{due_value.format(\"%Y-%m-%d\")}",
+                            value: "{new_due_date.unwrap().format(\"%Y-%m-%d\")}",
                             oninput: |event| {
-                                // if event.value.is_empty() {
-                                //     due_date.set(None)
-                                // } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                //     due_date.set(Some(date))
-                                // }
+                                if event.value.is_empty() {
+                                    new_due_date.set(None)
+                                } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                    new_due_date.set(Some(date))
+                                }
                             },
                         },
                         if new_due_date.is_some() {rsx!{
                             select {
                                 class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                value: "{format_due_time(&**new_due_time)}",
                                 onchange: |event| {
                                     if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
                                         new_due_time.set(time);
                                     }
+                                },
+                                option {
+                                    value: "{format_due_time(&**new_due_time)}",
+                                    "{format_due_time(&**new_due_time)}"
                                 },
                                 for hour in 0..24 {
                                     for minute in [0, 15, 30, 45] {
@@ -439,11 +444,11 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             class: "bg-inherit mb-2 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                             r#type: "date",
                             oninput: |event| {
-                                // if event.value.is_empty() {
-                                //     due_date.set(None)
-                                // } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                //     due_date.set(Some(date))
-                                // }
+                                if event.value.is_empty() {
+                                    new_due_date.set(None)
+                                } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                    new_due_date.set(Some(date))
+                                }
                             },
                         },
                         if new_due_date.is_some() {rsx!{
@@ -550,6 +555,10 @@ fn utc_to_local(time: &DateTime<Utc>) -> DateTime<Local> {
 
 fn format_datetime(time: DateTime<Local>) -> String {
     format!("{}", time.format("%Y-%m-%d %I:%m %p"))
+}
+
+fn format_due_time(time: &NaiveTime) -> String {
+    format!("{}", time.format("%H:%M"))
 }
 
 async fn set_task_status(model: UseSharedState<Model>, task_id: TaskId, status: TaskStatus) {
