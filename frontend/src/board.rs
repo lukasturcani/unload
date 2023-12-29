@@ -182,11 +182,6 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let editing_size = use_state(cx, || false);
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
-    let users: Vec<_> = data
-        .assignees
-        .iter()
-        .map(|user_id| &read_model.users[user_id])
-        .collect();
     let title = data.title.clone();
     let description = data.description.clone();
     cx.render(rsx! {
@@ -341,25 +336,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 },
             }}
-            div {
-                class: "flex flex-row gap-2",
-                for user in users {rsx!{
-                    div {
-                        class: "group relative",
-                        div {
-                            class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&user.color)}",
-                        },
-                        div {
-                            class: TOOLTIP,
-                            "{user.name}"
-                            div {
-                                class: "tooltip-arrow",
-                                "data-popper-arrow": "",
-                            }
-                        }
-                    }
-                }}
-            }
+            Users {
+                task_id: *task_id,
+            },
             if let Some(due_value) = data.due {rsx!{
                 Due {
                     task_id: *task_id,
@@ -563,6 +542,74 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
                 }}
             }
         }}
+    })
+}
+
+#[component]
+fn Users(cx: Scope, task_id: TaskId) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
+    let data = &read_model.tasks[task_id];
+    let users: Vec<_> = data
+        .assignees
+        .iter()
+        .map(|user_id| &read_model.users[user_id])
+        .collect();
+    let show_add_user = use_state(cx, || false);
+    cx.render(rsx! {
+        div {
+            class: "flex flex-row gap-2",
+            div {
+                class: "group relative",
+                div {
+                    class: "w-6 h-6 rounded cursor-pointer bg-green-900",
+                    prevent_default: "onclick",
+                    onclick: |event| {
+                        show_add_user.set(true);
+                        event.stop_propagation()
+                    }
+                },
+                if **show_add_user {rsx!{
+                    div {
+                        class: "
+                            pointer-events-none absolute -top-10 -left-2 w-max
+                            z-10 inline-block px-3 py-2 text-sm font-medium text-white
+                            rounded-lg shadow-sm bg-gray-800
+                            border border-gray-700",
+                        "This is a modal"
+                        div {
+                            class: "tooltip-arrow",
+                            "data-popper-arrow": "",
+                        }
+                    }
+                }} else {rsx!{
+                    div {
+                        class: TOOLTIP,
+                        "Assign User"
+                        div {
+                            class: "tooltip-arrow",
+                            "data-popper-arrow": "",
+                        }
+                    }
+                }}
+            }
+            for user in users {rsx!{
+                div {
+                    class: "group relative",
+                    div {
+                        class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&user.color)}",
+                    },
+                    div {
+                        class: TOOLTIP,
+                        "{user.name}"
+                        div {
+                            class: "tooltip-arrow",
+                            "data-popper-arrow": "",
+                        }
+                    }
+                }
+            }}
+        }
     })
 }
 
