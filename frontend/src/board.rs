@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::route::Route;
-use chrono::{DateTime, NaiveDate, NaiveTime};
+use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
 use reqwest::Client;
@@ -180,9 +180,6 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let editing_description = use_state(cx, || false);
     let new_description = use_state(cx, || String::new());
     let editing_size = use_state(cx, || false);
-    let editing_due = use_state(cx, || false);
-    let new_due_date = use_state(cx, || None::<NaiveDate>);
-    let new_due_time = use_state(cx, || NaiveTime::from_hms_opt(0, 0, 0).unwrap());
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
     let users: Vec<_> = data
@@ -190,10 +187,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
         .iter()
         .map(|user_id| &read_model.users[user_id])
         .collect();
-    let now = Utc::now();
     let title = data.title.clone();
     let description = data.description.clone();
-    let due = data.due;
     cx.render(rsx! {
         div {
             draggable: true,
@@ -367,6 +362,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             }
             if let Some(due_value) = data.due {rsx!{
                 Due {
+                    task_id: *task_id,
                     due: DueOptions{
                         due: due_value,
                         show_time_left: match status {
@@ -377,7 +373,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 }
             }}
             if **expanded && data.due.is_none() {rsx!{
-                Due{}
+                Due{
+                    task_id: *task_id,
+                }
             }}
             if **expanded {rsx!{
                 if **editing_description {rsx!{
@@ -417,7 +415,8 @@ struct DueOptions {
 }
 
 #[component]
-fn Due(cx: Scope, due: Option<DueOptions>) -> Element {
+fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
     let editing = use_state(cx, || false);
     let new_date = use_state(cx, || None::<NaiveDate>);
     let new_time = use_state(cx, || NaiveTime::from_hms_opt(0, 0, 0).unwrap());
@@ -425,57 +424,76 @@ fn Due(cx: Scope, due: Option<DueOptions>) -> Element {
     cx.render(rsx! {
         if **editing {rsx!{
             div {
-                class: "grid grid-cols-2 gap-2 place-items-center",
-                if let Some(new_date_value) = **new_date {rsx!{
-                    input {
-                        class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
-                        r#type: "date",
-                        value: "{new_date_value.format(\"%Y-%m-%d\")}",
-                        oninput: |event| {
-                            if event.value.is_empty() {
-                                new_date.set(None);
-                                new_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
-                            } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                new_date.set(Some(date))
-                            }
+                class: "flex flex-row gap-2",
+                div {
+                    class: "grid grid-cols-2 gap-2 place-items-center",
+                    if let Some(new_date_value) = **new_date {rsx!{
+                        input {
+                            class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            r#type: "date",
+                            value: "{new_date_value.format(\"%Y-%m-%d\")}",
+                            oninput: |event| {
+                                if event.value.is_empty() {
+                                    new_date.set(None);
+                                    new_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                                } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                    new_date.set(Some(date))
+                                }
+                            },
                         },
-                    },
-                    select {
-                        class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
-                        value: "{format_due_time(&**new_time)}",
-                        onchange: |event| {
-                            if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
-                                new_time.set(time);
-                            }
-                        },
-                        option {
+                        select {
+                            class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                             value: "{format_due_time(&**new_time)}",
-                            "{format_due_time(&**new_time)}"
-                        },
-                        for hour in 0..24 {
-                            for minute in [0, 15, 30, 45] {
-                                rsx!{
-                                    option {
-                                        value: "{hour:02}:{minute:02}",
-                                        "{hour:02}:{minute:02}"
-                                    },
+                            onchange: |event| {
+                                if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
+                                    new_time.set(time);
+                                }
+                            },
+                            option {
+                                value: "{format_due_time(&**new_time)}",
+                                "{format_due_time(&**new_time)}"
+                            },
+                            for hour in 0..24 {
+                                for minute in [0, 15, 30, 45] {
+                                    rsx!{
+                                        option {
+                                            value: "{hour:02}:{minute:02}",
+                                            "{hour:02}:{minute:02}"
+                                        },
+                                    }
                                 }
                             }
-                        }
-                    },
-                }} else {rsx!{
-                    input {
-                        class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
-                        r#type: "date",
-                        oninput: |event| {
-                            if event.value.is_empty() {
-                                new_date.set(None)
-                            } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                new_date.set(Some(date))
-                            }
                         },
+                    }} else {rsx!{
+                        input {
+                            class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            r#type: "date",
+                            oninput: |event| {
+                                if event.value.is_empty() {
+                                    new_date.set(None)
+                                } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                    new_date.set(Some(date))
+                                }
+                            },
+                        },
+                    }}
+                }
+                button {
+                    r#type: "button",
+                    onclick: |_| {
+                        editing.set(false);
+                        set_task_due(
+                            model.clone(),
+                            *task_id,
+                            new_date.map(|date| {
+                                Local.from_local_datetime(&date.and_time(**new_time))
+                                .unwrap()
+                                .into()
+                            })
+                        )
                     },
-                }}
+                    "V"
+                }
             }
         }} else {rsx!{
             if let Some(DueOptions{due: due_value, show_time_left}) = due {rsx!{
@@ -564,7 +582,7 @@ fn utc_to_local(time: &DateTime<Utc>) -> DateTime<Local> {
 }
 
 fn format_datetime(time: DateTime<Local>) -> String {
-    format!("{}", time.format("%Y-%m-%d %I:%m %p"))
+    format!("{}", time.format("%Y-%m-%d %I:%M %p"))
 }
 
 fn format_due_time(time: &NaiveTime) -> String {
@@ -688,6 +706,36 @@ async fn send_set_task_size_request(
     Ok(Client::new()
         .put(url)
         .json(&size)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn set_task_due(model: UseSharedState<Model>, task_id: TaskId, due: Option<DateTime<Utc>>) {
+    if send_set_task_due_request(model.clone(), task_id, due)
+        .await
+        .is_ok()
+    {
+        requests::board(model.clone()).await;
+    }
+}
+
+async fn send_set_task_due_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    due: Option<DateTime<Utc>>,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/due",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&due)
         .send()
         .await?
         .json::<()>()
