@@ -557,7 +557,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
         .map(|user_id| &read_model.users[user_id])
         .collect();
     let show_assign_user = use_state(cx, || false);
-    // let assigned_to = use_ref(cx, Vec::new);
+    let assigned_to = use_ref(cx, Vec::new);
     cx.render(rsx! {
         div {
             class: "flex flex-row gap-2",
@@ -567,7 +567,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     class: "w-6 h-6 rounded cursor-pointer bg-green-900",
                     prevent_default: "onclick",
                     onclick: |event| {
-                        // *assigned_to.write() = data.assignees.clone();
+                        *assigned_to.write() = model.read().tasks[task_id].assignees.clone();
                         show_assign_user.set(true);
                         event.stop_propagation()
                     }
@@ -582,8 +582,8 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                             border border-gray-700",
                         UserSearch {
                             id: "assign_user_modal",
-                            on_select_user: |_| {},
-                            on_remove_user: |_| {}
+                            on_select_user: |user_id| assigned_to.write().push(user_id),
+                            on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
                         }
                         div {
                             class: "flex flex-row gap-2",
