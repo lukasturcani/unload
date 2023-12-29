@@ -219,14 +219,17 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         value: "{new_title}",
                     }
                 }} else {rsx!{
-                    h5 {
-                        class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
-                        onclick: move |_| {
-                            editing_title.set(true);
-                            new_title.set(title.clone());
+                    div {
+                        class: "grid grid-rows-1 justify-items-start",
+                        h5 {
+                            class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
+                            onclick: move |_| {
+                                editing_title.set(true);
+                                new_title.set(title.clone());
+                            },
+                            "{data.title}",
                         },
-                        "{data.title}",
-                    },
+                    }
                 }}
                 div {
                     class: "grid grid-rows-1 justify-items-end",
