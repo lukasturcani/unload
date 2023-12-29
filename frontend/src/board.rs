@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use crate::route::Route;
+use crate::user_search::UserSearch;
 use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
@@ -555,7 +556,8 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
         .iter()
         .map(|user_id| &read_model.users[user_id])
         .collect();
-    let show_add_user = use_state(cx, || false);
+    let show_assign_user = use_state(cx, || false);
+    // let assigned_to = use_ref(cx, Vec::new);
     cx.render(rsx! {
         div {
             class: "flex flex-row gap-2",
@@ -565,21 +567,44 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     class: "w-6 h-6 rounded cursor-pointer bg-green-900",
                     prevent_default: "onclick",
                     onclick: |event| {
-                        show_add_user.set(true);
+                        // *assigned_to.write() = data.assignees.clone();
+                        show_assign_user.set(true);
                         event.stop_propagation()
                     }
                 },
-                if **show_add_user {rsx!{
+                if **show_assign_user {rsx!{
                     div {
                         class: "
-                            pointer-events-none absolute -top-10 -left-2 w-max
+                            max-w-sm mx-auto
+                            absolute -top-10 -left-2 w-max
                             z-10 inline-block px-3 py-2 text-sm font-medium text-white
                             rounded-lg shadow-sm bg-gray-800
                             border border-gray-700",
-                        "This is a modal"
+                        UserSearch {
+                            id: "assign_user_modal",
+                            on_select_user: |_| {},
+                            on_remove_user: |_| {}
+                        }
                         div {
-                            class: "tooltip-arrow",
-                            "data-popper-arrow": "",
+                            class: "flex flex-row gap-2",
+                            button {
+                                r#type: "button",
+                                prevent_default: "onclick",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    show_assign_user.set(false);
+                                },
+                                "V"
+                            }
+                            button {
+                                r#type: "button",
+                                prevent_default: "onclick",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    show_assign_user.set(false);
+                                },
+                                "X"
+                            }
                         }
                     }
                 }} else {rsx!{
