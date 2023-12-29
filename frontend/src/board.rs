@@ -421,15 +421,68 @@ fn Due(cx: Scope, due: Option<DueOptions>) -> Element {
     let now = Utc::now();
     cx.render(rsx! {
         if **editing {rsx!{
-            div {}
+            div {
+                class: "grid grid-cols-2 gap-2 place-items-center",
+                if let Some(new_date_value) = **new_date {rsx!{
+                    input {
+                        class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                        r#type: "date",
+                        value: "{new_date_value.format(\"%Y-%m-%d\")}",
+                        oninput: |event| {
+                            if event.value.is_empty() {
+                                new_date.set(None);
+                                new_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                            } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                new_date.set(Some(date))
+                            }
+                        },
+                    },
+                    select {
+                        class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                        value: "{format_due_time(&**new_time)}",
+                        onchange: |event| {
+                            if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
+                                new_time.set(time);
+                            }
+                        },
+                        option {
+                            value: "{format_due_time(&**new_time)}",
+                            "{format_due_time(&**new_time)}"
+                        },
+                        for hour in 0..24 {
+                            for minute in [0, 15, 30, 45] {
+                                rsx!{
+                                    option {
+                                        value: "{hour:02}:{minute:02}",
+                                        "{hour:02}:{minute:02}"
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }} else {rsx!{
+                    input {
+                        class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                        r#type: "date",
+                        oninput: |event| {
+                            if event.value.is_empty() {
+                                new_date.set(None)
+                            } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                new_date.set(Some(date))
+                            }
+                        },
+                    },
+                }}
+            }
         }} else {rsx!{
             if let Some(DueOptions{due: due_value, show_time_left}) = due {rsx!{
                 div {
                     class: "flex flex-row gap-2",
                     onclick: move |_| {
                         editing.set(true);
-                        new_date.set(Some(due_value.date_naive()));
-                        new_time.set(due_value.time());
+                        let local = utc_to_local(due_value);
+                        new_date.set(Some(local.date_naive()));
+                        new_time.set(local.time());
                     },
                     svg {
                         class: "w-6 h-6 text-gray-400",
