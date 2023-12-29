@@ -505,6 +505,11 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
                     },
                     "V"
                 }
+                button {
+                    r#type: "button",
+                    onclick: |_| editing.set(false),
+                    "X"
+                }
             }
         }} else {rsx!{
             if let Some(DueOptions{due: due_value, show_time_left}) = due {rsx!{
