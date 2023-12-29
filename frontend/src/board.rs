@@ -6,8 +6,8 @@ use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
 use reqwest::Client;
-use shared_models::TaskSize;
 use shared_models::TaskStatus;
+use shared_models::{TaskSize, UserId};
 
 use crate::color_picker;
 use crate::model::Model;
@@ -557,7 +557,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
         .map(|user_id| &read_model.users[user_id])
         .collect();
     let show_assign_user = use_state(cx, || false);
-    let assigned_to = use_ref(cx, Vec::new);
+    let assignees = use_ref(cx, Vec::new);
     cx.render(rsx! {
         div {
             class: "flex flex-row gap-2",
@@ -567,7 +567,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     class: "w-6 h-6 rounded cursor-pointer bg-green-900",
                     prevent_default: "onclick",
                     onclick: |event| {
-                        *assigned_to.write() = model.read().tasks[task_id].assignees.clone();
+                        *assignees.write() = model.read().tasks[task_id].assignees.clone();
                         show_assign_user.set(true);
                         event.stop_propagation()
                     }
@@ -582,8 +582,8 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                             border border-gray-700",
                         UserSearch {
                             id: "assign_user_modal",
-                            on_select_user: |user_id| assigned_to.write().push(user_id),
-                            on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
+                            on_select_user: |user_id| assignees.write().push(user_id),
+                            on_remove_user: |user_id| assignees.write().retain(|&value| value != user_id),
                         }
                         div {
                             class: "flex flex-row gap-2",
@@ -593,6 +593,10 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                                 onclick: |event| {
                                     event.stop_propagation();
                                     show_assign_user.set(false);
+                                    set_task_assignees(
+                                        model.clone(),
+                                        *task_id, assignees.read().clone()
+                                    )
                                 },
                                 "V"
                             }
@@ -824,6 +828,36 @@ async fn send_set_task_due_request(
     Ok(Client::new()
         .put(url)
         .json(&due)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn set_task_assignees(model: UseSharedState<Model>, task_id: TaskId, assignees: Vec<UserId>) {
+    if send_set_task_assignees_request(model.clone(), task_id, assignees)
+        .await
+        .is_ok()
+    {
+        requests::board(model.clone()).await;
+    }
+}
+
+async fn send_set_task_assignees_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    assignees: Vec<UserId>,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/assignees",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&assignees)
         .send()
         .await?
         .json::<()>()
