@@ -643,9 +643,8 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                 if **show_assign_user {rsx!{
                     div {
                         class: "
-                            max-w-sm
-                            absolute -top-10 -left-2 w-max
-                            z-10 inline-block px-3 py-2 text-sm font-medium text-white
+                            absolute -top-10 -left-2 w-72
+                            z-10 px-3 py-2 text-sm font-medium text-white
                             rounded-lg shadow-sm bg-gray-800
                             border border-gray-700",
                         UserSearch {
