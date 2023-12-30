@@ -10,7 +10,9 @@ pub fn UserSearch<'a>(
     on_select_user: EventHandler<'a, UserId>,
     on_remove_user: EventHandler<'a, UserId>,
     initial_users: Option<Vec<UserId>>,
+    always_show_suggestions: Option<bool>,
 ) -> Element<'a> {
+    let always_show_suggestions = always_show_suggestions.unwrap_or(false);
     let model = use_shared_state::<Model>(cx).unwrap();
     let show_color_picker = use_state(cx, || false);
     let has_input_focus = use_state(cx, || false);
@@ -34,7 +36,7 @@ pub fn UserSearch<'a>(
             selected.write().push(user);
         }
     }
-    let user_data = if **has_input_focus && !**show_color_picker {
+    let user_data = if (**has_input_focus || always_show_suggestions) && !**show_color_picker {
         let model = model.read();
         let selected = selected.read();
         let users: Vec<_> = model
