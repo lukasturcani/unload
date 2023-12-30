@@ -513,7 +513,9 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
                 }
                 button {
                     r#type: "button",
-                    class: "rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8 bg-inherit",
+                    class: "
+                        rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
+                        border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
                     prevent_default: "onclick",
                     onclick: |event| {
                         event.stop_propagation();
@@ -533,7 +535,7 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
                         fill: "none",
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
-                        stroke: "white",
+                        stroke: "currentColor",
                         class: "w-6 h-6",
                         path {
                             "stroke-linecap": "round",
@@ -544,18 +546,21 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
                 }
                 button {
                     r#type: "button",
-                    class: "rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8 bg-inherit",
+                    class: "
+                        rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
+                        border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
                     prevent_default: "onclick",
                     onclick: |event| {
                         event.stop_propagation();
                         editing.set(false);
                     },
                     svg {
+                        class: "stroke-red-500",
+                        stroke: "currentColor",
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
-                        stroke: "white",
                         class: "w-6 h-6",
                         path {
                             "stroke-linecap": "round",
