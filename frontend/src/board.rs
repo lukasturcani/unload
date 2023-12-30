@@ -25,8 +25,8 @@ pub const COLUMN_TASK_LIST: &str = "flex flex-col gap-2 overflow-y-scroll";
 pub const TOOLTIP: &str = "
     pointer-events-none absolute -top-10 -left-2 w-max
     opacity-0 transition-opacity group-hover:opacity-100
-    z-10 inline-block px-3 py-2 text-sm font-medium text-white
-    rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
+    z-10 px-3 py-2 text-sm font-medium text-white
+    rounded-lg shadow-sm tooltip bg-gray-800
     border border-gray-700";
 
 #[component]
@@ -227,7 +227,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         div {
                             class: "group relative",
                             div {
-                                class: "cursor-pointer flex w-4 h-4 bg-red-500 rounded-full flex-shrink-0",
+                                class: "cursor-pointer flex w-4 h-4 bg-red-500 rounded-full",
                                 onclick: |event| {
                                     event.stop_propagation();
                                     set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
@@ -245,7 +245,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         div {
                             class: "group relative",
                             div {
-                                class: "cursor-pointer flex w-4 h-4 bg-yellow-300 rounded-full flex-shrink-0",
+                                class: "cursor-pointer flex w-4 h-4 bg-yellow-300 rounded-full",
                                 onclick: |event| {
                                     event.stop_propagation();
                                     set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
@@ -263,7 +263,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         div {
                             class: "group relative",
                             div {
-                                class: "cursor-pointer flex w-4 h-4 bg-green-500 rounded-full flex-shrink-0",
+                                class: "cursor-pointer flex w-4 h-4 bg-green-500 rounded-full",
                                 onclick: |event| {
                                     event.stop_propagation();
                                     set_task_status(model.clone(), *task_id, TaskStatus::Done)
