@@ -603,6 +603,22 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
     cx.render(rsx! {
         div {
             class: "flex flex-row gap-2",
+            for user in users {rsx!{
+                div {
+                    class: "group relative",
+                    div {
+                        class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&user.color)}",
+                    },
+                    div {
+                        class: TOOLTIP,
+                        "{user.name}"
+                        div {
+                            class: "tooltip-arrow",
+                            "data-popper-arrow": "",
+                        }
+                    }
+                }
+            }}
             div {
                 class: "group relative",
                 div {
@@ -664,22 +680,6 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     }
                 }}
             }
-            for user in users {rsx!{
-                div {
-                    class: "group relative",
-                    div {
-                        class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&user.color)}",
-                    },
-                    div {
-                        class: TOOLTIP,
-                        "{user.name}"
-                        div {
-                            class: "tooltip-arrow",
-                            "data-popper-arrow": "",
-                        }
-                    }
-                }
-            }}
         }
     })
 }
