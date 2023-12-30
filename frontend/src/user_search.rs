@@ -139,7 +139,6 @@ pub fn UserSearch<'a>(
                                 key: "add user",
                                 button {
                                     r#type: "button",
-                                    // TODO: Add user needs to open a model for selecting color
                                     class: "block text-left w-full px-4 py-2
                                         hover:bg-gray-100 dark:hover:bg-gray-600
                                         font-medium text-blue-600 dark:text-blue-500 hover:underline",
