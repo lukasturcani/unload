@@ -18,7 +18,7 @@ pub struct Model {
 impl Default for Model {
     fn default() -> Self {
         Self {
-            url: Url::from_str("http://localhost:8080").unwrap(),
+            url: Url::from_str("https://unload.fly.dev").unwrap(),
             board_name: BoardName::from(""),
             tasks: HashMap::default(),
             users: HashMap::default(),
