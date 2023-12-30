@@ -17,10 +17,10 @@ use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
 pub const COLUMN: &str = "
-    flex flex-col gap-2 flex-1 rounded bg-gray-900 border border-gray-700 p-4
+    flex flex-col gap-2 rounded bg-gray-900 border border-gray-700 p-4
 ";
 pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
-pub const COLUMN_TASK_LIST: &str = "flex flex-col gap-2 w-full h-full";
+pub const COLUMN_TASK_LIST: &str = "flex flex-col gap-2";
 pub const TOOLTIP: &str = "
     pointer-events-none absolute -top-10 -left-2 w-max
     opacity-0 transition-opacity group-hover:opacity-100
@@ -38,18 +38,15 @@ pub fn Board(cx: Scope, board_name: BoardName) -> Element {
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "flex flex-col bg-gray-900 min-h-screen min-w-screen",
+            class: "flex flex-col bg-gray-900 h-screen w-screen p-4 gap-2",
             div {
-                class: "flex flex-col flex-1 my-5 mx-5",
-                div {
-                    class: "flex-1 flex flex-cols-3 gap-2",
-                    ToDoColumn {},
-                    InProgressColumn {},
-                    DoneColumn {},
-                },
-            }
+                class: "grow grid grid-cols-3 gap-2",
+                ToDoColumn {},
+                InProgressColumn {},
+                DoneColumn {},
+            },
             div {
-                class: "flex flex-row justify-center gap-2 mb-4",
+                class: "flex flex-row justify-center gap-2",
                 button {
                     class: styles::BUTTON,
                     onclick: |_| {
