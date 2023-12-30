@@ -643,6 +643,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                 if **show_assign_user {rsx!{
                     div {
                         class: "
+                            flex flex-col gap-2
                             absolute -top-10 -left-2 w-72
                             z-10 px-3 py-2 text-sm font-medium text-white
                             rounded-lg shadow-sm bg-gray-800
@@ -654,9 +655,10 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                             initial_users: assignees.read().clone(),
                         }
                         div {
-                            class: "flex flex-row gap-2",
+                            class: "flex flex-row gap-2 justify-end",
                             button {
                                 r#type: "button",
+                                class: "rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8 bg-gray-800 hover:bg-gray-700",
                                 prevent_default: "onclick",
                                 onclick: |event| {
                                     event.stop_propagation();
@@ -666,16 +668,41 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                                         *task_id, assignees.read().clone()
                                     )
                                 },
-                                "V"
+                                svg {
+                                    xmlns: "http://www.w3.org/2000/svg",
+                                    fill: "none",
+                                    "viewBox": "0 0 24 24",
+                                    "stroke-width": "1.5",
+                                    stroke: "white",
+                                    class: "w-6 h-6",
+                                    path {
+                                        "stroke-linecap": "round",
+                                        "stroke-linejoin": "round",
+                                        d: "m4.5 12.75 6 6 9-13.5",
+                                    }
+                                }
                             }
                             button {
                                 r#type: "button",
+                                class: "rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8 bg-gray-800 hover:bg-gray-700",
                                 prevent_default: "onclick",
                                 onclick: |event| {
                                     event.stop_propagation();
                                     show_assign_user.set(false);
                                 },
-                                "X"
+                                svg {
+                                    xmlns: "http://www.w3.org/2000/svg",
+                                    fill: "none",
+                                    "viewBox": "0 0 24 24",
+                                    "stroke-width": "1.5",
+                                    stroke: "white",
+                                    class: "w-6 h-6",
+                                    path {
+                                        "stroke-linecap": "round",
+                                        "stroke-linejoin": "round",
+                                        d: "M6 18 18 6M6 6l12 12",
+                                    }
+                                }
                             }
                         }
                     }
