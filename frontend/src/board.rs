@@ -621,15 +621,25 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
             }}
             div {
                 class: "group relative",
-                div {
-                    class: "w-6 h-6 rounded cursor-pointer bg-green-900",
+                svg {
+                    xmlns: "http://www.w3.org/2000/svg",
+                    fill: "none",
+                    "viewBox": "0 0 24 24" ,
+                    "stroke-width": "1.5" ,
+                    stroke: "white" ,
+                    class: "w-6 h-6 border border-white rounded cursor-pointer",
                     prevent_default: "onclick",
                     onclick: |event| {
                         *assignees.write() = model.read().tasks[task_id].assignees.clone();
                         show_assign_user.set(true);
                         event.stop_propagation()
+                    },
+                    path {
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        d: "M12 4.5v15m7.5-7.5h-15",
                     }
-                },
+                }
                 if **show_assign_user {rsx!{
                     div {
                         class: "
