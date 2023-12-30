@@ -141,8 +141,6 @@ fn InProgressColumn(cx: Scope) -> Element {
                         d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                     }
                 }
-
-
                 h2 {
                     class: COLUMN_HEADING,
                     "In Progress"
@@ -256,58 +254,55 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     class: "grid grid-rows-1 justify-items-end",
                     div {
                         class: "flex flex-row gap-1 items-center",
-                        div {
-                            class: "group relative",
-                            div {
-                                class: "cursor-pointer flex w-4 h-4 bg-red-500 rounded-full",
-                                onclick: |event| {
-                                    event.stop_propagation();
-                                    set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
-                                },
-                            }
-                            div {
-                                class: TOOLTIP,
-                                "To Do"
-                                div {
-                                    class: "tooltip-arrow",
-                                    "data-popper-arrow": "",
-                                }
-                            }
-                        }
-                        div {
-                            class: "group relative",
-                            div {
-                                class: "cursor-pointer flex w-4 h-4 bg-yellow-300 rounded-full",
-                                onclick: |event| {
-                                    event.stop_propagation();
-                                    set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
-                                },
-                            }
-                            div {
-                                class: TOOLTIP,
-                                "In Progress"
-                                div {
-                                    class: "tooltip-arrow",
-                                    "data-popper-arrow": "",
-                                }
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "white",
+                            class: "cursor-pointer w-8 h-8",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                             }
                         }
-                        div {
-                            class: "group relative",
-                            div {
-                                class: "cursor-pointer flex w-4 h-4 bg-green-500 rounded-full",
-                                onclick: |event| {
-                                    event.stop_propagation();
-                                    set_task_status(model.clone(), *task_id, TaskStatus::Done)
-                                },
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            "stroke": "white",
+                            "class": "cursor-pointer w-8 h-8",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                             }
-                            div {
-                                class: TOOLTIP,
-                                "Done"
-                                div {
-                                    class: "tooltip-arrow",
-                                    "data-popper-arrow": "",
-                                }
+                        }
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "white",
+                            class: "cursor-pointer w-8 h-8",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                set_task_status(model.clone(), *task_id, TaskStatus::Done)
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                             }
                         }
                     }
