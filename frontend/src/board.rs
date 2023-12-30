@@ -87,7 +87,7 @@ fn ToDoColumn(cx: Scope) -> Element {
         div {
             class: COLUMN,
             div {
-                class: "flex items-center",
+                class: "flex items-center gap-2",
                 span {
                     class: "flex w-4 h-4 bg-red-500 rounded-full flex-shrink-0",
                 }
@@ -117,7 +117,7 @@ fn InProgressColumn(cx: Scope) -> Element {
         div {
             class: COLUMN,
             div {
-                class: "flex items-center",
+                class: "flex items-center gap-2",
                 span {
                     class: "flex w-4 h-4 bg-yellow-300 rounded-full flex-shrink-0",
                 }
@@ -147,7 +147,7 @@ fn DoneColumn(cx: Scope) -> Element {
         div {
             class: COLUMN,
             div {
-                class: "flex items-center",
+                class: "flex items-center gap-2",
                 span {
                     class: "flex w-4 h-4 bg-green-500 rounded-full flex-shrink-0",
                 }
@@ -223,7 +223,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 div {
                     class: "grid grid-rows-1 justify-items-end",
                     div {
-                        class: "flex flex-row items-center",
+                        class: "flex flex-row gap-1 items-center",
                         div {
                             class: "group relative",
                             div {
@@ -283,6 +283,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             }
             if **editing_size {rsx!{
                 div {
+                    class: "flex flex-row gap-1",
                     span {
                         class: "bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 cursor-pointer",
                         onclick: |_| {
