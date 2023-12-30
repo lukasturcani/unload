@@ -89,7 +89,7 @@ fn ToDoColumn(cx: Scope) -> Element {
             div {
                 class: "flex items-center",
                 span {
-                    class: "flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
+                    class: "flex w-4 h-4 bg-red-500 rounded-full flex-shrink-0",
                 }
                 h2 {
                     class: COLUMN_HEADING,
@@ -119,7 +119,7 @@ fn InProgressColumn(cx: Scope) -> Element {
             div {
                 class: "flex items-center",
                 span {
-                    class: "flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
+                    class: "flex w-4 h-4 bg-yellow-300 rounded-full flex-shrink-0",
                 }
                 h2 {
                     class: COLUMN_HEADING,
@@ -149,7 +149,7 @@ fn DoneColumn(cx: Scope) -> Element {
             div {
                 class: "flex items-center",
                 span {
-                    class: "flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
+                    class: "flex w-4 h-4 bg-green-500 rounded-full flex-shrink-0",
                 }
                 h2 {
                     class: COLUMN_HEADING,
@@ -227,7 +227,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         div {
                             class: "group relative",
                             div {
-                                class: "cursor-pointer flex w-4 h-4 bg-red-500 rounded-full me-2 flex-shrink-0",
+                                class: "cursor-pointer flex w-4 h-4 bg-red-500 rounded-full flex-shrink-0",
                                 onclick: |event| {
                                     event.stop_propagation();
                                     set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
@@ -245,7 +245,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         div {
                             class: "group relative",
                             div {
-                                class: "cursor-pointer flex w-4 h-4 bg-yellow-300 rounded-full me-2 flex-shrink-0",
+                                class: "cursor-pointer flex w-4 h-4 bg-yellow-300 rounded-full flex-shrink-0",
                                 onclick: |event| {
                                     event.stop_propagation();
                                     set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
@@ -263,7 +263,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         div {
                             class: "group relative",
                             div {
-                                class: "cursor-pointer flex w-4 h-4 bg-green-500 rounded-full me-2 flex-shrink-0",
+                                class: "cursor-pointer flex w-4 h-4 bg-green-500 rounded-full flex-shrink-0",
                                 onclick: |event| {
                                     event.stop_propagation();
                                     set_task_status(model.clone(), *task_id, TaskStatus::Done)
@@ -284,7 +284,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             if **editing_size {rsx!{
                 div {
                     span {
-                        class: "bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 cursor-pointer",
+                        class: "bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 cursor-pointer",
                         onclick: |_| {
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Small)
@@ -292,7 +292,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         "Small",
                     }
                     span {
-                        class: "bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300 cursor-pointer",
+                        class: "bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300 cursor-pointer",
                         onclick: |_| {
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Medium)
@@ -300,7 +300,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         "Medium",
                     }
                     span {
-                        class: "bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300 cursor-pointer",
+                        class: "bg-red-100 text-red-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300 cursor-pointer",
                         onclick: |_| {
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Large)
@@ -313,21 +313,21 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     match data.size {
                         TaskSize::Small => {rsx!{
                             span {
-                                class: "bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 cursor-pointer",
+                                class: "bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 cursor-pointer",
                                 onclick: |_| editing_size.set(true),
                                 "Small",
                             }
                         }}
                         TaskSize::Medium => {rsx!{
                             span {
-                                class: "bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300 cursor-pointer",
+                                class: "bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300 cursor-pointer",
                                 onclick: |_| editing_size.set(true),
                                 "Medium",
                             }
                         }}
                         TaskSize::Large => {rsx!{
                             span {
-                                class: "bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300 cursor-pointer",
+                                class: "bg-red-100 text-red-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300 cursor-pointer",
                                 onclick: |_| editing_size.set(true),
                                 "Large",
                             }
@@ -573,7 +573,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                 if **show_assign_user {rsx!{
                     div {
                         class: "
-                            max-w-sm mx-auto
+                            max-w-sm
                             absolute -top-10 -left-2 w-max
                             z-10 inline-block px-3 py-2 text-sm font-medium text-white
                             rounded-lg shadow-sm bg-gray-800
