@@ -58,11 +58,11 @@ pub fn ColorPicker<'a>(
             {rsx! {
                 if selected.map_or(false, |selected_color| selected_color == *color) {rsx!{
                     div {
-                        class: "group relative",
+                        class: "group/color-tooltip relative",
                         div {
                             class: "
                                 w-8 h-8 rounded cursor-pointer {class}
-                                ring-blue-500 dark:ring-blue-600 ring-2",
+                                ring-blue-600 ring-2",
                             onclick: |_| {
                                 selected.set(Some(*color));
                                 on_pick_color.call(*color);
@@ -71,7 +71,7 @@ pub fn ColorPicker<'a>(
                         div {
                             class: "
                                 pointer-events-none absolute -top-10 left-0 w-max
-                                opacity-0 transition-opacity group-hover:opacity-100
+                                opacity-0 transition-opacity group-hover/color-tooltip:opacity-100
                                 z-10 inline-block px-3 py-2 text-sm font-medium text-white
                                 rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
                                 border border-gray-700",
@@ -84,7 +84,7 @@ pub fn ColorPicker<'a>(
                     }
                 }} else {rsx!{
                     div {
-                        class: "group relative",
+                        class: "group/color-tooltip relative",
                         div {
                             class: "w-8 h-8 rounded cursor-pointer {class}",
                             onclick: |_| {
@@ -95,7 +95,7 @@ pub fn ColorPicker<'a>(
                         div {
                             class: "
                                 pointer-events-none absolute -top-10 left-0 w-max
-                                opacity-0 transition-opacity group-hover:opacity-100
+                                opacity-0 transition-opacity group-hover/color-tooltip:opacity-100
                                 z-10 inline-block px-3 py-2 text-sm font-medium text-white
                                 rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
                                 border border-gray-700",
