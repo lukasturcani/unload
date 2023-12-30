@@ -9,12 +9,25 @@ pub fn UserSearch<'a>(
     id: &'a str,
     on_select_user: EventHandler<'a, UserId>,
     on_remove_user: EventHandler<'a, UserId>,
+    initial_users: Option<Vec<UserId>>,
 ) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let show_color_picker = use_state(cx, || false);
     let has_input_focus = use_state(cx, || false);
     let search_input = use_state(cx, String::default);
-    let selected = use_ref(cx, Vec::<(UserId, String)>::new);
+    let selected = {
+        let model = model.read();
+        use_ref(cx, || {
+            if let Some(users) = initial_users {
+                users
+                    .into_iter()
+                    .map(|id| (*id, model.users[id].name.clone()))
+                    .collect()
+            } else {
+                Vec::new()
+            }
+        })
+    };
     if model.read().user_search_created_user.is_some() {
         if let Some(user) = model.write().user_search_created_user.take() {
             on_select_user.call(user.0);

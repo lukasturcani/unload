@@ -652,6 +652,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                             id: "assign_user_modal",
                             on_select_user: |user_id| assignees.write().push(user_id),
                             on_remove_user: |user_id| assignees.write().retain(|&value| value != user_id),
+                            initial_users: assignees.read().clone(),
                         }
                         div {
                             class: "flex flex-row gap-2",
