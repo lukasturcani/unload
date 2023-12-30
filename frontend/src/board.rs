@@ -18,9 +18,10 @@ use shared_models::{BoardName, TaskId};
 
 pub const COLUMN: &str = "
     flex flex-col gap-2 rounded bg-gray-900 border border-gray-700 p-4
+    overflow-y-auto
 ";
 pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
-pub const COLUMN_TASK_LIST: &str = "flex flex-col gap-2";
+pub const COLUMN_TASK_LIST: &str = "flex flex-col gap-2 overflow-y-scroll";
 pub const TOOLTIP: &str = "
     pointer-events-none absolute -top-10 -left-2 w-max
     opacity-0 transition-opacity group-hover:opacity-100
@@ -40,7 +41,7 @@ pub fn Board(cx: Scope, board_name: BoardName) -> Element {
         div {
             class: "flex flex-col bg-gray-900 h-screen w-screen p-4 gap-2",
             div {
-                class: "grow grid grid-cols-3 gap-2",
+                class: "grow grid grid-cols-3 gap-2 overflow-y-auto",
                 ToDoColumn {},
                 InProgressColumn {},
                 DoneColumn {},
@@ -188,7 +189,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             prevent_default: "onclick",
             onclick: |_| expanded.set(!**expanded),
             class: "
-                flex flex-col gap-2 block w-full p-3 border rounded-lg shadow
+                flex flex-col gap-2 p-3 border rounded-lg shadow
                 bg-gray-800 border-gray-700 hover:bg-gray-700",
             div {
                 class: "grid grid-cols-2",
