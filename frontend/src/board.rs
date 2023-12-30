@@ -446,7 +446,7 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
     cx.render(rsx! {
         if **editing {rsx!{
             div {
-                class: "flex flex-row gap-2",
+                class: "flex flex-row gap-2 items-center",
                 svg {
                     class: "w-6 h-6 text-gray-400",
                     "aria-hidden": "true",
