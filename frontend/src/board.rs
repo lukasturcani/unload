@@ -690,6 +690,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                             on_select_user: |user_id| assignees.write().push(user_id),
                             on_remove_user: |user_id| assignees.write().retain(|&value| value != user_id),
                             initial_users: assignees.read().clone(),
+                            always_show_suggestions: true,
                         }
                         div {
                             class: "flex flex-row gap-2 justify-end",
