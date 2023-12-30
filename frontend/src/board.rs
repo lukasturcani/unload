@@ -213,6 +213,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let data = &read_model.tasks[task_id];
     let title = data.title.clone();
     let description = data.description.clone();
+    let hover_status = use_state(cx, || None::<TaskStatus>);
     cx.render(rsx! {
         div {
             draggable: true,
@@ -259,8 +260,13 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             fill: "none",
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
-                            stroke: "white",
+                            stroke: match **hover_status {
+                                Some(TaskStatus::ToDo) => "red",
+                                _ => "white",
+                            },
                             class: "cursor-pointer w-8 h-8",
+                            onmouseover: |_| hover_status.set(Some(TaskStatus::ToDo)),
+                            onmouseout: |_| hover_status.set(None),
                             onclick: |event| {
                                 event.stop_propagation();
                                 set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
@@ -276,8 +282,13 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             fill: "none",
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
-                            "stroke": "white",
+                            stroke: match **hover_status {
+                                Some(TaskStatus::InProgress) => "yellow",
+                                _ => "white",
+                            },
                             "class": "cursor-pointer w-8 h-8",
+                            onmouseover: |_| hover_status.set(Some(TaskStatus::InProgress)),
+                            onmouseout: |_| hover_status.set(None),
                             onclick: |event| {
                                 event.stop_propagation();
                                 set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
@@ -293,8 +304,13 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             fill: "none",
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
-                            stroke: "white",
+                            stroke: match **hover_status {
+                                Some(TaskStatus::Done) => "green",
+                                _ => "white",
+                            },
                             class: "cursor-pointer w-8 h-8",
+                            onmouseover: |_| hover_status.set(Some(TaskStatus::Done)),
+                            onmouseout: |_| hover_status.set(None),
                             onclick: |event| {
                                 event.stop_propagation();
                                 set_task_status(model.clone(), *task_id, TaskStatus::Done)
