@@ -542,3 +542,137 @@ WHERE
     tx.commit().await?;
     Ok(Json(()))
 }
+
+pub async fn update_task_title(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(title): Json<String>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tasks
+SET
+    title = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        title,
+        board_name,
+        task_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn update_task_description(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(description): Json<String>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tasks
+SET
+    description = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        description,
+        board_name,
+        task_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn update_task_size(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(size): Json<TaskSize>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tasks
+SET
+    size = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        size,
+        board_name,
+        task_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn update_task_due(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(due): Json<Option<DateTime<Utc>>>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tasks
+SET
+    due = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        due,
+        board_name,
+        task_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn update_task_assignees(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(assignees): Json<Vec<UserId>>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    task_assignments
+WHERE
+   board_name = ? AND task_id = ?
+",
+        board_name,
+        task_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    for user_id in assignees {
+        sqlx::query!(
+            "
+INSERT INTO task_assignments (board_name, user_id, task_id)
+VALUES (?, ?, ?)",
+            board_name,
+            user_id,
+            task_id,
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+    tx.commit().await?;
+    Ok(Json(()))
+}

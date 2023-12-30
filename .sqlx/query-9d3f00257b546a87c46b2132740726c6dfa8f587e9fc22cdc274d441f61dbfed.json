@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nUPDATE\n    tasks\nSET\n    title = ?\nWHERE\n   board_name = ? AND id = ?\n",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "9d3f00257b546a87c46b2132740726c6dfa8f587e9fc22cdc274d441f61dbfed"
+}

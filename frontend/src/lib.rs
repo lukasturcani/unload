@@ -8,4 +8,5 @@ pub mod model;
 pub mod requests;
 pub mod route;
 pub mod styles;
+pub mod user_search;
 pub mod users;
