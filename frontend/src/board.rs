@@ -44,7 +44,7 @@ impl ResponsiveLayout {
             .unwrap()
             .as_f64()
             .unwrap();
-        if width < 768.0 {
+        if width < 640.0 {
             ResponsiveLayout::Narrow
         } else {
             ResponsiveLayout::Wide
