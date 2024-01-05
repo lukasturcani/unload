@@ -82,7 +82,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "flex flex-col bg-gray-900 h-screen w-screen grid grid-cols-1 gap-2",
+            class: "flex flex-col bg-gray-900 h-screen w-screen gap-2",
             div {
                 class: "grow grid grid-cols-1 p-2 overflow-y-auto",
                 match **column {
@@ -92,7 +92,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
             div {
-                class: "w-full h-16 self-end border-t bg-gray-700 border-gray-600", 
+                class: "w-full h-16 border-t bg-gray-700 border-gray-600", 
                 div {
                     class: "grid h-full max-w-lg grid-cols-5 mx-auto font-medium", 
                     button {
