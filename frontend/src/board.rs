@@ -82,9 +82,9 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "bg-gray-900 h-screen w-screen grid grid-cols-1 gap-2",
+            class: "flex flex-col bg-gray-900 h-screen w-screen grid grid-cols-1 gap-2",
             div {
-                class: "p-2 overflow-y-auto",
+                class: "grow grid grid-cols-1 p-2 overflow-y-auto",
                 match **column {
                     TaskStatus::ToDo => rsx! { ToDoColumn {} },
                     TaskStatus::InProgress => rsx! { InProgressColumn {} },
