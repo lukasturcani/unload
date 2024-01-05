@@ -36,13 +36,41 @@ enum ResponsiveLayout {
     Wide,
 }
 
+impl ResponsiveLayout {
+    fn from_window() -> Self {
+        let width = web_sys::window()
+            .unwrap()
+            .inner_width()
+            .unwrap()
+            .as_f64()
+            .unwrap();
+        if width < 768.0 {
+            ResponsiveLayout::Narrow
+        } else {
+            ResponsiveLayout::Wide
+        }
+    }
+}
+
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
+    let layout = ResponsiveLayout::from_window();
+    cx.render(rsx! {
+        match layout {
+            ResponsiveLayout::Narrow => todo!(),
+            ResponsiveLayout::Wide => rsx! {
+                ThreeColumnBoard {
+                    board_name: board_name.clone(),
+                }
+            }
+        }
+    })
+}
+
+#[component]
+fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let nav = use_navigator(cx);
-    let window = web_sys::window().unwrap();
-    let width = window.inner_width().unwrap();
-    let height = window.inner_height().unwrap();
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
