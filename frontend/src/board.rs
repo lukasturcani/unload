@@ -16,6 +16,8 @@ use crate::styles;
 use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
+use web_sys;
+
 pub const COLUMN: &str = "
     flex flex-col gap-2 rounded bg-gray-900 border border-gray-700 p-4
     overflow-y-auto
@@ -29,8 +31,196 @@ pub const TOOLTIP: &str = "
     rounded-lg shadow-sm tooltip bg-gray-800
     border border-gray-700";
 
+enum ResponsiveLayout {
+    Narrow,
+    Wide,
+}
+
+impl ResponsiveLayout {
+    fn from_window() -> Self {
+        let width = web_sys::window()
+            .unwrap()
+            .inner_width()
+            .unwrap()
+            .as_f64()
+            .unwrap();
+        if width < 640.0 {
+            ResponsiveLayout::Narrow
+        } else {
+            ResponsiveLayout::Wide
+        }
+    }
+}
+
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
+    let layout = ResponsiveLayout::from_window();
+    cx.render(rsx! {
+        match layout {
+            ResponsiveLayout::Narrow => rsx! {
+                OneColumnBoard {
+                    board_name: board_name.clone(),
+                }
+            },
+            ResponsiveLayout::Wide => rsx! {
+                ThreeColumnBoard {
+                    board_name: board_name.clone(),
+                }
+            }
+        }
+    })
+}
+
+#[component]
+fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    if &model.read().board_name != board_name {
+        model.write().board_name = board_name.clone()
+    }
+    let nav = use_navigator(cx);
+    let column = use_state(cx, || TaskStatus::ToDo);
+    use_future(cx, (), |_| requests::board(model.clone()));
+    cx.render(rsx! {
+        div {
+            class: "flex flex-col bg-gray-900 h-screen w-screen p-4 gap-2",
+            match **column {
+                TaskStatus::ToDo => rsx! { ToDoColumn {} },
+                TaskStatus::InProgress => rsx! { InProgressColumn {} },
+                TaskStatus::Done => rsx! { DoneColumn {} },
+            }
+        }
+        div {
+            class: "fixed bottom-0 left-0 z-50 w-full h-16 border-t bg-gray-700 border-gray-600", 
+            div {
+                class: "grid h-full max-w-lg grid-cols-5 mx-auto font-medium", 
+                button {
+                    r#type: "button" ,
+                    class: "inline-flex flex-col items-center justify-center px-5 border-x enabled:hover:bg-gray-800 group border-gray-600",
+                    disabled: **column == TaskStatus::ToDo,
+                    onclick: |_| {
+                        match **column {
+                            TaskStatus::ToDo => column.set(TaskStatus::ToDo),
+                            TaskStatus::InProgress => column.set(TaskStatus::ToDo),
+                            TaskStatus::Done => column.set(TaskStatus::InProgress),
+                        }
+                    },
+                    if **column != TaskStatus::ToDo {rsx!{
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5", 
+                            stroke: "currentColor",
+                            class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                            path {
+                                "stroke-linecap": "round", 
+                                "stroke-linejoin": "round",
+                                d: "M15.75 19.5 8.25 12l7.5-7.5",
+                            }
+                        }
+
+                    }}
+                }
+                button {
+                    r#type: "button" ,
+                    class: "inline-flex flex-col items-center justify-center px-5 border-e hover:bg-gray-800 group border-gray-600",
+                    onclick: |_| {
+                        nav.push(Route::AddUser {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none", 
+                        "viewBox": "0 0 24 24", 
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: "inline-flex flex-col items-center justify-center px-5 border-e hover:bg-gray-800 group border-gray-600",
+                    onclick: |_| {
+                        nav.push(Route::Users {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none", 
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5", 
+                        stroke: "currentColor",
+                        class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
+                    onclick: |_| {
+                        nav.push(Route::AddTask {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none", 
+                        "viewBox": "0 0 24 24", 
+                        "stroke-width": "1.5", 
+                        "stroke": "currentColor", 
+                        class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                        path {
+                            "stroke-linecap": "round", 
+                            "stroke-linejoin": "round", 
+                            d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: "inline-flex flex-col items-center justify-center px-5 enabled:hover:bg-gray-800 group border-x border-gray-600",
+                    disabled: **column == TaskStatus::Done,
+                    onclick: |_| {
+                        match **column {
+                            TaskStatus::ToDo => column.set(TaskStatus::InProgress),
+                            TaskStatus::InProgress => column.set(TaskStatus::Done),
+                            TaskStatus::Done => column.set(TaskStatus::Done),
+                        }
+                    },
+                    if **column != TaskStatus::Done {rsx!{
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none", 
+                            "viewBox": "0 0 24 24", 
+                            "stroke-width": "1.5", 
+                            stroke: "currentColor", 
+                            class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                            path {
+                                "stroke-lineca": "round",
+                                "stroke-linejoin": "round", 
+                                d: "m8.25 4.5 7.5 7.5-7.5 7.5",
+                            }
+                        }
+                    }}
+                }
+            }
+        }
+    })
+}
+
+#[component]
+fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let nav = use_navigator(cx);
     if &model.read().board_name != board_name {
@@ -205,9 +395,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let expanded = use_state(cx, || false);
     let editing_title = use_state(cx, || false);
-    let new_title = use_state(cx, || String::new());
+    let new_title = use_state(cx, String::new);
     let editing_description = use_state(cx, || false);
-    let new_description = use_state(cx, || String::new());
+    let new_description = use_state(cx, String::new);
     let editing_size = use_state(cx, || false);
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
@@ -328,7 +518,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 div {
                     class: "flex flex-row gap-1",
                     span {
-                        class: "bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 cursor-pointer",
+                        class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
                         onclick: |_| {
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Small)
@@ -336,7 +526,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         "Small",
                     }
                     span {
-                        class: "bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300 cursor-pointer",
+                        class: "text-sm font-medium px-2.5 py-0.5 rounded bg-yellow-900 text-yellow-300 cursor-pointer",
                         onclick: |_| {
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Medium)
@@ -344,7 +534,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         "Medium",
                     }
                     span {
-                        class: "bg-red-100 text-red-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300 cursor-pointer",
+                        class: "text-sm font-medium px-2.5 py-0.5 rounded bg-red-900 text-red-300 cursor-pointer",
                         onclick: |_| {
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Large)
@@ -357,21 +547,21 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     match data.size {
                         TaskSize::Small => {rsx!{
                             span {
-                                class: "bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 cursor-pointer",
+                                class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
                                 onclick: |_| editing_size.set(true),
                                 "Small",
                             }
                         }}
                         TaskSize::Medium => {rsx!{
                             span {
-                                class: "bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300 cursor-pointer",
+                                class: "text-sm font-medium px-2.5 py-0.5 rounded bg-yellow-900 text-yellow-300 cursor-pointer",
                                 onclick: |_| editing_size.set(true),
                                 "Medium",
                             }
                         }}
                         TaskSize::Large => {rsx!{
                             span {
-                                class: "bg-red-100 text-red-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300 cursor-pointer",
+                                class: "text-sm font-medium px-2.5 py-0.5 rounded bg-red-900 text-red-300 cursor-pointer",
                                 onclick: |_| editing_size.set(true),
                                 "Large",
                             }
@@ -462,7 +652,7 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
                     class: "grid grid-cols-2 gap-2 place-items-center",
                     if let Some(new_date_value) = **new_date {rsx!{
                         input {
-                            class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
                             value: "{new_date_value.format(\"%Y-%m-%d\")}",
                             oninput: |event| {
@@ -475,7 +665,7 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
                             },
                         },
                         select {
-                            class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             value: "{format_due_time(&**new_time)}",
                             onchange: |event| {
                                 if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
@@ -499,7 +689,7 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
                         },
                     }} else {rsx!{
                         input {
-                            class: "bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
                             oninput: |event| {
                                 if event.value.is_empty() {

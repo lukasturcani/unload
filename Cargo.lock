@@ -1162,6 +1162,7 @@ dependencies = [
  "shared_models",
  "tokio",
  "wasm-logger",
+ "web-sys",
 ]
 
 [[package]]

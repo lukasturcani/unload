@@ -71,6 +71,9 @@ check:
   trap error=1 ERR
 
   echo
+  (set -x; cargo fmt --check)
+
+  echo
   (set -x; cargo check)
 
   echo

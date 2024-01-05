@@ -18,8 +18,10 @@ pub struct Model {
 impl Default for Model {
     fn default() -> Self {
         Self {
-            #[cfg(debug_assertions)] url: Url::from_str("http://localhost:8080").unwrap(),
-            #[cfg(not(debug_assertions))] url: Url::from_str("https://unload.fly.dev").unwrap(),
+            #[cfg(debug_assertions)]
+            url: Url::from_str("http://localhost:8080").unwrap(),
+            #[cfg(not(debug_assertions))]
+            url: Url::from_str("https://unload.fly.dev").unwrap(),
             board_name: BoardName::from(""),
             tasks: HashMap::default(),
             users: HashMap::default(),
