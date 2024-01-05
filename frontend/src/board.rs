@@ -95,24 +95,40 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 class: "grid h-full max-w-lg grid-cols-5 mx-auto font-medium", 
                 button {
                     r#type: "button" ,
-                    class: "inline-flex flex-col items-center justify-center px-5 border-x hover:bg-gray-800 group border-gray-600",
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none",
-                        "viewBox": "0 0 24 24",
-                        "stroke-width": "1.5", 
-                        stroke: "currentColor",
-                        class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
-                        path {
-                            "stroke-linecap": "round", 
-                            "stroke-linejoin": "round",
-                            d: "M15.75 19.5 8.25 12l7.5-7.5",
+                    class: "inline-flex flex-col items-center justify-center px-5 border-x enabled:hover:bg-gray-800 group border-gray-600",
+                    disabled: **column == TaskStatus::ToDo,
+                    onclick: |_| {
+                        match **column {
+                            TaskStatus::ToDo => column.set(TaskStatus::ToDo),
+                            TaskStatus::InProgress => column.set(TaskStatus::ToDo),
+                            TaskStatus::Done => column.set(TaskStatus::InProgress),
                         }
-                    }
+                    },
+                    if **column != TaskStatus::ToDo {rsx!{
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5", 
+                            stroke: "currentColor",
+                            class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                            path {
+                                "stroke-linecap": "round", 
+                                "stroke-linejoin": "round",
+                                d: "M15.75 19.5 8.25 12l7.5-7.5",
+                            }
+                        }
+
+                    }}
                 }
                 button {
                     r#type: "button" ,
                     class: "inline-flex flex-col items-center justify-center px-5 border-e hover:bg-gray-800 group border-gray-600",
+                    onclick: |_| {
+                        nav.push(Route::AddUser {
+                            board_name: board_name.clone(),
+                        });
+                    },
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none", 
@@ -130,6 +146,11 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 button {
                     r#type: "button",
                     class: "inline-flex flex-col items-center justify-center px-5 border-e hover:bg-gray-800 group border-gray-600",
+                    onclick: |_| {
+                        nav.push(Route::Users {
+                            board_name: board_name.clone(),
+                        });
+                    },
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none", 
@@ -147,6 +168,11 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 button {
                     r#type: "button",
                     class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
+                    onclick: |_| {
+                        nav.push(Route::AddTask {
+                            board_name: board_name.clone(),
+                        });
+                    },
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none", 
@@ -163,20 +189,30 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 }
                 button {
                     r#type: "button",
-                    class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group border-x border-gray-600",
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none", 
-                        "viewBox": "0 0 24 24", 
-                        "stroke-width": "1.5", 
-                        stroke: "currentColor", 
-                        class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
-                        path {
-                            "stroke-lineca": "round",
-                            "stroke-linejoin": "round", 
-                            d: "m8.25 4.5 7.5 7.5-7.5 7.5",
+                    class: "inline-flex flex-col items-center justify-center px-5 enabled:hover:bg-gray-800 group border-x border-gray-600",
+                    disabled: **column == TaskStatus::Done,
+                    onclick: |_| {
+                        match **column {
+                            TaskStatus::ToDo => column.set(TaskStatus::InProgress),
+                            TaskStatus::InProgress => column.set(TaskStatus::Done),
+                            TaskStatus::Done => column.set(TaskStatus::Done),
                         }
-                    }
+                    },
+                    if **column != TaskStatus::Done {rsx!{
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none", 
+                            "viewBox": "0 0 24 24", 
+                            "stroke-width": "1.5", 
+                            stroke: "currentColor", 
+                            class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                            path {
+                                "stroke-lineca": "round",
+                                "stroke-linejoin": "round", 
+                                d: "m8.25 4.5 7.5 7.5-7.5 7.5",
+                            }
+                        }
+                    }}
                 }
             }
         }
