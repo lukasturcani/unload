@@ -16,6 +16,8 @@ use crate::styles;
 use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
+use web_sys;
+
 pub const COLUMN: &str = "
     flex flex-col gap-2 rounded bg-gray-900 border border-gray-700 p-4
     overflow-y-auto
@@ -29,10 +31,18 @@ pub const TOOLTIP: &str = "
     rounded-lg shadow-sm tooltip bg-gray-800
     border border-gray-700";
 
+enum ResponsiveLayout {
+    Narrow,
+    Wide,
+}
+
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let nav = use_navigator(cx);
+    let window = web_sys::window().unwrap();
+    let width = window.inner_width().unwrap();
+    let height = window.inner_height().unwrap();
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
@@ -205,9 +215,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let expanded = use_state(cx, || false);
     let editing_title = use_state(cx, || false);
-    let new_title = use_state(cx, || String::new());
+    let new_title = use_state(cx, String::new);
     let editing_description = use_state(cx, || false);
-    let new_description = use_state(cx, || String::new());
+    let new_description = use_state(cx, String::new);
     let editing_size = use_state(cx, || false);
     let read_model = model.read();
     let data = &read_model.tasks[task_id];

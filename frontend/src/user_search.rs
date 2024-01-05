@@ -22,7 +22,7 @@ pub fn UserSearch<'a>(
         use_ref(cx, || {
             if let Some(users) = initial_users {
                 users
-                    .into_iter()
+                    .iter()
                     .map(|id| (*id, model.users[id].name.clone()))
                     .collect()
             } else {
