@@ -57,13 +57,70 @@ pub fn Board(cx: Scope, board_name: BoardName) -> Element {
     let layout = ResponsiveLayout::from_window();
     cx.render(rsx! {
         match layout {
-            ResponsiveLayout::Narrow => todo!(),
+            ResponsiveLayout::Narrow => rsx! {
+                OneColumnBoard {
+                    board_name: board_name.clone(),
+                }
+            },
             ResponsiveLayout::Wide => rsx! {
                 ThreeColumnBoard {
                     board_name: board_name.clone(),
                 }
             }
         }
+    })
+}
+
+#[component]
+fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    if &model.read().board_name != board_name {
+        model.write().board_name = board_name.clone()
+    }
+    let nav = use_navigator(cx);
+    let column = use_state(cx, || TaskStatus::ToDo);
+    use_future(cx, (), |_| requests::board(model.clone()));
+    cx.render(rsx! {
+        div {
+            class: "flex flex-col bg-gray-900 h-screen w-screen p-4 gap-2",
+            match **column {
+                TaskStatus::ToDo => rsx! { ToDoColumn {} },
+                TaskStatus::InProgress => rsx! { InProgressColumn {} },
+                TaskStatus::Done => rsx! { DoneColumn {} },
+            }
+            div {
+                class: "flex flex-row justify-center gap-2",
+                button {
+                    class: styles::BUTTON,
+                    onclick: |_| {
+                        nav.push(Route::AddUser {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    "Add User",
+                }
+                button {
+                    class: styles::BUTTON,
+                    onclick: |_| {
+                        nav.push(Route::Users {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    "Show Users",
+                }
+                button {
+                    class: styles::BUTTON,
+                    onclick: |_| {
+                        nav.push(Route::AddTask {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    "Add Task",
+                }
+            }       div {
+
+        }
+    }
     })
 }
 
