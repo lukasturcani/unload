@@ -92,9 +92,9 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
             div {
-                class: "w-full h-16 border-t bg-gray-700 border-gray-600", 
+                class: "w-full h-16 border-t bg-gray-700 border-gray-600",
                 div {
-                    class: "grid h-full max-w-lg grid-cols-5 mx-auto font-medium", 
+                    class: "grid h-full max-w-lg grid-cols-5 mx-auto font-medium",
                     button {
                         r#type: "button" ,
                         class: "inline-flex flex-col items-center justify-center px-5 border-x enabled:hover:bg-gray-800 group border-gray-600",
@@ -111,11 +111,11 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                                 xmlns: "http://www.w3.org/2000/svg",
                                 fill: "none",
                                 "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5", 
+                                "stroke-width": "1.5",
                                 stroke: "currentColor",
                                 class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
                                 path {
-                                    "stroke-linecap": "round", 
+                                    "stroke-linecap": "round",
                                     "stroke-linejoin": "round",
                                     d: "M15.75 19.5 8.25 12l7.5-7.5",
                                 }
@@ -133,8 +133,8 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                         },
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none", 
-                            "viewBox": "0 0 24 24", 
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
@@ -155,9 +155,9 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                         },
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none", 
+                            fill: "none",
                             "viewBox": "0 0 24 24",
-                            "stroke-width": "1.5", 
+                            "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
                             path {
@@ -177,14 +177,14 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                         },
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none", 
-                            "viewBox": "0 0 24 24", 
-                            "stroke-width": "1.5", 
-                            "stroke": "currentColor", 
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            "stroke": "currentColor",
                             class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
                             path {
-                                "stroke-linecap": "round", 
-                                "stroke-linejoin": "round", 
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
                                 d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                             }
                         }
@@ -203,14 +203,14 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                         if **column != TaskStatus::Done {rsx!{
                             svg {
                                 xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none", 
-                                "viewBox": "0 0 24 24", 
-                                "stroke-width": "1.5", 
-                                stroke: "currentColor", 
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
                                 class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
                                 path {
                                     "stroke-lineca": "round",
-                                    "stroke-linejoin": "round", 
+                                    "stroke-linejoin": "round",
                                     d: "m8.25 4.5 7.5 7.5-7.5 7.5",
                                 }
                             }
