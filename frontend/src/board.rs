@@ -92,7 +92,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
             div {
-                class: "w-full h-16 border-t bg-gray-700 border-gray-600",
+                class: "grow-0 shrink-0 w-full h-16 border-t bg-gray-700 border-gray-600",
                 div {
                     class: "grid h-full max-w-lg grid-cols-5 mx-auto font-medium",
                     button {
