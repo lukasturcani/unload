@@ -1,10 +1,13 @@
+use crate::color_picker;
 use crate::{model::Model, requests};
 use dioxus::prelude::*;
 use shared_models::BoardName;
-use crate::color_picker;
 use shared_models::Color;
 
-enum Column { Color, Name }
+enum Column {
+    Color,
+    Name,
+}
 
 #[component]
 pub fn Users(cx: Scope, board_name: BoardName) -> Element {
@@ -50,7 +53,6 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                 td {
                                     class: "px-6 py-4",
                                     onclick: {
-                                        let model = model.clone();
                                         let user_id = user_id.clone();
                                         move |_| {
                                             color.set(model.read().users[&user_id].color);
@@ -64,7 +66,6 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                 td {
                                     class: "px-6 py-4",
                                     onclick: {
-                                            let model = model.clone();
                                             let user_id = user_id.clone();
                                             move |_| {
                                             name.set(model.read().users[&user_id].name.clone());
