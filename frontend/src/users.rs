@@ -1,6 +1,7 @@
 use crate::{model::Model, requests};
 use dioxus::prelude::*;
 use shared_models::BoardName;
+use crate::color_picker;
 
 #[component]
 pub fn Users(cx: Scope, board_name: BoardName) -> Element {
@@ -9,25 +10,52 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
         model.write().board_name = board_name.clone()
     }
     use_future(cx, (), |_| requests::board(model.clone()));
+    let users = &model.read().users;
     cx.render(rsx! {
         div {
-            class: "bg-gray-900 min-h-screen min-w-screen grid justify-items-center",
-            ul {
-                class: "max-w-md divide-y divide-gray-200 dark:divide-gray-700",
-                for (id, user) in model.read().users.iter() {
-                    li {
-                        key: "{id}",
-                        class: "pb-3 sm:pb-4",
-                        div {
-                            class: "flex-1 min-w-0",
-                            p {
-                                class: "text-sm font-medium text-gray-900 truncate dark:text-white",
-                                "{user.name}"
+            class: "w-full p-2",
+            div {
+                class: "overflow-hidden border border-gray-900 w-full rounded-lg",
+                table {
+                    class: "w-full text-sm text-left text-gray-400",
+                    thead {
+                        class: "text-xs uppercase bg-gray-700 text-gray-400",
+                        tr {
+                            th {
+                                scope: "col",
+                                class: "px-6 py-3",
+                                "Color"
+                            }
+                            th {
+                                scope: "col",
+                                class: "px-6 py-3",
+                                "User"
+                            }
+                        }
+                    }
+                    tbody {
+                        for (i, (user_id, user)) in users.iter().enumerate() {
+                            tr {
+                                class: if i == users.len() - 1 {
+                                    "bg-gray-800 sm:hover:bg-gray-600 border-gray-700"
+                                } else {
+                                    "bg-gray-800 sm:hover:bg-gray-600 border-gray-700 border-b"
+                                },
+                                td {
+                                    class: "px-6 py-4",
+                                    div {
+                                        class: "w-8 h-8 rounded cursor-pointer bg-blue-500 {color_picker::class(&user.color)}",
+                                    },
+                                }
+                                td {
+                                    class: "px-6 py-4",
+                                    "{user.name}"
+                                }
                             }
                         }
                     }
                 }
-            }
+        }
         }
     })
 }
