@@ -404,8 +404,6 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let editing_size = use_state(cx, || false);
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
-    let title = data.title.clone();
-    let description = data.description.clone();
     let hover_status = use_state(cx, || None::<TaskStatus>);
     cx.render(rsx! {
         div {
@@ -438,7 +436,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
                             onclick: move |_| {
                                 editing_title.set(true);
-                                new_title.set(title.clone());
+                                new_title.set(model.read().tasks[&task_id].title.clone());
                             },
                             "{data.title}",
                         },
@@ -610,7 +608,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         class: "p-4 bg-gray-900 rounded border border-gray-700",
                         onclick: move |_| {
                             editing_description.set(true);
-                            new_description.set(description.clone());
+                            new_description.set(model.read().tasks[task_id].description.clone());
                         },
                         pre {
                             class: "mb-3 text-white",
