@@ -1157,6 +1157,7 @@ dependencies = [
  "dioxus",
  "dioxus-router",
  "dioxus-web",
+ "itertools 0.12.0",
  "log",
  "reqwest",
  "shared_models",
