@@ -9,7 +9,8 @@ use tower_http::services::ServeDir;
 use unload::{
     create_board, create_task, create_user, delete_task, delete_user, show_task, show_tasks,
     show_user, show_users, update_task_assignees, update_task_description, update_task_due,
-    update_task_size, update_task_status, update_task_title, update_user_color, Result,
+    update_task_size, update_task_status, update_task_title, update_user_color, update_user_name,
+    Result,
 };
 fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
     Router::new()
@@ -53,6 +54,10 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
         .route(
             "/api/boards/:board_name/users/:user_id/color",
             put(update_user_color),
+        )
+        .route(
+            "/api/boards/:board_name/users/:user_id/name",
+            put(update_user_name),
         )
         .route("/api/boards/:board_name/users", get(show_users))
         .route("/api/boards/:board_name/users", post(create_user))

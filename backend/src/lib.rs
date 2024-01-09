@@ -701,3 +701,28 @@ WHERE
     tx.commit().await?;
     Ok(Json(()))
 }
+
+pub async fn update_user_name(
+    State(pool): State<SqlitePool>,
+    Path((board_name, user_id)): Path<(BoardName, UserId)>,
+    Json(name): Json<String>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    users
+SET
+    name = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        name,
+        board_name,
+        user_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
