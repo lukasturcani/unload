@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nUPDATE\n    users\nSET\n    name = ?\nWHERE\n   board_name = ? AND id = ?\n",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "1f22a4d4dadb6aebc399feab2aaa347e6ac9ded88b6d8588b7fba77636905e96"
+}
