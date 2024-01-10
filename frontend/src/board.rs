@@ -625,15 +625,15 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
 
                 }} else {rsx!{
                     div {
-                        class: "p-4 bg-gray-900 rounded border border-gray-700",
+                        class: "
+                            p-4 bg-gray-900 rounded border border-gray-700 mb-3 text-white
+                            whitespace-pre-wrap break-words
+                        ",
                         onclick: move |_| {
                             editing_description.set(true);
                             new_description.set(model.read().tasks[task_id].description.clone());
                         },
-                        pre {
-                            class: "mb-3 text-white",
-                            "{data.description}"
-                        }
+                        "{data.description}"
                     }
                 }}
             }}
