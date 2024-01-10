@@ -814,13 +814,13 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
             }} else {rsx!{
                 div {
                     class: "flex flex-row gap-2",
-                    onclick: move |_| {
-                        editing.set(true);
-                        new_date.set(None);
-                        new_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
-                    },
                     svg {
                         class: "w-6 h-6 text-gray-400",
+                        onclick: move |_| {
+                            editing.set(true);
+                            new_date.set(None);
+                            new_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                        },
                         "aria-hidden": "true",
                         "xmlns": "http://www.w3.org/2000/svg",
                         "fill": "none",
