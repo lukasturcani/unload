@@ -614,7 +614,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 if **editing_description {rsx!{
                     textarea {
                         class: "p-4 bg-gray-900 rounded border border-gray-700 text-white",
-                        rows: data.description.lines().count() as i64,
+                        rows: 8.max(data.description.lines().count() as i64),
                         oninput: |event| new_description.set(event.value.clone()),
                         onfocusout: |_| {
                             editing_description.set(false);
