@@ -55,6 +55,8 @@ impl ResponsiveLayout {
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
     let layout = ResponsiveLayout::from_window();
+    let eval = use_eval(cx);
+    eval(&format!(r#"document.title = "{board_name}";"#)).unwrap();
     cx.render(rsx! {
         match layout {
             ResponsiveLayout::Narrow => rsx! {
