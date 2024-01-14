@@ -407,10 +407,11 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
     let hover_status = use_state(cx, || None::<TaskStatus>);
+    let draggable = use_state(cx, || true);
     cx.render(rsx! {
         div {
-            draggable: true,
             prevent_default: "onclick",
+            draggable: **draggable,
             onclick: |_| expanded.set(!**expanded),
             class: "
                 flex flex-col gap-2 p-3 border rounded-lg shadow
@@ -429,6 +430,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             editing_title.set(false);
                             set_task_title(model.clone(), *task_id, (**new_title).clone())
                         },
+                        onmouseenter: |_| draggable.set(false),
+                        onmouseleave: |_| draggable.set(true),
                         value: "{new_title}",
                     }
                 }} else {rsx!{
@@ -622,6 +625,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             editing_description.set(false);
                             set_task_description(model.clone(), *task_id, (**new_description).clone())
                         },
+                        onmouseenter: |_| draggable.set(false),
+                        onmouseleave: |_| draggable.set(true),
                         value: "{new_description}",
                     }
 
