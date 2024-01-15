@@ -4,7 +4,7 @@ pub const BUTTON: &str = "
     text-center bg-blue-600 hover:bg-blue-700 focus:ring-blue-800
 ";
 pub const TEXT_INPUT: &str = "
-    border text-sm rounded-lg
+    border text-base rounded-lg
     block w-full p-2.5 bg-gray-700
     border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500
     focus:border-blue-500
