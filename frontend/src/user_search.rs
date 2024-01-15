@@ -11,6 +11,8 @@ pub fn UserSearch<'a>(
     on_remove_user: EventHandler<'a, UserId>,
     initial_users: Option<Vec<UserId>>,
     always_show_suggestions: Option<bool>,
+    on_search_focus_in: Option<EventHandler<'a>>,
+    on_search_focus_out: Option<EventHandler<'a>>,
 ) -> Element<'a> {
     let always_show_suggestions = always_show_suggestions.unwrap_or(false);
     let model = use_shared_state::<Model>(cx).unwrap();
@@ -89,8 +91,18 @@ pub fn UserSearch<'a>(
                 placeholder: "Search",
                 autocomplete: "off",
                 value: "{search_input}",
-                onfocusin: |_| has_input_focus.set(true),
-                onfocusout: |_| has_input_focus.set(false),
+                onfocusin: move |_| {
+                    if let Some(handler) = on_search_focus_in {
+                        handler.call(());
+                    }
+                    has_input_focus.set(true);
+                },
+                onfocusout: move |_| {
+                    if let Some(handler) = on_search_focus_out {
+                        handler.call(());
+                    }
+                    has_input_focus.set(false)
+                },
                 oninput: |event| search_input.set(event.data.value.clone())
             },
         },

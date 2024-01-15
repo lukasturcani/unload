@@ -227,6 +227,8 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             id: "user_search",
                             on_select_user: |user_id| assigned_to.write().push(user_id),
                             on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
+                            on_search_focus_in: |_| has_focus.set(true),
+                            on_search_focus_out: |_| has_focus.set(false),
                         }
                     },
                     div {
