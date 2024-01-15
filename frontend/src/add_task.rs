@@ -68,11 +68,18 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "flex flex-col bg-gray-900 min-h-screen min-w-screen",
+            class: "
+                h-screen w-screen
+                bg-gray-900
+                flex flex-col
+            ",
             div {
-                class: "grow p-4 max-w-sm mx-auto",
+                class: "
+                    grow w-full p-4 overflow-y-scroll
+                    flex flex-col items-center
+                ",
                 form {
-                    class: "flex flex-col gap-5",
+                    class: "flex flex-col gap-5 items-left max-w-sm",
                     div {
                         label {
                             r#for: "task_title",
@@ -210,10 +217,12 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
 
                         },
                     },
-                    UserSearch{
-                        id: "user_search",
-                        on_select_user: |user_id| assigned_to.write().push(user_id),
-                        on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
+                    div {
+                        UserSearch {
+                            id: "user_search",
+                            on_select_user: |user_id| assigned_to.write().push(user_id),
+                            on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
+                        }
                     },
                     div {
                         label {
@@ -231,28 +240,32 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             },
                         },
                     },
-                    TaskSearch{
-                        id: "blocked_by_search",
-                        title: "Blocked by",
-                        banned: blocks.read().clone(),
-                        on_select_task: |task_id| blocked_by.write().push(task_id),
-                        on_remove_task: |task_id| {
-                            blocked_by
-                            .write()
-                            .retain(|&value| value != task_id)
+                    div {
+                        TaskSearch{
+                            id: "blocked_by_search",
+                            title: "Blocked by",
+                            banned: blocks.read().clone(),
+                            on_select_task: |task_id| blocked_by.write().push(task_id),
+                            on_remove_task: |task_id| {
+                                blocked_by
+                                .write()
+                                .retain(|&value| value != task_id)
+                            },
                         },
-                    },
-                    TaskSearch{
-                        id: "blocks_search",
-                        title: "Blocks",
-                        banned: blocked_by.read().clone(),
-                        on_select_task: |task_id| blocks.write().push(task_id),
-                        on_remove_task: |task_id| {
-                            blocks
-                            .write()
-                            .retain(|&value| value != task_id)
-                        },
-                    },
+                    }
+                    div {
+                        TaskSearch{
+                            id: "blocks_search",
+                            title: "Blocks",
+                            banned: blocked_by.read().clone(),
+                            on_select_task: |task_id| blocks.write().push(task_id),
+                            on_remove_task: |task_id| {
+                                blocks
+                                .write()
+                                .retain(|&value| value != task_id)
+                            },
+                        }
+                    }
                     div {
                         label {
                             r#for: "task_due",
