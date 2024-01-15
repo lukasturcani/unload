@@ -1,5 +1,6 @@
 use crate::color_picker::{self, ColorPicker};
 use crate::route::Route;
+use crate::styles;
 use crate::{model::Model, requests};
 use dioxus::prelude::*;
 use dioxus_router::hooks::use_navigator;
@@ -199,76 +200,57 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
             div {
-                class: "grow-0 shrink-0 w-full h-16 bg-gray-700",
-                div {
-                    class: "
-                        grid h-full max-w-96 grid-cols-4 mx-auto font-medium
-                    ",
-                    div {
-
-                    }
-                    button {
-                        r#type: "button",
+                class: styles::BOTTOM_BAR,
+                button {
+                    r#type: "button",
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    onclick: |_| {
+                        nav.push(Route::Board {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
                         class: "
-                            inline-flex flex-col items-center justify-center px-5
-                            active:bg-gray-800 group border-x border-gray-600
-                            sm:hover:bg-gray-800 sm:border-none
+                            w-6 h-6 text-gray-400
+                            group-active:text-blue-500
+                            sm:group-hover:text-blue-500
                         ",
-                        onclick: |_| {
-                            nav.push(Route::Board {
-                                board_name: board_name.clone(),
-                            });
-                        },
-                        svg {
-                            xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none",
-                            "viewBox": "0 0 24 24",
-                            "stroke-width": "1.5",
-                            stroke: "currentColor",
-                            class: "
-                                w-6 h-6 text-gray-400
-                                group-active:text-blue-500
-                                sm:group-hover:text-blue-500
-                            ",
-                            path {
-                                "stroke-linecap": "round",
-                                "stroke-linejoin": "round",
-                                d: "M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z"
-                            }
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z"
                         }
                     }
-                    button {
-                        r#type: "button" ,
+                }
+                button {
+                    r#type: "button" ,
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    onclick: |_| {
+                        nav.push(Route::AddUser {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
                         class: "
-                            inline-flex flex-col items-center justify-center px-5
-                            active:bg-gray-800 group border-e border-gray-600
-                            sm:hover:bg-gray-800 sm:border-none
+                            w-6 h-6 text-gray-400
+                            group-active:text-blue-500
+                            sm:group-hover:text-blue-500
                         ",
-                        onclick: |_| {
-                            nav.push(Route::AddUser {
-                                board_name: board_name.clone(),
-                            });
-                        },
-                        svg {
-                            xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none",
-                            "viewBox": "0 0 24 24",
-                            "stroke-width": "1.5",
-                            stroke: "currentColor",
-                            class: "
-                                w-6 h-6 text-gray-400
-                                group-active:text-blue-500
-                                sm:group-hover:text-blue-500
-                            ",
-                            path {
-                                "stroke-linecap": "round",
-                                "stroke-linejoin": "round",
-                                d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
-                            }
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
                         }
-                    }
-                    div {
-
                     }
                 }
             }
