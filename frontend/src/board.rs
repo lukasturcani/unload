@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
 use crate::user_search::UserSearch;
 use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
@@ -15,8 +16,6 @@ use crate::{color_picker, styles};
 use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
-use web_sys;
-
 pub const COLUMN: &str = "
     grow flex flex-col gap-2 rounded bg-gray-900 pt-4 px-4 overflow-y-auto
 ";
@@ -28,27 +27,6 @@ pub const TOOLTIP: &str = "
     z-10 px-3 py-2 text-sm font-medium text-white
     rounded-lg shadow-sm tooltip bg-gray-800
     border border-gray-700";
-
-enum ResponsiveLayout {
-    Narrow,
-    Wide,
-}
-
-impl ResponsiveLayout {
-    fn from_window() -> Self {
-        let width = web_sys::window()
-            .unwrap()
-            .inner_width()
-            .unwrap()
-            .as_f64()
-            .unwrap();
-        if width < 640.0 {
-            ResponsiveLayout::Narrow
-        } else {
-            ResponsiveLayout::Wide
-        }
-    }
-}
 
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {

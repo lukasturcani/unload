@@ -11,6 +11,8 @@ pub fn UserSearch<'a>(
     on_remove_user: EventHandler<'a, UserId>,
     initial_users: Option<Vec<UserId>>,
     always_show_suggestions: Option<bool>,
+    on_search_focus_in: Option<EventHandler<'a>>,
+    on_search_focus_out: Option<EventHandler<'a>>,
 ) -> Element<'a> {
     let always_show_suggestions = always_show_suggestions.unwrap_or(false);
     let model = use_shared_state::<Model>(cx).unwrap();
@@ -85,12 +87,22 @@ pub fn UserSearch<'a>(
             input {
                 r#type: "search",
                 id: *id,
-                class: "block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                class: "{styles::TEXT_INPUT} ps-10",
                 placeholder: "Search",
                 autocomplete: "off",
                 value: "{search_input}",
-                onfocusin: |_| has_input_focus.set(true),
-                onfocusout: |_| has_input_focus.set(false),
+                onfocusin: move |_| {
+                    if let Some(handler) = on_search_focus_in {
+                        handler.call(());
+                    }
+                    has_input_focus.set(true);
+                },
+                onfocusout: move |_| {
+                    if let Some(handler) = on_search_focus_out {
+                        handler.call(());
+                    }
+                    has_input_focus.set(false)
+                },
                 oninput: |event| search_input.set(event.data.value.clone())
             },
         },
