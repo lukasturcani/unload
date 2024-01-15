@@ -120,7 +120,6 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                                     d: "M15.75 19.5 8.25 12l7.5-7.5",
                                 }
                             }
-
                         }}
                     }
                     button {
