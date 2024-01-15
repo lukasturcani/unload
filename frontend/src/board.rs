@@ -136,7 +136,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             stroke: "currentColor",
-                            class: "mb-2 w-6 h-6 text-gray-400 group-active:text-blue-500",
+                            class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -158,7 +158,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             stroke: "currentColor",
-                            class: "mb-2 w-6 h-6 text-gray-400 group-active:text-blue-500",
+                            class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -248,7 +248,7 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                        class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
@@ -270,7 +270,7 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                        class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",

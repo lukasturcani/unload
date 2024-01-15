@@ -17,11 +17,10 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
         div {
             class: "flex flex-col bg-gray-900 min-h-screen min-w-screen",
             div {
-                class: "grow p-4",
+                class: "grow p-4 max-w-sm mx-auto",
                 form {
-                    class:"max-w-sm mx-auto",
+                    class: "flex flex-col gap-5",
                     div {
-                        class: "mb-5",
                         label {
                             r#for: "user_name",
                             class: styles::TEXT_INPUT_LABEL,
@@ -36,7 +35,7 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                         },
                     }
                     div {
-                        class: "mb-5 flex justify-center",
+                        class: "flex justify-center",
                         ColorPicker{
                             default_color: default_color,
                             on_pick_color: |c| color.set(c),
@@ -74,10 +73,16 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
             div {
                 class: "grow-0 shrink-0 w-full h-16 bg-gray-700",
                 div {
-                    class: "grid h-full max-w-lg grid-cols-1 mx-auto font-medium",
+                    class: "
+                        grid h-full max-w-lg grid-cols-4 mx-auto font-medium
+                    ",
                     button {
                         r#type: "button" ,
-                        class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
+                        class: "
+                            inline-flex flex-col items-center justify-center px-5 group
+                            active:bg-gray-800 group border-x border-gray-600
+                            sm:hover:bg-gray-800 sm:border-none
+                        ",
                         onclick: |_| {
                             nav.go_back();
                         },
@@ -87,7 +92,11 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             stroke: "currentColor",
-                            class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                            class: "
+                                w-6 h-6 text-gray-400
+                                group-active:text-blue-500
+                                sm:group-hover:text-blue-500
+                            ",
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
