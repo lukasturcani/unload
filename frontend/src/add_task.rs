@@ -465,11 +465,11 @@ fn TaskSearch<'a>(
                 class: "{styles::TEXT_INPUT} ps-10",
                 placeholder: "Search",
                 autocomplete: "off",
-                onfocusin: |event| {
+                onfocusin: |_| {
                     on_search_focus_in.call(());
                     has_input_focus.set(true);
                 },
-                onfocusout: |event| {
+                onfocusout: |_| {
                     on_search_focus_out.call(());
                     has_input_focus.set(true);
                     has_input_focus.set(false);
