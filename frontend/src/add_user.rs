@@ -1,4 +1,7 @@
-use crate::{color_picker::ColorPicker, model::Model, requests, route::Route, styles};
+use crate::{
+    color_picker::ColorPicker, model::Model, requests, responsive_layout::ResponsiveLayout,
+    route::Route, styles,
+};
 use dioxus::prelude::*;
 use dioxus_router::{hooks::use_navigator, prelude::Navigator};
 use shared_models::{BoardName, Color, UserData};
@@ -10,6 +13,8 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
     let name = use_state(cx, String::default);
     let default_color = Color::Black;
     let color = use_state(cx, || default_color);
+    let layout = ResponsiveLayout::from_window();
+    let has_focus = use_state(cx, || false);
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
@@ -39,6 +44,8 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                             id: "user_name",
                             value: "{name}",
                             oninput: |event| name.set(event.value.clone()),
+                            onfocusin: |_| has_focus.set(true),
+                            onfocusout: |_| has_focus.set(false),
                         },
                     }
                     div {
@@ -77,33 +84,35 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                     }
                 }
             }
-            div {
-                class: styles::BOTTOM_BAR,
-                button {
-                    r#type: "button" ,
-                    class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: |_| {
-                        nav.go_back();
-                    },
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none",
-                        "viewBox": "0 0 24 24",
-                        "stroke-width": "1.5",
-                        stroke: "currentColor",
-                        class: "
-                            w-6 h-6 text-gray-400
-                            group-active:text-blue-500
-                            sm:group-hover:text-blue-500
-                        ",
-                        path {
-                            "stroke-linecap": "round",
-                            "stroke-linejoin": "round",
-                            d: "M15.75 19.5 8.25 12l7.5-7.5",
+            if (layout == ResponsiveLayout::Wide) || (!has_focus && layout == ResponsiveLayout::Narrow) {rsx! {
+                div {
+                    class: styles::BOTTOM_BAR,
+                    button {
+                        r#type: "button" ,
+                        class: styles::BOTTOM_BAR_BUTTON,
+                        onclick: |_| {
+                            nav.go_back();
+                        },
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "
+                                w-6 h-6 text-gray-400
+                                group-active:text-blue-500
+                                sm:group-hover:text-blue-500
+                            ",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M15.75 19.5 8.25 12l7.5-7.5",
+                            }
                         }
                     }
                 }
-            }
+            }}
         }
     })
 }

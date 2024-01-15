@@ -356,7 +356,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                     }
                 }
             }
-            if !has_focus && layout == ResponsiveLayout::Narrow {rsx! {
+            if (layout == ResponsiveLayout::Wide) || (!has_focus && layout == ResponsiveLayout::Narrow) {rsx! {
                 div {
                     class: styles::BOTTOM_BAR,
                     button {
