@@ -62,6 +62,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
     let assigned_to = use_ref(cx, Vec::new);
     let due_date = use_state(cx, || None::<NaiveDate>);
     let due_time = use_state(cx, || NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+    let has_focus = use_state(cx, || false);
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
@@ -80,6 +81,8 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                 ",
                 form {
                     class: "flex flex-col gap-5 items-left w-full max-w-lg",
+                    onfocusin: |_| has_focus.set(true),
+                    onfocusout: |_| has_focus.set(false),
                     div {
                         label {
                             r#for: "task_title",
@@ -233,7 +236,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                         textarea {
                             r#id: "task_description",
                             rows: "4",
-                            class: "block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            class: "block p-2.5 w-full text-base text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
                             placeholder: "Give a description...",
                             oninput: |event| {
                                 description.set(event.value.clone())
@@ -447,7 +450,7 @@ fn TaskSearch<'a>(
             input {
                 r#type: "search",
                 id: *id,
-                class: "block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                class: "{styles::TEXT_INPUT} ps-10",
                 placeholder: "Search",
                 autocomplete: "off",
                 onfocusin: |_| has_input_focus.set(true),
