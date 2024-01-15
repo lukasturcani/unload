@@ -27,12 +27,16 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
     let name = use_state(cx, String::new);
     cx.render(rsx! {
         div {
-            class: "flex flex-col w-screen h-screen",
+            class: "
+                w-screen h-screen
+                bg-gray-900
+                flex flex-col
+            ",
             onclick: |_|  edit_field.set(None),
             div {
-                class: "grow w-full p-4",
+                class: "grow w-full p-4 overflow-auto",
                 div {
-                    class: "overflow-hidden border border-gray-900 w-full rounded-lg",
+                    class: "overflow-scroll border border-gray-900 w-full rounded-lg",
                     table {
                         class: "w-full text-sm text-left text-gray-400",
                         thead {
@@ -40,17 +44,17 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                             tr {
                                 th {
                                     scope: "col",
-                                    class: "px-6 py-3",
+                                    class: "p-3",
                                     "Color"
                                 }
                                 th {
                                     scope: "col",
-                                    class: "px-6 py-3",
+                                    class: "p-3",
                                     "User"
                                 }
                                 th {
                                     scope: "col",
-                                    class: "px-6 py-3",
+                                    class: "p-3",
                                 }
                             }
                         }
@@ -63,7 +67,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                         "bg-gray-800 sm:hover:bg-gray-600 border-gray-700 border-b"
                                     },
                                     td {
-                                        class: "px-6 py-4",
+                                        class: "p-3",
                                         match **edit_field {
                                             Some((edit_row, Column::Color)) if edit_row == row_index => rsx!{
                                                 ColorPicker {
@@ -114,7 +118,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                         }
                                     }
                                     td {
-                                        class: "px-6 py-4",
+                                        class: "p-3",
                                         match **edit_field {
                                             Some((edit_row, Column::Name)) if edit_row == row_index => rsx! {
                                                 input {
@@ -169,7 +173,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                         }
                                     }
                                     td {
-                                        class: "px-6 py-4",
+                                        class: "p-3",
                                         div {
                                             class: "grid grid-rows-1 place-items-end text-red-600",
                                             svg {
