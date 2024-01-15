@@ -1,4 +1,5 @@
 use crate::requests;
+use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
 use crate::user_search::UserSearch;
 use crate::{model::Model, styles};
@@ -62,6 +63,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
     let assigned_to = use_ref(cx, Vec::new);
     let due_date = use_state(cx, || None::<NaiveDate>);
     let due_time = use_state(cx, || NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+    let layout = ResponsiveLayout::from_window();
     let has_focus = use_state(cx, || false);
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
@@ -254,6 +256,8 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 .write()
                                 .retain(|&value| value != task_id)
                             },
+                            on_search_focus_in: |_| has_focus.set(true),
+                            on_search_focus_out: |_| has_focus.set(false),
                         },
                     }
                     div {
@@ -267,6 +271,8 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 .write()
                                 .retain(|&value| value != task_id)
                             },
+                            on_search_focus_in: |_| has_focus.set(true),
+                            on_search_focus_out: |_| has_focus.set(false),
                         }
                     }
                     div {
@@ -348,33 +354,35 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                     }
                 }
             }
-            div {
-                class: styles::BOTTOM_BAR,
-                button {
-                    r#type: "button" ,
-                    class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: |_| {
-                        nav.go_back();
-                    },
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none",
-                        "viewBox": "0 0 24 24",
-                        "stroke-width": "1.5",
-                        stroke: "currentColor",
-                        class: "
-                            w-6 h-6 text-gray-400
-                            group-active:text-blue-500
-                            sm:group-hover:text-blue-500
-                        ",
-                        path {
-                            "stroke-linecap": "round",
-                            "stroke-linejoin": "round",
-                            d: "M15.75 19.5 8.25 12l7.5-7.5",
+            if !has_focus && layout == ResponsiveLayout::Narrow {rsx! {
+                div {
+                    class: styles::BOTTOM_BAR,
+                    button {
+                        r#type: "button" ,
+                        class: styles::BOTTOM_BAR_BUTTON,
+                        onclick: |_| {
+                            nav.go_back();
+                        },
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "
+                                w-6 h-6 text-gray-400
+                                group-active:text-blue-500
+                                sm:group-hover:text-blue-500
+                            ",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M15.75 19.5 8.25 12l7.5-7.5",
+                            }
                         }
                     }
                 }
-            }
+            }}
         },
     })
 }
@@ -387,6 +395,8 @@ fn TaskSearch<'a>(
     banned: Vec<TaskId>,
     on_select_task: EventHandler<'a, TaskId>,
     on_remove_task: EventHandler<'a, TaskId>,
+    on_search_focus_in: EventHandler<'a>,
+    on_search_focus_out: EventHandler<'a>,
 ) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let has_input_focus = use_state(cx, || false);
@@ -453,8 +463,15 @@ fn TaskSearch<'a>(
                 class: "{styles::TEXT_INPUT} ps-10",
                 placeholder: "Search",
                 autocomplete: "off",
-                onfocusin: |_| has_input_focus.set(true),
-                onfocusout: |_| has_input_focus.set(false),
+                onfocusin: |event| {
+                    on_search_focus_in.call(());
+                    has_input_focus.set(true);
+                },
+                onfocusout: |event| {
+                    on_search_focus_out.call(());
+                    has_input_focus.set(true);
+                    has_input_focus.set(false);
+                },
                 oninput: |event| search_input.set(event.data.value.clone())
             },
         },
@@ -466,8 +483,6 @@ fn TaskSearch<'a>(
                         class: "py-2 text-sm text-gray-700 dark:text-gray-200",
                         li {
                             class: "italic text-gray-500 dark:text-gray-400 block text-left w-full px-4 py-2",
-                            prevent_default: "onmousedown",
-                            onmousedown: |_| {},
                             "No matches"
                         },
                     }
@@ -484,8 +499,6 @@ fn TaskSearch<'a>(
                                     button {
                                         r#type: "button",
                                         class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
-                                        prevent_default: "onmousedown",
-                                        onmousedown: |_| {},
                                         onclick: move |_| {
                                             selected.write().push(task.clone());
                                             on_select_task.call(task.0);

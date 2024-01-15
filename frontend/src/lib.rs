@@ -6,6 +6,7 @@ pub mod color_picker;
 pub mod join_board;
 pub mod model;
 pub mod requests;
+pub mod responsive_layout;
 pub mod route;
 pub mod styles;
 pub mod user_search;
