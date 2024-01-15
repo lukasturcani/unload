@@ -1,6 +1,8 @@
 use crate::color_picker::{self, ColorPicker};
+use crate::route::Route;
 use crate::{model::Model, requests};
 use dioxus::prelude::*;
+use dioxus_router::hooks::use_navigator;
 use itertools::Itertools;
 use shared_models::BoardName;
 use shared_models::{Color, UserId};
@@ -12,6 +14,7 @@ enum Column {
 
 #[component]
 pub fn Users(cx: Scope, board_name: BoardName) -> Element {
+    let nav = use_navigator(cx);
     let model = use_shared_state::<Model>(cx).unwrap();
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
@@ -23,10 +26,10 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
     let name = use_state(cx, String::new);
     cx.render(rsx! {
         div {
-            class: "w-screen h-screen",
+            class: "flex flex-col w-screen h-screen",
             onclick: |_|  edit_field.set(None),
             div {
-                class: "w-full p-2",
+                class: "grow w-full p-4",
                 div {
                     class: "overflow-hidden border border-gray-900 w-full rounded-lg",
                     table {
@@ -190,6 +193,56 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+            div {
+                class: "grow-0 shrink-0 w-full h-16 bg-gray-700",
+                div {
+                    class: "grid h-full max-w-lg grid-cols-2 mx-auto font-medium",
+                    button {
+                        r#type: "button",
+                        class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
+                        onclick: |_| {
+                            nav.push(Route::Board {
+                                board_name: board_name.clone(),
+                            });
+                        },
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z"
+                            }
+                        }
+                    }
+                    button {
+                        r#type: "button" ,
+                        class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
+                        onclick: |_| {
+                            nav.push(Route::AddUser {
+                                board_name: board_name.clone(),
+                            });
+                        },
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
                             }
                         }
                     }
