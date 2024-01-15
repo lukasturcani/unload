@@ -18,7 +18,7 @@ use shared_models::{BoardName, TaskId};
 use web_sys;
 
 pub const COLUMN: &str = "
-    flex flex-col gap-2 rounded bg-gray-900 pt-4 px-4 overflow-y-auto
+    grow flex flex-col gap-2 rounded bg-gray-900 pt-4 px-4 overflow-y-auto
 ";
 pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
 pub const COLUMN_TASK_LIST: &str = "grow flex flex-col gap-2 overflow-y-scroll";
@@ -373,80 +373,132 @@ fn ToDoColumn(cx: Scope) -> Element {
 
 #[component]
 fn InProgressColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap().read();
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
-            class: COLUMN,
+            class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
-                class: "flex items-center gap-2",
+                class: COLUMN,
+                div {
+                    class: "flex items-center gap-2",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "white",
+                        "class": "w-8 h-8",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                    h2 {
+                        class: COLUMN_HEADING,
+                        "In Progress"
+                    }
+                },
+                div {
+                    class: COLUMN_TASK_LIST,
+                    for task_id in model.read().in_progress.iter() {
+                        Task {
+                            key: "{task_id}",
+                            task_id: *task_id,
+                            status: TaskStatus::InProgress,
+                        }
+                    }
+                },
+            }
+            button {
+                r#type: "button",
+                class: " grid place-items-center group p-2 border-t border-gray-700",
+                onclick: |_| {
+                    nav.push(Route::AddTask {
+                        board_name: model.read().board_name.clone(),
+                    });
+                },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
                     fill: "none",
                     "viewBox": "0 0 24 24",
                     "stroke-width": "1.5",
-                    "stroke": "white",
-                    "class": "w-8 h-8",
+                    "stroke": "currentColor",
+                    class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
-                        d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                     }
                 }
-                h2 {
-                    class: COLUMN_HEADING,
-                    "In Progress"
-                }
-            },
-            div {
-                class: COLUMN_TASK_LIST,
-                for task_id in model.in_progress.iter() {
-                    Task {
-                        key: "{task_id}",
-                        task_id: *task_id,
-                        status: TaskStatus::InProgress,
-                    }
-                }
-            },
+            }
         }
     })
 }
 
 #[component]
 fn DoneColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap().read();
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
-            class: COLUMN,
+            class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
-                class: "flex items-center gap-2",
+                class: COLUMN,
+                div {
+                    class: "flex items-center gap-2",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "white",
+                        class: "w-8 h-8",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                    h2 {
+                        class: COLUMN_HEADING,
+                        "Done"
+                    }
+                },
+                div {
+                    class: COLUMN_TASK_LIST,
+                    for task_id in model.read().done.iter() {
+                        Task {
+                            key: "{task_id}",
+                            task_id: *task_id,
+                            status: TaskStatus::Done,
+                        }
+                    }
+                },
+            }
+            button {
+                r#type: "button",
+                class: " grid place-items-center group p-2 border-t border-gray-700",
+                onclick: |_| {
+                    nav.push(Route::AddTask {
+                        board_name: model.read().board_name.clone(),
+                    });
+                },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
                     fill: "none",
                     "viewBox": "0 0 24 24",
                     "stroke-width": "1.5",
-                    stroke: "white",
-                    class: "w-8 h-8",
+                    "stroke": "currentColor",
+                    class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
-                        d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                     }
                 }
-                h2 {
-                    class: COLUMN_HEADING,
-                    "Done"
-                }
-            },
-            div {
-                class: COLUMN_TASK_LIST,
-                for task_id in model.done.iter() {
-                    Task {
-                        key: "{task_id}",
-                        task_id: *task_id,
-                        status: TaskStatus::Done,
-                    }
-                }
-            },
+            }
         }
     })
 }
