@@ -9,21 +9,19 @@ use reqwest::Client;
 use shared_models::TaskStatus;
 use shared_models::{TaskSize, UserId};
 
-use crate::color_picker;
 use crate::model::Model;
 use crate::requests;
-use crate::styles;
+use crate::{color_picker, styles};
 use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
 use web_sys;
 
 pub const COLUMN: &str = "
-    flex flex-col gap-2 rounded bg-gray-900 border border-gray-700 p-4
-    overflow-y-auto
+    grow flex flex-col gap-2 rounded bg-gray-900 pt-4 px-4 overflow-y-auto
 ";
 pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
-pub const COLUMN_TASK_LIST: &str = "flex flex-col gap-2 overflow-y-scroll";
+pub const COLUMN_TASK_LIST: &str = "grow flex flex-col gap-2 overflow-y-scroll";
 pub const TOOLTIP: &str = "
     pointer-events-none absolute -top-10 -left-2 w-max
     opacity-0 transition-opacity group-hover:opacity-100
@@ -94,181 +92,184 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
             div {
-                class: "grow-0 shrink-0 w-full h-16 border-t bg-gray-700 border-gray-600",
-                div {
-                    class: "grid h-full max-w-lg grid-cols-5 mx-auto font-medium",
-                    button {
-                        r#type: "button" ,
-                        class: "inline-flex flex-col items-center justify-center px-5 border-x enabled:active:bg-gray-800 group border-gray-600",
-                        disabled: **column == TaskStatus::ToDo,
-                        onclick: |_| {
-                            match **column {
-                                TaskStatus::ToDo => column.set(TaskStatus::ToDo),
-                                TaskStatus::InProgress => column.set(TaskStatus::ToDo),
-                                TaskStatus::Done => column.set(TaskStatus::InProgress),
-                            }
-                        },
-                        if **column != TaskStatus::ToDo {rsx!{
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
-                                stroke: "currentColor",
-                                class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
-                                path {
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "M15.75 19.5 8.25 12l7.5-7.5",
-                                }
-                            }
-
-                        }}
-                    }
-                    button {
-                        r#type: "button" ,
-                        class: "inline-flex flex-col items-center justify-center px-5 border-e active:bg-gray-800 group border-gray-600",
-                        onclick: |_| {
-                            nav.push(Route::AddUser {
-                                board_name: board_name.clone(),
-                            });
-                        },
+                class: styles::BOTTOM_BAR,
+                button {
+                    r#type: "button" ,
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    disabled: **column == TaskStatus::ToDo,
+                    onclick: |_| {
+                        match **column {
+                            TaskStatus::ToDo => column.set(TaskStatus::ToDo),
+                            TaskStatus::InProgress => column.set(TaskStatus::ToDo),
+                            TaskStatus::Done => column.set(TaskStatus::InProgress),
+                        }
+                    },
+                    if **column != TaskStatus::ToDo {rsx!{
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
                             fill: "none",
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             stroke: "currentColor",
-                            class: "mb-2 w-6 h-6 text-gray-400 group-active:text-blue-500",
+                            class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
-                                d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                                d: "M15.75 19.5 8.25 12l7.5-7.5",
                             }
                         }
-                    }
-                    button {
-                        r#type: "button",
-                        class: "inline-flex flex-col items-center justify-center px-5 border-e active:bg-gray-800 group border-gray-600",
-                        onclick: |_| {
-                            nav.push(Route::Users {
-                                board_name: board_name.clone(),
-                            });
-                        },
-                        svg {
-                            xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none",
-                            "viewBox": "0 0 24 24",
-                            "stroke-width": "1.5",
-                            stroke: "currentColor",
-                            class: "mb-2 w-6 h-6 text-gray-400 group-active:text-blue-500",
-                            path {
-                                "stroke-linecap": "round",
-                                "stroke-linejoin": "round",
-                                d: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
-                            }
+                    }}
+                }
+                button {
+                    r#type: "button",
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    onclick: |_| {
+                        nav.push(Route::Users {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
                         }
-                    }
-                    button {
-                        r#type: "button",
-                        class: "inline-flex flex-col items-center justify-center px-5 active:bg-gray-800 group",
-                        onclick: |_| {
-                            nav.push(Route::AddTask {
-                                board_name: board_name.clone(),
-                            });
-                        },
-                        svg {
-                            xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none",
-                            "viewBox": "0 0 24 24",
-                            "stroke-width": "1.5",
-                            "stroke": "currentColor",
-                            class: "mb-2 w-6 h-6 text-gray-400 group-active:text-blue-500",
-                            path {
-                                "stroke-linecap": "round",
-                                "stroke-linejoin": "round",
-                                d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
-                            }
-                        }
-                    }
-                    button {
-                        r#type: "button",
-                        class: "inline-flex flex-col items-center justify-center px-5 enabled:active:bg-gray-800 group border-x border-gray-600",
-                        disabled: **column == TaskStatus::Done,
-                        onclick: |_| {
-                            match **column {
-                                TaskStatus::ToDo => column.set(TaskStatus::InProgress),
-                                TaskStatus::InProgress => column.set(TaskStatus::Done),
-                                TaskStatus::Done => column.set(TaskStatus::Done),
-                            }
-                        },
-                        if **column != TaskStatus::Done {rsx!{
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
-                                stroke: "currentColor",
-                                class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
-                                path {
-                                    "stroke-lineca": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "m8.25 4.5 7.5 7.5-7.5 7.5",
-                                }
-                            }
-                        }}
                     }
                 }
+                button {
+                    r#type: "button" ,
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    onclick: |_| {
+                        nav.push(Route::AddUser {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    disabled: **column == TaskStatus::Done,
+                    onclick: |_| {
+                        match **column {
+                            TaskStatus::ToDo => column.set(TaskStatus::InProgress),
+                            TaskStatus::InProgress => column.set(TaskStatus::Done),
+                            TaskStatus::Done => column.set(TaskStatus::Done),
+                        }
+                    },
+                    if **column != TaskStatus::Done {rsx!{
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
+                            path {
+                                "stroke-lineca": "round",
+                                "stroke-linejoin": "round",
+                                d: "m8.25 4.5 7.5 7.5-7.5 7.5",
+                            }
+                        }
+                    }}
+                }
             }
-    }
+        }
     })
 }
 
 #[component]
 fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
-    let nav = use_navigator(cx);
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "flex flex-col bg-gray-900 h-screen w-screen p-4 gap-2",
+            class: "flex flex-col bg-gray-900 h-screen w-screen",
             div {
-                class: "grow grid grid-cols-3 gap-2 overflow-y-auto",
-                ToDoColumn {},
-                InProgressColumn {},
-                DoneColumn {},
-            },
-            div {
-                class: "flex flex-row justify-center gap-2",
-                button {
-                    class: styles::BUTTON,
-                    onclick: |_| {
-                        nav.push(Route::AddUser {
-                            board_name: board_name.clone(),
-                        });
-                    },
-                    "Add User",
+                class: "grow p-4 w-full h-full overflow-y-auto",
+                div {
+                    class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
+                    ToDoColumn {},
+                    InProgressColumn {},
+                    DoneColumn {},
+                },
+            }
+            BottomBar {
+                board_name: board_name.clone(),
+            }
+        }
+    })
+}
+
+#[component]
+fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
+    let nav = use_navigator(cx);
+    cx.render(rsx! {
+        div {
+            class: styles::BOTTOM_BAR,
+            button {
+                r#type: "button",
+                class: styles::BOTTOM_BAR_BUTTON,
+                onclick: |_| {
+                    nav.push(Route::Users {
+                        board_name: board_name.clone(),
+                    });
+                },
+                svg {
+                    xmlns: "http://www.w3.org/2000/svg",
+                    fill: "none",
+                    "viewBox": "0 0 24 24",
+                    "stroke-width": "1.5",
+                    stroke: "currentColor",
+                    class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                    path {
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        d: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
+                    }
                 }
-                button {
-                    class: styles::BUTTON,
-                    onclick: |_| {
-                        nav.push(Route::Users {
-                            board_name: board_name.clone(),
-                        });
-                    },
-                    "Show Users",
-                }
-                button {
-                    class: styles::BUTTON,
-                    onclick: |_| {
-                        nav.push(Route::AddTask {
-                            board_name: board_name.clone(),
-                        });
-                    },
-                    "Add Task",
+            }
+            button {
+                r#type: "button" ,
+                class: styles::BOTTOM_BAR_BUTTON,
+                onclick: |_| {
+                    nav.push(Route::AddUser {
+                        board_name: board_name.clone(),
+                    });
+                },
+                svg {
+                    xmlns: "http://www.w3.org/2000/svg",
+                    fill: "none",
+                    "viewBox": "0 0 24 24",
+                    "stroke-width": "1.5",
+                    stroke: "currentColor",
+                    class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                    path {
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                    }
                 }
             }
         }
@@ -277,120 +278,207 @@ fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
 
 #[component]
 fn ToDoColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap().read();
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
-            class: COLUMN,
+            class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
-                class: "flex items-center gap-2",
+                class: COLUMN,
+                div {
+                    class: "flex items-center gap-2",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "white",
+                        class: "w-8 h-8",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                    h2 {
+                        class: COLUMN_HEADING,
+                        "To Do"
+                    }
+                },
+                div {
+                    class: COLUMN_TASK_LIST,
+                    for task_id in model.read().to_do.iter() {
+                        Task {
+                            key: "{task_id}",
+                            task_id: *task_id,
+                            status: TaskStatus::ToDo,
+                        }
+                    }
+                },
+            }
+            button {
+                r#type: "button",
+                class: " grid place-items-center group p-2 border-t border-gray-700",
+                onclick: |_| {
+                    nav.push(Route::AddToDoTask {
+                        board_name: model.read().board_name.clone(),
+                    });
+                },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
                     fill: "none",
                     "viewBox": "0 0 24 24",
                     "stroke-width": "1.5",
-                    stroke: "white",
-                    class: "w-8 h-8",
+                    "stroke": "currentColor",
+                    class: "
+                        w-6 h-6 text-gray-400
+                        group-active:text-blue-500 sm:group-hover:text-blue-500
+                    ",
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
-                        d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                     }
                 }
-                h2 {
-                    class: COLUMN_HEADING,
-                    "To Do"
-                }
-            },
-            div {
-                class: COLUMN_TASK_LIST,
-                for task_id in model.to_do.iter() {
-                    Task {
-                        key: "{task_id}",
-                        task_id: *task_id,
-                        status: TaskStatus::ToDo,
-                    }
-                }
-            },
+            }
         }
     })
 }
 
 #[component]
 fn InProgressColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap().read();
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
-            class: COLUMN,
+            class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
-                class: "flex items-center gap-2",
+                class: COLUMN,
+                div {
+                    class: "flex items-center gap-2",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "white",
+                        "class": "w-8 h-8",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                    h2 {
+                        class: COLUMN_HEADING,
+                        "In Progress"
+                    }
+                },
+                div {
+                    class: COLUMN_TASK_LIST,
+                    for task_id in model.read().in_progress.iter() {
+                        Task {
+                            key: "{task_id}",
+                            task_id: *task_id,
+                            status: TaskStatus::InProgress,
+                        }
+                    }
+                },
+            }
+            button {
+                r#type: "button",
+                class: " grid place-items-center group p-2 border-t border-gray-700",
+                onclick: |_| {
+                    nav.push(Route::AddInProgressTask {
+                        board_name: model.read().board_name.clone(),
+                    });
+                },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
                     fill: "none",
                     "viewBox": "0 0 24 24",
                     "stroke-width": "1.5",
-                    "stroke": "white",
-                    "class": "w-8 h-8",
+                    "stroke": "currentColor",
+                    class: "
+                        w-6 h-6 text-gray-400
+                        group-active:text-blue-500 sm:group-hover:text-blue-500
+                    ",
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
-                        d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                     }
                 }
-                h2 {
-                    class: COLUMN_HEADING,
-                    "In Progress"
-                }
-            },
-            div {
-                class: COLUMN_TASK_LIST,
-                for task_id in model.in_progress.iter() {
-                    Task {
-                        key: "{task_id}",
-                        task_id: *task_id,
-                        status: TaskStatus::InProgress,
-                    }
-                }
-            },
+            }
         }
     })
 }
 
 #[component]
 fn DoneColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap().read();
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
-            class: COLUMN,
+            class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
-                class: "flex items-center gap-2",
+                class: COLUMN,
+                div {
+                    class: "flex items-center gap-2",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "white",
+                        class: "w-8 h-8",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                    h2 {
+                        class: COLUMN_HEADING,
+                        "Done"
+                    }
+                },
+                div {
+                    class: COLUMN_TASK_LIST,
+                    for task_id in model.read().done.iter() {
+                        Task {
+                            key: "{task_id}",
+                            task_id: *task_id,
+                            status: TaskStatus::Done,
+                        }
+                    }
+                },
+            }
+            button {
+                r#type: "button",
+                class: " grid place-items-center group p-2 border-t border-gray-700",
+                onclick: |_| {
+                    nav.push(Route::AddDoneTask {
+                        board_name: model.read().board_name.clone(),
+                    });
+                },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
                     fill: "none",
                     "viewBox": "0 0 24 24",
                     "stroke-width": "1.5",
-                    stroke: "white",
-                    class: "w-8 h-8",
+                    "stroke": "currentColor",
+                    class: "
+                        w-6 h-6 text-gray-400
+                        group-active:text-blue-500 sm:group-hover:text-blue-500
+                    ",
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
-                        d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                     }
                 }
-                h2 {
-                    class: COLUMN_HEADING,
-                    "Done"
-                }
-            },
-            div {
-                class: COLUMN_TASK_LIST,
-                for task_id in model.done.iter() {
-                    Task {
-                        key: "{task_id}",
-                        task_id: *task_id,
-                        status: TaskStatus::Done,
-                    }
-                }
-            },
+            }
         }
     })
 }
@@ -439,7 +527,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         class: "grid grid-rows-1 justify-items-start",
                         h5 {
                             class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
-                            onclick: move |_| {
+                            onclick: move |event| {
+                                event.stop_propagation();
                                 editing_title.set(true);
                                 new_title.set(model.read().tasks[&task_id].title.clone());
                             },
@@ -525,7 +614,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     class: "flex flex-row gap-1",
                     span {
                         class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
-                        onclick: |_| {
+                        onclick: |event| {
+                            event.stop_propagation();
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Small)
                         },
@@ -533,7 +623,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                     span {
                         class: "text-sm font-medium px-2.5 py-0.5 rounded bg-yellow-900 text-yellow-300 cursor-pointer",
-                        onclick: |_| {
+                        onclick: |event| {
+                            event.stop_propagation();
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Medium)
                         },
@@ -541,7 +632,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                     span {
                         class: "text-sm font-medium px-2.5 py-0.5 rounded bg-red-900 text-red-300 cursor-pointer",
-                        onclick: |_| {
+                        onclick: |event| {
+                            event.stop_propagation();
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Large)
                         },
@@ -554,21 +646,30 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         TaskSize::Small => {rsx!{
                             span {
                                 class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
-                                onclick: |_| editing_size.set(true),
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_size.set(true);
+                                },
                                 "Small",
                             }
                         }}
                         TaskSize::Medium => {rsx!{
                             span {
                                 class: "text-sm font-medium px-2.5 py-0.5 rounded bg-yellow-900 text-yellow-300 cursor-pointer",
-                                onclick: |_| editing_size.set(true),
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_size.set(true);
+                                },
                                 "Medium",
                             }
                         }}
                         TaskSize::Large => {rsx!{
                             span {
                                 class: "text-sm font-medium px-2.5 py-0.5 rounded bg-red-900 text-red-300 cursor-pointer",
-                                onclick: |_| editing_size.set(true),
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_size.set(true);
+                                },
                                 "Large",
                             }
                         }}
@@ -589,7 +690,10 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 cursor-pointer",
-                        onclick: move |_| delete_task(model.clone(), *task_id),
+                        onclick: move |event| {
+                            event.stop_propagation();
+                            delete_task(model.clone(), *task_id)
+                        },
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
@@ -636,7 +740,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             p-4 bg-gray-900 rounded border border-gray-700 mb-3 text-white
                             whitespace-pre-wrap break-words
                         ",
-                        onclick: move |_| {
+                        onclick: move |event| {
+                            event.stop_propagation();
                             editing_description.set(true);
                             new_description.set(model.read().tasks[task_id].description.clone());
                         },
@@ -861,6 +966,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
             for user in users {rsx!{
                 div {
                     class: "group relative",
+                    onclick: |event| event.stop_propagation(),
                     div {
                         class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&user.color)}",
                     },
@@ -885,9 +991,9 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     class: "w-6 h-6 border border-white rounded cursor-pointer",
                     prevent_default: "onclick",
                     onclick: |event| {
+                        event.stop_propagation();
                         *assignees.write() = model.read().tasks[task_id].assignees.clone();
                         show_assign_user.set(true);
-                        event.stop_propagation()
                     },
                     path {
                         "stroke-linecap": "round",

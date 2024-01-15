@@ -11,12 +11,52 @@ use shared_models::{BoardName, TaskId, TaskSize, TaskStatus};
 
 #[component]
 pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
+    cx.render(rsx! {
+        AddTaskImpl {
+            board_name: board_name.clone(),
+            default_status: TaskStatus::ToDo,
+        }
+    })
+}
+
+#[component]
+pub fn AddToDoTask(cx: Scope, board_name: BoardName) -> Element {
+    cx.render(rsx! {
+        AddTaskImpl {
+            board_name: board_name.clone(),
+            default_status: TaskStatus::ToDo,
+        }
+    })
+}
+
+#[component]
+pub fn AddInProgressTask(cx: Scope, board_name: BoardName) -> Element {
+    cx.render(rsx! {
+        AddTaskImpl {
+            board_name: board_name.clone(),
+            default_status: TaskStatus::InProgress,
+        }
+    })
+}
+
+#[component]
+pub fn AddDoneTask(cx: Scope, board_name: BoardName) -> Element {
+    cx.render(rsx! {
+        AddTaskImpl {
+            board_name: board_name.clone(),
+            default_status: TaskStatus::Done,
+        }
+    })
+}
+
+#[component]
+fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let nav = use_navigator(cx);
     let title = use_state(cx, String::default);
     let description = use_state(cx, String::default);
     let size = use_state(cx, || TaskSize::Small);
-    let status = use_state(cx, || TaskStatus::ToDo);
+    let status = use_state(cx, || *default_status);
     let blocked_by = use_ref(cx, Vec::new);
     let blocks = use_ref(cx, Vec::new);
     let assigned_to = use_ref(cx, Vec::new);
@@ -28,276 +68,308 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "bg-gray-900 min-h-screen min-w-screen",
-            form { class:"max-w-sm mx-auto",
-                div {
-                    class: "mb-5",
-                    label {
-                        r#for: "task_title",
-                        class: styles::TEXT_INPUT_LABEL,
-                        "Title"
-                    },
-                    input {
-                        class: styles::TEXT_INPUT,
-                        r#type: "text",
-                        id: "task_title",
-                        value: "{title}",
-                        oninput: |event| {
-                            title.set(event.value.clone())
-                        },
-                    },
-                }
-                div {
-                    class: "mb-5",
-                    label {
-                        r#for: "status",
-                        class: styles::TEXT_INPUT_LABEL,
-                        "Status"
-                    },
+            class: "
+                h-screen w-screen
+                bg-gray-900
+                flex flex-col
+            ",
+            div {
+                class: "
+                    grow w-full p-4 overflow-y-scroll
+                    flex flex-col items-center
+                ",
+                form {
+                    class: "flex flex-col gap-5 items-left w-full max-w-lg",
                     div {
-                        class: "flex flex-row w-full gap-x-2",
-                        div {
-                            class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
-                            input {
-                                class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                                id: "status_to_do",
-                                r#type: "radio",
-                                value: "To do",
-                                name: "status",
-                                checked: true,
-                                oninput: |_| status.set(TaskStatus::ToDo),
-                            },
-                            label {
-                                r#for: "status_to_do",
-                                class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
-                                "To do",
-                            },
+                        label {
+                            r#for: "task_title",
+                            class: styles::TEXT_INPUT_LABEL,
+                            "Title"
                         },
-                        div {
-                            class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
-                            input {
-                                class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                                id: "status_in_progress",
-                                r#type: "radio",
-                                value: "In progress",
-                                name: "status",
-                                oninput: |_| status.set(TaskStatus::InProgress),
-                            },
-                            label {
-                                r#for: "status_in_progress",
-                                class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
-                                "In progress",
-                            },
-                        },
-                        div {
-                            class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
-                            input {
-                                class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                                id: "status_done",
-                                r#type: "radio",
-                                value: "Done",
-                                name: "status",
-                                oninput: |_| status.set(TaskStatus::Done),
-                            },
-                            label {
-                                r#for: "status_done",
-                                class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
-                                "Done",
-                            },
-                        },
-                    },
-                },
-                div {
-                    class: "mb-5",
-                    label {
-                        r#for: "size",
-                        class: styles::TEXT_INPUT_LABEL,
-                        "Size"
-                    },
-                    div {
-                        class: "flex flex-row w-full gap-x-2",
-                        div {
-                            class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
-                            input {
-                                class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                                id: "size_small",
-                                r#type: "radio",
-                                value: "Small",
-                                name: "size",
-                                checked: true,
-                                oninput: |_| size.set(TaskSize::Small),
-                            },
-                            label {
-                                r#for: "size_small",
-                                class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
-                                "Small",
-                            },
-                        },
-                        div {
-                            class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
-                            input {
-                                class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                                id: "size_medium",
-                                r#type: "radio",
-                                value: "Medium",
-                                name: "size",
-                                oninput: |_| size.set(TaskSize::Medium),
-                            },
-                            label {
-                                r#for: "size_medium",
-                                class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
-                                "Medium",
-                            },
-                        },
-                        div {
-                            class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
-                            input {
-                                class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                                id: "size_large",
-                                r#type: "radio",
-                                value: "Large",
-                                name: "size",
-                                oninput: |_| size.set(TaskSize::Large),
-                            },
-                            label {
-                                r#for: "size_large",
-                                class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
-                                "Large",
-                            },
-                        },
-
-                    },
-                },
-                div {
-                    class: "mb-5",
-                    UserSearch{
-                        id: "user_search",
-                        on_select_user: |user_id| assigned_to.write().push(user_id),
-                        on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
-                    },
-                },
-                div {
-                    class: "mb-5",
-                    label {
-                        r#for: "task_description" ,
-                        class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white",
-                        "Description"
-                    },
-                    textarea {
-                        r#id: "task_description",
-                        rows: "4",
-                        class: "block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
-                        placeholder: "Give a description...",
-                        oninput: |event| {
-                            description.set(event.value.clone())
-                        },
-                    },
-                },
-                div {
-                    class: "mb-5",
-                    TaskSearch{
-                        id: "blocked_by_search",
-                        title: "Blocked by",
-                        banned: blocks.read().clone(),
-                        on_select_task: |task_id| blocked_by.write().push(task_id),
-                        on_remove_task: |task_id| {
-                            blocked_by
-                            .write()
-                            .retain(|&value| value != task_id)
-                        },
-                    },
-                }
-                div {
-                    class: "mb-5",
-                    TaskSearch{
-                        id: "blocks_search",
-                        title: "Blocks",
-                        banned: blocked_by.read().clone(),
-                        on_select_task: |task_id| blocks.write().push(task_id),
-                        on_remove_task: |task_id| {
-                            blocks
-                            .write()
-                            .retain(|&value| value != task_id)
-                        },
-                    },
-                }
-                div {
-                    class: "mb-5",
-                    label {
-                        r#for: "task_due",
-                        class: styles::TEXT_INPUT_LABEL,
-                        "Due"
-                    },
-                    div {
-                        id: "task_due",
                         input {
-                            id: "task_due_date",
-                            class: "mb-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
-                            r#type: "date",
+                            class: styles::TEXT_INPUT,
+                            r#type: "text",
+                            id: "task_title",
+                            value: "{title}",
                             oninput: |event| {
-                                if event.value.is_empty() {
-                                    due_date.set(None)
-                                } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                    due_date.set(Some(date))
-                                }
+                                title.set(event.value.clone())
                             },
                         },
-                        if due_date.is_some() {rsx!{
-                            select {
-                                id: "task_due_time",
-                                class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
-                                onchange: |event| {
-                                    if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
-                                        due_time.set(time)
+                    }
+                    div {
+                        label {
+                            r#for: "status",
+                            class: styles::TEXT_INPUT_LABEL,
+                            "Status"
+                        },
+                        div {
+                            class: "flex flex-row w-full gap-x-2",
+                            div {
+                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                input {
+                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    id: "status_to_do",
+                                    r#type: "radio",
+                                    value: "To do",
+                                    name: "status",
+                                    checked: *status == TaskStatus::ToDo,
+                                    oninput: |_| status.set(TaskStatus::ToDo),
+                                },
+                                label {
+                                    r#for: "status_to_do",
+                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    "To do",
+                                },
+                            },
+                            div {
+                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                input {
+                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    id: "status_in_progress",
+                                    r#type: "radio",
+                                    value: "In progress",
+                                    name: "status",
+                                    checked: *status == TaskStatus::InProgress,
+                                    oninput: |_| status.set(TaskStatus::InProgress),
+                                },
+                                label {
+                                    r#for: "status_in_progress",
+                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    "In progress",
+                                },
+                            },
+                            div {
+                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                input {
+                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    id: "status_done",
+                                    r#type: "radio",
+                                    value: "Done",
+                                    name: "status",
+                                    checked: *status == TaskStatus::Done,
+                                    oninput: |_| status.set(TaskStatus::Done),
+                                },
+                                label {
+                                    r#for: "status_done",
+                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    "Done",
+                                },
+                            },
+                        },
+                    },
+                    div {
+                        label {
+                            r#for: "size",
+                            class: styles::TEXT_INPUT_LABEL,
+                            "Size"
+                        },
+                        div {
+                            class: "flex flex-row w-full gap-x-2",
+                            div {
+                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                input {
+                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    id: "size_small",
+                                    r#type: "radio",
+                                    value: "Small",
+                                    name: "size",
+                                    checked: true,
+                                    oninput: |_| size.set(TaskSize::Small),
+                                },
+                                label {
+                                    r#for: "size_small",
+                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    "Small",
+                                },
+                            },
+                            div {
+                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                input {
+                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    id: "size_medium",
+                                    r#type: "radio",
+                                    value: "Medium",
+                                    name: "size",
+                                    oninput: |_| size.set(TaskSize::Medium),
+                                },
+                                label {
+                                    r#for: "size_medium",
+                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    "Medium",
+                                },
+                            },
+                            div {
+                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                input {
+                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    id: "size_large",
+                                    r#type: "radio",
+                                    value: "Large",
+                                    name: "size",
+                                    oninput: |_| size.set(TaskSize::Large),
+                                },
+                                label {
+                                    r#for: "size_large",
+                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    "Large",
+                                },
+                            },
+
+                        },
+                    },
+                    div {
+                        UserSearch {
+                            id: "user_search",
+                            on_select_user: |user_id| assigned_to.write().push(user_id),
+                            on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
+                        }
+                    },
+                    div {
+                        label {
+                            r#for: "task_description" ,
+                            class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white",
+                            "Description"
+                        },
+                        textarea {
+                            r#id: "task_description",
+                            rows: "4",
+                            class: "block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            placeholder: "Give a description...",
+                            oninput: |event| {
+                                description.set(event.value.clone())
+                            },
+                        },
+                    },
+                    div {
+                        TaskSearch{
+                            id: "blocked_by_search",
+                            title: "Blocked by",
+                            banned: blocks.read().clone(),
+                            on_select_task: |task_id| blocked_by.write().push(task_id),
+                            on_remove_task: |task_id| {
+                                blocked_by
+                                .write()
+                                .retain(|&value| value != task_id)
+                            },
+                        },
+                    }
+                    div {
+                        TaskSearch{
+                            id: "blocks_search",
+                            title: "Blocks",
+                            banned: blocked_by.read().clone(),
+                            on_select_task: |task_id| blocks.write().push(task_id),
+                            on_remove_task: |task_id| {
+                                blocks
+                                .write()
+                                .retain(|&value| value != task_id)
+                            },
+                        }
+                    }
+                    div {
+                        label {
+                            r#for: "task_due",
+                            class: styles::TEXT_INPUT_LABEL,
+                            "Due"
+                        },
+                        div {
+                            id: "task_due",
+                            input {
+                                id: "task_due_date",
+                                class: "mb-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                r#type: "date",
+                                oninput: |event| {
+                                    if event.value.is_empty() {
+                                        due_date.set(None)
+                                    } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
+                                        due_date.set(Some(date))
                                     }
                                 },
-                                for hour in 0..24 {
-                                    for minute in [0, 15, 30, 45] {
-                                        rsx!{
-                                            option {
-                                                value: "{hour:02}:{minute:02}",
-                                                "{hour:02}:{minute:02}"
-                                            },
+                            },
+                            if due_date.is_some() {rsx!{
+                                select {
+                                    id: "task_due_time",
+                                    class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                    onchange: |event| {
+                                        if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
+                                            due_time.set(time)
+                                        }
+                                    },
+                                    for hour in 0..24 {
+                                        for minute in [0, 15, 30, 45] {
+                                            rsx!{
+                                                option {
+                                                    value: "{hour:02}:{minute:02}",
+                                                    "{hour:02}:{minute:02}"
+                                                },
+                                            }
                                         }
                                     }
-                                }
-                            },
-                        }}
-                    },
+                                },
+                            }}
+                        },
+                    }
+                    button {
+                        class: styles::BUTTON,
+                        r#type: "submit",
+                        prevent_default: "onclick",
+                        onclick: |_| {
+                            // TODO: once future issue is fixed change page
+                            // as first thing
+                            create_task(
+                                model.clone(),
+                                shared_models::TaskData {
+                                    title:
+                                        title
+                                        .make_mut()
+                                        .drain(..)
+                                        .collect::<String>()
+                                        .trim()
+                                        .to_string(),
+                                    description: description.make_mut().drain(..).collect(),
+                                    due: due_date.map(|date| {
+                                        Local.from_local_datetime(&date.and_time(**due_time))
+                                        .unwrap()
+                                        .into()
+                                    }),
+                                    size: **size,
+                                    status: **status,
+                                    assignees: assigned_to.write().drain(..).collect(),
+                                    blocks: blocks.write().drain(..).collect(),
+                                    blocked_by: blocked_by.write().drain(..).collect(),
+                                },
+                                nav.clone(),
+                            )
+                        },
+                        "Submit"
+                    }
                 }
+            }
+            div {
+                class: styles::BOTTOM_BAR,
                 button {
-                    class: styles::BUTTON,
-                    r#type: "submit",
-                    prevent_default: "onclick",
+                    r#type: "button" ,
+                    class: styles::BOTTOM_BAR_BUTTON,
                     onclick: |_| {
-                        // TODO: once future issue is fixed change page
-                        // as first thing
-                        create_task(
-                            model.clone(),
-                            shared_models::TaskData {
-                                title:
-                                    title
-                                    .make_mut()
-                                    .drain(..)
-                                    .collect::<String>()
-                                    .trim()
-                                    .to_string(),
-                                description: description.make_mut().drain(..).collect(),
-                                due: due_date.map(|date| {
-                                    Local.from_local_datetime(&date.and_time(**due_time))
-                                    .unwrap()
-                                    .into()
-                                }),
-                                size: **size,
-                                status: **status,
-                                assignees: assigned_to.write().drain(..).collect(),
-                                blocks: blocks.write().drain(..).collect(),
-                                blocked_by: blocked_by.write().drain(..).collect(),
-                            },
-                            nav.clone(),
-                        )
+                        nav.go_back();
                     },
-                    "Submit"
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "
+                            w-6 h-6 text-gray-400
+                            group-active:text-blue-500
+                            sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M15.75 19.5 8.25 12l7.5-7.5",
+                        }
+                    }
                 }
             }
         },

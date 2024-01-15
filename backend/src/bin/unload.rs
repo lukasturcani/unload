@@ -66,6 +66,18 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
         .nest_service("/boards/:board_name/add-user", ServeDir::new(serve_dir))
         .nest_service("/boards/:board_name/users", ServeDir::new(serve_dir))
         .nest_service("/boards/:board_name/add-task", ServeDir::new(serve_dir))
+        .nest_service(
+            "/boards/:board_name/add-to-do-task",
+            ServeDir::new(serve_dir),
+        )
+        .nest_service(
+            "/boards/:board_name/add-in-progress-task",
+            ServeDir::new(serve_dir),
+        )
+        .nest_service(
+            "/boards/:board_name/add-done-task",
+            ServeDir::new(serve_dir),
+        )
 }
 
 #[tokio::main]
