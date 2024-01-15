@@ -71,37 +71,28 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
             div {
-                class: "grow-0 shrink-0 w-full h-16 bg-gray-700",
-                div {
-                    class: "
-                        grid h-full max-w-lg grid-cols-4 mx-auto font-medium
-                    ",
-                    button {
-                        r#type: "button" ,
+                class: "{styles::BOTTOM_BAR} grid-cols-1",
+                button {
+                    r#type: "button" ,
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    onclick: |_| {
+                        nav.go_back();
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
                         class: "
-                            inline-flex flex-col items-center justify-center px-5 group
-                            active:bg-gray-800 group border-x border-gray-600
-                            sm:hover:bg-gray-800 sm:border-none
+                            w-6 h-6 text-gray-400
+                            group-active:text-blue-500
+                            sm:group-hover:text-blue-500
                         ",
-                        onclick: |_| {
-                            nav.go_back();
-                        },
-                        svg {
-                            xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none",
-                            "viewBox": "0 0 24 24",
-                            "stroke-width": "1.5",
-                            stroke: "currentColor",
-                            class: "
-                                w-6 h-6 text-gray-400
-                                group-active:text-blue-500
-                                sm:group-hover:text-blue-500
-                            ",
-                            path {
-                                "stroke-linecap": "round",
-                                "stroke-linejoin": "round",
-                                d: "M15.75 19.5 8.25 12l7.5-7.5",
-                            }
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M15.75 19.5 8.25 12l7.5-7.5",
                         }
                     }
                 }

@@ -9,7 +9,7 @@ use reqwest::Client;
 use shared_models::TaskStatus;
 use shared_models::{TaskSize, UserId};
 
-use crate::color_picker;
+use crate::{color_picker, styles};
 use crate::model::Model;
 use crate::requests;
 use dioxus::prelude::*;
@@ -92,44 +92,19 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
             div {
-                class: "grow-0 shrink-0 w-full h-16 border-t bg-gray-700 border-gray-600",
-                div {
-                    class: "grid h-full max-w-lg grid-cols-4 mx-auto font-medium",
-                    button {
-                        r#type: "button" ,
-                        class: "inline-flex flex-col items-center justify-center px-5 border-x enabled:active:bg-gray-800 group border-gray-600",
-                        disabled: **column == TaskStatus::ToDo,
-                        onclick: |_| {
-                            match **column {
-                                TaskStatus::ToDo => column.set(TaskStatus::ToDo),
-                                TaskStatus::InProgress => column.set(TaskStatus::ToDo),
-                                TaskStatus::Done => column.set(TaskStatus::InProgress),
-                            }
-                        },
-                        if **column != TaskStatus::ToDo {rsx!{
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
-                                stroke: "currentColor",
-                                class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
-                                path {
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "M15.75 19.5 8.25 12l7.5-7.5",
-                                }
-                            }
-                        }}
-                    }
-                    button {
-                        r#type: "button",
-                        class: "inline-flex flex-col items-center justify-center px-5 border-e active:bg-gray-800 group border-gray-600",
-                        onclick: |_| {
-                            nav.push(Route::Users {
-                                board_name: board_name.clone(),
-                            });
-                        },
+                class: "{styles::BOTTOM_BAR} grid-cols-4",
+                button {
+                    r#type: "button" ,
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    disabled: **column == TaskStatus::ToDo,
+                    onclick: |_| {
+                        match **column {
+                            TaskStatus::ToDo => column.set(TaskStatus::ToDo),
+                            TaskStatus::InProgress => column.set(TaskStatus::ToDo),
+                            TaskStatus::Done => column.set(TaskStatus::InProgress),
+                        }
+                    },
+                    if **column != TaskStatus::ToDo {rsx!{
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
                             fill: "none",
@@ -140,18 +115,67 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
-                                d: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
+                                d: "M15.75 19.5 8.25 12l7.5-7.5",
                             }
                         }
+                    }}
+                }
+                button {
+                    r#type: "button",
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    onclick: |_| {
+                        nav.push(Route::Users {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
+                        }
                     }
-                    button {
-                        r#type: "button" ,
-                        class: "inline-flex flex-col items-center justify-center px-5 border-e active:bg-gray-800 group border-gray-600",
-                        onclick: |_| {
-                            nav.push(Route::AddUser {
-                                board_name: board_name.clone(),
-                            });
-                        },
+                }
+                button {
+                    r#type: "button" ,
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    onclick: |_| {
+                        nav.push(Route::AddUser {
+                            board_name: board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: styles::BOTTOM_BAR_BUTTON,
+                    disabled: **column == TaskStatus::Done,
+                    onclick: |_| {
+                        match **column {
+                            TaskStatus::ToDo => column.set(TaskStatus::InProgress),
+                            TaskStatus::InProgress => column.set(TaskStatus::Done),
+                            TaskStatus::Done => column.set(TaskStatus::Done),
+                        }
+                    },
+                    if **column != TaskStatus::Done {rsx!{
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
                             fill: "none",
@@ -160,39 +184,12 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                             stroke: "currentColor",
                             class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
                             path {
-                                "stroke-linecap": "round",
+                                "stroke-lineca": "round",
                                 "stroke-linejoin": "round",
-                                d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                                d: "m8.25 4.5 7.5 7.5-7.5 7.5",
                             }
                         }
-                    }
-                    button {
-                        r#type: "button",
-                        class: "inline-flex flex-col items-center justify-center px-5 enabled:active:bg-gray-800 group border-x border-gray-600",
-                        disabled: **column == TaskStatus::Done,
-                        onclick: |_| {
-                            match **column {
-                                TaskStatus::ToDo => column.set(TaskStatus::InProgress),
-                                TaskStatus::InProgress => column.set(TaskStatus::Done),
-                                TaskStatus::Done => column.set(TaskStatus::Done),
-                            }
-                        },
-                        if **column != TaskStatus::Done {rsx!{
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
-                                stroke: "currentColor",
-                                class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
-                                path {
-                                    "stroke-lineca": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "m8.25 4.5 7.5 7.5-7.5 7.5",
-                                }
-                            }
-                        }}
-                    }
+                    }}
                 }
             }
         }
@@ -232,7 +229,7 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
         div {
             class: "grow-0 shrink-0 w-full h-16 bg-gray-700",
             div {
-                class: "grid h-full max-w-lg grid-cols-4 mx-auto font-medium",
+                class: "grid h-full w-full max-w-96 grid-cols-4 mx-auto font-medium",
                 div {}
                 button {
                     r#type: "button",

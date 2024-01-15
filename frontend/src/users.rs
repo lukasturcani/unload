@@ -202,7 +202,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                 class: "grow-0 shrink-0 w-full h-16 bg-gray-700",
                 div {
                     class: "
-                        grid h-full max-w-lg grid-cols-4 mx-auto font-medium
+                        grid h-full max-w-96 grid-cols-4 mx-auto font-medium
                     ",
                     div {
 
