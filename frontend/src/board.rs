@@ -18,8 +18,7 @@ use shared_models::{BoardName, TaskId};
 use web_sys;
 
 pub const COLUMN: &str = "
-    flex flex-col gap-2 rounded bg-gray-900 border border-gray-700 p-4
-    overflow-y-auto
+    flex flex-col gap-2 rounded bg-gray-900 pt-4 px-4 overflow-y-auto
 ";
 pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
 pub const COLUMN_TASK_LIST: &str = "grow flex flex-col gap-2 overflow-y-scroll";
@@ -256,29 +255,7 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
         div {
             class: "grow-0 shrink-0 w-full h-16 bg-gray-700",
             div {
-                class: "grid h-full max-w-lg grid-cols-3 mx-auto font-medium",
-                button {
-                    r#type: "button" ,
-                    class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
-                    onclick: |_| {
-                        nav.push(Route::AddUser {
-                            board_name: board_name.clone(),
-                        });
-                    },
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none",
-                        "viewBox": "0 0 24 24",
-                        "stroke-width": "1.5",
-                        stroke: "currentColor",
-                        class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
-                        path {
-                            "stroke-linecap": "round",
-                            "stroke-linejoin": "round",
-                            d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
-                        }
-                    }
-                }
+                class: "grid h-full max-w-lg grid-cols-2 mx-auto font-medium",
                 button {
                     r#type: "button",
                     class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
@@ -302,10 +279,10 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
                     }
                 }
                 button {
-                    r#type: "button",
+                    r#type: "button" ,
                     class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
                     onclick: |_| {
-                        nav.push(Route::AddTask {
+                        nav.push(Route::AddUser {
                             board_name: board_name.clone(),
                         });
                     },
@@ -314,12 +291,12 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
                         fill: "none",
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
-                        "stroke": "currentColor",
+                        stroke: "currentColor",
                         class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
-                            d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
                         }
                     }
                 }
@@ -330,40 +307,66 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
 
 #[component]
 fn ToDoColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap().read();
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
-            class: COLUMN,
+            class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
-                class: "flex items-center gap-2",
+                class: COLUMN,
+                div {
+                    class: "flex items-center gap-2",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "white",
+                        class: "w-8 h-8",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                    h2 {
+                        class: COLUMN_HEADING,
+                        "To Do"
+                    }
+                },
+                div {
+                    class: COLUMN_TASK_LIST,
+                    for task_id in model.read().to_do.iter() {
+                        Task {
+                            key: "{task_id}",
+                            task_id: *task_id,
+                            status: TaskStatus::ToDo,
+                        }
+                    }
+                },
+            }
+            button {
+                r#type: "button",
+                class: " grid place-items-center group p-2 border-t border-gray-700",
+                onclick: |_| {
+                    nav.push(Route::AddTask {
+                        board_name: model.read().board_name.clone(),
+                    });
+                },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
                     fill: "none",
                     "viewBox": "0 0 24 24",
                     "stroke-width": "1.5",
-                    stroke: "white",
-                    class: "w-8 h-8",
+                    "stroke": "currentColor",
+                    class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
-                        d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
                     }
                 }
-                h2 {
-                    class: COLUMN_HEADING,
-                    "To Do"
-                }
-            },
-            div {
-                class: COLUMN_TASK_LIST,
-                for task_id in model.to_do.iter() {
-                    Task {
-                        key: "{task_id}",
-                        task_id: *task_id,
-                        status: TaskStatus::ToDo,
-                    }
-                }
-            },
+            }
         }
     })
 }
