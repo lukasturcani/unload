@@ -337,7 +337,10 @@ fn ToDoColumn(cx: Scope) -> Element {
                     "viewBox": "0 0 24 24",
                     "stroke-width": "1.5",
                     "stroke": "currentColor",
-                    class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                    class: "
+                        w-6 h-6 text-gray-400
+                        group-active:text-blue-500 sm:group-hover:text-blue-500
+                    ",
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
@@ -403,7 +406,10 @@ fn InProgressColumn(cx: Scope) -> Element {
                     "viewBox": "0 0 24 24",
                     "stroke-width": "1.5",
                     "stroke": "currentColor",
-                    class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                    class: "
+                        w-6 h-6 text-gray-400
+                        group-active:text-blue-500 sm:group-hover:text-blue-500
+                    ",
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
@@ -469,7 +475,10 @@ fn DoneColumn(cx: Scope) -> Element {
                     "viewBox": "0 0 24 24",
                     "stroke-width": "1.5",
                     "stroke": "currentColor",
-                    class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                    class: "
+                        w-6 h-6 text-gray-400
+                        group-active:text-blue-500 sm:group-hover:text-blue-500
+                    ",
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
