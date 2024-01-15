@@ -92,7 +92,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
             div {
-                class: "{styles::BOTTOM_BAR} grid-cols-4",
+                class: styles::BOTTOM_BAR,
                 button {
                     r#type: "button" ,
                     class: styles::BOTTOM_BAR_BUTTON,

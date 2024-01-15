@@ -71,7 +71,7 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
             div {
-                class: "{styles::BOTTOM_BAR} grid-cols-1",
+                class: styles::BOTTOM_BAR,
                 button {
                     r#type: "button" ,
                     class: styles::BOTTOM_BAR_BUTTON,

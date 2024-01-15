@@ -12,8 +12,8 @@ pub const TEXT_INPUT: &str = "
 pub const TEXT_INPUT_LABEL: &str = "block mb-2 text-sm font-medium text-gray-900 dark:text-white";
 
 pub const BOTTOM_BAR_BUTTON: &str = "
-    h-full w-24
-    flex flex-col items-center justify-center
+    h-full w-1/6
+    grid place-items-center
     group
     first:border-s border-e border-gray-600
     active:bg-gray-800
@@ -24,5 +24,5 @@ pub const BOTTOM_BAR: &str = "
     grow-0 shrink-0 w-full h-16
     bg-gray-700
     border-t border-gray-600
-    grid place-items-center
+    flex flex-row justify-center
 ";
