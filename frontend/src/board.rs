@@ -9,9 +9,9 @@ use reqwest::Client;
 use shared_models::TaskStatus;
 use shared_models::{TaskSize, UserId};
 
-use crate::{color_picker, styles};
 use crate::model::Model;
 use crate::requests;
+use crate::{color_picker, styles};
 use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
@@ -527,7 +527,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         class: "grid grid-rows-1 justify-items-start",
                         h5 {
                             class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
-                            onclick: move |_| {
+                            onclick: move |event| {
+                                event.stop_propagation();
                                 editing_title.set(true);
                                 new_title.set(model.read().tasks[&task_id].title.clone());
                             },
@@ -613,7 +614,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     class: "flex flex-row gap-1",
                     span {
                         class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
-                        onclick: |_| {
+                        onclick: |event| {
+                            event.stop_propagation();
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Small)
                         },
@@ -621,7 +623,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                     span {
                         class: "text-sm font-medium px-2.5 py-0.5 rounded bg-yellow-900 text-yellow-300 cursor-pointer",
-                        onclick: |_| {
+                        onclick: |event| {
+                            event.stop_propagation();
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Medium)
                         },
@@ -629,7 +632,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                     span {
                         class: "text-sm font-medium px-2.5 py-0.5 rounded bg-red-900 text-red-300 cursor-pointer",
-                        onclick: |_| {
+                        onclick: |event| {
+                            event.stop_propagation();
                             editing_size.set(false);
                             set_task_size(model.clone(), *task_id, TaskSize::Large)
                         },
@@ -642,21 +646,30 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         TaskSize::Small => {rsx!{
                             span {
                                 class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
-                                onclick: |_| editing_size.set(true),
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_size.set(true);
+                                },
                                 "Small",
                             }
                         }}
                         TaskSize::Medium => {rsx!{
                             span {
                                 class: "text-sm font-medium px-2.5 py-0.5 rounded bg-yellow-900 text-yellow-300 cursor-pointer",
-                                onclick: |_| editing_size.set(true),
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_size.set(true);
+                                },
                                 "Medium",
                             }
                         }}
                         TaskSize::Large => {rsx!{
                             span {
                                 class: "text-sm font-medium px-2.5 py-0.5 rounded bg-red-900 text-red-300 cursor-pointer",
-                                onclick: |_| editing_size.set(true),
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_size.set(true);
+                                },
                                 "Large",
                             }
                         }}
@@ -677,7 +690,10 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 cursor-pointer",
-                        onclick: move |_| delete_task(model.clone(), *task_id),
+                        onclick: move |event| {
+                            event.stop_propagation();
+                            delete_task(model.clone(), *task_id)
+                        },
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
@@ -724,7 +740,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             p-4 bg-gray-900 rounded border border-gray-700 mb-3 text-white
                             whitespace-pre-wrap break-words
                         ",
-                        onclick: move |_| {
+                        onclick: move |event| {
+                            event.stop_propagation();
                             editing_description.set(true);
                             new_description.set(model.read().tasks[task_id].description.clone());
                         },
