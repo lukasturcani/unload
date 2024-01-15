@@ -232,7 +232,8 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
         div {
             class: "grow-0 shrink-0 w-full h-16 bg-gray-700",
             div {
-                class: "grid h-full max-w-lg grid-cols-2 mx-auto font-medium",
+                class: "grid h-full max-w-lg grid-cols-4 mx-auto font-medium",
+                div {}
                 button {
                     r#type: "button",
                     class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
@@ -277,6 +278,7 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
                         }
                     }
                 }
+                div {}
             }
         }
     })
