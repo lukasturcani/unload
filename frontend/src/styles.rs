@@ -1,15 +1,17 @@
 pub const BUTTON: &str = "
-    text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none
-    focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5
-    text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800
+    text-white focus:ring-4 focus:outline-none
+    font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5
+    text-center bg-blue-600 hover:bg-blue-700 focus:ring-blue-800
 ";
 pub const TEXT_INPUT: &str = "
-    bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
-    focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700
-    dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
-    dark:focus:border-blue-500
+    border text-sm rounded-lg
+    block w-full p-2.5 bg-gray-700
+    border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500
+    focus:border-blue-500
 ";
-pub const TEXT_INPUT_LABEL: &str = "block mb-2 text-sm font-medium text-gray-900 dark:text-white";
+pub const TEXT_INPUT_LABEL: &str = "
+    block mb-2 text-sm font-medium text-white
+";
 
 pub const BOTTOM_BAR_BUTTON: &str = "
     h-full w-1/6
