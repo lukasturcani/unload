@@ -234,7 +234,7 @@ fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
         div {
             class: "flex flex-col bg-gray-900 h-screen w-screen",
             div {
-                class: "grow p-4 w-full h-full",
+                class: "grow p-4 w-full h-full overflow-y-auto",
                 div {
                     class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
                     ToDoColumn {},
