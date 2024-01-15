@@ -11,12 +11,52 @@ use shared_models::{BoardName, TaskId, TaskSize, TaskStatus};
 
 #[component]
 pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
+    cx.render(rsx! {
+        AddTaskImpl {
+            board_name: board_name.clone(),
+            default_status: TaskStatus::ToDo,
+        }
+    })
+}
+
+#[component]
+pub fn AddToDoTask(cx: Scope, board_name: BoardName) -> Element {
+    cx.render(rsx! {
+        AddTaskImpl {
+            board_name: board_name.clone(),
+            default_status: TaskStatus::ToDo,
+        }
+    })
+}
+
+#[component]
+pub fn AddInProgressTask(cx: Scope, board_name: BoardName) -> Element {
+    cx.render(rsx! {
+        AddTaskImpl {
+            board_name: board_name.clone(),
+            default_status: TaskStatus::InProgress,
+        }
+    })
+}
+
+#[component]
+pub fn AddDoneTask(cx: Scope, board_name: BoardName) -> Element {
+    cx.render(rsx! {
+        AddTaskImpl {
+            board_name: board_name.clone(),
+            default_status: TaskStatus::Done,
+        }
+    })
+}
+
+#[component]
+fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let nav = use_navigator(cx);
     let title = use_state(cx, String::default);
     let description = use_state(cx, String::default);
     let size = use_state(cx, || TaskSize::Small);
-    let status = use_state(cx, || TaskStatus::ToDo);
+    let status = use_state(cx, || *default_status);
     let blocked_by = use_ref(cx, Vec::new);
     let blocks = use_ref(cx, Vec::new);
     let assigned_to = use_ref(cx, Vec::new);
@@ -64,7 +104,7 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
                                 r#type: "radio",
                                 value: "To do",
                                 name: "status",
-                                checked: true,
+                                checked: *status == TaskStatus::ToDo,
                                 oninput: |_| status.set(TaskStatus::ToDo),
                             },
                             label {
@@ -81,6 +121,7 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
                                 r#type: "radio",
                                 value: "In progress",
                                 name: "status",
+                                checked: *status == TaskStatus::InProgress,
                                 oninput: |_| status.set(TaskStatus::InProgress),
                             },
                             label {
@@ -97,6 +138,7 @@ pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
                                 r#type: "radio",
                                 value: "Done",
                                 name: "status",
+                                checked: *status == TaskStatus::Done,
                                 oninput: |_| status.set(TaskStatus::Done),
                             },
                             label {
