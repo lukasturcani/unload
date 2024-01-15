@@ -966,6 +966,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
             for user in users {rsx!{
                 div {
                     class: "group relative",
+                    onclick: |event| event.stop_propagation(),
                     div {
                         class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&user.color)}",
                     },
@@ -990,9 +991,9 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     class: "w-6 h-6 border border-white rounded cursor-pointer",
                     prevent_default: "onclick",
                     onclick: |event| {
+                        event.stop_propagation();
                         *assignees.write() = model.read().tasks[task_id].assignees.clone();
                         show_assign_user.set(true);
-                        event.stop_propagation()
                     },
                     path {
                         "stroke-linecap": "round",
