@@ -79,7 +79,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                     flex flex-col items-center
                 ",
                 form {
-                    class: "flex flex-col gap-5 items-left max-w-sm",
+                    class: "flex flex-col gap-5 items-left w-full max-w-lg",
                     div {
                         label {
                             r#for: "task_title",

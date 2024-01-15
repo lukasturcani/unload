@@ -26,7 +26,7 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                     flex flex-col items-center
                 ",
                 form {
-                    class: "flex flex-col gap-5 items-center max-w-sm",
+                    class: "flex flex-col gap-5 items-center w-full max-w-lg",
                     div {
                         label {
                             r#for: "user_name",
