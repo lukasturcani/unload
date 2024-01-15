@@ -220,55 +220,109 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                     }
                 }
             }
-    }
+        }
     })
 }
 
 #[component]
 fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
-    let nav = use_navigator(cx);
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "flex flex-col bg-gray-900 h-screen w-screen p-4 gap-2",
+            class: "flex flex-col bg-gray-900 h-screen w-screen",
             div {
-                class: "grow grid grid-cols-3 gap-2 overflow-y-auto",
-                ToDoColumn {},
-                InProgressColumn {},
-                DoneColumn {},
-            },
+                class: "grow p-4 w-full h-full",
+                div {
+                    class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
+                    ToDoColumn {},
+                    InProgressColumn {},
+                    DoneColumn {},
+                },
+            }
+            BottomBar {
+                board_name: board_name.clone(),
+            }
+        }
+    })
+}
+
+#[component]
+fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
+    let nav = use_navigator(cx);
+    cx.render(rsx! {
+        div {
+            class: "grow-0 shrink-0 w-full h-16 bg-gray-700",
             div {
-                class: "flex flex-row justify-center gap-2",
+                class: "grid h-full max-w-lg grid-cols-3 mx-auto font-medium",
                 button {
-                    class: styles::BUTTON,
+                    r#type: "button" ,
+                    class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
                     onclick: |_| {
                         nav.push(Route::AddUser {
                             board_name: board_name.clone(),
                         });
                     },
-                    "Add User",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                        }
+                    }
                 }
                 button {
-                    class: styles::BUTTON,
+                    r#type: "button",
+                    class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
                     onclick: |_| {
                         nav.push(Route::Users {
                             board_name: board_name.clone(),
                         });
                     },
-                    "Show Users",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
+                        }
+                    }
                 }
                 button {
-                    class: styles::BUTTON,
+                    r#type: "button",
+                    class: "inline-flex flex-col items-center justify-center px-5 hover:bg-gray-800 group",
                     onclick: |_| {
                         nav.push(Route::AddTask {
                             board_name: board_name.clone(),
                         });
                     },
-                    "Add Task",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "mb-2 w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
                 }
             }
         }
