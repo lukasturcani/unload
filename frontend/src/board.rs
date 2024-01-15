@@ -12,7 +12,6 @@ use shared_models::{TaskSize, UserId};
 use crate::color_picker;
 use crate::model::Model;
 use crate::requests;
-use crate::styles;
 use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
@@ -23,7 +22,7 @@ pub const COLUMN: &str = "
     overflow-y-auto
 ";
 pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
-pub const COLUMN_TASK_LIST: &str = "flex flex-col gap-2 overflow-y-scroll";
+pub const COLUMN_TASK_LIST: &str = "grow flex flex-col gap-2 overflow-y-scroll";
 pub const TOOLTIP: &str = "
     pointer-events-none absolute -top-10 -left-2 w-max
     opacity-0 transition-opacity group-hover:opacity-100
