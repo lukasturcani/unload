@@ -15,11 +15,18 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
     }
     cx.render(rsx! {
         div {
-            class: "flex flex-col bg-gray-900 min-h-screen min-w-screen",
+            class: "
+                h-screen w-screen
+                bg-gray-900
+                flex flex-col
+            ",
             div {
-                class: "grow p-4 max-w-sm mx-auto",
+                class: "
+                    grow w-full p-4 overflow-y-scroll
+                    flex flex-col items-center
+                ",
                 form {
-                    class: "flex flex-col gap-5",
+                    class: "flex flex-col gap-5 items-center max-w-sm",
                     div {
                         label {
                             r#for: "user_name",
