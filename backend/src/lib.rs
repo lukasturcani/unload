@@ -133,7 +133,7 @@ SELECT
 FROM
     tasks
 WHERE
-    id = ? AND board_name = ?
+    board_name = ? AND id = ?
 LIMIT 1"#,
         task_id,
         board_name,
@@ -152,7 +152,7 @@ SELECT
 FROM
     task_assignments
 WHERE
-    task_id = ?",
+    board_name = ? AND task_id = ?",
         task_id,
     )
     .fetch_all(&mut *tx)

@@ -36,6 +36,10 @@ create-db database:
   cargo sqlx prepare --workspace --database-url "sqlite:{{database}}"
   cargo run --release --bin create_initial_db -- "sqlite:{{database}}" data/nouns.txt data/adjectives.txt
 
+# migrate the database
+migrate-db database:
+  sqlx migrate run --database-url "sqlite:{{database}}"
+
 # prepare the database
 prepare-db database:
   cargo sqlx prepare --workspace --database-url "sqlite:{{database}}"
