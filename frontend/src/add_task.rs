@@ -50,6 +50,16 @@ pub fn AddDoneTask(cx: Scope, board_name: BoardName) -> Element {
     })
 }
 
+const RADIO_DIV: &str = "
+    w-full flex items-center ps-2 border rounded border-gray-700
+";
+const RADIO_INPUT: &str = "
+    w-4 h-4 text-blue-600 focus:ring-blue-600 ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-600
+";
+const RADIO_LABEL: &str = "
+    w-full py-4 ms-2 text-sm font-medium text-gray-300
+";
+
 #[component]
 fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
@@ -110,9 +120,9 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                         div {
                             class: "flex flex-row w-full gap-x-2",
                             div {
-                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                class: RADIO_DIV,
                                 input {
-                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    class: RADIO_INPUT,
                                     id: "status_to_do",
                                     r#type: "radio",
                                     value: "To do",
@@ -122,14 +132,14 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 },
                                 label {
                                     r#for: "status_to_do",
-                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    class: RADIO_LABEL,
                                     "To do",
                                 },
                             },
                             div {
-                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                class: RADIO_DIV,
                                 input {
-                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    class: RADIO_INPUT,
                                     id: "status_in_progress",
                                     r#type: "radio",
                                     value: "In progress",
@@ -139,14 +149,14 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 },
                                 label {
                                     r#for: "status_in_progress",
-                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    class: RADIO_LABEL,
                                     "In progress",
                                 },
                             },
                             div {
-                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                class: RADIO_DIV,
                                 input {
-                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    class: RADIO_INPUT,
                                     id: "status_done",
                                     r#type: "radio",
                                     value: "Done",
@@ -156,7 +166,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 },
                                 label {
                                     r#for: "status_done",
-                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    class: RADIO_LABEL,
                                     "Done",
                                 },
                             },
@@ -171,9 +181,9 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                         div {
                             class: "flex flex-row w-full gap-x-2",
                             div {
-                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                class: RADIO_DIV,
                                 input {
-                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    class: RADIO_INPUT,
                                     id: "size_small",
                                     r#type: "radio",
                                     value: "Small",
@@ -183,14 +193,14 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 },
                                 label {
                                     r#for: "size_small",
-                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    class: RADIO_LABEL,
                                     "Small",
                                 },
                             },
                             div {
-                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                class: RADIO_DIV,
                                 input {
-                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    class: RADIO_INPUT,
                                     id: "size_medium",
                                     r#type: "radio",
                                     value: "Medium",
@@ -199,14 +209,14 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 },
                                 label {
                                     r#for: "size_medium",
-                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    class: RADIO_LABEL,
                                     "Medium",
                                 },
                             },
                             div {
-                                class: "w-full flex items-center ps-2 border border-gray-200 rounded dark:border-gray-700",
+                                class: RADIO_DIV,
                                 input {
-                                    class: "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                                    class: RADIO_INPUT,
                                     id: "size_large",
                                     r#type: "radio",
                                     value: "Large",
@@ -215,7 +225,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 },
                                 label {
                                     r#for: "size_large",
-                                    class: "w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+                                    class: RADIO_LABEL,
                                     "Large",
                                 },
                             },
@@ -234,13 +244,13 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                     div {
                         label {
                             r#for: "task_description" ,
-                            class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white",
+                            class: "block mb-2 text-sm font-medium text-white",
                             "Description"
                         },
                         textarea {
                             r#id: "task_description",
                             rows: "4",
-                            class: "block p-2.5 w-full text-base text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                            class: "block p-2.5 w-full text-base rounded-lg border bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             placeholder: "Give a description...",
                             oninput: |event| {
                                 description.set(event.value.clone())
@@ -287,7 +297,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             id: "task_due",
                             input {
                                 id: "task_due_date",
-                                class: "mb-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                class: "mb-2 border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                                 r#type: "date",
                                 oninput: |event| {
                                     if event.value.is_empty() {
@@ -300,7 +310,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             if due_date.is_some() {rsx!{
                                 select {
                                     id: "task_due_time",
-                                    class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                                    class: "border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                                     onchange: |event| {
                                         if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
                                             due_time.set(time)
@@ -445,7 +455,7 @@ fn TaskSearch<'a>(
             div {
                 class: "absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none",
                 svg {
-                    class: "w-4 h-4 text-gray-500 dark:text-gray-400",
+                    class: "w-4 h-4 text-gray-400",
                     "aria-hidden": "true",
                     xmlns: "http://www.w3.org/2000/svg",
                     fill: "none" ,
@@ -480,27 +490,27 @@ fn TaskSearch<'a>(
         if let Some(suggestions) = dropdown_data {
             if suggestions.is_empty() {rsx!{
                 div {
-                    class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
+                    class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 focus:border-blue-500",
                     ul {
-                        class: "py-2 text-sm text-gray-700 dark:text-gray-200",
+                        class: "py-2 text-sm text-gray-200",
                         li {
-                            class: "italic text-gray-500 dark:text-gray-400 block text-left w-full px-4 py-2",
+                            class: "italic text-gray-400 block text-left w-full px-4 py-2",
                             "No matches"
                         },
                     }
                 }
             }} else {rsx!{
                 div {
-                    class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
+                    class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 focus:border-blue-500",
                     ul {
-                        class: "py-2 text-sm text-gray-700 dark:text-gray-200",
+                        class: "py-2 text-sm text-gray-200",
                         rsx!{
                             for task in suggestions {rsx!{
                                 li {
                                     key: "{task.0}",
                                     button {
                                         r#type: "button",
-                                        class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
+                                        class: "block text-left w-full px-4 py-2 hover:bg-gray-600 hover:text-white focus:border-blue-500",
                                         onclick: move |_| {
                                             selected.write().push(task.clone());
                                             on_select_task.call(task.0);
