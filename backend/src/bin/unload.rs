@@ -367,5 +367,19 @@ mod tests {
             .json::<Vec<UserEntry>>();
         db_users.sort_by(|user1, user2| user1.id.cmp(&user2.id));
         assert_eq!(expected_users, db_users);
+
+        // Check tag deletion
+
+        let removed_tag = expected_tags.pop().unwrap();
+        let _ = server
+            .delete(&format!("/api/boards/{board_name}/tags/{}", removed_tag.id))
+            .await
+            .json::<()>();
+        let mut db_tags = server
+            .get(&format!("/api/boards/{board_name}/tags"))
+            .await
+            .json::<Vec<TagEntry>>();
+        db_tags.sort_by(|tag1, tag2| tag1.id.cmp(&tag2.id));
+        assert_eq!(expected_tags, db_tags);
     }
 }
