@@ -70,7 +70,7 @@ pub fn UserSearch<'a>(
             div {
                 class: "absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none",
                 svg {
-                    class: "w-4 h-4 text-gray-500 dark:text-gray-400",
+                    class: "w-4 h-4 text-gray-400",
                     "aria-hidden": "true",
                     xmlns: "http://www.w3.org/2000/svg",
                     fill: "none" ,
@@ -108,7 +108,7 @@ pub fn UserSearch<'a>(
         },
         if **show_color_picker {rsx!{
             div {
-                class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 p-4",
+                class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 p-4",
                 ColorPicker {
                     on_pick_color: |color| {
                         show_color_picker.set(false);
@@ -126,16 +126,16 @@ pub fn UserSearch<'a>(
         if let Some((users, show_add_user_button)) = user_data {rsx!{
             if !users.is_empty() || show_add_user_button {rsx!{
                 div {
-                    class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700",
+                    class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700",
                     ul {
-                        class: "py-2 text-sm text-gray-700 dark:text-gray-200",
+                        class: "py-2 text-sm text-gray-200",
                         rsx!{
                             for user in users {rsx!{
                                 li {
                                     key: "{user.0}",
                                     button {
                                         r#type: "button",
-                                        class: "block text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white focus:border-blue-500",
+                                        class: "block text-left w-full px-4 py-2 hover:bg-gray-600 hover:text-white focus:border-blue-500",
                                         prevent_default: "onmousedown",
                                         onmousedown: |_| {},
                                         onclick: move |_| {
@@ -154,8 +154,8 @@ pub fn UserSearch<'a>(
                                 button {
                                     r#type: "button",
                                     class: "block text-left w-full px-4 py-2
-                                        hover:bg-gray-100 dark:hover:bg-gray-600
-                                        font-medium text-blue-600 dark:text-blue-500 hover:underline",
+                                        hover:bg-gray-600
+                                        font-medium text-blue-500 hover:underline",
                                     prevent_default: "onmousedown",
                                     onmousedown: |_| {},
                                     onclick: |_| show_color_picker.set(true),
@@ -168,11 +168,11 @@ pub fn UserSearch<'a>(
             }}
             else {rsx!{
                 div {
-                    class: "mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 focus:border-blue-500",
+                    class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 focus:border-blue-500",
                     ul {
-                        class: "py-2 text-sm text-gray-700 dark:text-gray-200 focus:border-blue-500",
+                        class: "py-2 text-sm text-gray-200 focus:border-blue-500",
                         li {
-                            class: "italic text-gray-500 dark:text-gray-400 block text-left w-full px-4 py-2",
+                            class: "italic text-gray-400 block text-left w-full px-4 py-2",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},
                             "No matches"
@@ -185,11 +185,11 @@ pub fn UserSearch<'a>(
             class: "mt-2",
             for user in selected.read().iter().map(|x| x.clone()) {rsx!{
                 span {
-                    class: "inline-flex items-center px-2 py-1 me-2 mt-2 text-sm font-medium text-gray-800 bg-gray-100 rounded dark:bg-gray-700 dark:text-gray-300",
+                    class: "inline-flex items-center px-2 py-1 me-2 mt-2 text-sm font-medium rounded bg-gray-700 text-gray-300",
                     user.1.clone(),
                     button {
                         r#type: "button",
-                        class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-gray-300",
+                        class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-600 hover:text-gray-300",
                         "aria-label": "Remove",
                         onclick: move |_| {
                             selected.write().retain(|this| this.0 != user.0);

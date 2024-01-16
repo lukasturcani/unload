@@ -481,7 +481,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             onclick: |_| expanded.set(!**expanded),
             class: "
                 flex flex-col gap-2 p-3 border rounded-lg shadow
-                bg-gray-800 border-gray-700 hover:bg-gray-700",
+                bg-gray-800 border-gray-700 sm:hover:bg-gray-700",
             div {
                 class: "grid grid-cols-2",
                 if **editing_title {rsx!{
