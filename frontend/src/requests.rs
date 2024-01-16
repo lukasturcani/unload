@@ -2,6 +2,8 @@ use crate::model::Model;
 use crate::model::TaskData;
 use dioxus::prelude::*;
 use reqwest::Client;
+use shared_models::TagData;
+use shared_models::TagId;
 use shared_models::{TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId};
 use std::collections::HashMap;
 use tokio::join;
@@ -150,5 +152,28 @@ pub async fn create_user(
             .json::<UserId>()
             .await?,
         user_data.name,
+    ))
+}
+
+pub async fn create_tag(
+    model: UseSharedState<Model>,
+    mut tag_data: TagData,
+) -> Result<(TagId, String), anyhow::Error> {
+    tag_data.name = tag_data.name.trim().to_string();
+    let url = {
+        let model = model.read();
+        model
+            .url
+            .join(&format!("/api/boards/{}/tags", model.board_name))?
+    };
+    Ok((
+        Client::new()
+            .post(url)
+            .json(&tag_data)
+            .send()
+            .await?
+            .json::<TagId>()
+            .await?,
+        tag_data.name,
     ))
 }

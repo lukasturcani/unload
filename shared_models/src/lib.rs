@@ -84,7 +84,7 @@ impl Display for UserId {
 }
 
 #[derive(
-    Debug, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize, sqlx::Type, Clone, Copy,
+    Debug, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize, sqlx::Type, Clone, Copy, Hash,
 )]
 #[sqlx(transparent)]
 pub struct TagId(i64);
