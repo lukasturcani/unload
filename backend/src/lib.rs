@@ -140,8 +140,8 @@ FROM
 WHERE
     board_name = ? AND id = ?
 LIMIT 1"#,
-        task_id,
         board_name,
+        task_id,
     )
     .fetch_one(&mut *tx)
     .await?;
