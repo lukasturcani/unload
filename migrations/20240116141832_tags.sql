@@ -1,4 +1,5 @@
-CREATE TABLE tags (
+CREATE TABLE
+IF NOT EXISTS tags (
     name TEXT PRIMARY KEY NOT NULL,
     board_name TEXT NOT NULL,
     color TEXT CHECK (color IN (
