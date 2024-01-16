@@ -309,7 +309,7 @@ fn ToDoColumn(cx: Scope) -> Element {
                     "stroke-width": "1.5",
                     "stroke": "currentColor",
                     class: "
-                        w-6 h-6 text-gray-400
+                        w-6 h-6 text-white
                         group-active:text-blue-500 sm:group-hover:text-blue-500
                     ",
                     path {
@@ -378,7 +378,7 @@ fn InProgressColumn(cx: Scope) -> Element {
                     "stroke-width": "1.5",
                     "stroke": "currentColor",
                     class: "
-                        w-6 h-6 text-gray-400
+                        w-6 h-6 text-white
                         group-active:text-blue-500 sm:group-hover:text-blue-500
                     ",
                     path {
@@ -447,7 +447,7 @@ fn DoneColumn(cx: Scope) -> Element {
                     "stroke-width": "1.5",
                     "stroke": "currentColor",
                     class: "
-                        w-6 h-6 text-gray-400
+                        w-6 h-6 text-white
                         group-active:text-blue-500 sm:group-hover:text-blue-500
                     ",
                     path {
@@ -472,7 +472,6 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let editing_size = use_state(cx, || false);
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
-    let hover_status = use_state(cx, || None::<TaskStatus>);
     let draggable = use_state(cx, || true);
     cx.render(rsx! {
         div {
@@ -523,13 +522,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             fill: "none",
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
-                            stroke: match **hover_status {
-                                Some(TaskStatus::ToDo) => "red",
-                                _ => "white",
-                            },
-                            class: "cursor-pointer w-8 h-8",
-                            onmouseover: |_| hover_status.set(Some(TaskStatus::ToDo)),
-                            onmouseout: |_| hover_status.set(None),
+                            stroke: "currentColor",
+                            class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
                             onclick: |event| {
                                 event.stop_propagation();
                                 set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
@@ -545,13 +539,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             fill: "none",
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
-                            stroke: match **hover_status {
-                                Some(TaskStatus::InProgress) => "yellow",
-                                _ => "white",
-                            },
-                            "class": "cursor-pointer w-8 h-8",
-                            onmouseover: |_| hover_status.set(Some(TaskStatus::InProgress)),
-                            onmouseout: |_| hover_status.set(None),
+                            stroke: "currentColor",
+                            "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
                             onclick: |event| {
                                 event.stop_propagation();
                                 set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
@@ -567,13 +556,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             fill: "none",
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
-                            stroke: match **hover_status {
-                                Some(TaskStatus::Done) => "green",
-                                _ => "white",
-                            },
-                            class: "cursor-pointer w-8 h-8",
-                            onmouseover: |_| hover_status.set(Some(TaskStatus::Done)),
-                            onmouseout: |_| hover_status.set(None),
+                            stroke: "currentColor",
+                            class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
                             onclick: |event| {
                                 event.stop_propagation();
                                 set_task_status(model.clone(), *task_id, TaskStatus::Done)
