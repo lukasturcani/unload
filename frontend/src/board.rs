@@ -1060,25 +1060,19 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
         .map(|tag_id| &read_model.tags[tag_id])
         .collect();
     let show_assign_tag = use_state(cx, || false);
-    let tags = use_ref(cx, Vec::new);
+    let assigned_tags = use_ref(cx, Vec::new);
     cx.render(rsx! {
         div {
             class: "flex flex-row gap-2",
             for tag in tags {rsx!{
-                div {
-                    class: "group relative",
-                    onclick: |event| event.stop_propagation(),
-                    div {
-                        class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&tag.color)}",
+                span {
+                    class: "
+                        text-sm font-medium px-2.5 py-0.5 rounded {color_picker::class(&tag.color)}
+                    ",
+                    onclick: |event| {
+                        event.stop_propagation();
                     },
-                    div {
-                        class: TOOLTIP,
-                        "{tag.name}"
-                        div {
-                            class: "tooltip-arrow",
-                            "data-popper-arrow": "",
-                        }
-                    }
+                    "{tag.name}",
                 }
             }}
             div {
@@ -1093,7 +1087,7 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                     prevent_default: "onclick",
                     onclick: |event| {
                         event.stop_propagation();
-                        *tags.write() = model.read().tasks[task_id].tags.clone();
+                        *assigned_tags.write() = model.read().tasks[task_id].tags.clone();
                         show_assign_tag.set(true);
                     },
                     path {
@@ -1112,9 +1106,9 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                             border border-gray-700",
                         TagSearch {
                             id: "assign_tag_modal",
-                            on_select_tag: |tag_id| tags.write().push(tag_id),
-                            on_remove_tag: |tag_id| tags.write().retain(|&value| value != tag_id),
-                            initial_tags: tags.read().clone(),
+                            on_select_tag: |tag_id| assigned_tags.write().push(tag_id),
+                            on_remove_tag: |tag_id| assigned_tags.write().retain(|&value| value != tag_id),
+                            initial_tags: assigned_tags.read().clone(),
                             always_show_suggestions: true,
                         }
                         div {
@@ -1130,7 +1124,7 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                                     show_assign_tag.set(false);
                                     set_task_tags(
                                         model.clone(),
-                                        *task_id, tags.read().clone()
+                                        *task_id, assigned_tags.read().clone()
                                     )
                                 },
                                 svg {

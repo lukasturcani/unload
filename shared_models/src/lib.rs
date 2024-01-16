@@ -100,7 +100,7 @@ impl Display for TagId {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct TagData {
     pub name: String,
     pub color: Color,
