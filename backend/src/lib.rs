@@ -153,6 +153,7 @@ FROM
     task_assignments
 WHERE
     board_name = ? AND task_id = ?",
+        board_name,
         task_id,
     )
     .fetch_all(&mut *tx)

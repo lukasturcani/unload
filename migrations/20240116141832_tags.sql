@@ -1,6 +1,25 @@
 CREATE TABLE tags (
     name TEXT PRIMARY KEY NOT NULL,
     board_name TEXT NOT NULL,
+    color TEXT CHECK (color IN (
+        'Black',
+        'White',
+        'Gray',
+        'Silver',
+        'Maroon',
+        'Red',
+        'Purple',
+        'Fushsia',
+        'Green',
+        'Lime',
+        'Olive',
+        'Yellow',
+        'Navy',
+        'Blue',
+        'Teal',
+        'Aqua'
+
+    )) NOT NULL,
     FOREIGN KEY (board_name) REFERENCES boards (name),
     UNIQUE (name, board_name)
 );

@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\nSELECT\n    id, title, description,\n    created AS \"created: DateTime<Utc>\",\n    updated AS \"updated: DateTime<Utc>\",\n    due AS \"due: DateTime<Utc>\",\n    size AS \"size: TaskSize\",\n    status AS \"status: TaskStatus\"\nFROM\n    tasks\nWHERE\n    id = ? AND board_name = ?\nLIMIT 1",
+  "query": "\nSELECT\n    id, title, description,\n    created AS \"created: DateTime<Utc>\",\n    updated AS \"updated: DateTime<Utc>\",\n    due AS \"due: DateTime<Utc>\",\n    size AS \"size: TaskSize\",\n    status AS \"status: TaskStatus\"\nFROM\n    tasks\nWHERE\n    board_name = ? AND id = ?\nLIMIT 1",
   "describe": {
     "columns": [
       {
@@ -58,5 +58,5 @@
       false
     ]
   },
-  "hash": "cf8f4dc6c9ff8d0c8901d7415c81c537a2214ca10503d395181ac9b0afcdfed3"
+  "hash": "971901e9e7fad36a9c23dc661bff79dab3843f9b890ba8498a099b2e4afae3c9"
 }
