@@ -7,10 +7,10 @@ use std::{net::SocketAddr, path::PathBuf};
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use unload::{
-    create_board, create_task, create_user, delete_task, delete_user, show_task, show_tasks,
-    show_user, show_users, update_task_assignees, update_task_description, update_task_due,
-    update_task_size, update_task_status, update_task_title, update_user_color, update_user_name,
-    Result,
+    create_board, create_tag, create_task, create_user, delete_tag, delete_task, delete_user,
+    show_tag, show_tags, show_task, show_tasks, show_user, show_users, update_task_assignees,
+    update_task_description, update_task_due, update_task_size, update_task_status,
+    update_task_title, update_user_color, update_user_name, Result,
 };
 fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
     Router::new()
@@ -61,6 +61,10 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
         )
         .route("/api/boards/:board_name/users", get(show_users))
         .route("/api/boards/:board_name/users", post(create_user))
+        .route("/api/boards/:board_name/tags", get(show_tags))
+        .route("/api/boards/:board_name/tags", post(create_tag))
+        .route("/api/boards/:board_name/tags/:tag_id", get(show_tag))
+        .route("/api/boards/:board_name/tags/:tag_id", delete(delete_tag))
         .nest_service("/", ServeDir::new(serve_dir))
         .nest_service("/boards/:board_name", ServeDir::new(serve_dir))
         .nest_service("/boards/:board_name/add-user", ServeDir::new(serve_dir))

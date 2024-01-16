@@ -3,6 +3,8 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
+use shared_models::TagData;
+use shared_models::TagEntry;
 use shared_models::TagId;
 use shared_models::{
     BoardName, Color, TaskData, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry,
@@ -790,6 +792,107 @@ WHERE
     )
     .execute(&mut *tx)
     .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn show_tags(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<TagEntry>>> {
+    let mut tx = pool.begin().await?;
+    let tags = sqlx::query_as!(
+        TagEntry,
+        r#"
+SELECT
+    id, name, color AS "color: Color"
+FROM
+    tags
+WHERE
+    board_name = ?"#,
+        board_name
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(tags))
+}
+
+pub async fn create_tag(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+    Json(TagData { name, color }): Json<TagData>,
+) -> Result<Json<TagId>> {
+    let mut tx = pool.begin().await?;
+    let tag_id = sqlx::query!(
+        "
+INSERT INTO tags (board_name, name, color)
+VALUES (?, ?, ?)",
+        board_name,
+        name,
+        color,
+    )
+    .execute(&mut *tx)
+    .await?
+    .last_insert_rowid()
+    .into();
+    tx.commit().await?;
+    Ok(Json(tag_id))
+}
+
+pub async fn show_tag(
+    State(pool): State<SqlitePool>,
+    Path((board_name, tag_id)): Path<(BoardName, TagId)>,
+) -> Result<Json<TagEntry>> {
+    let mut tx = pool.begin().await?;
+    let tag_entry = sqlx::query_as!(
+        TagEntry,
+        r#"
+SELECT
+    id, name, color AS "color: Color"
+FROM
+    tags
+WHERE
+    board_name = ? AND id = ?
+LIMIT 1"#,
+        board_name,
+        tag_id
+    )
+    .fetch_one(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(tag_entry))
+}
+
+pub async fn delete_tag(
+    State(pool): State<SqlitePool>,
+    Path((board_name, tag_id)): Path<(BoardName, TagId)>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    task_tags
+WHERE
+    board_name = ? AND tag_id = ?",
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
+    tags
+WHERE
+    board_name = ? AND id = ?",
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
     tx.commit().await?;
     Ok(Json(()))
 }

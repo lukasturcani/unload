@@ -28,6 +28,10 @@ IF NOT EXISTS tags (
 CREATE INDEX IF NOT EXISTS tags_board_name_idx ON tags (
     board_name
 );
+CREATE INDEX IF NOT EXISTS tags_tag_idx ON tags (
+    board_name,
+    id
+);
 
 CREATE TABLE IF NOT EXISTS task_tags (
     id INTEGER PRIMARY KEY NOT NULL,
@@ -45,4 +49,8 @@ CREATE INDEX IF NOT EXISTS task_tags_board_name_idx ON task_tags (
 CREATE INDEX IF NOT EXISTS task_tags_task_id_idx ON task_tags (
     board_name,
     task_id
+);
+CREATE INDEX IF NOT EXISTS task_tags_tag_id_idx ON task_tags (
+    board_name,
+    tag_id
 );

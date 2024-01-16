@@ -101,13 +101,13 @@ impl Display for TagId {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TagData {
     pub name: String,
     pub color: Color,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TagEntry {
     pub id: TagId,
     pub name: String,
