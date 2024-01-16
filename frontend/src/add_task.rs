@@ -528,11 +528,11 @@ fn TaskSearch<'a>(
             class: "mt-2",
             for task in selected.read().iter().map(|x| x.clone()) {rsx!{
                 span {
-                    class: "inline-flex items-center px-2 py-1 me-2 mt-2 text-sm font-medium text-gray-800 bg-gray-100 rounded dark:bg-gray-700 dark:text-gray-300",
+                    class: "inline-flex items-center px-2 py-1 me-2 mt-2 text-sm font-medium rounded bg-gray-700 text-gray-300",
                     task.1.clone(),
                     button {
                         r#type: "button",
-                        class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-gray-300",
+                        class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-600 hover:text-gray-300",
                         "aria-label": "Remove",
                         onclick: move |_| {
                             selected.write().retain(|this| this.0 != task.0);
