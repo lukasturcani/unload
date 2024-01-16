@@ -909,3 +909,54 @@ WHERE
     tx.commit().await?;
     Ok(Json(()))
 }
+
+pub async fn update_tag_name(
+    State(pool): State<SqlitePool>,
+    Path((board_name, tag_id)): Path<(BoardName, TagId)>,
+    Json(name): Json<String>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tags
+SET
+    name = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        name,
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn update_tag_color(
+    State(pool): State<SqlitePool>,
+    Path((board_name, tag_id)): Path<(BoardName, TagId)>,
+    Json(color): Json<Color>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tags
+SET
+    color = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        color,
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
