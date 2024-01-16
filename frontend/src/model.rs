@@ -48,6 +48,7 @@ pub struct TaskData {
     pub assignees: Vec<UserId>,
     pub blocks: Vec<TaskId>,
     pub blocked_by: Vec<TaskId>,
+    pub tags: Vec<TagId>,
 }
 
 impl From<TaskEntry> for TaskData {
@@ -62,6 +63,7 @@ impl From<TaskEntry> for TaskData {
             assignees: value.assignees,
             blocks: value.blocks,
             blocked_by: value.blocked_by,
+            tags: value.tags,
         }
     }
 }

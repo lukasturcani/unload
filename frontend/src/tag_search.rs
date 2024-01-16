@@ -62,7 +62,7 @@ pub fn TagSearch<'a>(
         label {
             r#for: *id,
             class: styles::TEXT_INPUT_LABEL,
-            "Assigned to"
+            "Tags"
         },
         div {
             class: "relative",

@@ -83,10 +83,9 @@ impl Display for UserId {
     }
 }
 
-#[derive(
-    Debug, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize, sqlx::Type, Clone, Copy, Hash,
-)]
-#[sqlx(transparent)]
+#[derive(Debug, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize, Clone, Copy, Hash)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(transparent))]
 pub struct TagId(i64);
 
 impl From<i64> for TagId {

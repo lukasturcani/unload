@@ -571,9 +571,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
             }
-            if **editing_size {rsx!{
-                div {
-                    class: "flex flex-row gap-1",
+            div {
+                class: "flex flex-row gap-1",
+                if **editing_size {rsx!{
                     span {
                         class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
                         onclick: |event| {
@@ -601,9 +601,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         },
                         "Large",
                     }
-                },
-            }} else {rsx!{
-                div {
+                }} else {rsx!{
                     match data.size {
                         TaskSize::Small => {rsx!{
                             span {
@@ -636,8 +634,14 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             }
                         }}
                     }
-                },
-            }}
+                }}
+                for tag in data.tags.iter() {
+                    span {
+                        class: "text-sm font-medium px-2.5 py-0.5 rounded bg-gray-900 text-gray-300 cursor-pointer",
+                        "{tag}",
+                    }
+                }
+            }
             div {
                 class: "grid grid-cols-2",
                 Users {

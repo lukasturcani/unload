@@ -1,6 +1,7 @@
 use crate::requests;
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
+use crate::tag_search::TagSearch;
 use crate::user_search::UserSearch;
 use crate::{model::Model, styles};
 use chrono::{offset::Local, NaiveDate, NaiveTime, TimeZone};
@@ -65,6 +66,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
     let model = use_shared_state::<Model>(cx).unwrap();
     let nav = use_navigator(cx);
     let title = use_state(cx, String::default);
+    let tags = use_ref(cx, Vec::new);
     let description = use_state(cx, String::default);
     let size = use_state(cx, || TaskSize::Small);
     let status = use_state(cx, || *default_status);
@@ -110,6 +112,15 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 title.set(event.value.clone())
                             },
                         },
+                    }
+                    div {
+                        TagSearch {
+                            id: "tag_search",
+                            on_select_tag: |tag_id| tags.write().push(tag_id),
+                            on_remove_tag: |tag_id| tags.write().retain(|&value| value != tag_id),
+                            on_search_focus_in: |_| has_focus.set(true),
+                            on_search_focus_out: |_| has_focus.set(false),
+                        }
                     }
                     div {
                         label {
@@ -358,7 +369,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     assignees: assigned_to.write().drain(..).collect(),
                                     blocks: blocks.write().drain(..).collect(),
                                     blocked_by: blocked_by.write().drain(..).collect(),
-                                    tags: todo!(),
+                                    tags: tags.write().drain(..).collect(),
                                 },
                                 nav.clone(),
                             )
