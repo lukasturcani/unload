@@ -3,6 +3,7 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
+use shared_models::TagId;
 use shared_models::{
     BoardName, Color, TaskData, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry,
     UserId,
@@ -27,6 +28,7 @@ impl TaskRow {
         assignees: Vec<UserId>,
         blocks: Vec<TaskId>,
         blocked_by: Vec<TaskId>,
+        tags: Vec<TagId>,
     ) -> TaskEntry {
         TaskEntry {
             id: self.id,
@@ -40,6 +42,7 @@ impl TaskRow {
             assignees,
             blocks,
             blocked_by,
+            tags,
         }
     }
 }
@@ -203,8 +206,30 @@ WHERE
     .into_iter()
     .map(|BlockedByRow { task_id }| task_id)
     .collect();
+
+    struct TagRow {
+        tag_id: TagId,
+    }
+    let tags = sqlx::query_as!(
+        TagRow,
+        "
+SELECT
+    tag_id
+FROM
+    task_tags
+WHERE
+    board_name = ? AND task_id = ?",
+        board_name,
+        task_id,
+    )
+    .fetch_all(&mut *tx)
+    .await?
+    .into_iter()
+    .map(|TagRow { tag_id }| tag_id)
+    .collect();
+
     tx.commit().await?;
-    Ok(Json(task.into_entry(assignees, blocks, blocked_by)))
+    Ok(Json(task.into_entry(assignees, blocks, blocked_by, tags)))
 }
 
 pub async fn show_tasks(
@@ -288,6 +313,34 @@ WHERE
             (blocks, blocked_by)
         },
     );
+
+    struct TagRow {
+        task_id: TaskId,
+        tag_id: TagId,
+    }
+
+    let tag_assignments = sqlx::query_as!(
+        TagRow,
+        "
+SELECT
+    task_id, tag_id
+FROM
+    task_tags
+WHERE
+    board_name = ?",
+        board_name,
+    );
+    let mut tag_assignments = tag_assignments.fetch_all(&mut *tx).await?.into_iter().fold(
+        HashMap::new(),
+        |mut map, row| {
+            #[allow(clippy::unwrap_or_default)]
+            map.entry(row.task_id)
+                .or_insert_with(Vec::new)
+                .push(row.tag_id);
+            map
+        },
+    );
+
     let task_entries: Vec<TaskEntry> = tasks
         .into_iter()
         .map(|task_row| {
@@ -298,6 +351,7 @@ WHERE
                 blocked_by_assignmnets
                     .remove(&task_id)
                     .unwrap_or_else(Vec::new),
+                tag_assignments.remove(&task_id).unwrap_or_else(Vec::new),
             )
         })
         .collect();

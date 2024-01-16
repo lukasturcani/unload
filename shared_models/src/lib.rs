@@ -83,6 +83,21 @@ impl Display for UserId {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, sqlx::Type, Clone, Copy)]
+#[sqlx(transparent)]
+pub struct TagId(i64);
+
+impl From<i64> for TagId {
+    fn from(value: i64) -> Self {
+        Self(value)
+    }
+}
+
+pub struct TagData {
+    pub name: String,
+    pub color: Color,
+}
+
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TaskData {
     pub title: String,
@@ -93,6 +108,7 @@ pub struct TaskData {
     pub assignees: Vec<UserId>,
     pub blocks: Vec<TaskId>,
     pub blocked_by: Vec<TaskId>,
+    pub tags: Vec<TagId>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -108,6 +124,7 @@ pub struct TaskEntry {
     pub assignees: Vec<UserId>,
     pub blocks: Vec<TaskId>,
     pub blocked_by: Vec<TaskId>,
+    pub tags: Vec<TagId>,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize, Clone)]

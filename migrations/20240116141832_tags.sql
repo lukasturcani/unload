@@ -1,6 +1,7 @@
 CREATE TABLE
 IF NOT EXISTS tags (
-    name TEXT PRIMARY KEY NOT NULL,
+    id INTEGER PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
     board_name TEXT NOT NULL,
     color TEXT CHECK (color IN (
         'Black',
@@ -32,12 +33,16 @@ CREATE TABLE IF NOT EXISTS task_tags (
     id INTEGER PRIMARY KEY NOT NULL,
     board_name TEXT NOT NULL,
     task_id INTEGER NOT NULL,
-    tag_name TEXT NOT NULL,
-    UNIQUE (task_id, tag_name),
+    tag_id INTEGER NOT NULL,
+    UNIQUE (task_id, tag_id),
     FOREIGN KEY (board_name) REFERENCES boards (name),
     FOREIGN KEY (task_id) REFERENCES tasks (id),
-    FOREIGN KEY (tag_name) REFERENCES tags (name)
+    FOREIGN KEY (tag_id) REFERENCES tags (id)
 );
 CREATE INDEX IF NOT EXISTS task_tags_board_name_idx ON task_tags (
     board_name
+);
+CREATE INDEX IF NOT EXISTS task_tags_task_id_idx ON task_tags (
+    board_name,
+    task_id
 );

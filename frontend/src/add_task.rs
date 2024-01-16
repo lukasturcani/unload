@@ -358,6 +358,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     assignees: assigned_to.write().drain(..).collect(),
                                     blocks: blocks.write().drain(..).collect(),
                                     blocked_by: blocked_by.write().drain(..).collect(),
+                                    tags: todo!(),
                                 },
                                 nav.clone(),
                             )

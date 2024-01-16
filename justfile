@@ -111,10 +111,6 @@ backend database: frontend
   UNLOAD_SERVE_DIR="frontend/dist" \
   cargo run --release --bin unload
 
-# run ulcli
-ulcli:
-  cargo run --release --bin ulcli
-
 # connect to fly.io volume
 fly-volume:
   fly machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
