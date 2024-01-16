@@ -1072,7 +1072,7 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                     onclick: |event| {
                         event.stop_propagation();
                     },
-                    "{tag.name}",
+                    "#{tag.name}",
                 }
             }}
             div {
