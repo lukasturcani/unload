@@ -421,6 +421,19 @@ VALUES (?, ?, ?)",
         .execute(&mut *tx)
         .await?;
     }
+    for tag_id in task_data.tags.iter() {
+        sqlx::query!(
+            "
+INSERT INTO task_tags (board_name, task_id, tag_id)
+VALUES (?, ?, ?)",
+            board_name,
+            task_id,
+            tag_id
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+
     tx.commit().await?;
     Ok(Json(task_id))
 }
