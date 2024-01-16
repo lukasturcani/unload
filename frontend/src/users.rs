@@ -86,7 +86,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                     div {
                                                         class: "w-8 h-8 rounded cursor-pointer bg-blue-500 {color_picker::class(&user.color)}",
                                                         onclick: {
-                                                            let user_id = user_id.clone();
+                                                            let user_id = *user_id;
                                                             move |_| {
                                                                 color.set(model.read().users[&user_id].color);
                                                                 edit_field.set(Some((row_index, Column::Color)));
@@ -101,7 +101,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                         stroke: "currentColor",
                                                         class: "w-4 h-4",
                                                         onclick: {
-                                                            let user_id = user_id.clone();
+                                                            let user_id = *user_id;
                                                             move |_| {
                                                                 color.set(model.read().users[&user_id].color);
                                                                 edit_field.set(Some((row_index, Column::Color)));
@@ -140,7 +140,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                     class: "flex flex-row gap-1",
                                                     p {
                                                         onclick: {
-                                                            let user_id = user_id.clone();
+                                                            let user_id = *user_id;
                                                             move |_| {
                                                                 name.set(model.read().users[&user_id].name.clone());
                                                                 edit_field.set(Some((row_index, Column::Name)));
@@ -156,7 +156,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                         stroke: "currentColor",
                                                         class: "w-4 h-4",
                                                         onclick: {
-                                                            let user_id = user_id.clone();
+                                                            let user_id = *user_id;
                                                             move |_| {
                                                                 name.set(model.read().users[&user_id].name.clone());
                                                                 edit_field.set(Some((row_index, Column::Name)));

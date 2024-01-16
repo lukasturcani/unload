@@ -83,7 +83,9 @@ impl Display for UserId {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, sqlx::Type, Clone, Copy)]
+#[derive(
+    Debug, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize, sqlx::Type, Clone, Copy,
+)]
 #[sqlx(transparent)]
 pub struct TagId(i64);
 
@@ -93,7 +95,21 @@ impl From<i64> for TagId {
     }
 }
 
+impl Display for TagId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Debug, Serialize)]
 pub struct TagData {
+    pub name: String,
+    pub color: Color,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+pub struct TagEntry {
+    pub id: TagId,
     pub name: String,
     pub color: Color,
 }

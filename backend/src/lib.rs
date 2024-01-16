@@ -459,6 +459,18 @@ WHERE
     sqlx::query!(
         "
 DELETE FROM
+    task_tags
+WHERE
+    board_name = ? AND task_id = ?",
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
     tasks
 WHERE
     board_name = ? AND id = ?",
