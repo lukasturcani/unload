@@ -960,3 +960,36 @@ WHERE
     Ok(Json(()))
 }
 
+pub async fn update_task_tags(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(tags): Json<Vec<TagId>>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    task_tags
+WHERE
+   board_name = ? AND task_id = ?
+",
+        board_name,
+        task_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    for tag_id in tags {
+        sqlx::query!(
+            "
+INSERT INTO task_tags (board_name, task_id, tag_id)
+VALUES (?, ?, ?)",
+            board_name,
+            task_id,
+            tag_id,
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+    tx.commit().await?;
+    Ok(Json(()))
+}

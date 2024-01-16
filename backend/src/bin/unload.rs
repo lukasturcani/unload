@@ -10,8 +10,8 @@ use unload::{
     create_board, create_tag, create_task, create_user, delete_tag, delete_task, delete_user,
     show_tag, show_tags, show_task, show_tasks, show_user, show_users, update_tag_color,
     update_tag_name, update_task_assignees, update_task_description, update_task_due,
-    update_task_size, update_task_status, update_task_title, update_user_color, update_user_name,
-    Result,
+    update_task_size, update_task_status, update_task_tags, update_task_title, update_user_color,
+    update_user_name, Result,
 };
 fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
     Router::new()
@@ -40,6 +40,10 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
         .route(
             "/api/boards/:board_name/tasks/:task_id/assignees",
             put(update_task_assignees),
+        )
+        .route(
+            "/api/boards/:board_name/tasks/:task_id/tags",
+            put(update_task_tags),
         )
         .route(
             "/api/boards/:board_name/tasks/:task_id",
