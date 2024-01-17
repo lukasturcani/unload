@@ -1083,6 +1083,7 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                     {tag_bg(&clicked_tags, tag_id, &tag.color)}
                     text-white cursor-pointer
                     border {color_picker::border_class(&tag.color)}
+                    flex flex-row gap-2
                 ",
                 onclick: {
                     let tag_id = *tag_id;
@@ -1097,6 +1098,30 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                     }
                 },
                 "# {tag.name}",
+                button {
+                    r#type: "button",
+                    class: "
+                        border {color_picker::border_class(&tag.color)} sm:hover:border-white
+                        inline-flex items-center p-1 font-medium rounded
+                    ",
+                    onclick: |event| {
+                        event.stop_propagation();
+                    },
+                    svg {
+                        class: "w-2 h-2",
+                        "aria-hidden": "true",
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 14 14",
+                        path {
+                            stroke: "currentColor",
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            "stroke-width": "2",
+                            d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                        }
+                    }
+                }
             }
         }}
         div {
