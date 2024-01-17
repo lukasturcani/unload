@@ -1,4 +1,7 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
 
 use chrono::{DateTime, Utc};
 use reqwest::Url;
@@ -15,6 +18,7 @@ pub struct Model {
     pub done: Vec<TaskId>,
     pub user_search_created_user: Option<(UserId, String)>,
     pub tag_search_created_tag: Option<(TagId, String)>,
+    pub tag_filter: HashSet<TagId>,
 }
 
 impl Default for Model {
@@ -33,6 +37,7 @@ impl Default for Model {
             done: Vec::default(),
             user_search_created_user: Option::default(),
             tag_search_created_tag: Option::default(),
+            tag_filter: HashSet::default(),
         }
     }
 }

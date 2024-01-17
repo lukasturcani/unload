@@ -1050,12 +1050,8 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
     })
 }
 
-fn tag_bg(
-    clicked_tags: &UseRef<HashSet<TagId>>,
-    tag_id: &TagId,
-    tag_color: &Color,
-) -> &'static str {
-    if clicked_tags.read().contains(tag_id) {
+fn tag_bg(model: &UseSharedState<Model>, tag_id: &TagId, tag_color: &Color) -> &'static str {
+    if model.read().tag_filter.contains(tag_id) {
         color_picker::bg_class(tag_color)
     } else {
         "bg-inherit"
@@ -1074,13 +1070,12 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
         .collect();
     let show_assign_tag = use_state(cx, || false);
     let assigned_tags = use_ref(cx, Vec::new);
-    let clicked_tags = use_ref(cx, HashSet::new);
     cx.render(rsx! {
         for (tag_id, tag) in tags {rsx!{
             span {
                 class: "
                     text-sm font-medium px-2.5 py-0.5 rounded
-                    {tag_bg(&clicked_tags, tag_id, &tag.color)}
+                    {tag_bg(model, tag_id, &tag.color)}
                     text-white cursor-pointer
                     border {color_picker::border_class(&tag.color)}
                     flex flex-row gap-2
@@ -1089,11 +1084,11 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                     let tag_id = *tag_id;
                     move |event| {
                         event.stop_propagation();
-                        let mut clicked_tags = clicked_tags.write();
-                        if clicked_tags.contains(&tag_id) {
-                            clicked_tags.remove(&tag_id);
+                        let mut model = model.write();
+                        if model.tag_filter.contains(&tag_id) {
+                            model.tag_filter.remove(&tag_id);
                         } else {
-                            clicked_tags.insert(tag_id);
+                            model.tag_filter.insert(tag_id);
                         }
                     }
                 },
@@ -1104,8 +1099,13 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                         border {color_picker::border_class(&tag.color)} sm:hover:border-white
                         inline-flex items-center p-1 font-medium rounded
                     ",
-                    onclick: |event| {
-                        event.stop_propagation();
+                    onclick: {
+                        let task_id = *task_id;
+                        let tag_id = *tag_id;
+                        move |event| {
+                            event.stop_propagation();
+                            delete_task_tag(model.clone(), task_id, tag_id)
+                        }
                     },
                     svg {
                         class: "w-2 h-2",
@@ -1500,6 +1500,35 @@ async fn send_delete_task_request(
         model.url.join(&format!(
             "/api/boards/{}/tasks/{}",
             model.board_name, task_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .delete(url)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn delete_task_tag(model: UseSharedState<Model>, task_id: TaskId, tag_id: TagId) {
+    if send_delete_task_tag_request(model.clone(), task_id, tag_id)
+        .await
+        .is_ok()
+    {
+        requests::board(model).await;
+    }
+}
+
+async fn send_delete_task_tag_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    tag_id: TagId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/tags/{}",
+            model.board_name, task_id, tag_id
         ))?
     };
     Ok(reqwest::Client::new()
