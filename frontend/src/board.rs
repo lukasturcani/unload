@@ -930,7 +930,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     class: "group relative",
                     onclick: |event| event.stop_propagation(),
                     div {
-                        class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&user.color)}",
+                        class: "w-6 h-6 rounded cursor-pointer {color_picker::bg_class(&user.color)}",
                     },
                     div {
                         class: TOOLTIP,
@@ -1050,29 +1050,41 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
 }
 
 #[component]
-fn Tags(cx: Scope, task_id: TaskId) -> Element {
+fn Tags<'a>(
+    cx: Scope<'a>,
+    task_id: TaskId,
+    on_tag_click: Option<EventHandler<'a, TagId>>,
+) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
     let tags: Vec<_> = data
         .tags
         .iter()
-        .map(|tag_id| &read_model.tags[tag_id])
+        .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
         .collect();
     let show_assign_tag = use_state(cx, || false);
     let assigned_tags = use_ref(cx, Vec::new);
     cx.render(rsx! {
         div {
             class: "flex flex-row gap-2",
-            for tag in tags {rsx!{
+            for (tag_id, tag) in tags {rsx!{
                 span {
                     class: "
-                        text-sm font-medium px-2.5 py-0.5 rounded {color_picker::class(&tag.color)}
+                        text-sm font-medium px-2.5 py-0.5 rounded bg-inherit
+                        text-white cursor-pointer
+                        border {color_picker::border_class(&tag.color)}
                     ",
-                    onclick: |event| {
-                        event.stop_propagation();
+                    onclick: {
+                        let tag_id = *tag_id;
+                        move |event| {
+                            event.stop_propagation();
+                            if let Some(handler) = on_tag_click {
+                                handler.call(tag_id);
+                            }
+                        }
                     },
-                    "#{tag.name}",
+                    "# {tag.name}",
                 }
             }}
             div {

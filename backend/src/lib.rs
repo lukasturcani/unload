@@ -993,3 +993,24 @@ VALUES (?, ?, ?)",
     tx.commit().await?;
     Ok(Json(()))
 }
+
+pub async fn delete_task_tag(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id, tag_id)): Path<(BoardName, TaskId, TagId)>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    task_tags
+WHERE
+    board_name = ? AND task_id = ? AND tag_id = ?",
+        board_name,
+        task_id,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}

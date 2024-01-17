@@ -54,3 +54,8 @@ CREATE INDEX IF NOT EXISTS task_tags_tag_id_idx ON task_tags (
     board_name,
     tag_id
 );
+CREATE INDEX IF NOT EXISTS task_tags_task_id_tag_id_idx ON task_tags (
+    board_name,
+    task_id,
+    tag_id
+);

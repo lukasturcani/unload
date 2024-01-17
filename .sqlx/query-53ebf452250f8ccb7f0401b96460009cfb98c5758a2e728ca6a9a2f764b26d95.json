@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nDELETE FROM\n    task_tags\nWHERE\n    board_name = ? AND task_id = ? AND tag_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "53ebf452250f8ccb7f0401b96460009cfb98c5758a2e728ca6a9a2f764b26d95"
+}

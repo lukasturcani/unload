@@ -20,7 +20,7 @@ const COLORS: [(Color, &str); 16] = [
     (Color::Aqua, "Aqua"),
 ];
 
-pub fn class(color: &Color) -> &'static str {
+pub fn bg_class(color: &Color) -> &'static str {
     match color {
         Color::Black => "bg-black",
         Color::White => "bg-white",
@@ -41,6 +41,48 @@ pub fn class(color: &Color) -> &'static str {
     }
 }
 
+pub fn border_class(color: &Color) -> &'static str {
+    match color {
+        Color::Black => "border-black",
+        Color::White => "border-white",
+        Color::Gray => "border-gray-500",
+        Color::Silver => "border-slate-500",
+        Color::Maroon => "border-red-950",
+        Color::Red => "border-red-600",
+        Color::Purple => "border-purple-950",
+        Color::Fushsia => "border-fuchsia-600",
+        Color::Green => "border-green-900",
+        Color::Lime => "border-lime-500",
+        Color::Olive => "border-lime-950",
+        Color::Yellow => "border-yellow-400",
+        Color::Navy => "border-blue-950",
+        Color::Blue => "border-blue-700",
+        Color::Teal => "border-teal-400",
+        Color::Aqua => "border-cyan-400",
+    }
+}
+
+pub fn text_class(color: &Color) -> &'static str {
+    match color {
+        Color::Black => "text-black",
+        Color::White => "text-white",
+        Color::Gray => "text-gray-500",
+        Color::Silver => "text-slate-500",
+        Color::Maroon => "text-red-950",
+        Color::Red => "text-red-600",
+        Color::Purple => "text-purple-950",
+        Color::Fushsia => "text-fuchsia-600",
+        Color::Green => "text-green-900",
+        Color::Lime => "text-lime-500",
+        Color::Olive => "text-lime-950",
+        Color::Yellow => "text-yellow-400",
+        Color::Navy => "text-blue-950",
+        Color::Blue => "text-blue-700",
+        Color::Teal => "text-teal-400",
+        Color::Aqua => "bg-cyan-400",
+    }
+}
+
 #[component]
 pub fn ColorPicker<'a>(
     cx: Scope<'a>,
@@ -54,7 +96,7 @@ pub fn ColorPicker<'a>(
             for (color, name, class) in
                 COLORS
                 .iter()
-                .map(|(color, name)| (color, name, class(color)))
+                .map(|(color, name)| (color, name, bg_class(color)))
             {rsx! {
                 if selected.map_or(false, |selected_color| selected_color == *color) {rsx!{
                     div {

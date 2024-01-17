@@ -84,7 +84,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                 div {
                                                     class: "flex flex-row gap-1",
                                                     div {
-                                                        class: "w-8 h-8 rounded cursor-pointer bg-blue-500 {color_picker::class(&user.color)}",
+                                                        class: "w-8 h-8 rounded cursor-pointer {color_picker::bg_class(&user.color)}",
                                                         onclick: {
                                                             let user_id = *user_id;
                                                             move |_| {
