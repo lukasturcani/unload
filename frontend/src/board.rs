@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fmt::Display;
 
 use crate::responsive_layout::ResponsiveLayout;
@@ -8,7 +9,7 @@ use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
 use reqwest::Client;
-use shared_models::{TagId, TaskStatus};
+use shared_models::{Color, TagId, TaskStatus};
 use shared_models::{TaskSize, UserId};
 
 use crate::model::Model;
@@ -1049,12 +1050,20 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
     })
 }
 
+fn tag_bg(
+    clicked_tags: &UseRef<HashSet<TagId>>,
+    tag_id: &TagId,
+    tag_color: &Color,
+) -> &'static str {
+    if clicked_tags.read().contains(tag_id) {
+        color_picker::bg_class(tag_color)
+    } else {
+        "bg-inherit"
+    }
+}
+
 #[component]
-fn Tags<'a>(
-    cx: Scope<'a>,
-    task_id: TaskId,
-    on_tag_click: Option<EventHandler<'a, TagId>>,
-) -> Element<'a> {
+fn Tags(cx: Scope, task_id: TaskId) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
@@ -1065,13 +1074,15 @@ fn Tags<'a>(
         .collect();
     let show_assign_tag = use_state(cx, || false);
     let assigned_tags = use_ref(cx, Vec::new);
+    let clicked_tags = use_ref(cx, HashSet::new);
     cx.render(rsx! {
         div {
             class: "flex flex-row gap-2",
             for (tag_id, tag) in tags {rsx!{
                 span {
                     class: "
-                        text-sm font-medium px-2.5 py-0.5 rounded bg-inherit
+                        text-sm font-medium px-2.5 py-0.5 rounded
+                        {tag_bg(&clicked_tags, tag_id, &tag.color)}
                         text-white cursor-pointer
                         border {color_picker::border_class(&tag.color)}
                     ",
@@ -1079,8 +1090,11 @@ fn Tags<'a>(
                         let tag_id = *tag_id;
                         move |event| {
                             event.stop_propagation();
-                            if let Some(handler) = on_tag_click {
-                                handler.call(tag_id);
+                            let mut clicked_tags = clicked_tags.write();
+                            if clicked_tags.contains(&tag_id) {
+                                clicked_tags.remove(&tag_id);
+                            } else {
+                                clicked_tags.insert(tag_id);
                             }
                         }
                     },
