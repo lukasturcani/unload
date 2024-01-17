@@ -1096,7 +1096,7 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                 button {
                     r#type: "button",
                     class: "
-                        border {color_picker::border_class(&tag.color)} sm:hover:border-white
+                        border border-transparent sm:hover:border-white
                         inline-flex items-center p-1 font-medium rounded
                     ",
                     onclick: {
