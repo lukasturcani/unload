@@ -607,7 +607,10 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     match data.size {
                         TaskSize::Small => {rsx!{
                             span {
-                                class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
+                                class: "
+                                    text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
+                                    bg-green-900 text-green
+                                ",
                                 onclick: |event| {
                                     event.stop_propagation();
                                     editing_size.set(true);
@@ -617,7 +620,10 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         }}
                         TaskSize::Medium => {rsx!{
                             span {
-                                class: "text-sm font-medium px-2.5 py-0.5 rounded bg-yellow-900 text-yellow-300 cursor-pointer",
+                                class: "
+                                    text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                    bg-yellow-900 text-yellow-300
+                                ",
                                 onclick: |event| {
                                     event.stop_propagation();
                                     editing_size.set(true);
@@ -627,7 +633,10 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         }}
                         TaskSize::Large => {rsx!{
                             span {
-                                class: "text-sm font-medium px-2.5 py-0.5 rounded bg-red-900 text-red-300 cursor-pointer",
+                                class: "
+                                    text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
+                                    bg-red-900 text-red-300
+                                ",
                                 onclick: |event| {
                                     event.stop_propagation();
                                     editing_size.set(true);
