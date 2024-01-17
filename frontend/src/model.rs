@@ -19,7 +19,7 @@ pub struct Model {
     pub user_search_created_user: Option<(UserId, String)>,
     pub tag_search_created_tag: Option<(TagId, String)>,
     pub tag_filter: HashSet<TagId>,
-    pub size_filter: HashSet<TaskSize>,
+    pub size_filter: Option<TaskSize>,
     pub user_filter: HashSet<UserId>,
 }
 
@@ -49,7 +49,7 @@ impl Default for Model {
             user_search_created_user: Option::default(),
             tag_search_created_tag: Option::default(),
             tag_filter: HashSet::default(),
-            size_filter: HashSet::default(),
+            size_filter: None,
             user_filter: HashSet::default(),
         }
     }
