@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::fmt::Display;
 
 use crate::responsive_layout::ResponsiveLayout;
@@ -259,6 +258,7 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
 #[component]
 fn ToDoColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
     let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
@@ -287,7 +287,12 @@ fn ToDoColumn(cx: Scope) -> Element {
                 },
                 div {
                     class: COLUMN_TASK_LIST,
-                    for task_id in model.read().to_do.iter() {
+                    for task_id in
+                        read_model
+                        .to_do
+                        .iter()
+                        .filter(|task_id| read_model.show_task(**task_id))
+                    {
                         Task {
                             key: "{task_id}",
                             task_id: *task_id,
@@ -328,6 +333,7 @@ fn ToDoColumn(cx: Scope) -> Element {
 #[component]
 fn InProgressColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
     let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
@@ -356,7 +362,12 @@ fn InProgressColumn(cx: Scope) -> Element {
                 },
                 div {
                     class: COLUMN_TASK_LIST,
-                    for task_id in model.read().in_progress.iter() {
+                    for task_id in
+                        read_model
+                        .in_progress
+                        .iter()
+                        .filter(|task_id| read_model.show_task(**task_id))
+                    {
                         Task {
                             key: "{task_id}",
                             task_id: *task_id,
@@ -397,6 +408,7 @@ fn InProgressColumn(cx: Scope) -> Element {
 #[component]
 fn DoneColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
     let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
@@ -425,7 +437,12 @@ fn DoneColumn(cx: Scope) -> Element {
                 },
                 div {
                     class: COLUMN_TASK_LIST,
-                    for task_id in model.read().done.iter() {
+                    for task_id in
+                        read_model
+                        .done
+                        .iter()
+                        .filter(|task_id| read_model.show_task(**task_id))
+                    {
                         Task {
                             key: "{task_id}",
                             task_id: *task_id,

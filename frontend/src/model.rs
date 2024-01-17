@@ -23,6 +23,15 @@ pub struct Model {
     pub user_filter: HashSet<UserId>,
 }
 
+impl Model {
+    pub fn show_task(&self, task_id: TaskId) -> bool {
+        let task = &self.tasks[&task_id];
+        self.tag_filter
+            .iter()
+            .all(|tag_id| task.tags.contains(tag_id))
+    }
+}
+
 impl Default for Model {
     fn default() -> Self {
         Self {
