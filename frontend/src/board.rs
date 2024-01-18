@@ -1077,7 +1077,6 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                             w-6 h-6 rounded cursor-pointer
                             border {color_picker::border_class(&user.color)}
                             {user_bg(&model, user_id, &user.color)}
-                            bg-inherit
                             {color_picker::bg_hover_class(&user.color)}
                         ",
                         onclick: {
