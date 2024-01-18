@@ -23,7 +23,7 @@ const COLORS: [Color; 16] = [
 pub fn bg_class(color: &Color) -> &'static str {
     match color {
         Color::Black => "bg-orange-500",
-        Color::White => "bg-white",
+        Color::White => "bg-teal-600",
         Color::Gray => "bg-gray-400",
         Color::Silver => "bg-slate-500",
         Color::Maroon => "bg-rose-400",
@@ -44,7 +44,7 @@ pub fn bg_class(color: &Color) -> &'static str {
 pub fn bg_hover_class(color: &Color) -> &'static str {
     match color {
         Color::Black => "sm:hover:bg-orange-500",
-        Color::White => "sm:hover:bg-white",
+        Color::White => "sm:hover:bg-teal-600",
         Color::Gray => "sm:hover:bg-gray-400",
         Color::Silver => "sm:hover:bg-slate-500",
         Color::Maroon => "sm:hover:bg-rose-400",
@@ -65,7 +65,7 @@ pub fn bg_hover_class(color: &Color) -> &'static str {
 pub fn border_class(color: &Color) -> &'static str {
     match color {
         Color::Black => "border-orange-500",
-        Color::White => "border-white",
+        Color::White => "border-teal-600",
         Color::Gray => "border-gray-400",
         Color::Silver => "border-slate-500",
         Color::Maroon => "border-rose-400",
@@ -86,7 +86,7 @@ pub fn border_class(color: &Color) -> &'static str {
 pub fn text_class(color: &Color) -> &'static str {
     match color {
         Color::Black => "text-orange-500",
-        Color::White => "text-white",
+        Color::White => "text-teal-600",
         Color::Gray => "text-gray-400",
         Color::Silver => "text-slate-500",
         Color::Maroon => "text-rose-400",
