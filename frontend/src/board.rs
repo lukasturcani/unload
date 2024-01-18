@@ -844,9 +844,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }}
                 div {
-                    class: "grid grid-cols-6",
+                    class: "grid grid-cols-8",
                     div {
-                        class: "col-span-5 flex flex-row flex-wrap gap-2",
+                        class: "col-span-7 flex flex-row flex-wrap gap-2",
                         Tags { task_id: *task_id }
                     }
                 }
