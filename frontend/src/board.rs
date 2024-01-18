@@ -487,9 +487,9 @@ fn size_bg(model: &UseSharedState<Model>, size: &TaskSize) -> &'static str {
         .map_or(false, |filter| &filter == size)
     {
         match size {
-            TaskSize::Small => "bg-green-900",
-            TaskSize::Medium => "bg-yellow-900",
-            TaskSize::Large => "bg-red-900",
+            TaskSize::Small => "bg-green-900 ring ring-blue-500",
+            TaskSize::Medium => "bg-yellow-900 ring ring-blue-500",
+            TaskSize::Large => "bg-red-900 ring ring-blue-500",
         }
     } else {
         "bg-inherit"
@@ -1045,11 +1045,11 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
     })
 }
 
-fn user_bg(model: &UseSharedState<Model>, user_id: &UserId, user_color: &Color) -> &'static str {
+fn user_bg(model: &UseSharedState<Model>, user_id: &UserId, user_color: &Color) -> String {
     if model.read().user_filter.contains(user_id) {
-        color_picker::bg_class(user_color)
+        format!("{} ring ring-blue-500", color_picker::bg_class(user_color))
     } else {
-        "bg-inherit"
+        "bg-inherit".into()
     }
 }
 
@@ -1075,7 +1075,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     div {
                         class: "
                             w-6 h-6 rounded cursor-pointer
-                            border {color_picker::border_class(&user.color)}
+                            border border-2 {color_picker::border_class(&user.color)}
                             {user_bg(&model, user_id, &user.color)}
                             {color_picker::bg_hover_class(&user.color)}
                         ",
@@ -1209,11 +1209,11 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
     })
 }
 
-fn tag_bg(model: &UseSharedState<Model>, tag_id: &TagId, tag_color: &Color) -> &'static str {
+fn tag_bg(model: &UseSharedState<Model>, tag_id: &TagId, tag_color: &Color) -> String {
     if model.read().tag_filter.contains(tag_id) {
-        color_picker::bg_class(tag_color)
+        format!("{} ring ring-blue-500", color_picker::bg_class(tag_color))
     } else {
-        "bg-inherit"
+        "bg-inherit".into()
     }
 }
 
