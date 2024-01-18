@@ -1,23 +1,23 @@
 use dioxus::prelude::*;
 use shared_models::Color;
 
-const COLORS: [(Color, &str); 16] = [
-    (Color::Black, "Black"),
-    (Color::White, "White"),
-    (Color::Gray, "Gray"),
-    (Color::Silver, "Silver"),
-    (Color::Maroon, "Maroon"),
-    (Color::Red, "Red"),
-    (Color::Purple, "Purple"),
-    (Color::Fushsia, "Fushsia"),
-    (Color::Green, "Green"),
-    (Color::Lime, "Lime"),
-    (Color::Olive, "Olive"),
-    (Color::Yellow, "Yellow"),
-    (Color::Navy, "Navy"),
-    (Color::Blue, "Blue"),
-    (Color::Teal, "Teal"),
-    (Color::Aqua, "Aqua"),
+const COLORS: [Color; 16] = [
+    Color::Black,
+    Color::White,
+    Color::Gray,
+    Color::Silver,
+    Color::Maroon,
+    Color::Red,
+    Color::Purple,
+    Color::Fushsia,
+    Color::Green,
+    Color::Lime,
+    Color::Olive,
+    Color::Yellow,
+    Color::Navy,
+    Color::Blue,
+    Color::Teal,
+    Color::Aqua,
 ];
 
 pub fn bg_class(color: &Color) -> &'static str {
@@ -114,62 +114,30 @@ pub fn ColorPicker<'a>(
     cx.render(rsx! {
         div {
             class: "flex-1 flex grid grid-cols-4 gap-4 justify-items-center",
-            for (color, name, class) in
+            for (color, class) in
                 COLORS
                 .iter()
-                .map(|(color, name)| (color, name, bg_class(color)))
+                .map(|color| (color, bg_class(color)))
             {rsx! {
                 if selected.map_or(false, |selected_color| selected_color == *color) {rsx!{
                     div {
-                        class: "group/color-tooltip relative",
-                        div {
-                            class: "
-                                w-8 h-8 rounded cursor-pointer {class}
-                                ring-blue-600 ring-2",
-                            onclick: |_| {
-                                selected.set(Some(*color));
-                                on_pick_color.call(*color);
-                            },
+                        class: "
+                            w-8 h-8 rounded cursor-pointer {class}
+                            ring-blue-600 ring-2
+                        ",
+                        onclick: |_| {
+                            selected.set(Some(*color));
+                            on_pick_color.call(*color);
                         },
-                        div {
-                            class: "
-                                pointer-events-none absolute -top-10 left-0 w-max
-                                opacity-0 transition-opacity group-hover/color-tooltip:opacity-100
-                                z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                                rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
-                                border border-gray-700",
-                            "{name}"
-                            div {
-                                class: "tooltip-arrow",
-                                "data-popper-arrow": "",
-                            }
-                        }
                     }
                 }} else {rsx!{
                     div {
-                        class: "group/color-tooltip relative",
-                        div {
-                            class: "w-8 h-8 rounded cursor-pointer {class}",
-                            onclick: |_| {
-                                selected.set(Some(*color));
-                                on_pick_color.call(*color);
-                            },
+                        class: "w-8 h-8 rounded cursor-pointer {class}",
+                        onclick: |_| {
+                            selected.set(Some(*color));
+                            on_pick_color.call(*color);
                         },
-                        div {
-                            class: "
-                                pointer-events-none absolute -top-10 left-0 w-max
-                                opacity-0 transition-opacity group-hover/color-tooltip:opacity-100
-                                z-10 inline-block px-3 py-2 text-sm font-medium text-white
-                                rounded-lg shadow-sm opacity-0 tooltip bg-gray-800
-                                border border-gray-700",
-                            "{name}"
-                            div {
-                                class: "tooltip-arrow",
-                                "data-popper-arrow": "",
-                            }
-                        }
                     }
-
                 }}
             }}
         }
