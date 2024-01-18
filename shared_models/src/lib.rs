@@ -83,6 +83,36 @@ impl Display for UserId {
     }
 }
 
+#[derive(Debug, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize, Clone, Copy, Hash)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(transparent))]
+pub struct TagId(i64);
+
+impl From<i64> for TagId {
+    fn from(value: i64) -> Self {
+        Self(value)
+    }
+}
+
+impl Display for TagId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct TagData {
+    pub name: String,
+    pub color: Color,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TagEntry {
+    pub id: TagId,
+    pub name: String,
+    pub color: Color,
+}
+
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TaskData {
     pub title: String,
@@ -93,6 +123,7 @@ pub struct TaskData {
     pub assignees: Vec<UserId>,
     pub blocks: Vec<TaskId>,
     pub blocked_by: Vec<TaskId>,
+    pub tags: Vec<TagId>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -108,6 +139,7 @@ pub struct TaskEntry {
     pub assignees: Vec<UserId>,
     pub blocks: Vec<TaskId>,
     pub blocked_by: Vec<TaskId>,
+    pub tags: Vec<TagId>,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize, Clone)]

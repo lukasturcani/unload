@@ -6,7 +6,7 @@ use dioxus::prelude::*;
 use dioxus_router::hooks::use_navigator;
 use itertools::Itertools;
 use shared_models::BoardName;
-use shared_models::{Color, UserId};
+use shared_models::{Color, TagId};
 
 enum Column {
     Color,
@@ -14,14 +14,14 @@ enum Column {
 }
 
 #[component]
-pub fn Users(cx: Scope, board_name: BoardName) -> Element {
+pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
     let nav = use_navigator(cx);
     let model = use_shared_state::<Model>(cx).unwrap();
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
     use_future(cx, (), |_| requests::board(model.clone()));
-    let users = &model.read().users;
+    let tags = &model.read().tags;
     let edit_field = use_state(cx, || None::<(usize, Column)>);
     let color = use_state(cx, || Color::Black);
     let name = use_state(cx, String::new);
@@ -50,7 +50,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                 th {
                                     scope: "col",
                                     class: "p-3",
-                                    "User"
+                                    "Tag"
                                 }
                                 th {
                                     scope: "col",
@@ -59,9 +59,9 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                             }
                         }
                         tbody {
-                            for (row_index, (user_id, user)) in users.iter().sorted_by_key(|x| x.0).enumerate() {
+                            for (row_index, (tag_id, tag)) in tags.iter().sorted_by_key(|x| x.0).enumerate() {
                                 tr {
-                                    class: if row_index == users.len() - 1 {
+                                    class: if row_index == tags.len() - 1 {
                                         "bg-gray-800 sm:hover:bg-gray-600 border-gray-700"
                                     } else {
                                         "bg-gray-800 sm:hover:bg-gray-600 border-gray-700 border-b"
@@ -72,10 +72,10 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                             Some((edit_row, Column::Color)) if edit_row == row_index => rsx!{
                                                 ColorPicker {
                                                     on_pick_color: {
-                                                        let user_id = *user_id;
+                                                        let tag_id = *tag_id;
                                                         move |color| {
                                                             edit_field.set(None);
-                                                            cx.spawn(set_user_color(model.clone(), user_id, color));
+                                                            cx.spawn(set_tag_color(model.clone(), tag_id, color));
                                                         }
                                                     },
                                                 }
@@ -84,11 +84,11 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                 div {
                                                     class: "flex flex-row gap-1",
                                                     div {
-                                                        class: "w-8 h-8 rounded cursor-pointer {color_picker::bg_class(&user.color)}",
+                                                        class: "w-8 h-8 rounded cursor-pointer {color_picker::bg_class(&tag.color)}",
                                                         onclick: {
-                                                            let user_id = *user_id;
+                                                            let tag_id = *tag_id;
                                                             move |_| {
-                                                                color.set(model.read().users[&user_id].color);
+                                                                color.set(model.read().tags[&tag_id].color);
                                                                 edit_field.set(Some((row_index, Column::Color)));
                                                             }
                                                         },
@@ -101,9 +101,9 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                         stroke: "currentColor",
                                                         class: "w-4 h-4",
                                                         onclick: {
-                                                            let user_id = *user_id;
+                                                            let tag_id = *tag_id;
                                                             move |_| {
-                                                                color.set(model.read().users[&user_id].color);
+                                                                color.set(model.read().tags[&tag_id].color);
                                                                 edit_field.set(Some((row_index, Column::Color)));
                                                             }
                                                         },
@@ -127,10 +127,10 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                     class: "bg-inherit rounded text-sm",
                                                     oninput: |event| name.set(event.data.value.clone()),
                                                     onfocusout: {
-                                                        let user_id = *user_id;
+                                                        let tag_id = *tag_id;
                                                         move |_| {
                                                             edit_field.set(None);
-                                                            set_user_name(model.clone(), user_id, name.to_string())
+                                                            set_tag_name(model.clone(), tag_id, name.to_string())
                                                         }
                                                     },
                                                 }
@@ -140,13 +140,13 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                     class: "flex flex-row gap-1",
                                                     p {
                                                         onclick: {
-                                                            let user_id = *user_id;
+                                                            let tag_id = *tag_id;
                                                             move |_| {
-                                                                name.set(model.read().users[&user_id].name.clone());
+                                                                name.set(model.read().tags[&tag_id].name.clone());
                                                                 edit_field.set(Some((row_index, Column::Name)));
                                                             }
                                                         },
-                                                        "{user.name}"
+                                                        "{tag.name}"
                                                     }
                                                     svg {
                                                         xmlns: "http://www.w3.org/2000/svg",
@@ -156,9 +156,9 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                         stroke: "currentColor",
                                                         class: "w-4 h-4",
                                                         onclick: {
-                                                            let user_id = *user_id;
+                                                            let tag_id = *tag_id;
                                                             move |_| {
-                                                                name.set(model.read().users[&user_id].name.clone());
+                                                                name.set(model.read().tags[&tag_id].name.clone());
                                                                 edit_field.set(Some((row_index, Column::Name)));
                                                             }
                                                         },
@@ -184,9 +184,9 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                 stroke: "currentColor",
                                                 class: "w-6 h-6 cursor-pointer",
                                                 onclick: {
-                                                    let user_id = *user_id;
+                                                    let tag_id = *tag_id;
                                                     move |_| {
-                                                        delete_user(model.clone(), user_id)
+                                                        delete_tag(model.clone(), tag_id)
                                                     }
                                                 },
                                                 path {
@@ -206,38 +206,10 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
             div {
                 class: styles::BOTTOM_BAR,
                 button {
-                    r#type: "button",
-                    class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: |_| {
-                        nav.push(Route::Board {
-                            board_name: board_name.clone(),
-                        });
-                    },
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none",
-                        "viewBox": "0 0 24 24",
-                        "stroke-width": "1.5",
-                        stroke: "currentColor",
-                        class: "
-                            w-6 h-6 text-gray-400
-                            group-active:text-blue-500
-                            sm:group-hover:text-blue-500
-                        ",
-                        path {
-                            "stroke-linecap": "round",
-                            "stroke-linejoin": "round",
-                            d: "M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z"
-                        }
-                    }
-                }
-                button {
                     r#type: "button" ,
                     class: styles::BOTTOM_BAR_BUTTON,
                     onclick: |_| {
-                        nav.push(Route::AddUser {
-                            board_name: board_name.clone(),
-                        });
+                        nav.go_back();
                     },
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
@@ -253,7 +225,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
-                            d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                            d: "M15.75 19.5 8.25 12l7.5-7.5",
                         }
                     }
                 }
@@ -262,8 +234,8 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
     })
 }
 
-async fn set_user_color(model: UseSharedState<Model>, user_id: UserId, color: Color) {
-    if send_set_user_color_request(model.clone(), user_id, color)
+async fn set_tag_color(model: UseSharedState<Model>, tag_id: TagId, color: Color) {
+    if send_set_tag_color_request(model.clone(), tag_id, color)
         .await
         .is_ok()
     {
@@ -271,16 +243,16 @@ async fn set_user_color(model: UseSharedState<Model>, user_id: UserId, color: Co
     }
 }
 
-async fn send_set_user_color_request(
+async fn send_set_tag_color_request(
     model: UseSharedState<Model>,
-    user_id: UserId,
+    tag_id: TagId,
     color: Color,
 ) -> Result<(), anyhow::Error> {
     let url = {
         let model = model.read();
         model.url.join(&format!(
-            "/api/boards/{}/users/{}/color",
-            model.board_name, user_id
+            "/api/boards/{}/tags/{}/color",
+            model.board_name, tag_id
         ))?
     };
     Ok(reqwest::Client::new()
@@ -292,8 +264,8 @@ async fn send_set_user_color_request(
         .await?)
 }
 
-async fn set_user_name(model: UseSharedState<Model>, user_id: UserId, name: String) {
-    if send_set_user_name_request(model.clone(), user_id, name)
+async fn set_tag_name(model: UseSharedState<Model>, tag_id: TagId, name: String) {
+    if send_set_tag_name_request(model.clone(), tag_id, name)
         .await
         .is_ok()
     {
@@ -301,16 +273,16 @@ async fn set_user_name(model: UseSharedState<Model>, user_id: UserId, name: Stri
     }
 }
 
-async fn send_set_user_name_request(
+async fn send_set_tag_name_request(
     model: UseSharedState<Model>,
-    user_id: UserId,
+    tag_id: TagId,
     name: String,
 ) -> Result<(), anyhow::Error> {
     let url = {
         let model = model.read();
         model.url.join(&format!(
-            "/api/boards/{}/users/{}/name",
-            model.board_name, user_id
+            "/api/boards/{}/tags/{}/name",
+            model.board_name, tag_id
         ))?
     };
     Ok(reqwest::Client::new()
@@ -322,25 +294,21 @@ async fn send_set_user_name_request(
         .await?)
 }
 
-async fn delete_user(model: UseSharedState<Model>, user_id: UserId) {
-    if send_delete_user_request(model.clone(), user_id)
-        .await
-        .is_ok()
-    {
+async fn delete_tag(model: UseSharedState<Model>, tag_id: TagId) {
+    if send_delete_tag_request(model.clone(), tag_id).await.is_ok() {
         requests::board(model).await;
     }
 }
 
-async fn send_delete_user_request(
+async fn send_delete_tag_request(
     model: UseSharedState<Model>,
-    user_id: UserId,
+    tag_id: TagId,
 ) -> Result<(), anyhow::Error> {
     let url = {
         let model = model.read();
-        model.url.join(&format!(
-            "/api/boards/{}/users/{}",
-            model.board_name, user_id
-        ))?
+        model
+            .url
+            .join(&format!("/api/boards/{}/tags/{}", model.board_name, tag_id))?
     };
     Ok(reqwest::Client::new()
         .delete(url)

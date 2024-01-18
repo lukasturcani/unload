@@ -9,5 +9,7 @@ pub mod requests;
 pub mod responsive_layout;
 pub mod route;
 pub mod styles;
+pub mod tag_search;
+pub mod tags;
 pub mod user_search;
 pub mod users;

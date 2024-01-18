@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nINSERT INTO tags (board_name, name, color)\nVALUES (?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "08002c083544652ec5f7ae98983607fa793ae264f92e1a5a06b57c11b2232e6d"
+}

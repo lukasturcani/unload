@@ -7,10 +7,11 @@ use std::{net::SocketAddr, path::PathBuf};
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use unload::{
-    create_board, create_task, create_user, delete_task, delete_user, show_task, show_tasks,
-    show_user, show_users, update_task_assignees, update_task_description, update_task_due,
-    update_task_size, update_task_status, update_task_title, update_user_color, update_user_name,
-    Result,
+    create_board, create_tag, create_task, create_user, delete_tag, delete_task, delete_task_tag,
+    delete_user, show_tag, show_tags, show_task, show_tasks, show_user, show_users,
+    update_tag_color, update_tag_name, update_task_assignees, update_task_description,
+    update_task_due, update_task_size, update_task_status, update_task_tags, update_task_title,
+    update_user_color, update_user_name, Result,
 };
 fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
     Router::new()
@@ -41,6 +42,14 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
             put(update_task_assignees),
         )
         .route(
+            "/api/boards/:board_name/tasks/:task_id/tags",
+            put(update_task_tags),
+        )
+        .route(
+            "/api/boards/:board_name/tasks/:task_id/tags/:tag_id",
+            delete(delete_task_tag),
+        )
+        .route(
             "/api/boards/:board_name/tasks/:task_id",
             delete(delete_task),
         )
@@ -61,10 +70,23 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
         )
         .route("/api/boards/:board_name/users", get(show_users))
         .route("/api/boards/:board_name/users", post(create_user))
+        .route("/api/boards/:board_name/tags", get(show_tags))
+        .route("/api/boards/:board_name/tags", post(create_tag))
+        .route("/api/boards/:board_name/tags/:tag_id", get(show_tag))
+        .route("/api/boards/:board_name/tags/:tag_id", delete(delete_tag))
+        .route(
+            "/api/boards/:board_name/tags/:tag_id/name",
+            put(update_tag_name),
+        )
+        .route(
+            "/api/boards/:board_name/tags/:tag_id/color",
+            put(update_tag_color),
+        )
         .nest_service("/", ServeDir::new(serve_dir))
         .nest_service("/boards/:board_name", ServeDir::new(serve_dir))
         .nest_service("/boards/:board_name/add-user", ServeDir::new(serve_dir))
         .nest_service("/boards/:board_name/users", ServeDir::new(serve_dir))
+        .nest_service("/boards/:board_name/tags", ServeDir::new(serve_dir))
         .nest_service("/boards/:board_name/add-task", ServeDir::new(serve_dir))
         .nest_service(
             "/boards/:board_name/add-to-do-task",
@@ -103,7 +125,8 @@ mod tests {
     use axum_test::TestServer;
     use chrono::Utc;
     use shared_models::{
-        BoardName, Color, TaskData, TaskEntry, TaskSize, TaskStatus, UserData, UserEntry,
+        BoardName, Color, TagData, TagEntry, TaskData, TaskEntry, TaskSize, TaskStatus, UserData,
+        UserEntry,
     };
 
     #[tokio::test]
@@ -168,6 +191,57 @@ mod tests {
         db_users.sort_by(|user1, user2| user1.id.cmp(&user2.id));
         assert_eq!(expected_users, db_users);
 
+        // Create tags
+
+        let tags = vec![
+            TagData {
+                name: "tag1".to_string(),
+                color: Color::Teal,
+            },
+            TagData {
+                name: "tag2".to_string(),
+                color: Color::Olive,
+            },
+        ];
+
+        let mut tag_ids = Vec::with_capacity(tags.len());
+        for tag in tags.iter() {
+            tag_ids.push(
+                server
+                    .post(&format!("/api/boards/{board_name}/tags"))
+                    .json(tag)
+                    .await
+                    .json(),
+            );
+        }
+
+        // Check tags one by one
+
+        let mut expected_tags = Vec::with_capacity(tags.len());
+        for (tag_id, tag_data) in tag_ids.iter().zip(tags.iter()) {
+            let tag_entry = server
+                .get(&format!("/api/boards/{board_name}/tags/{tag_id}"))
+                .await
+                .json::<TagEntry>();
+            let expected = TagEntry {
+                id: *tag_id,
+                name: tag_data.name.clone(),
+                color: tag_data.color.clone(),
+            };
+            assert_eq!(tag_entry, expected);
+            expected_tags.push(expected);
+        }
+
+        // Check all tags
+
+        expected_tags.sort_by(|tag1, tag2| tag1.id.cmp(&tag2.id));
+        let mut db_tags = server
+            .get(&format!("/api/boards/{board_name}/tags"))
+            .await
+            .json::<Vec<TagEntry>>();
+        db_tags.sort_by(|tag1, tag2| tag1.id.cmp(&tag2.id));
+        assert_eq!(expected_tags, db_tags);
+
         // Create tasks
 
         let mut task_ids = Vec::new();
@@ -180,6 +254,7 @@ mod tests {
             assignees: user_ids.clone(),
             blocks: Vec::new(),
             blocked_by: Vec::new(),
+            tags: Vec::new(),
         };
         task_ids.push(
             server
@@ -197,6 +272,7 @@ mod tests {
             assignees: user_ids.clone(),
             blocks: vec![task_ids[0]],
             blocked_by: Vec::new(),
+            tags: vec![tag_ids[0]],
         };
         task_ids.push(
             server
@@ -215,6 +291,7 @@ mod tests {
             assignees: user_ids.clone(),
             blocks: vec![task_ids[0]],
             blocked_by: vec![task_ids[1]],
+            tags: vec![tag_ids[0], tag_ids[1]],
         };
         task_ids.push(
             server
@@ -247,6 +324,7 @@ mod tests {
                 assignees: task_data.assignees.clone(),
                 blocks: task_data.blocks.clone(),
                 blocked_by: task_data.blocked_by.clone(),
+                tags: task_data.tags.clone(),
             };
             assert_eq!(task_entry, expected);
             expected_tasks.push(expected);
@@ -307,5 +385,19 @@ mod tests {
             .json::<Vec<UserEntry>>();
         db_users.sort_by(|user1, user2| user1.id.cmp(&user2.id));
         assert_eq!(expected_users, db_users);
+
+        // Check tag deletion
+
+        let removed_tag = expected_tags.pop().unwrap();
+        let _ = server
+            .delete(&format!("/api/boards/{board_name}/tags/{}", removed_tag.id))
+            .await
+            .json::<()>();
+        let mut db_tags = server
+            .get(&format!("/api/boards/{board_name}/tags"))
+            .await
+            .json::<Vec<TagEntry>>();
+        db_tags.sort_by(|tag1, tag2| tag1.id.cmp(&tag2.id));
+        assert_eq!(expected_tags, db_tags);
     }
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\nSELECT\n    user_id\nFROM\n    task_assignments\nWHERE\n    task_id = ?",
+  "query": "\nSELECT\n    user_id\nFROM\n    task_assignments\nWHERE\n    board_name = ? AND task_id = ?",
   "describe": {
     "columns": [
       {
@@ -10,11 +10,11 @@
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 2
     },
     "nullable": [
       false
     ]
   },
-  "hash": "ba5daba0e33a80258a61b84beb992238ab7c0810646c01831d31087cc5674c29"
+  "hash": "d7a8079a3ef275f3301dfff02dd778a504f4df10dba043d6e6b1dba81a873fec"
 }

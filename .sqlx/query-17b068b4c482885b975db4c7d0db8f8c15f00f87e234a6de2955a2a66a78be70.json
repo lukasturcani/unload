@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\nSELECT\n    task_id, tag_id\nFROM\n    task_tags\nWHERE\n    board_name = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "task_id",
+        "ordinal": 0,
+        "type_info": "Int64"
+      },
+      {
+        "name": "tag_id",
+        "ordinal": 1,
+        "type_info": "Int64"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "17b068b4c482885b975db4c7d0db8f8c15f00f87e234a6de2955a2a66a78be70"
+}

@@ -2,12 +2,13 @@ use std::fmt::Display;
 
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
+use crate::tag_search::TagSearch;
 use crate::user_search::UserSearch;
 use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
 use reqwest::Client;
-use shared_models::TaskStatus;
+use shared_models::{Color, TagId, TaskStatus};
 use shared_models::{TaskSize, UserId};
 
 use crate::model::Model;
@@ -207,6 +208,33 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
         div {
             class: styles::BOTTOM_BAR,
             button {
+                r#type: "button" ,
+                class: styles::BOTTOM_BAR_BUTTON,
+                onclick: |_| {
+                    nav.push(Route::Tags {
+                        board_name: board_name.clone(),
+                    });
+                },
+                svg {
+                    xmlns: "http://www.w3.org/2000/svg",
+                    fill: "none",
+                    "viewBox": "0 0 24 24",
+                    "stroke-width": "1.5",
+                    stroke: "currentColor",
+                    class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
+                    path {
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        d: "M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z",
+                    }
+                    path {
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        d: "M6 6h.008v.008H6V6Z",
+                    }
+                }
+            }
+            button {
                 r#type: "button",
                 class: styles::BOTTOM_BAR_BUTTON,
                 onclick: |_| {
@@ -250,13 +278,14 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
                     }
                 }
             }
-        }
+         }
     })
 }
 
 #[component]
 fn ToDoColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
     let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
@@ -285,7 +314,12 @@ fn ToDoColumn(cx: Scope) -> Element {
                 },
                 div {
                     class: COLUMN_TASK_LIST,
-                    for task_id in model.read().to_do.iter() {
+                    for task_id in
+                        read_model
+                        .to_do
+                        .iter()
+                        .filter(|task_id| read_model.show_task(**task_id))
+                    {
                         Task {
                             key: "{task_id}",
                             task_id: *task_id,
@@ -326,6 +360,7 @@ fn ToDoColumn(cx: Scope) -> Element {
 #[component]
 fn InProgressColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
     let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
@@ -354,7 +389,12 @@ fn InProgressColumn(cx: Scope) -> Element {
                 },
                 div {
                     class: COLUMN_TASK_LIST,
-                    for task_id in model.read().in_progress.iter() {
+                    for task_id in
+                        read_model
+                        .in_progress
+                        .iter()
+                        .filter(|task_id| read_model.show_task(**task_id))
+                    {
                         Task {
                             key: "{task_id}",
                             task_id: *task_id,
@@ -395,6 +435,7 @@ fn InProgressColumn(cx: Scope) -> Element {
 #[component]
 fn DoneColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
     let nav = use_navigator(cx);
     cx.render(rsx! {
         div {
@@ -423,7 +464,12 @@ fn DoneColumn(cx: Scope) -> Element {
                 },
                 div {
                     class: COLUMN_TASK_LIST,
-                    for task_id in model.read().done.iter() {
+                    for task_id in
+                        read_model
+                        .done
+                        .iter()
+                        .filter(|task_id| read_model.show_task(**task_id))
+                    {
                         Task {
                             key: "{task_id}",
                             task_id: *task_id,
@@ -459,6 +505,22 @@ fn DoneColumn(cx: Scope) -> Element {
             }
         }
     })
+}
+
+fn size_bg(model: &UseSharedState<Model>, size: &TaskSize) -> &'static str {
+    if model
+        .read()
+        .size_filter
+        .map_or(false, |filter| &filter == size)
+    {
+        match size {
+            TaskSize::Small => "bg-emerald-700 ring ring-blue-500",
+            TaskSize::Medium => "bg-yellow-900 ring ring-blue-500",
+            TaskSize::Large => "bg-red-900 ring ring-blue-500",
+        }
+    } else {
+        "bg-inherit"
+    }
 }
 
 #[component]
@@ -571,73 +633,171 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
             }
-            if **editing_size {rsx!{
+            div {
+                class: "grid grid-cols-2",
                 div {
-                    class: "flex flex-row gap-1",
-                    span {
-                        class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
-                        onclick: |event| {
-                            event.stop_propagation();
-                            editing_size.set(false);
-                            set_task_size(model.clone(), *task_id, TaskSize::Small)
-                        },
-                        "Small",
-                    }
-                    span {
-                        class: "text-sm font-medium px-2.5 py-0.5 rounded bg-yellow-900 text-yellow-300 cursor-pointer",
-                        onclick: |event| {
-                            event.stop_propagation();
-                            editing_size.set(false);
-                            set_task_size(model.clone(), *task_id, TaskSize::Medium)
-                        },
-                        "Medium",
-                    }
-                    span {
-                        class: "text-sm font-medium px-2.5 py-0.5 rounded bg-red-900 text-red-300 cursor-pointer",
-                        onclick: |event| {
-                            event.stop_propagation();
-                            editing_size.set(false);
-                            set_task_size(model.clone(), *task_id, TaskSize::Large)
-                        },
-                        "Large",
-                    }
-                },
-            }} else {rsx!{
-                div {
-                    match data.size {
-                        TaskSize::Small => {rsx!{
-                            span {
-                                class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
-                                onclick: |event| {
-                                    event.stop_propagation();
-                                    editing_size.set(true);
-                                },
-                                "Small",
-                            }
-                        }}
-                        TaskSize::Medium => {rsx!{
-                            span {
-                                class: "text-sm font-medium px-2.5 py-0.5 rounded bg-yellow-900 text-yellow-300 cursor-pointer",
-                                onclick: |event| {
-                                    event.stop_propagation();
-                                    editing_size.set(true);
-                                },
-                                "Medium",
-                            }
-                        }}
-                        TaskSize::Large => {rsx!{
-                            span {
-                                class: "text-sm font-medium px-2.5 py-0.5 rounded bg-red-900 text-red-300 cursor-pointer",
-                                onclick: |event| {
-                                    event.stop_propagation();
-                                    editing_size.set(true);
-                                },
-                                "Large",
-                            }
-                        }}
-                    }
-                },
-            }}
+                    class: "flex flex-row gap-2",
+                    if **editing_size {rsx!{
+                        span {
+                            class: "
+                                text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                border-2 border-emerald-700
+                                sm:hover:bg-emerald-700 bg-inherit text-green-300
+                            ",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                editing_size.set(false);
+                                set_task_size(model.clone(), *task_id, TaskSize::Small)
+                            },
+                            "Small",
+                        }
+                        span {
+                            class: "
+                                text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                border-2 border-yellow-900
+                                sm:hover:bg-yellow-900 bg-inherit text-yellow-300
+                            ",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                editing_size.set(false);
+                                set_task_size(model.clone(), *task_id, TaskSize::Medium)
+                            },
+                            "Medium",
+                        }
+                        span {
+                            class: "
+                                text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                border-2 border-red-900
+                                sm:hover:bg-red-900 bg-inherit text-red-300
+                            ",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                editing_size.set(false);
+                                set_task_size(model.clone(), *task_id, TaskSize::Large)
+                            },
+                            "Large",
+                        }
+                    }} else {rsx!{
+                        match data.size {
+                            TaskSize::Small => {rsx!{
+                                span {
+                                    class: "
+                                        text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
+                                        flex flex-row gap-2 items-center
+                                        border-2 border-emerald-700
+                                        {size_bg(model, &data.size)}
+                                        sm:hover:bg-emerald-700
+                                        text-green-300
+                                    ",
+                                    onclick: |event| {
+                                        event.stop_propagation();
+                                        let mut model = model.write();
+                                        if model.size_filter == Some(TaskSize::Small) {
+                                            model.size_filter = None;
+                                        } else {
+                                            model.size_filter = Some(TaskSize::Small);
+                                        }
+                                    },
+                                    "Small",
+                                    svg {
+                                        xmlns: "http://www.w3.org/2000/svg",
+                                        fill: "none",
+                                        "viewBox": "0 0 24 24",
+                                        "stroke-width": "1.5",
+                                        stroke: "currentColor",
+                                        class: "w-4 h-4",
+                                        onclick: |event| {
+                                            event.stop_propagation();
+                                            editing_size.set(true);
+                                        },
+                                        path {
+                                            "stroke-linecap": "round",
+                                            "stroke-linejoin": "round",
+                                            d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
+                                        }
+                                    }
+                                }
+                            }}
+                            TaskSize::Medium => {rsx!{
+                                span {
+                                    class: "
+                                        text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                        flex flex-row gap-2 items-center
+                                        border-2 border-yellow-900
+                                        sm:hover:bg-yellow-900
+                                        {size_bg(model, &data.size)} text-yellow-300
+                                    ",
+                                    onclick: |event| {
+                                        event.stop_propagation();
+                                        let mut model = model.write();
+                                        if model.size_filter == Some(TaskSize::Medium) {
+                                            model.size_filter = None;
+                                        } else {
+                                            model.size_filter = Some(TaskSize::Medium);
+                                        }
+                                    },
+                                    "Medium",
+                                    svg {
+                                        xmlns: "http://www.w3.org/2000/svg",
+                                        fill: "none",
+                                        "viewBox": "0 0 24 24",
+                                        "stroke-width": "1.5",
+                                        stroke: "currentColor",
+                                        class: "w-4 h-4",
+                                        onclick: |event| {
+                                            event.stop_propagation();
+                                            editing_size.set(true);
+                                        },
+                                        path {
+                                            "stroke-linecap": "round",
+                                            "stroke-linejoin": "round",
+                                            d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
+                                        }
+                                    }
+                                }
+                            }}
+                            TaskSize::Large => {rsx!{
+                                span {
+                                    class: "
+                                        text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
+                                        flex flex-row gap-2 items-center
+                                        border-2 border-red-900
+                                        sm:hover:bg-red-900
+                                        {size_bg(model, &data.size)} text-red-300
+                                    ",
+                                    onclick: |event| {
+                                        event.stop_propagation();
+                                        let mut model = model.write();
+                                        if model.size_filter == Some(TaskSize::Large) {
+                                            model.size_filter = None;
+                                        } else {
+                                            model.size_filter = Some(TaskSize::Large);
+                                        }
+                                    },
+                                    "Large",
+                                    svg {
+                                        xmlns: "http://www.w3.org/2000/svg",
+                                        fill: "none",
+                                        "viewBox": "0 0 24 24",
+                                        "stroke-width": "1.5",
+                                        stroke: "currentColor",
+                                        class: "w-4 h-4",
+                                        onclick: |event| {
+                                            event.stop_propagation();
+                                            editing_size.set(true);
+                                        },
+                                        path {
+                                            "stroke-linecap": "round",
+                                            "stroke-linejoin": "round",
+                                            d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
+                                        }
+                                    }
+                                }
+                            }}
+                        }
+                    }}
+                }
+            }
             div {
                 class: "grid grid-cols-2",
                 Users {
@@ -699,7 +859,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 }} else {rsx!{
                     div {
                         class: "
-                            p-4 bg-gray-900 rounded border border-gray-700 mb-3 text-white
+                            p-4 bg-gray-900 rounded border border-gray-700 text-white
                             whitespace-pre-wrap break-words
                         ",
                         onclick: move |event| {
@@ -710,6 +870,13 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         "{data.description}"
                     }
                 }}
+                div {
+                    class: "grid grid-cols-8",
+                    div {
+                        class: "col-span-7 flex flex-row flex-wrap gap-2",
+                        Tags { task_id: *task_id }
+                    }
+                }
             }}
         }
     })
@@ -733,11 +900,15 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
             div {
                 class: "flex flex-row gap-2 items-center",
                 svg {
-                    class: "w-6 h-6 text-gray-400",
+                    class: "w-6 h-6 text-gray-400 cursor-pointer",
                     "aria-hidden": "true",
                     "xmlns": "http://www.w3.org/2000/svg",
                     "fill": "none",
                     "viewBox": "0 0 20 20",
+                    onclick: |event| {
+                        event.stop_propagation();
+                        editing.set(false);
+                    },
                     path {
                         fill: "currentColor",
                         d: "M6 1a1 1 0 0 0-2 0h2ZM4 4a1 1 0 0 0 2 0H4Zm7-3a1 1 0 1 0-2 0h2ZM9 4a1 1 0 1 0 2 0H9Zm7-3a1 1 0 1 0-2 0h2Zm-2 3a1 1 0 1 0 2 0h-2ZM1 6a1 1 0 0 0 0 2V6Zm18 2a1 1 0 1 0 0-2v2ZM5 11v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 11v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 15v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 15v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 11v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM5 15v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM2 4h16V2H2v2Zm16 0h2a2 2 0 0 0-2-2v2Zm0 0v14h2V4h-2Zm0 14v2a2 2 0 0 0 2-2h-2Zm0 0H2v2h16v-2ZM2 18H0a2 2 0 0 0 2 2v-2Zm0 0V4H0v14h2ZM2 4V2a2 2 0 0 0-2 2h2Zm2-3v3h2V1H4Zm5 0v3h2V1H9Zm5 0v3h2V1h-2ZM1 8h18V6H1v2Zm3 3v.01h2V11H4Zm1 1.01h.01v-2H5v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H5v2h.01v-2ZM9 11v.01h2V11H9Zm1 1.01h.01v-2H10v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM9 15v.01h2V15H9Zm1 1.01h.01v-2H10v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM14 15v.01h2V15h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM14 11v.01h2V11h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM4 15v.01h2V15H4Zm1 1.01h.01v-2H5v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H5v2h.01v-2Z",
@@ -866,7 +1037,7 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
                         new_time.set(local.time());
                     },
                     svg {
-                        class: "w-6 h-6 text-gray-400",
+                        class: "w-6 h-6 text-gray-400 cursor-pointer",
                         "aria-hidden": "true",
                         "xmlns": "http://www.w3.org/2000/svg",
                         "fill": "none",
@@ -889,7 +1060,7 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
                 div {
                     class: "flex flex-row gap-2",
                     svg {
-                        class: "w-6 h-6 text-gray-400",
+                        class: "w-6 h-6 text-gray-400 cursor-pointer",
                         onclick: move |_| {
                             editing.set(true);
                             new_date.set(None);
@@ -910,6 +1081,14 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
     })
 }
 
+fn user_bg(model: &UseSharedState<Model>, user_id: &UserId, user_color: &Color) -> String {
+    if model.read().user_filter.contains(user_id) {
+        format!("{} ring ring-blue-500", color_picker::bg_class(user_color))
+    } else {
+        "bg-inherit".into()
+    }
+}
+
 #[component]
 fn Users(cx: Scope, task_id: TaskId) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
@@ -918,19 +1097,36 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
     let users: Vec<_> = data
         .assignees
         .iter()
-        .map(|user_id| &read_model.users[user_id])
+        .map(|user_id| (user_id, &read_model.users[user_id]))
         .collect();
     let show_assign_user = use_state(cx, || false);
     let assignees = use_ref(cx, Vec::new);
     cx.render(rsx! {
         div {
-            class: "flex flex-row gap-2",
-            for user in users {rsx!{
+            class: "flex flex-row flex-wrap gap-2",
+            for (user_id, user) in users {rsx!{
                 div {
                     class: "group relative",
                     onclick: |event| event.stop_propagation(),
                     div {
-                        class: "w-6 h-6 rounded cursor-pointer {color_picker::class(&user.color)}",
+                        class: "
+                            w-6 h-6 rounded cursor-pointer
+                            border-2 {color_picker::border_class(&user.color)}
+                            {user_bg(&model, user_id, &user.color)}
+                            {color_picker::bg_hover_class(&user.color)}
+                        ",
+                        onclick: {
+                            let user_id = *user_id;
+                            move |event| {
+                                event.stop_propagation();
+                                let mut model = model.write();
+                                if model.user_filter.contains(&user_id) {
+                                    model.user_filter.remove(&user_id);
+                                } else {
+                                    model.user_filter.insert(user_id);
+                                }
+                            }
+                        },
                     },
                     div {
                         class: TOOLTIP,
@@ -1045,6 +1241,187 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     }
                 }}
             }
+        }
+    })
+}
+
+fn tag_bg(model: &UseSharedState<Model>, tag_id: &TagId, tag_color: &Color) -> String {
+    if model.read().tag_filter.contains(tag_id) {
+        format!("{} ring ring-blue-500", color_picker::bg_class(tag_color))
+    } else {
+        "bg-inherit".into()
+    }
+}
+
+#[component]
+fn Tags(cx: Scope, task_id: TaskId) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
+    let data = &read_model.tasks[task_id];
+    let tags: Vec<_> = data
+        .tags
+        .iter()
+        .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
+        .collect();
+    let show_assign_tag = use_state(cx, || false);
+    let assigned_tags = use_ref(cx, Vec::new);
+    cx.render(rsx! {
+        for (tag_id, tag) in tags {rsx!{
+            span {
+                class: "
+                    text-sm font-medium px-2.5 py-0.5 rounded
+                    {tag_bg(model, tag_id, &tag.color)}
+                    {color_picker::bg_hover_class(&tag.color)}
+                    text-white cursor-pointer
+                    border-2 {color_picker::border_class(&tag.color)}
+                    flex flex-row gap-2
+                ",
+                onclick: {
+                    let tag_id = *tag_id;
+                    move |event| {
+                        event.stop_propagation();
+                        let mut model = model.write();
+                        if model.tag_filter.contains(&tag_id) {
+                            model.tag_filter.remove(&tag_id);
+                        } else {
+                            model.tag_filter.insert(tag_id);
+                        }
+                    }
+                },
+                "# {tag.name}",
+                button {
+                    r#type: "button",
+                    class: "
+                        border border-transparent sm:hover:border-white
+                        inline-flex items-center p-1 font-medium rounded
+                    ",
+                    onclick: {
+                        let task_id = *task_id;
+                        let tag_id = *tag_id;
+                        move |event| {
+                            event.stop_propagation();
+                            delete_task_tag(model.clone(), task_id, tag_id)
+                        }
+                    },
+                    svg {
+                        class: "w-2 h-2",
+                        "aria-hidden": "true",
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 14 14",
+                        path {
+                            stroke: "currentColor",
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            "stroke-width": "2",
+                            d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                        }
+                    }
+                }
+            }
+        }}
+        div {
+            class: "group relative",
+            svg {
+                xmlns: "http://www.w3.org/2000/svg",
+                fill: "none",
+                "viewBox": "0 0 24 24" ,
+                "stroke-width": "1.5" ,
+                stroke: "white" ,
+                class: "w-6 h-6 border border-white rounded cursor-pointer",
+                prevent_default: "onclick",
+                onclick: |event| {
+                    event.stop_propagation();
+                    *assigned_tags.write() = model.read().tasks[task_id].tags.clone();
+                    show_assign_tag.set(true);
+                },
+                path {
+                    "stroke-linecap": "round",
+                    "stroke-linejoin": "round",
+                    d: "M12 4.5v15m7.5-7.5h-15",
+                }
+            }
+            if **show_assign_tag {rsx!{
+                div {
+                    class: "
+                        flex flex-col gap-2
+                        absolute -top-10 -left-2 w-72
+                        z-10 px-3 py-2 text-sm font-medium text-white
+                        rounded-lg shadow-sm bg-gray-800
+                        border border-gray-700",
+                    TagSearch {
+                        id: "assign_tag_modal",
+                        on_select_tag: |tag_id| assigned_tags.write().push(tag_id),
+                        on_remove_tag: |tag_id| assigned_tags.write().retain(|&value| value != tag_id),
+                        initial_tags: assigned_tags.read().clone(),
+                        always_show_suggestions: true,
+                    }
+                    div {
+                        class: "flex flex-row gap-2 justify-end",
+                        button {
+                            r#type: "button",
+                            class: "
+                                rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
+                                border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
+                            prevent_default: "onclick",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                show_assign_tag.set(false);
+                                set_task_tags(
+                                    model.clone(),
+                                    *task_id, assigned_tags.read().clone()
+                                )
+                            },
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                class: "w-6 h-6",
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "m4.5 12.75 6 6 9-13.5",
+                                }
+                            }
+                        }
+                        button {
+                            r#type: "button",
+                            prevent_default: "onclick",
+                            class: "
+                                rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
+                                border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                show_assign_tag.set(false);
+                            },
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                class: "w-6 h-6",
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "M6 18 18 6M6 6l12 12",
+                                }
+                            }
+                        }
+                    }
+                }
+            }} else {rsx!{
+                div {
+                    class: TOOLTIP,
+                    "Assign Tag"
+                    div {
+                        class: "tooltip-arrow",
+                        "data-popper-arrow": "",
+                    }
+                }
+            }}
         }
     })
 }
@@ -1271,6 +1648,36 @@ async fn send_set_task_assignees_request(
         .await?)
 }
 
+async fn set_task_tags(model: UseSharedState<Model>, task_id: TaskId, tags: Vec<TagId>) {
+    if send_set_task_tags_request(model.clone(), task_id, tags)
+        .await
+        .is_ok()
+    {
+        requests::board(model.clone()).await;
+    }
+}
+
+async fn send_set_task_tags_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    tags: Vec<TagId>,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/tags",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&tags)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
 async fn delete_task(model: UseSharedState<Model>, task_id: TaskId) {
     if send_delete_task_request(model.clone(), task_id)
         .await
@@ -1289,6 +1696,35 @@ async fn send_delete_task_request(
         model.url.join(&format!(
             "/api/boards/{}/tasks/{}",
             model.board_name, task_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .delete(url)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn delete_task_tag(model: UseSharedState<Model>, task_id: TaskId, tag_id: TagId) {
+    if send_delete_task_tag_request(model.clone(), task_id, tag_id)
+        .await
+        .is_ok()
+    {
+        requests::board(model).await;
+    }
+}
+
+async fn send_delete_task_tag_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    tag_id: TagId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/tags/{}",
+            model.board_name, task_id, tag_id
         ))?
     };
     Ok(reqwest::Client::new()

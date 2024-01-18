@@ -2,17 +2,21 @@ use crate::model::Model;
 use crate::model::TaskData;
 use dioxus::prelude::*;
 use reqwest::Client;
+use shared_models::TagData;
+use shared_models::TagEntry;
+use shared_models::TagId;
 use shared_models::{TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId};
 use std::collections::HashMap;
 use tokio::join;
 
 pub async fn board(model: UseSharedState<Model>) {
     log::info!("sending board data request");
-    if let (Ok(users), Ok(tasks)) = join!(users(&model), tasks(&model)) {
+    if let (Ok(users), Ok(tasks), Ok(tags)) = join!(users(&model), tasks(&model), tags(&model)) {
         log::info!("got board data");
         let mut model = model.write();
         model.users = users;
         model.tasks = tasks.tasks;
+        model.tags = tags;
         model.to_do = tasks.to_do;
         model.in_progress = tasks.in_progress;
         model.done = tasks.done;
@@ -47,6 +51,32 @@ async fn users(model: &UseSharedState<Model>) -> Result<HashMap<UserId, UserData
         }))
 }
 
+async fn tags(model: &UseSharedState<Model>) -> Result<HashMap<TagId, TagData>, anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model
+            .url
+            .join(&format!("/api/boards/{}/tags", model.board_name))?
+    };
+    Ok(Client::new()
+        .get(url)
+        .send()
+        .await?
+        .json::<Vec<TagEntry>>()
+        .await?
+        .into_iter()
+        .fold(HashMap::new(), |mut tags, tag| {
+            tags.insert(
+                tag.id,
+                TagData {
+                    name: tag.name,
+                    color: tag.color,
+                },
+            );
+            tags
+        }))
+}
+
 async fn tasks(model: &UseSharedState<Model>) -> Result<TasksResponse, anyhow::Error> {
     let url = {
         let model = model.read();
@@ -75,6 +105,7 @@ async fn tasks(model: &UseSharedState<Model>) -> Result<TasksResponse, anyhow::E
                     assignees: task.assignees,
                     blocks: task.blocks,
                     blocked_by: task.blocked_by,
+                    tags: task.tags,
                 },
             );
             match task.status {
@@ -113,6 +144,7 @@ impl From<Vec<TaskEntry>> for TasksResponse {
                     assignees: task.assignees,
                     blocks: task.blocks,
                     blocked_by: task.blocked_by,
+                    tags: task.tags,
                 },
             );
             match task.status {
@@ -150,5 +182,28 @@ pub async fn create_user(
             .json::<UserId>()
             .await?,
         user_data.name,
+    ))
+}
+
+pub async fn create_tag(
+    model: UseSharedState<Model>,
+    mut tag_data: TagData,
+) -> Result<(TagId, String), anyhow::Error> {
+    tag_data.name = tag_data.name.trim().to_string();
+    let url = {
+        let model = model.read();
+        model
+            .url
+            .join(&format!("/api/boards/{}/tags", model.board_name))?
+    };
+    Ok((
+        Client::new()
+            .post(url)
+            .json(&tag_data)
+            .send()
+            .await?
+            .json::<TagId>()
+            .await?,
+        tag_data.name,
     ))
 }

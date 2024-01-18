@@ -3,6 +3,9 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
+use shared_models::TagData;
+use shared_models::TagEntry;
+use shared_models::TagId;
 use shared_models::{
     BoardName, Color, TaskData, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry,
     UserId,
@@ -27,6 +30,7 @@ impl TaskRow {
         assignees: Vec<UserId>,
         blocks: Vec<TaskId>,
         blocked_by: Vec<TaskId>,
+        tags: Vec<TagId>,
     ) -> TaskEntry {
         TaskEntry {
             id: self.id,
@@ -40,6 +44,7 @@ impl TaskRow {
             assignees,
             blocks,
             blocked_by,
+            tags,
         }
     }
 }
@@ -133,10 +138,10 @@ SELECT
 FROM
     tasks
 WHERE
-    id = ? AND board_name = ?
+    board_name = ? AND id = ?
 LIMIT 1"#,
-        task_id,
         board_name,
+        task_id,
     )
     .fetch_one(&mut *tx)
     .await?;
@@ -152,7 +157,8 @@ SELECT
 FROM
     task_assignments
 WHERE
-    task_id = ?",
+    board_name = ? AND task_id = ?",
+        board_name,
         task_id,
     )
     .fetch_all(&mut *tx)
@@ -202,8 +208,30 @@ WHERE
     .into_iter()
     .map(|BlockedByRow { task_id }| task_id)
     .collect();
+
+    struct TagRow {
+        tag_id: TagId,
+    }
+    let tags = sqlx::query_as!(
+        TagRow,
+        "
+SELECT
+    tag_id
+FROM
+    task_tags
+WHERE
+    board_name = ? AND task_id = ?",
+        board_name,
+        task_id,
+    )
+    .fetch_all(&mut *tx)
+    .await?
+    .into_iter()
+    .map(|TagRow { tag_id }| tag_id)
+    .collect();
+
     tx.commit().await?;
-    Ok(Json(task.into_entry(assignees, blocks, blocked_by)))
+    Ok(Json(task.into_entry(assignees, blocks, blocked_by, tags)))
 }
 
 pub async fn show_tasks(
@@ -287,6 +315,34 @@ WHERE
             (blocks, blocked_by)
         },
     );
+
+    struct TagRow {
+        task_id: TaskId,
+        tag_id: TagId,
+    }
+
+    let tag_assignments = sqlx::query_as!(
+        TagRow,
+        "
+SELECT
+    task_id, tag_id
+FROM
+    task_tags
+WHERE
+    board_name = ?",
+        board_name,
+    );
+    let mut tag_assignments = tag_assignments.fetch_all(&mut *tx).await?.into_iter().fold(
+        HashMap::new(),
+        |mut map, row| {
+            #[allow(clippy::unwrap_or_default)]
+            map.entry(row.task_id)
+                .or_insert_with(Vec::new)
+                .push(row.tag_id);
+            map
+        },
+    );
+
     let task_entries: Vec<TaskEntry> = tasks
         .into_iter()
         .map(|task_row| {
@@ -297,6 +353,7 @@ WHERE
                 blocked_by_assignmnets
                     .remove(&task_id)
                     .unwrap_or_else(Vec::new),
+                tag_assignments.remove(&task_id).unwrap_or_else(Vec::new),
             )
         })
         .collect();
@@ -364,6 +421,19 @@ VALUES (?, ?, ?)",
         .execute(&mut *tx)
         .await?;
     }
+    for tag_id in task_data.tags.iter() {
+        sqlx::query!(
+            "
+INSERT INTO task_tags (board_name, task_id, tag_id)
+VALUES (?, ?, ?)",
+            board_name,
+            task_id,
+            tag_id
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+
     tx.commit().await?;
     Ok(Json(task_id))
 }
@@ -395,6 +465,18 @@ WHERE
     OR (board_name = ? AND blocks_id = ?)",
         board_name,
         task_id,
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
+    task_tags
+WHERE
+    board_name = ? AND task_id = ?",
         board_name,
         task_id,
     )
@@ -720,6 +802,212 @@ WHERE
         name,
         board_name,
         user_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn show_tags(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<TagEntry>>> {
+    let mut tx = pool.begin().await?;
+    let tags = sqlx::query_as!(
+        TagEntry,
+        r#"
+SELECT
+    id, name, color AS "color: Color"
+FROM
+    tags
+WHERE
+    board_name = ?"#,
+        board_name
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(tags))
+}
+
+pub async fn create_tag(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+    Json(TagData { name, color }): Json<TagData>,
+) -> Result<Json<TagId>> {
+    let mut tx = pool.begin().await?;
+    let tag_id = sqlx::query!(
+        "
+INSERT INTO tags (board_name, name, color)
+VALUES (?, ?, ?)",
+        board_name,
+        name,
+        color,
+    )
+    .execute(&mut *tx)
+    .await?
+    .last_insert_rowid()
+    .into();
+    tx.commit().await?;
+    Ok(Json(tag_id))
+}
+
+pub async fn show_tag(
+    State(pool): State<SqlitePool>,
+    Path((board_name, tag_id)): Path<(BoardName, TagId)>,
+) -> Result<Json<TagEntry>> {
+    let mut tx = pool.begin().await?;
+    let tag_entry = sqlx::query_as!(
+        TagEntry,
+        r#"
+SELECT
+    id, name, color AS "color: Color"
+FROM
+    tags
+WHERE
+    board_name = ? AND id = ?
+LIMIT 1"#,
+        board_name,
+        tag_id
+    )
+    .fetch_one(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(tag_entry))
+}
+
+pub async fn delete_tag(
+    State(pool): State<SqlitePool>,
+    Path((board_name, tag_id)): Path<(BoardName, TagId)>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    task_tags
+WHERE
+    board_name = ? AND tag_id = ?",
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
+    tags
+WHERE
+    board_name = ? AND id = ?",
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn update_tag_name(
+    State(pool): State<SqlitePool>,
+    Path((board_name, tag_id)): Path<(BoardName, TagId)>,
+    Json(name): Json<String>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tags
+SET
+    name = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        name,
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn update_tag_color(
+    State(pool): State<SqlitePool>,
+    Path((board_name, tag_id)): Path<(BoardName, TagId)>,
+    Json(color): Json<Color>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tags
+SET
+    color = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        color,
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn update_task_tags(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(tags): Json<Vec<TagId>>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    task_tags
+WHERE
+   board_name = ? AND task_id = ?
+",
+        board_name,
+        task_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    for tag_id in tags {
+        sqlx::query!(
+            "
+INSERT INTO task_tags (board_name, task_id, tag_id)
+VALUES (?, ?, ?)",
+            board_name,
+            task_id,
+            tag_id,
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn delete_task_tag(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id, tag_id)): Path<(BoardName, TaskId, TagId)>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    task_tags
+WHERE
+    board_name = ? AND task_id = ? AND tag_id = ?",
+        board_name,
+        task_id,
+        tag_id
     )
     .execute(&mut *tx)
     .await?;
