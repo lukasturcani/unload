@@ -113,6 +113,7 @@ async fn main() -> Result<()> {
         }
     };
     let pool = SqlitePool::connect(&database_url).await?;
+    sqlx::migrate!("../migrations").run(&pool).await?;
     let app = router(&std::env::var("UNLOAD_SERVE_DIR")?.parse::<PathBuf>()?).with_state(pool);
     let listener = TcpListener::bind(server_address).await?;
     axum::serve(listener, app).await?;
