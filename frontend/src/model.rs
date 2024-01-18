@@ -26,9 +26,17 @@ pub struct Model {
 impl Model {
     pub fn show_task(&self, task_id: TaskId) -> bool {
         let task = &self.tasks[&task_id];
-        self.tag_filter
+        if self
+            .tag_filter
             .iter()
-            .all(|tag_id| task.tags.contains(tag_id))
+            .any(|tag_id| !task.tags.contains(tag_id))
+        {
+            return false;
+        }
+        if self.size_filter.map_or(false, |filter| filter != task.size) {
+            return false;
+        }
+        true
     }
 }
 
