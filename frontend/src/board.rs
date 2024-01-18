@@ -615,7 +615,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             class: "
                                 text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
                                 border border-green-900
-                                {size_bg(model, &data.size)} text-green-300
+                                sm:hover:bg-green-900 bg-inherit text-green-300
                             ",
                             onclick: |event| {
                                 event.stop_propagation();
@@ -628,7 +628,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             class: "
                                 text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
                                 border border-yellow-900
-                                {size_bg(model, &data.size)} text-yellow-300
+                                sm:hover:bg-yellow-900 bg-inherit text-yellow-300
                             ",
                             onclick: |event| {
                                 event.stop_propagation();
@@ -641,7 +641,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             class: "
                                 text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
                                 border border-red-900
-                                {size_bg(model, &data.size)} text-red-300
+                                sm:hover:bg-red-900 bg-inherit text-red-300
                             ",
                             onclick: |event| {
                                 event.stop_propagation();
@@ -658,10 +658,18 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                         text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
                                         flex flex-row gap-2 items-center
                                         border border-green-900
-                                        {size_bg(model, &data.size)} text-green-300
+                                        {size_bg(model, &data.size)}
+                                        sm:hover:bg-green-900
+                                        text-green-300
                                     ",
                                     onclick: |event| {
                                         event.stop_propagation();
+                                        let mut model = model.write();
+                                        if model.size_filter == Some(TaskSize::Small) {
+                                            model.size_filter = None;
+                                        } else {
+                                            model.size_filter = Some(TaskSize::Small);
+                                        }
                                     },
                                     "Small",
                                     svg {
@@ -689,10 +697,17 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                         text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
                                         flex flex-row gap-2 items-center
                                         border border-yellow-900
+                                        sm:hover:bg-yellow-900
                                         {size_bg(model, &data.size)} text-yellow-300
                                     ",
                                     onclick: |event| {
                                         event.stop_propagation();
+                                        let mut model = model.write();
+                                        if model.size_filter == Some(TaskSize::Medium) {
+                                            model.size_filter = None;
+                                        } else {
+                                            model.size_filter = Some(TaskSize::Medium);
+                                        }
                                     },
                                     "Medium",
                                     svg {
@@ -720,10 +735,17 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                         text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
                                         flex flex-row gap-2 items-center
                                         border border-red-900
+                                        sm:hover:bg-red-900
                                         {size_bg(model, &data.size)} text-red-300
                                     ",
                                     onclick: |event| {
                                         event.stop_propagation();
+                                        let mut model = model.write();
+                                        if model.size_filter == Some(TaskSize::Large) {
+                                            model.size_filter = None;
+                                        } else {
+                                            model.size_filter = Some(TaskSize::Large);
+                                        }
                                     },
                                     "Large",
                                     svg {
