@@ -872,10 +872,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 }}
                 div {
                     class: "grid grid-cols-8",
-                    div {
-                        class: "col-span-7 flex flex-row flex-wrap gap-2",
-                        Tags { task_id: *task_id }
-                    }
+                    Tags { task_id: *task_id }
                 }
             }}
         }
@@ -1167,6 +1164,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                             z-10 px-3 py-2 text-sm font-medium text-white
                             rounded-lg shadow-sm bg-gray-800
                             border border-gray-700",
+                        onclick: |event| event.stop_propagation(),
                         UserSearch {
                             id: "assign_user_modal",
                             on_select_user: |user_id| assignees.write().push(user_id),
@@ -1266,163 +1264,167 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
     let show_assign_tag = use_state(cx, || false);
     let assigned_tags = use_ref(cx, Vec::new);
     cx.render(rsx! {
-        for (tag_id, tag) in tags {rsx!{
-            span {
-                class: "
-                    text-sm font-medium px-2.5 py-0.5 rounded
-                    {tag_bg(model, tag_id, &tag.color)}
-                    {color_picker::bg_hover_class(&tag.color)}
-                    text-white cursor-pointer
-                    border-2 {color_picker::border_class(&tag.color)}
-                    flex flex-row gap-2
-                ",
-                onclick: {
-                    let tag_id = *tag_id;
-                    move |event| {
-                        event.stop_propagation();
-                        let mut model = model.write();
-                        if model.tag_filter.contains(&tag_id) {
-                            model.tag_filter.remove(&tag_id);
-                        } else {
-                            model.tag_filter.insert(tag_id);
-                        }
-                    }
-                },
-                "# {tag.name}",
-                button {
-                    r#type: "button",
+        div {
+            class: "col-span-7 flex flex-row flex-wrap gap-2",
+            for (tag_id, tag) in tags {rsx!{
+                span {
                     class: "
-                        border border-transparent sm:hover:border-white
-                        inline-flex items-center p-1 font-medium rounded
+                        text-sm font-medium px-2.5 py-0.5 rounded
+                        {tag_bg(model, tag_id, &tag.color)}
+                        {color_picker::bg_hover_class(&tag.color)}
+                        text-white cursor-pointer
+                        border-2 {color_picker::border_class(&tag.color)}
+                        flex flex-row gap-2
                     ",
                     onclick: {
-                        let task_id = *task_id;
                         let tag_id = *tag_id;
                         move |event| {
                             event.stop_propagation();
-                            delete_task_tag(model.clone(), task_id, tag_id)
+                            let mut model = model.write();
+                            if model.tag_filter.contains(&tag_id) {
+                                model.tag_filter.remove(&tag_id);
+                            } else {
+                                model.tag_filter.insert(tag_id);
+                            }
                         }
                     },
-                    svg {
-                        class: "w-2 h-2",
-                        "aria-hidden": "true",
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none",
-                        "viewBox": "0 0 14 14",
-                        path {
-                            stroke: "currentColor",
-                            "stroke-linecap": "round",
-                            "stroke-linejoin": "round",
-                            "stroke-width": "2",
-                            d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                        }
-                    }
-                }
-            }
-        }}
-        div {
-            class: "group relative",
-            svg {
-                xmlns: "http://www.w3.org/2000/svg",
-                fill: "none",
-                "viewBox": "0 0 24 24" ,
-                "stroke-width": "1.5" ,
-                stroke: "white" ,
-                class: "w-6 h-6 border border-white rounded cursor-pointer",
-                prevent_default: "onclick",
-                onclick: |event| {
-                    event.stop_propagation();
-                    *assigned_tags.write() = model.read().tasks[task_id].tags.clone();
-                    show_assign_tag.set(true);
-                },
-                path {
-                    "stroke-linecap": "round",
-                    "stroke-linejoin": "round",
-                    d: "M12 4.5v15m7.5-7.5h-15",
-                }
-            }
-            if **show_assign_tag {rsx!{
-                div {
-                    class: "
-                        flex flex-col gap-2
-                        absolute -top-10 -left-2 w-72
-                        z-10 px-3 py-2 text-sm font-medium text-white
-                        rounded-lg shadow-sm bg-gray-800
-                        border border-gray-700",
-                    TagSearch {
-                        id: "assign_tag_modal",
-                        on_select_tag: |tag_id| assigned_tags.write().push(tag_id),
-                        on_remove_tag: |tag_id| assigned_tags.write().retain(|&value| value != tag_id),
-                        initial_tags: assigned_tags.read().clone(),
-                        always_show_suggestions: true,
-                    }
-                    div {
-                        class: "flex flex-row gap-2 justify-end",
-                        button {
-                            r#type: "button",
-                            class: "
-                                rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
-                            prevent_default: "onclick",
-                            onclick: |event| {
+                    "# {tag.name}",
+                    button {
+                        r#type: "button",
+                        class: "
+                            border border-transparent sm:hover:border-white
+                            inline-flex items-center p-1 font-medium rounded
+                        ",
+                        onclick: {
+                            let task_id = *task_id;
+                            let tag_id = *tag_id;
+                            move |event| {
                                 event.stop_propagation();
-                                show_assign_tag.set(false);
-                                set_task_tags(
-                                    model.clone(),
-                                    *task_id, assigned_tags.read().clone()
-                                )
-                            },
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
+                                delete_task_tag(model.clone(), task_id, tag_id)
+                            }
+                        },
+                        svg {
+                            class: "w-2 h-2",
+                            "aria-hidden": "true",
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 14 14",
+                            path {
                                 stroke: "currentColor",
-                                class: "w-6 h-6",
-                                path {
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "m4.5 12.75 6 6 9-13.5",
-                                }
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                "stroke-width": "2",
+                                d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                             }
                         }
-                        button {
-                            r#type: "button",
-                            prevent_default: "onclick",
-                            class: "
-                                rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
-                            onclick: |event| {
-                                event.stop_propagation();
-                                show_assign_tag.set(false);
-                            },
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
-                                stroke: "currentColor",
-                                class: "w-6 h-6",
-                                path {
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "M6 18 18 6M6 6l12 12",
-                                }
-                            }
-                        }
-                    }
-                }
-            }} else {rsx!{
-                div {
-                    class: TOOLTIP,
-                    "Assign Tag"
-                    div {
-                        class: "tooltip-arrow",
-                        "data-popper-arrow": "",
                     }
                 }
             }}
-        }
+            div {
+                class: "group relative",
+                svg {
+                    xmlns: "http://www.w3.org/2000/svg",
+                    fill: "none",
+                    "viewBox": "0 0 24 24" ,
+                    "stroke-width": "1.5" ,
+                    stroke: "white" ,
+                    class: "w-6 h-6 border border-white rounded cursor-pointer",
+                    prevent_default: "onclick",
+                    onclick: |event| {
+                        event.stop_propagation();
+                        *assigned_tags.write() = model.read().tasks[task_id].tags.clone();
+                        show_assign_tag.set(true);
+                    },
+                    path {
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        d: "M12 4.5v15m7.5-7.5h-15",
+                    }
+                }
+                if **show_assign_tag {rsx!{
+                    div {
+                        class: "
+                            flex flex-col gap-2
+                            absolute -top-10 -left-2 w-72
+                            z-10 px-3 py-2 text-sm font-medium text-white
+                            rounded-lg shadow-sm bg-gray-800
+                            border border-gray-700",
+                        onclick: |event| event.stop_propagation(),
+                        TagSearch {
+                            id: "assign_tag_modal",
+                            on_select_tag: |tag_id| assigned_tags.write().push(tag_id),
+                            on_remove_tag: |tag_id| assigned_tags.write().retain(|&value| value != tag_id),
+                            initial_tags: assigned_tags.read().clone(),
+                            always_show_suggestions: true,
+                        }
+                        div {
+                            class: "flex flex-row gap-2 justify-end",
+                            button {
+                                r#type: "button",
+                                class: "
+                                    rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
+                                    border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
+                                prevent_default: "onclick",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    show_assign_tag.set(false);
+                                    set_task_tags(
+                                        model.clone(),
+                                        *task_id, assigned_tags.read().clone()
+                                    )
+                                },
+                                svg {
+                                    xmlns: "http://www.w3.org/2000/svg",
+                                    fill: "none",
+                                    "viewBox": "0 0 24 24",
+                                    "stroke-width": "1.5",
+                                    stroke: "currentColor",
+                                    class: "w-6 h-6",
+                                    path {
+                                        "stroke-linecap": "round",
+                                        "stroke-linejoin": "round",
+                                        d: "m4.5 12.75 6 6 9-13.5",
+                                    }
+                                }
+                            }
+                            button {
+                                r#type: "button",
+                                prevent_default: "onclick",
+                                class: "
+                                    rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
+                                    border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    show_assign_tag.set(false);
+                                },
+                                svg {
+                                    xmlns: "http://www.w3.org/2000/svg",
+                                    fill: "none",
+                                    "viewBox": "0 0 24 24",
+                                    "stroke-width": "1.5",
+                                    stroke: "currentColor",
+                                    class: "w-6 h-6",
+                                    path {
+                                        "stroke-linecap": "round",
+                                        "stroke-linejoin": "round",
+                                        d: "M6 18 18 6M6 6l12 12",
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }} else {rsx!{
+                    div {
+                        class: TOOLTIP,
+                        "Assign Tag"
+                        div {
+                            class: "tooltip-arrow",
+                            "data-popper-arrow": "",
+                        }
+                    }
+                }}
+            }
+    }
     })
 }
 
