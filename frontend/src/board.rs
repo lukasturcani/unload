@@ -1210,6 +1210,7 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                 class: "
                     text-sm font-medium px-2.5 py-0.5 rounded
                     {tag_bg(model, tag_id, &tag.color)}
+                    {color_picker::bg_hover_class(&tag.color)}
                     text-white cursor-pointer
                     border {color_picker::border_class(&tag.color)}
                     flex flex-row gap-2

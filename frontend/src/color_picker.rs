@@ -41,6 +41,27 @@ pub fn bg_class(color: &Color) -> &'static str {
     }
 }
 
+pub fn bg_hover_class(color: &Color) -> &'static str {
+    match color {
+        Color::Black => "sm:hover:bg-black",
+        Color::White => "sm:hover:bg-white",
+        Color::Gray => "sm:hover:bg-gray-500",
+        Color::Silver => "sm:hover:bg-slate-500",
+        Color::Maroon => "sm:hover:bg-red-950",
+        Color::Red => "sm:hover:bg-red-600",
+        Color::Purple => "sm:hover:bg-purple-950",
+        Color::Fushsia => "sm:hover:bg-fuchsia-600",
+        Color::Green => "sm:hover:bg-green-900",
+        Color::Lime => "sm:hover:bg-lime-500",
+        Color::Olive => "sm:hover:bg-lime-950",
+        Color::Yellow => "sm:hover:bg-yellow-400",
+        Color::Navy => "sm:hover:bg-blue-950",
+        Color::Blue => "sm:hover:bg-blue-700",
+        Color::Teal => "sm:hover:bg-teal-400",
+        Color::Aqua => "sm:hover:bg-cyan-400",
+    }
+}
+
 pub fn border_class(color: &Color) -> &'static str {
     match color {
         Color::Black => "border-black",
