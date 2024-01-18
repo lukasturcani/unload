@@ -1045,6 +1045,14 @@ fn Due(cx: Scope, task_id: TaskId, due: Option<DueOptions>) -> Element {
     })
 }
 
+fn user_bg(model: &UseSharedState<Model>, user_id: &UserId, user_color: &Color) -> &'static str {
+    if model.read().user_filter.contains(user_id) {
+        color_picker::bg_class(user_color)
+    } else {
+        "bg-inherit"
+    }
+}
+
 #[component]
 fn Users(cx: Scope, task_id: TaskId) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
@@ -1053,19 +1061,37 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
     let users: Vec<_> = data
         .assignees
         .iter()
-        .map(|user_id| &read_model.users[user_id])
+        .map(|user_id| (user_id, &read_model.users[user_id]))
         .collect();
     let show_assign_user = use_state(cx, || false);
     let assignees = use_ref(cx, Vec::new);
     cx.render(rsx! {
         div {
-            class: "flex flex-row gap-2",
-            for user in users {rsx!{
+            class: "flex flex-row flex-wrap gap-2",
+            for (user_id, user) in users {rsx!{
                 div {
                     class: "group relative",
                     onclick: |event| event.stop_propagation(),
                     div {
-                        class: "w-6 h-6 rounded cursor-pointer {color_picker::bg_class(&user.color)}",
+                        class: "
+                            w-6 h-6 rounded cursor-pointer
+                            border {color_picker::border_class(&user.color)}
+                            {user_bg(&model, user_id, &user.color)}
+                            bg-inherit
+                            {color_picker::bg_hover_class(&user.color)}
+                        ",
+                        onclick: {
+                            let user_id = *user_id;
+                            move |event| {
+                                event.stop_propagation();
+                                let mut model = model.write();
+                                if model.user_filter.contains(&user_id) {
+                                    model.user_filter.remove(&user_id);
+                                } else {
+                                    model.user_filter.insert(user_id);
+                                }
+                            }
+                        },
                     },
                     div {
                         class: TOOLTIP,
