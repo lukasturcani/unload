@@ -1167,6 +1167,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                             z-10 px-3 py-2 text-sm font-medium text-white
                             rounded-lg shadow-sm bg-gray-800
                             border border-gray-700",
+                        onclick: |event| event.stop_propagation(),
                         UserSearch {
                             id: "assign_user_modal",
                             on_select_user: |user_id| assignees.write().push(user_id),
@@ -1349,6 +1350,7 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                         z-10 px-3 py-2 text-sm font-medium text-white
                         rounded-lg shadow-sm bg-gray-800
                         border border-gray-700",
+                    onclick: |event| event.stop_propagation(),
                     TagSearch {
                         id: "assign_tag_modal",
                         on_select_tag: |tag_id| assigned_tags.write().push(tag_id),
