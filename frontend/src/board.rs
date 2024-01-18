@@ -480,6 +480,22 @@ fn DoneColumn(cx: Scope) -> Element {
     })
 }
 
+fn size_bg(model: &UseSharedState<Model>, size: &TaskSize) -> &'static str {
+    if model
+        .read()
+        .size_filter
+        .map_or(false, |filter| &filter == size)
+    {
+        match size {
+            TaskSize::Small => "bg-green-900",
+            TaskSize::Medium => "bg-yellow-900",
+            TaskSize::Large => "bg-red-900",
+        }
+    } else {
+        "bg-inherit"
+    }
+}
+
 #[component]
 fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
@@ -596,7 +612,11 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     class: "col-span-4 flex flex-row gap-2 flex-wrap",
                     if **editing_size {rsx!{
                         span {
-                            class: "text-sm font-medium px-2.5 py-0.5 rounded bg-green-900 text-green-300 cursor-pointer",
+                            class: "
+                                text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                border border-green-900
+                                {size_bg(model, &data.size)} text-green-300
+                            ",
                             onclick: |event| {
                                 event.stop_propagation();
                                 editing_size.set(false);
@@ -605,7 +625,11 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             "Small",
                         }
                         span {
-                            class: "text-sm font-medium px-2.5 py-0.5 rounded bg-yellow-900 text-yellow-300 cursor-pointer",
+                            class: "
+                                text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                border border-yellow-900
+                                {size_bg(model, &data.size)} text-yellow-300
+                            ",
                             onclick: |event| {
                                 event.stop_propagation();
                                 editing_size.set(false);
@@ -614,7 +638,11 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             "Medium",
                         }
                         span {
-                            class: "text-sm font-medium px-2.5 py-0.5 rounded bg-red-900 text-red-300 cursor-pointer",
+                            class: "
+                                text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                border border-red-900
+                                {size_bg(model, &data.size)} text-red-300
+                            ",
                             onclick: |event| {
                                 event.stop_propagation();
                                 editing_size.set(false);
@@ -629,7 +657,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     class: "
                                         text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
                                         flex flex-row gap-2 items-center
-                                        bg-green-900 text-green-300
+                                        border border-green-900
+                                        {size_bg(model, &data.size)} text-green-300
                                     ",
                                     onclick: |event| {
                                         event.stop_propagation();
@@ -659,7 +688,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     class: "
                                         text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
                                         flex flex-row gap-2 items-center
-                                        bg-yellow-900 text-yellow-300
+                                        border border-yellow-900
+                                        {size_bg(model, &data.size)} text-yellow-300
                                     ",
                                     onclick: |event| {
                                         event.stop_propagation();
@@ -689,7 +719,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     class: "
                                         text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
                                         flex flex-row gap-2 items-center
-                                        bg-red-900 text-red-300
+                                        border border-red-900
+                                        {size_bg(model, &data.size)} text-red-300
                                     ",
                                     onclick: |event| {
                                         event.stop_propagation();
