@@ -1079,7 +1079,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     div {
                         class: "
                             w-6 h-6 rounded cursor-pointer
-                            border border-2 {color_picker::border_class(&user.color)}
+                            border-2 {color_picker::border_class(&user.color)}
                             {user_bg(&model, user_id, &user.color)}
                             {color_picker::bg_hover_class(&user.color)}
                         ",
