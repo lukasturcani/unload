@@ -487,7 +487,7 @@ fn size_bg(model: &UseSharedState<Model>, size: &TaskSize) -> &'static str {
         .map_or(false, |filter| &filter == size)
     {
         match size {
-            TaskSize::Small => "bg-green-900 ring ring-blue-500",
+            TaskSize::Small => "bg-emerald-700 ring ring-blue-500",
             TaskSize::Medium => "bg-yellow-900 ring ring-blue-500",
             TaskSize::Large => "bg-red-900 ring ring-blue-500",
         }
@@ -614,8 +614,8 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         span {
                             class: "
                                 text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
-                                border border-green-900
-                                sm:hover:bg-green-900 bg-inherit text-green-300
+                                border-2 border-emerald-700
+                                sm:hover:bg-emerald-700 bg-inherit text-green-300
                             ",
                             onclick: |event| {
                                 event.stop_propagation();
@@ -627,7 +627,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         span {
                             class: "
                                 text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
-                                border border-yellow-900
+                                border-2 border-yellow-900
                                 sm:hover:bg-yellow-900 bg-inherit text-yellow-300
                             ",
                             onclick: |event| {
@@ -640,7 +640,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         span {
                             class: "
                                 text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
-                                border border-red-900
+                                border-2 border-red-900
                                 sm:hover:bg-red-900 bg-inherit text-red-300
                             ",
                             onclick: |event| {
@@ -657,9 +657,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     class: "
                                         text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
                                         flex flex-row gap-2 items-center
-                                        border border-green-900
+                                        border-2 border-emerald-700
                                         {size_bg(model, &data.size)}
-                                        sm:hover:bg-green-900
+                                        sm:hover:bg-emerald-700
                                         text-green-300
                                     ",
                                     onclick: |event| {
@@ -696,7 +696,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     class: "
                                         text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
                                         flex flex-row gap-2 items-center
-                                        border border-yellow-900
+                                        border-2 border-yellow-900
                                         sm:hover:bg-yellow-900
                                         {size_bg(model, &data.size)} text-yellow-300
                                     ",
@@ -734,7 +734,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     class: "
                                         text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
                                         flex flex-row gap-2 items-center
-                                        border border-red-900
+                                        border-2 border-red-900
                                         sm:hover:bg-red-900
                                         {size_bg(model, &data.size)} text-red-300
                                     ",
@@ -1241,7 +1241,7 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                     {tag_bg(model, tag_id, &tag.color)}
                     {color_picker::bg_hover_class(&tag.color)}
                     text-white cursor-pointer
-                    border {color_picker::border_class(&tag.color)}
+                    border-2 {color_picker::border_class(&tag.color)}
                     flex flex-row gap-2
                 ",
                 onclick: {
