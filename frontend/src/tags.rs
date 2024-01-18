@@ -1,5 +1,4 @@
 use crate::color_picker::{self, ColorPicker};
-use crate::route::Route;
 use crate::styles;
 use crate::{model::Model, requests};
 use dioxus::prelude::*;
