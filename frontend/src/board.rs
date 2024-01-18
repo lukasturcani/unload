@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use crate::filter_bar::FilterBar;
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
 use crate::tag_search::TagSearch;
@@ -22,12 +23,6 @@ pub const COLUMN: &str = "
 ";
 pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
 pub const COLUMN_TASK_LIST: &str = "grow flex flex-col gap-2 overflow-y-scroll";
-pub const TOOLTIP: &str = "
-    pointer-events-none absolute -top-10 -left-2 w-max
-    opacity-0 transition-opacity group-hover:opacity-100
-    z-10 px-3 py-2 text-sm font-medium text-white
-    rounded-lg shadow-sm tooltip bg-gray-800
-    border border-gray-700";
 
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
@@ -194,6 +189,7 @@ fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                     DoneColumn {},
                 },
             }
+            FilterBar {}
             BottomBar {
                 board_name: board_name.clone(),
             }
@@ -1129,7 +1125,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                         },
                     },
                     div {
-                        class: TOOLTIP,
+                        class: styles::TOOLTIP,
                         "{user.name}"
                         div {
                             class: "tooltip-arrow",
@@ -1233,7 +1229,7 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
                     }
                 }} else {rsx!{
                     div {
-                        class: TOOLTIP,
+                        class: styles::TOOLTIP,
                         "Assign User"
                         div {
                             class: "tooltip-arrow",
@@ -1416,7 +1412,7 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                 }
             }} else {rsx!{
                 div {
-                    class: TOOLTIP,
+                    class: styles::TOOLTIP,
                     "Assign Tag"
                     div {
                         class: "tooltip-arrow",

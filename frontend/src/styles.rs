@@ -28,3 +28,11 @@ pub const BOTTOM_BAR: &str = "
     border-t border-gray-600
     flex flex-row justify-center
 ";
+
+pub const TOOLTIP: &str = "
+    pointer-events-none absolute -top-10 -left-2 w-max
+    opacity-0 transition-opacity group-hover:opacity-100
+    z-10 px-3 py-2 text-sm font-medium text-white
+    rounded-lg shadow-sm tooltip bg-gray-800
+    border border-gray-700
+";
