@@ -607,9 +607,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 }
             }
             div {
-                class: "grid grid-cols-5",
+                class: "grid grid-cols-2",
                 div {
-                    class: "col-span-4 flex flex-row gap-2 flex-wrap",
+                    class: "flex flex-row gap-2",
                     if **editing_size {rsx!{
                         span {
                             class: "
@@ -769,8 +769,6 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             }}
                         }
                     }}
-                    Tags { task_id: *task_id }
-
                 }
             }
             div {
@@ -845,6 +843,13 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         "{data.description}"
                     }
                 }}
+                div {
+                    class: "grid grid-cols-6",
+                    div {
+                        class: "col-span-5 flex flex-row flex-wrap gap-2",
+                        Tags { task_id: *task_id }
+                    }
+                }
             }}
         }
     })
