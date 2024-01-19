@@ -136,13 +136,15 @@ fn SizeFilter(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     cx.render(rsx! {
         div {
+        div {
             class: "
                 flex flex-row flex-wrap gap-2
             ",
-            span {
+            button {
+                r#type: "button",
                 class: "
-                    text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
-                    flex flex-row gap-2 items-center
+                    text-sm font-medium rounded  cursor-pointer
+                    w-20 py-0.5
                     border-2 border-emerald-700
                     sm:hover:bg-emerald-700
                     {size_bg(model, &TaskSize::Small)} text-green-300
@@ -158,10 +160,11 @@ fn SizeFilter(cx: Scope) -> Element {
                 },
                 "Small",
             }
-            span {
+            button {
+                r#type: "button",
                 class: "
-                    text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
-                    flex flex-row gap-2 items-center
+                    text-sm font-medium rounded cursor-pointer
+                    w-20 py-0.5
                     border-2 border-yellow-900
                     sm:hover:bg-yellow-900
                     {size_bg(model, &TaskSize::Medium)} text-yellow-300
@@ -177,10 +180,11 @@ fn SizeFilter(cx: Scope) -> Element {
                 },
                 "Medium",
             }
-            span {
+            button {
+                r#type: "button",
                 class: "
-                    text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
-                    flex flex-row gap-2 items-center
+                    text-sm font-medium rounded  cursor-pointer
+                    w-20 py-0.5
                     border-2 border-red-900
                     sm:hover:bg-red-900
                     {size_bg(model, &TaskSize::Large)} text-red-300
@@ -196,6 +200,7 @@ fn SizeFilter(cx: Scope) -> Element {
                 },
                 "Large",
             }
+        }
         }
     })
 }
