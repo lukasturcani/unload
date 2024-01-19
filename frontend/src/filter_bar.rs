@@ -29,7 +29,7 @@ fn TagFilter(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: "
-                flex flex-row flex-wrap gap-2 p-2
+                flex flex-row flex-wrap gap-2
             ",
             for (tag_id, tag) in model.read().tags.iter() {rsx!{
                 span {
@@ -75,7 +75,7 @@ fn UserFilter(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: "
-                flex flex-row flex-wrap gap-2 p-2
+                flex flex-row flex-wrap gap-2
             ",
             for (user_id, user) in model.read().users.iter() {rsx!{
                 div {
@@ -137,7 +137,7 @@ fn SizeFilter(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: "
-                flex flex-row flex-wrap gap-2 p-2
+                flex flex-row flex-wrap gap-2
             ",
             span {
                 class: "

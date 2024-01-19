@@ -181,15 +181,18 @@ fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
         div {
             class: "flex flex-col bg-gray-900 h-screen w-screen",
             div {
-                class: "grow p-4 w-full h-full overflow-y-auto",
+                class: "flex flex-col gap-2 overflow-y-auto p-4 pb-2",
                 div {
-                    class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
-                    ToDoColumn {},
-                    InProgressColumn {},
-                    DoneColumn {},
-                },
+                    class: "grow w-full h-full overflow-y-auto",
+                    div {
+                        class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
+                        ToDoColumn {},
+                        InProgressColumn {},
+                        DoneColumn {},
+                    },
+                }
+                FilterBar {}
             }
-            FilterBar {}
             BottomBar {
                 board_name: board_name.clone(),
             }
