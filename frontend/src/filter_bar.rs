@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use itertools::Itertools;
 use shared_models::{Color, TagId, TaskSize, UserId};
 
 use crate::{color_picker, model::Model, styles};
@@ -31,7 +32,12 @@ fn TagFilter(cx: Scope) -> Element {
             class: "
                 flex flex-row flex-wrap gap-2
             ",
-            for (tag_id, tag) in model.read().tags.iter() {rsx!{
+            for (tag_id, tag) in model
+                .read()
+                .tags
+                .iter()
+                .sorted_by(|(_, tag1), (_, tag2)| tag1.name.cmp(&tag2.name))
+            {rsx!{
                 span {
                     class: "
                         text-sm font-medium px-2.5 py-0.5 rounded
