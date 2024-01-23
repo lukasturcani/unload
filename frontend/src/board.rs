@@ -1009,13 +1009,22 @@ fn size_bg(model: &UseSharedState<Model>, size: &TaskSize) -> &'static str {
 
 #[component]
 fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap().read();
-    let data = &model.tasks[task_id];
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
+    let data = &read_model.tasks[task_id];
+    let tags: Vec<_> = data
+        .tags
+        .iter()
+        .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
+        .collect();
     let expanded = use_state(cx, || false);
     let now = Utc::now();
     cx.render(rsx! {
         div {
-            class: "first:border-t border-b border-gray-700 p-1",
+            class: "
+                first:border-t border-b border-gray-700 p-1
+                flex flex-col gap-1
+            ",
             onclick: |event| {
                 event.stop_propagation();
                 expanded.set(!**expanded);
@@ -1035,7 +1044,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     div {
                         class: "flex flex-row gap-2",
                         svg {
-                            class: "w-4 h-4 text-gray-400 cursor-pointer",
+                            class: "w-4 h-4 text-gray-400",
                             "aria-hidden": "true",
                             "xmlns": "http://www.w3.org/2000/svg",
                             "fill": "none",
@@ -1055,6 +1064,91 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         }
                     }
                 }}
+                div {
+                    class: "flex flex-row flex-wrap gap-1",
+                    for (tag_id, tag) in tags {rsx!{
+                        span {
+                            class: "
+                                text-sm font-medium px-2.5 py-0.5 rounded
+                                {tag_bg(model, tag_id, &tag.color)}
+                                {color_picker::bg_hover_class(&tag.color)}
+                                text-white cursor-pointer
+                                border {color_picker::border_class(&tag.color)}
+                                flex flex-row gap-2
+                            ",
+                            onclick: {
+                                let tag_id = *tag_id;
+                                move |event| {
+                                    event.stop_propagation();
+                                    let mut model = model.write();
+                                    if model.tag_filter.contains(&tag_id) {
+                                        model.tag_filter.remove(&tag_id);
+                                    } else {
+                                        model.tag_filter.insert(tag_id);
+                                    }
+                                }
+                            },
+                            "# {tag.name}",
+                        }
+                    }}
+                }
+                div {
+                    class: "grid grid-rows-1 justify-items-center",
+                    div {
+                        class: "flex flex-row gap-1 items-center",
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            }
+                        }
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            }
+                        }
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                set_task_status(model.clone(), *task_id, TaskStatus::Done)
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            }
+                        }
+                    }
+                }
             }}
         }
     })
