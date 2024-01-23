@@ -22,6 +22,15 @@ pub const BOTTOM_BAR_BUTTON: &str = "
     sm:hover:bg-gray-800 sm:border-none
 ";
 
+pub const BOTTOM_BAR_ACTIVE_BUTTON: &str = "
+    h-full w-1/6
+    grid place-items-center
+    group
+    first:border-s border-e border-gray-600
+    bg-gray-800
+    sm:border-none
+";
+
 pub const BOTTOM_BAR: &str = "
     grow-0 shrink-0 w-full h-16
     bg-gray-700
