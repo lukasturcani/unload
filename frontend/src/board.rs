@@ -22,6 +22,7 @@ pub const COLUMN: &str = "
     grow flex flex-col gap-2 rounded bg-gray-900 pt-4 px-4 overflow-y-auto
 ";
 pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
+pub const DENSE_COLUMN_HEADING: &str = "text-xl font-extrabold text-white";
 pub const COLUMN_TASK_LIST: &str = "grow flex flex-col gap-2 overflow-y-scroll";
 
 #[component]
@@ -32,7 +33,7 @@ pub fn Board(cx: Scope, board_name: BoardName) -> Element {
     cx.render(rsx! {
         match layout {
             ResponsiveLayout::Narrow => rsx! {
-                OneColumnBoard {
+                DenseOneColumnBoard {
                     board_name: board_name.clone(),
                 }
             },
@@ -64,6 +65,196 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                     TaskStatus::ToDo => rsx! { ToDoColumn {} },
                     TaskStatus::InProgress => rsx! { InProgressColumn {} },
                     TaskStatus::Done => rsx! { DoneColumn {} },
+                }
+            }
+            div {
+                class: "flex flex-col",
+                if **show_filters {rsx!{
+                   div {
+                       class: "w-full bg-gray-800 flex flex-col gap-2 p-2",
+                        TagFilter {}
+                        UserFilter {}
+                        SizeFilter {}
+                   }
+                }}
+                div {
+                    class: styles::BOTTOM_BAR,
+                    button {
+                        r#type: "button" ,
+                        class: styles::BOTTOM_BAR_BUTTON,
+                        disabled: **column == TaskStatus::ToDo,
+                        onclick: |_| {
+                            match **column {
+                                TaskStatus::ToDo => column.set(TaskStatus::ToDo),
+                                TaskStatus::InProgress => column.set(TaskStatus::ToDo),
+                                TaskStatus::Done => column.set(TaskStatus::InProgress),
+                            }
+                        },
+                        if **column != TaskStatus::ToDo {rsx!{
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "M15.75 19.5 8.25 12l7.5-7.5",
+                                }
+                            }
+                        }}
+                    }
+                    button {
+                        r#type: "button" ,
+                        class: if **show_filters {
+                            styles::BOTTOM_BAR_ACTIVE_BUTTON
+                        } else {
+                            styles::BOTTOM_BAR_BUTTON
+                        },
+                        onclick: |_| show_filters.set(!**show_filters),
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: if **show_filters {
+                                "w-6 h-6 text-blue-500"
+                            } else {
+                                "w-6 h-6 text-gray-400 group-active:text-blue-500"
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z",
+                            }
+                        }
+                    }
+                    button {
+                        r#type: "button" ,
+                        class: styles::BOTTOM_BAR_BUTTON,
+                        onclick: |_| {
+                            nav.push(Route::Tags {
+                                board_name: board_name.clone(),
+                            });
+                        },
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z",
+                            }
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M6 6h.008v.008H6V6Z",
+                            }
+                        }
+                    }
+                    button {
+                        r#type: "button",
+                        class: styles::BOTTOM_BAR_BUTTON,
+                        onclick: |_| {
+                            nav.push(Route::Users {
+                                board_name: board_name.clone(),
+                            });
+                        },
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
+                            }
+                        }
+                    }
+                    button {
+                        r#type: "button" ,
+                        class: styles::BOTTOM_BAR_BUTTON,
+                        onclick: |_| {
+                            nav.push(Route::AddUser {
+                                board_name: board_name.clone(),
+                            });
+                        },
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                            }
+                        }
+                    }
+                    button {
+                        r#type: "button",
+                        class: styles::BOTTOM_BAR_BUTTON,
+                        disabled: **column == TaskStatus::Done,
+                        onclick: |_| {
+                            match **column {
+                                TaskStatus::ToDo => column.set(TaskStatus::InProgress),
+                                TaskStatus::InProgress => column.set(TaskStatus::Done),
+                                TaskStatus::Done => column.set(TaskStatus::Done),
+                            }
+                        },
+                        if **column != TaskStatus::Done {rsx!{
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                class: "w-6 h-6 text-gray-400 group-active:text-blue-500",
+                                path {
+                                    "stroke-lineca": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "m8.25 4.5 7.5 7.5-7.5 7.5",
+                                }
+                            }
+                        }}
+                    }
+                }
+            }
+        }
+    })
+}
+
+#[component]
+fn DenseOneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    if &model.read().board_name != board_name {
+        model.write().board_name = board_name.clone()
+    }
+    let nav = use_navigator(cx);
+    let column = use_state(cx, || TaskStatus::ToDo);
+    let show_filters = use_state(cx, || false);
+    use_future(cx, (), |_| requests::board(model.clone()));
+    cx.render(rsx! {
+        div {
+            class: "flex flex-col bg-gray-900 h-screen w-screen gap-2",
+            div {
+                class: "grow grid grid-cols-1 p-2 overflow-y-auto",
+                match **column {
+                    TaskStatus::ToDo => rsx! { DenseToDoColumn {} },
+                    TaskStatus::InProgress => rsx! { DenseInProgressColumn {} },
+                    TaskStatus::Done => rsx! { DenseDoneColumn {} },
                 }
             }
             div {
@@ -422,6 +613,81 @@ fn ToDoColumn(cx: Scope) -> Element {
 }
 
 #[component]
+fn DenseToDoColumn(cx: Scope) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
+    let nav = use_navigator(cx);
+    cx.render(rsx! {
+        div {
+            class: "flex flex-col overflow-y-auto border border-gray-700",
+            div {
+                class: COLUMN,
+                div {
+                    class: "flex items-center gap-2",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "white",
+                        class: "w-8 h-8",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                    h2 {
+                        class: DENSE_COLUMN_HEADING,
+                        "To Do"
+                    }
+                },
+                div {
+                    class: COLUMN_TASK_LIST,
+                    for task_id in
+                        read_model
+                        .to_do
+                        .iter()
+                        .filter(|task_id| read_model.show_task(**task_id))
+                    {
+                        Task {
+                            key: "{task_id}",
+                            task_id: *task_id,
+                            status: TaskStatus::ToDo,
+                        }
+                    }
+                },
+            }
+            button {
+                r#type: "button",
+                class: " grid place-items-center group p-2 border-t border-gray-700",
+                onclick: |_| {
+                    nav.push(Route::AddToDoTask {
+                        board_name: model.read().board_name.clone(),
+                    });
+                },
+                svg {
+                    xmlns: "http://www.w3.org/2000/svg",
+                    fill: "none",
+                    "viewBox": "0 0 24 24",
+                    "stroke-width": "1.5",
+                    "stroke": "currentColor",
+                    class: "
+                        w-6 h-6 text-white
+                        group-active:text-blue-500 sm:group-hover:text-blue-500
+                    ",
+                    path {
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                    }
+                }
+            }
+        }
+    })
+}
+
+#[component]
 fn InProgressColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
@@ -497,6 +763,81 @@ fn InProgressColumn(cx: Scope) -> Element {
 }
 
 #[component]
+fn DenseInProgressColumn(cx: Scope) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
+    let nav = use_navigator(cx);
+    cx.render(rsx! {
+        div {
+            class: "flex flex-col overflow-y-auto border border-gray-700",
+            div {
+                class: COLUMN,
+                div {
+                    class: "flex items-center gap-2",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "white",
+                        "class": "w-8 h-8",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                    h2 {
+                        class: DENSE_COLUMN_HEADING,
+                        "In Progress"
+                    }
+                },
+                div {
+                    class: COLUMN_TASK_LIST,
+                    for task_id in
+                        read_model
+                        .in_progress
+                        .iter()
+                        .filter(|task_id| read_model.show_task(**task_id))
+                    {
+                        Task {
+                            key: "{task_id}",
+                            task_id: *task_id,
+                            status: TaskStatus::InProgress,
+                        }
+                    }
+                },
+            }
+            button {
+                r#type: "button",
+                class: " grid place-items-center group p-2 border-t border-gray-700",
+                onclick: |_| {
+                    nav.push(Route::AddInProgressTask {
+                        board_name: model.read().board_name.clone(),
+                    });
+                },
+                svg {
+                    xmlns: "http://www.w3.org/2000/svg",
+                    fill: "none",
+                    "viewBox": "0 0 24 24",
+                    "stroke-width": "1.5",
+                    "stroke": "currentColor",
+                    class: "
+                        w-6 h-6 text-white
+                        group-active:text-blue-500 sm:group-hover:text-blue-500
+                    ",
+                    path {
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                    }
+                }
+            }
+        }
+    })
+}
+
+#[component]
 fn DoneColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
@@ -523,6 +864,81 @@ fn DoneColumn(cx: Scope) -> Element {
                     }
                     h2 {
                         class: COLUMN_HEADING,
+                        "Done"
+                    }
+                },
+                div {
+                    class: COLUMN_TASK_LIST,
+                    for task_id in
+                        read_model
+                        .done
+                        .iter()
+                        .filter(|task_id| read_model.show_task(**task_id))
+                    {
+                        Task {
+                            key: "{task_id}",
+                            task_id: *task_id,
+                            status: TaskStatus::Done,
+                        }
+                    }
+                },
+            }
+            button {
+                r#type: "button",
+                class: " grid place-items-center group p-2 border-t border-gray-700",
+                onclick: |_| {
+                    nav.push(Route::AddDoneTask {
+                        board_name: model.read().board_name.clone(),
+                    });
+                },
+                svg {
+                    xmlns: "http://www.w3.org/2000/svg",
+                    fill: "none",
+                    "viewBox": "0 0 24 24",
+                    "stroke-width": "1.5",
+                    "stroke": "currentColor",
+                    class: "
+                        w-6 h-6 text-white
+                        group-active:text-blue-500 sm:group-hover:text-blue-500
+                    ",
+                    path {
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                    }
+                }
+            }
+        }
+    })
+}
+
+#[component]
+fn DenseDoneColumn(cx: Scope) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
+    let nav = use_navigator(cx);
+    cx.render(rsx! {
+        div {
+            class: "flex flex-col overflow-y-auto border border-gray-700",
+            div {
+                class: COLUMN,
+                div {
+                    class: "flex items-center gap-2",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "white",
+                        class: "w-8 h-8",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                    h2 {
+                        class: DENSE_COLUMN_HEADING,
                         "Done"
                     }
                 },
