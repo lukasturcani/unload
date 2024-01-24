@@ -562,23 +562,43 @@ fn ToDoColumn(cx: Scope) -> Element {
             div {
                 class: COLUMN,
                 div {
-                    class: "flex items-center gap-2",
+                    class: "flex flex-row justify-between",
+                    div {
+                        class: "flex items-center gap-2",
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "white",
+                            class: "w-8 h-8",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            }
+                        }
+                        h2 {
+                            class: COLUMN_HEADING,
+                            "To Do"
+                        }
+                    }
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
-                        stroke: "white",
-                        class: "w-8 h-8",
+                        stroke: "currentColor",
+                        class: "w-8 h-8 text-white justify-self-end",
+                        onclick: |event| {
+                            event.stop_propagation();
+                            model.write().dense_view = true;
+                        },
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
-                            d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            d: "M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
                         }
-                    }
-                    h2 {
-                        class: COLUMN_HEADING,
-                        "To Do"
                     }
                 },
                 div {
@@ -637,23 +657,43 @@ fn DenseToDoColumn(cx: Scope) -> Element {
             div {
                 class: DENSE_COLUMN,
                 div {
-                    class: "flex items-center gap-2",
+                    class: "flex flex-row justify-between",
+                    div {
+                        class: "flex items-center gap-2",
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "white",
+                            class: "w-6 h-6",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            }
+                        }
+                        h2 {
+                            class: DENSE_COLUMN_HEADING,
+                            "To Do"
+                        }
+                    }
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
-                        stroke: "white",
-                        class: "w-6 h-6",
+                        stroke: "currentColor",
+                        class: "w-8 h-8 text-blue-500",
+                        onclick: |event| {
+                            event.stop_propagation();
+                            model.write().dense_view = false;
+                        },
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
-                            d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            d: "M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
                         }
-                    }
-                    h2 {
-                        class: DENSE_COLUMN_HEADING,
-                        "To Do"
                     }
                 },
                 div {
@@ -712,23 +752,43 @@ fn InProgressColumn(cx: Scope) -> Element {
             div {
                 class: COLUMN,
                 div {
-                    class: "flex items-center gap-2",
+                    class: "flex flex-row justify-between",
+                    div {
+                        class: "flex items-center gap-2",
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            "stroke": "white",
+                            "class": "w-8 h-8",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            }
+                        }
+                        h2 {
+                            class: COLUMN_HEADING,
+                            "In Progress"
+                        }
+                    }
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
-                        "stroke": "white",
-                        "class": "w-8 h-8",
+                        stroke: "currentColor",
+                        class: "w-8 h-8 text-white",
+                        onclick: |event| {
+                            event.stop_propagation();
+                            model.write().dense_view = true;
+                        },
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
-                            d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            d: "M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
                         }
-                    }
-                    h2 {
-                        class: COLUMN_HEADING,
-                        "In Progress"
                     }
                 },
                 div {
@@ -787,23 +847,43 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
             div {
                 class: DENSE_COLUMN,
                 div {
-                    class: "flex items-center gap-2",
+                    class: "flex flex-row justify-between",
+                    div {
+                        class: "flex items-center gap-2",
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            "stroke": "white",
+                            "class": "w-6 h-6",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            }
+                        }
+                        h2 {
+                            class: DENSE_COLUMN_HEADING,
+                            "In Progress"
+                        }
+                    }
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
-                        "stroke": "white",
-                        "class": "w-6 h-6",
+                        stroke: "currentColor",
+                        class: "w-8 h-8 text-blue-500",
+                        onclick: |event| {
+                            event.stop_propagation();
+                            model.write().dense_view = false;
+                        },
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
-                            d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            d: "M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
                         }
-                    }
-                    h2 {
-                        class: DENSE_COLUMN_HEADING,
-                        "In Progress"
                     }
                 },
                 div {
@@ -862,23 +942,43 @@ fn DoneColumn(cx: Scope) -> Element {
             div {
                 class: COLUMN,
                 div {
-                    class: "flex items-center gap-2",
+                    class: "flex flex-row justify-between",
+                    div {
+                        class: "flex items-center gap-2",
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "white",
+                            class: "w-8 h-8",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            }
+                        }
+                        h2 {
+                            class: COLUMN_HEADING,
+                            "Done"
+                        }
+                    }
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
-                        stroke: "white",
-                        class: "w-8 h-8",
+                        stroke: "currentColor",
+                        class: "w-8 h-8 text-white",
+                        onclick: |event| {
+                            event.stop_propagation();
+                            model.write().dense_view = true;
+                        },
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
-                            d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            d: "M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
                         }
-                    }
-                    h2 {
-                        class: COLUMN_HEADING,
-                        "Done"
                     }
                 },
                 div {
@@ -937,23 +1037,43 @@ fn DenseDoneColumn(cx: Scope) -> Element {
             div {
                 class: DENSE_COLUMN,
                 div {
-                    class: "flex items-center gap-2",
+                    class: "flex flex-row justify-between",
+                    div {
+                        class: "flex items-center gap-2",
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "white",
+                            class: "w-6 h-6",
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            }
+                        }
+                        h2 {
+                            class: DENSE_COLUMN_HEADING,
+                            "Done"
+                        }
+                    }
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
-                        stroke: "white",
-                        class: "w-6 h-6",
+                        stroke: "currentColor",
+                        class: "w-8 h-8 text-blue-500",
+                        onclick: |event| {
+                            event.stop_propagation();
+                            model.write().dense_view = false;
+                        },
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
-                            d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                            d: "M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
                         }
-                    }
-                    h2 {
-                        class: DENSE_COLUMN_HEADING,
-                        "Done"
                     }
                 },
                 div {
