@@ -1116,8 +1116,74 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         }
                     }
                 }}
-                div {
-                    class: "flex flex-row flex-wrap gap-1",
+                div{
+                    class: "flex flex-row gap-1 flex-wrap",
+                    match data.size {
+                        TaskSize::Small => {rsx!{
+                            span {
+                                class: "
+                                    text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
+                                    flex flex-row gap-2 items-center
+                                    border-2 border-emerald-700
+                                    {size_bg(model, &data.size)}
+                                    sm:hover:bg-emerald-700
+                                    text-green-300
+                                ",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    let mut model = model.write();
+                                    if model.size_filter == Some(TaskSize::Small) {
+                                        model.size_filter = None;
+                                    } else {
+                                        model.size_filter = Some(TaskSize::Small);
+                                    }
+                                },
+                                "Small",
+                            }
+                        }}
+                        TaskSize::Medium => {rsx!{
+                            span {
+                                class: "
+                                    text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                    flex flex-row gap-2 items-center
+                                    border-2 border-yellow-900
+                                    sm:hover:bg-yellow-900
+                                    {size_bg(model, &data.size)} text-yellow-300
+                                ",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    let mut model = model.write();
+                                    if model.size_filter == Some(TaskSize::Medium) {
+                                        model.size_filter = None;
+                                    } else {
+                                        model.size_filter = Some(TaskSize::Medium);
+                                    }
+                                },
+                                "Medium",
+                            }
+                        }}
+                        TaskSize::Large => {rsx!{
+                            span {
+                                class: "
+                                    text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
+                                    flex flex-row gap-2 items-center
+                                    border-2 border-red-900
+                                    sm:hover:bg-red-900
+                                    {size_bg(model, &data.size)} text-red-300
+                                ",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    let mut model = model.write();
+                                    if model.size_filter == Some(TaskSize::Large) {
+                                        model.size_filter = None;
+                                    } else {
+                                        model.size_filter = Some(TaskSize::Large);
+                                    }
+                                },
+                                "Large",
+                            }
+                        }}
+                    }
                     for (tag_id, tag) in tags {rsx!{
                         span {
                             class: "
