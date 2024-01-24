@@ -31,14 +31,24 @@ pub const DENSE_COLUMN_TASK_LIST: &str = "grow flex flex-col overflow-y-scroll";
 
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
     let layout = ResponsiveLayout::from_window();
     let eval = use_eval(cx);
     eval(&format!(r#"document.title = "{board_name}";"#)).unwrap();
     cx.render(rsx! {
         match layout {
             ResponsiveLayout::Narrow => rsx! {
-                DenseOneColumnBoard {
-                    board_name: board_name.clone(),
+                match model.read().dense_view {
+                    true => rsx! {
+                        DenseOneColumnBoard {
+                            board_name: board_name.clone(),
+                        }
+                    },
+                    false => rsx! {
+                        OneColumnBoard {
+                            board_name: board_name.clone(),
+                        }
+                    }
                 }
             },
             ResponsiveLayout::Wide => rsx! {
