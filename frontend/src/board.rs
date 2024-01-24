@@ -1012,6 +1012,11 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
+    let users: Vec<_> = data
+        .assignees
+        .iter()
+        .map(|user_id| (user_id, &read_model.users[user_id]))
+        .collect();
     let tags: Vec<_> = data
         .tags
         .iter()
@@ -1029,9 +1034,56 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 event.stop_propagation();
                 expanded.set(!**expanded);
             },
-            p {
-                class: "text-sm tracking-tight text-white",
-                "{data.title}"
+            div {
+                class: "flex justify-between",
+                div {
+                    p {
+                        class: "text-sm tracking-tight text-white",
+                        "{data.title}"
+                    }
+                }
+                div {
+                    class: "flex flex-row gap-1",
+                    for (user_id, user) in users {rsx!{
+                        div {
+                            class: "group relative",
+                            onclick: |event| event.stop_propagation(),
+                            div {
+                                class: "
+                                    w-5 h-5 rounded cursor-pointer
+                                    border-2 {color_picker::border_class(&user.color)}
+                                    {user_bg(&model, user_id, &user.color)}
+                                    {color_picker::bg_hover_class(&user.color)}
+                                ",
+                                onclick: {
+                                    let user_id = *user_id;
+                                    move |event| {
+                                        event.stop_propagation();
+                                        let mut model = model.write();
+                                        if model.user_filter.contains(&user_id) {
+                                            model.user_filter.remove(&user_id);
+                                        } else {
+                                            model.user_filter.insert(user_id);
+                                        }
+                                    }
+                                },
+                            },
+                            div {
+                                dir: "rtl",
+                                div {
+                                    class: "
+                                        pointer-events-none absolute start-0 w-max
+                                        opacity-0 transition-opacity group-hover:opacity-100
+                                        z-10 px-3 py-2 text-sm font-medium text-white
+                                        rounded-lg shadow-sm tooltip bg-gray-800
+                                        border border-gray-700
+                                    ",
+                                    "{user.name}"
+                                }
+                            }
+                        }
+                    }}
+                }
             }
             if **expanded {rsx!{
                 div {
