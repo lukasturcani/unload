@@ -22,7 +22,8 @@ pub const COLUMN: &str = "
     grow flex flex-col gap-2 rounded bg-gray-900 pt-2 px-2 sm:pt-4 sm:px-4 overflow-y-auto
 ";
 pub const COLUMN_HEADING: &str = "text-xl sm:text-3xl font-extrabold text-white";
-pub const COLUMN_TASK_LIST: &str = "grow flex flex-col sm:gap-2 overflow-y-scroll";
+pub const COLUMN_TASK_LIST: &str = "grow flex flex-col gap-2 overflow-y-scroll";
+pub const DENSE_COLUMN_TASK_LIST: &str = "grow flex flex-col overflow-y-scroll";
 
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
@@ -584,7 +585,7 @@ fn ToDoColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-8 h-8 text-white justify-self-end",
+                        class: "w-6 h-6 sm:w-8 sm:h-8 text-white",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
@@ -679,7 +680,7 @@ fn DenseToDoColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-8 h-8 text-blue-500",
+                        class: "w-6 h-6 text-blue-500",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
@@ -692,7 +693,7 @@ fn DenseToDoColumn(cx: Scope) -> Element {
                     }
                 },
                 div {
-                    class: COLUMN_TASK_LIST,
+                    class: DENSE_COLUMN_TASK_LIST,
                     for task_id in
                         read_model
                         .to_do
@@ -774,7 +775,7 @@ fn InProgressColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-8 h-8 text-white",
+                        class: "w-6 h-6 sm:w-8 sm:h-8 text-white",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
@@ -869,7 +870,7 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-8 h-8 text-blue-500",
+                        class: "w-6 h-6 text-blue-500",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
@@ -882,7 +883,7 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
                     }
                 },
                 div {
-                    class: COLUMN_TASK_LIST,
+                    class: DENSE_COLUMN_TASK_LIST,
                     for task_id in
                         read_model
                         .in_progress
@@ -964,7 +965,7 @@ fn DoneColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-8 h-8 text-white",
+                        class: "w-6 h-6 sm:w-8 sm:h-8 text-white",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
@@ -1059,7 +1060,7 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-8 h-8 text-blue-500",
+                        class: "w-6 h-6 text-blue-500",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
@@ -1072,7 +1073,7 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                     }
                 },
                 div {
-                    class: COLUMN_TASK_LIST,
+                    class: DENSE_COLUMN_TASK_LIST,
                     for task_id in
                         read_model
                         .done
