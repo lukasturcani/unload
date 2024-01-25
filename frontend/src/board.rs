@@ -567,7 +567,7 @@ fn InProgressColumn(cx: Scope) -> Element {
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             "stroke": "white",
-                            "class": "w-8 h-8",
+                            "class": "w-6 h-6 sm:w-8 sm:h-8",
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -757,7 +757,7 @@ fn DoneColumn(cx: Scope) -> Element {
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             stroke: "white",
-                            class: "w-8 h-8",
+                            class: "w-6 h-6 sm:w-8 sm:h-8",
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
