@@ -19,15 +19,10 @@ use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
 pub const COLUMN: &str = "
-    grow flex flex-col gap-2 rounded bg-gray-900 pt-4 px-4 overflow-y-auto
+    grow flex flex-col gap-2 rounded bg-gray-900 pt-2 px-2 sm:pt-4 sm:px-4 overflow-y-auto
 ";
-pub const DENSE_COLUMN: &str = "
-    grow flex flex-col gap-2 rounded bg-gray-900 pt-2 px-2 overflow-y-auto
-";
-pub const COLUMN_HEADING: &str = "text-3xl font-extrabold text-white";
-pub const DENSE_COLUMN_HEADING: &str = "text-xl font-extrabold text-white";
-pub const COLUMN_TASK_LIST: &str = "grow flex flex-col gap-2 overflow-y-scroll";
-pub const DENSE_COLUMN_TASK_LIST: &str = "grow flex flex-col overflow-y-scroll";
+pub const COLUMN_HEADING: &str = "text-xl sm:text-3xl font-extrabold text-white";
+pub const COLUMN_TASK_LIST: &str = "grow flex flex-col sm:gap-2 overflow-y-scroll";
 
 #[component]
 pub fn Board(cx: Scope, board_name: BoardName) -> Element {
@@ -72,9 +67,9 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "flex flex-col bg-gray-900 h-screen w-screen gap-2",
+            class: "flex flex-col bg-gray-900 h-screen w-screen gap-1",
             div {
-                class: "grow grid grid-cols-1 p-2 overflow-y-auto",
+                class: "grow grid grid-cols-1 p-1 overflow-y-auto",
                 match **column {
                     TaskStatus::ToDo => rsx! { ToDoColumn {} },
                     TaskStatus::InProgress => rsx! { InProgressColumn {} },
@@ -571,7 +566,7 @@ fn ToDoColumn(cx: Scope) -> Element {
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             stroke: "white",
-                            class: "w-8 h-8",
+                            class: "w-6 h-6 sm:w-8 sm:h-8",
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -655,7 +650,7 @@ fn DenseToDoColumn(cx: Scope) -> Element {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
-                class: DENSE_COLUMN,
+                class: COLUMN,
                 div {
                     class: "flex flex-row justify-between",
                     div {
@@ -674,7 +669,7 @@ fn DenseToDoColumn(cx: Scope) -> Element {
                             }
                         }
                         h2 {
-                            class: DENSE_COLUMN_HEADING,
+                            class: COLUMN_HEADING,
                             "To Do"
                         }
                     }
@@ -697,7 +692,7 @@ fn DenseToDoColumn(cx: Scope) -> Element {
                     }
                 },
                 div {
-                    class: DENSE_COLUMN_TASK_LIST,
+                    class: COLUMN_TASK_LIST,
                     for task_id in
                         read_model
                         .to_do
@@ -845,7 +840,7 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
-                class: DENSE_COLUMN,
+                class: COLUMN,
                 div {
                     class: "flex flex-row justify-between",
                     div {
@@ -864,7 +859,7 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
                             }
                         }
                         h2 {
-                            class: DENSE_COLUMN_HEADING,
+                            class: COLUMN_HEADING,
                             "In Progress"
                         }
                     }
@@ -887,7 +882,7 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
                     }
                 },
                 div {
-                    class: DENSE_COLUMN_TASK_LIST,
+                    class: COLUMN_TASK_LIST,
                     for task_id in
                         read_model
                         .in_progress
@@ -1035,7 +1030,7 @@ fn DenseDoneColumn(cx: Scope) -> Element {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
-                class: DENSE_COLUMN,
+                class: COLUMN,
                 div {
                     class: "flex flex-row justify-between",
                     div {
@@ -1054,7 +1049,7 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                             }
                         }
                         h2 {
-                            class: DENSE_COLUMN_HEADING,
+                            class: COLUMN_HEADING,
                             "Done"
                         }
                     }
@@ -1077,7 +1072,7 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                     }
                 },
                 div {
-                    class: DENSE_COLUMN_TASK_LIST,
+                    class: COLUMN_TASK_LIST,
                     for task_id in
                         read_model
                         .done
