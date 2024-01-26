@@ -959,6 +959,8 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
         .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
         .collect();
     let expanded = use_state(cx, || false);
+    let editing_title = use_state(cx, || false);
+    let new_title = use_state(cx, String::new);
     let now = Utc::now();
     cx.render(rsx! {
         div {
@@ -973,9 +975,32 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             div {
                 class: "flex justify-between",
                 div {
-                    p {
-                        class: "text-sm tracking-tight text-white",
-                        "{data.title}"
+                    div {
+                        if **editing_title {rsx!{
+                            input {
+                                class: "
+                                    bg-inherit
+                                    text-base tracking-tight text-white
+                                ",
+                                r#type: "text",
+                                oninput: |event| new_title.set(event.value.clone()),
+                                onfocusout: |_| {
+                                    editing_title.set(false);
+                                    set_task_title(model.clone(), *task_id, (**new_title).clone())
+                                },
+                                value: "{new_title}",
+                            }
+                        }} else {rsx!{
+                            p {
+                                class: "text-sm tracking-tight text-white",
+                                onclick: move |event| {
+                                    event.stop_propagation();
+                                    editing_title.set(true);
+                                    new_title.set(model.read().tasks[&task_id].title.clone());
+                                },
+                                "{data.title}"
+                            }
+                        }}
                     }
                 }
                 div {
