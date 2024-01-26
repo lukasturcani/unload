@@ -21,6 +21,7 @@ pub struct Model {
     pub tag_filter: HashSet<TagId>,
     pub size_filter: Option<TaskSize>,
     pub user_filter: HashSet<UserId>,
+    pub dense_view: bool,
 }
 
 impl Model {
@@ -66,6 +67,7 @@ impl Default for Model {
             tag_filter: HashSet::default(),
             size_filter: None,
             user_filter: HashSet::default(),
+            dense_view: false,
         }
     }
 }
