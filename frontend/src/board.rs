@@ -1260,7 +1260,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 if **editing_title {rsx!{
                     input {
                         class: "
-                            bg-inherit text-xl font-bold tracking-tight
+                            bg-inherit text-lg sm:text-xl font-bold tracking-tight
                             text-white underline underline-offset-8 rounded
                         ",
                         r#type: "text",
@@ -1277,7 +1277,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     div {
                         class: "grid grid-rows-1 justify-items-start",
                         h5 {
-                            class: "text-xl font-bold tracking-tight text-white underline underline-offset-8",
+                            class: "text-lg sm:text-xl font-bold tracking-tight text-white underline underline-offset-8",
                             onclick: move |event| {
                                 event.stop_propagation();
                                 editing_title.set(true);
