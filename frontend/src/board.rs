@@ -961,6 +961,8 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let expanded = use_state(cx, || false);
     let editing_title = use_state(cx, || false);
     let new_title = use_state(cx, String::new);
+    let show_assign_user = use_state(cx, || false);
+    let assignees = use_ref(cx, Vec::new);
     let now = Utc::now();
     cx.render(rsx! {
         div {
@@ -1044,8 +1046,44 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             }
                         }
                     }}
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24" ,
+                        "stroke-width": "1.5" ,
+                        stroke: "white" ,
+                        class: "w-6 h-6 border border-white rounded cursor-pointer",
+                        prevent_default: "onclick",
+                        onclick: move |event| {
+                            event.stop_propagation();
+                            if !show_assign_user {
+                                *assignees.write() = model.read().tasks[task_id].assignees.clone();
+                                show_assign_user.set(true);
+                            } else {
+                               show_assign_user.set(false);
+                            }
+                        },
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M12 4.5v15m7.5-7.5h-15",
+                        }
+                    }
                 }
             }
+            if **show_assign_user {rsx!{
+                div {
+                    class: "bg-gray-800 p-2 rounded w-72",
+                    onclick: |event| event.stop_propagation(),
+                    UserSearch {
+                        id: "assign_user_modal",
+                        on_select_user: |user_id| assignees.write().push(user_id),
+                        on_remove_user: |user_id| assignees.write().retain(|&value| value != user_id),
+                        initial_users: assignees.read().clone(),
+                        always_show_suggestions: false,
+                    }
+                }
+            }}
             if **expanded {rsx!{
                 div {
                     class: "
