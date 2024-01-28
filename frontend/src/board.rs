@@ -1073,7 +1073,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     onclick: |event| event.stop_propagation(),
                     CompactUserSearch {
                         task_id: *task_id,
-                        badge_style: "bg-inherit border border-gray-700 text-white",
+                        badge_style: "bg-inherit border border-gray-700",
+                        ul_style: "border border-gray-700 divide-y divide-gray-700",
+                        hover_style: "hover:bg-gray-800",
+                        text_input_style: "bg-gray-800",
                     }
                 }
             }}
@@ -1436,6 +1439,13 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     CompactUserSearch {
                         task_id: *task_id,
                         badge_style: "",
+                        ul_style: "
+                            bg-gray-800
+                            rounded-lg border border-gray-700
+                            divide-y divide-gray-700
+                        ",
+                        hover_style: "hover:bg-gray-700",
+                        text_input_style: "",
                     }
                 }
             }}

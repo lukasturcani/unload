@@ -221,7 +221,14 @@ pub fn UserSearch<'a>(
 }
 
 #[component]
-pub fn CompactUserSearch(cx: Scope, task_id: TaskId, badge_style: &'static str) -> Element {
+pub fn CompactUserSearch(
+    cx: Scope,
+    task_id: TaskId,
+    badge_style: &'static str,
+    ul_style: &'static str,
+    hover_style: &'static str,
+    text_input_style: &'static str,
+) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     if model.read().user_search_created_user.is_some() {
         if let Some(user) = model.write().user_search_created_user.take() {
@@ -291,7 +298,7 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId, badge_style: &'static str) 
                 }},
             }
             ul {
-                class: "py-2 text-sm text-gray-200 z-10 rounded-lg shadow bg-gray-700",
+                class: "text-sm text-gray-200 z-10 rounded-lg shadow {ul_style}",
                 rsx!{
                     for (user_id, user) in read_model
                         .users
@@ -305,7 +312,7 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId, badge_style: &'static str) 
                                 r#type: "button",
                                 class: "
                                     text-left w-full px-4 py-2
-                                    hover:bg-gray-600 hover:text-white
+                                    {hover_style} hover:text-white
                                 ",
                                 prevent_default: "onmousedown",
                                 onmousedown: |_| {},
@@ -329,7 +336,7 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId, badge_style: &'static str) 
                             r#type: "button",
                             class: "
                                 text-left w-full px-4 py-2
-                                hover:bg-gray-600
+                                {hover_style}
                                 font-medium text-blue-500 hover:underline
                             ",
                             prevent_default: "onmousedown",
@@ -343,12 +350,9 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId, badge_style: &'static str) 
                         div {
                             class: "p-2",
                             div {
-                                class: "
-                                    flex flex-col gap-2 p-2 bg-gray-800
-                                    rounded-lg
-                                ",
+                                class: "flex flex-col gap-2 p-2",
                                 input {
-                                    class: styles::TEXT_INPUT,
+                                    class: "{styles::TEXT_INPUT} {text_input_style}",
                                     r#type: "text",
                                     placeholder: "Name",
                                     value: "{new_user}",
