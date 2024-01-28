@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crate::filter_bar::{FilterBar, SizeFilter, TagFilter, UserFilter};
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
-use crate::tag_search::TagSearch;
+use crate::tag_search::CompactTagSearch;
 use crate::user_search::CompactUserSearch;
 use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
@@ -1307,6 +1307,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let data = &read_model.tasks[task_id];
     let draggable = use_state(cx, || true);
     let show_assign_user = use_state(cx, || false);
+    let show_assign_tag = use_state(cx, || false);
     cx.render(rsx! {
         div {
             prevent_default: "onclick",
@@ -1662,9 +1663,22 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     class: "grid grid-cols-8",
                     div {
                         class: "col-span-7 flex flex-row flex-wrap gap-2",
-                        Tags { task_id: *task_id }
+                        Tags {
+                            task_id: *task_id,
+                            on_click_assign_tag: move |event: Event<MouseData>| {
+                                event.stop_propagation();
+                                show_assign_tag.set(!**show_assign_tag);
+                            },
+                        }
                     }
                 }
+                if **show_assign_tag {rsx!{
+                    div {
+                        class: "p-2 rounded-lg bg-gray-800 border border-gray-700",
+                        onclick: |event| event.stop_propagation(),
+                        CompactTagSearch { task_id: *task_id }
+                    }
+                }}
             }}
         }
     })
@@ -1970,19 +1984,20 @@ fn tag_bg(model: &UseSharedState<Model>, tag_id: &TagId, tag_color: &Color) -> S
 }
 
 #[component]
-fn Tags(cx: Scope, task_id: TaskId) -> Element {
+fn Tags<'a>(
+    cx: Scope,
+    task_id: TaskId,
+    on_click_assign_tag: EventHandler<'a, Event<MouseData>>,
+) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
-    let data = &read_model.tasks[task_id];
-    let tags: Vec<_> = data
-        .tags
-        .iter()
-        .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
-        .collect();
-    let show_assign_tag = use_state(cx, || false);
-    let assigned_tags = use_ref(cx, Vec::new);
     cx.render(rsx! {
-        for (tag_id, tag) in tags {rsx!{
+        for (tag_id, tag) in read_model
+            .tasks[task_id]
+            .tags
+            .iter()
+            .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
+        {rsx!{
             span {
                 class: "
                     text-sm font-medium px-2.5 py-0.5 rounded
@@ -2046,99 +2061,21 @@ fn Tags(cx: Scope, task_id: TaskId) -> Element {
                 stroke: "white" ,
                 class: "w-6 h-6 border border-white rounded cursor-pointer",
                 prevent_default: "onclick",
-                onclick: |event| {
-                    event.stop_propagation();
-                    *assigned_tags.write() = model.read().tasks[task_id].tags.clone();
-                    show_assign_tag.set(true);
-                },
+                onclick: |event| on_click_assign_tag.call(event),
                 path {
                     "stroke-linecap": "round",
                     "stroke-linejoin": "round",
                     d: "M12 4.5v15m7.5-7.5h-15",
                 }
             }
-            if **show_assign_tag {rsx!{
+            div {
+                class: styles::TOOLTIP,
+                "Assign Tag"
                 div {
-                    class: "
-                        flex flex-col gap-2
-                        absolute -top-10 -left-2 w-72
-                        z-10 px-3 py-2 text-sm font-medium text-white
-                        rounded-lg shadow-sm bg-gray-800
-                        border border-gray-700",
-                    onclick: |event| event.stop_propagation(),
-                    TagSearch {
-                        id: "assign_tag_modal",
-                        on_select_tag: |tag_id| assigned_tags.write().push(tag_id),
-                        on_remove_tag: |tag_id| assigned_tags.write().retain(|&value| value != tag_id),
-                        initial_tags: assigned_tags.read().clone(),
-                        always_show_suggestions: true,
-                    }
-                    div {
-                        class: "flex flex-row gap-2 justify-end",
-                        button {
-                            r#type: "button",
-                            class: "
-                                rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
-                            prevent_default: "onclick",
-                            onclick: |event| {
-                                event.stop_propagation();
-                                show_assign_tag.set(false);
-                                set_task_tags(
-                                    model.clone(),
-                                    *task_id, assigned_tags.read().clone()
-                                )
-                            },
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
-                                stroke: "currentColor",
-                                class: "w-6 h-6",
-                                path {
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "m4.5 12.75 6 6 9-13.5",
-                                }
-                            }
-                        }
-                        button {
-                            r#type: "button",
-                            prevent_default: "onclick",
-                            class: "
-                                rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
-                            onclick: |event| {
-                                event.stop_propagation();
-                                show_assign_tag.set(false);
-                            },
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
-                                stroke: "currentColor",
-                                class: "w-6 h-6",
-                                path {
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "M6 18 18 6M6 6l12 12",
-                                }
-                            }
-                        }
-                    }
+                    class: "tooltip-arrow",
+                    "data-popper-arrow": "",
                 }
-            }} else {rsx!{
-                div {
-                    class: styles::TOOLTIP,
-                    "Assign Tag"
-                    div {
-                        class: "tooltip-arrow",
-                        "data-popper-arrow": "",
-                    }
-                }
-            }}
+            }
         }
     })
 }
@@ -2329,36 +2266,6 @@ async fn send_set_task_due_request(
     Ok(Client::new()
         .put(url)
         .json(&due)
-        .send()
-        .await?
-        .json::<()>()
-        .await?)
-}
-
-async fn set_task_tags(model: UseSharedState<Model>, task_id: TaskId, tags: Vec<TagId>) {
-    if send_set_task_tags_request(model.clone(), task_id, tags)
-        .await
-        .is_ok()
-    {
-        requests::board(model.clone()).await;
-    }
-}
-
-async fn send_set_task_tags_request(
-    model: UseSharedState<Model>,
-    task_id: TaskId,
-    tags: Vec<TagId>,
-) -> Result<(), anyhow::Error> {
-    let url = {
-        let model = model.read();
-        model.url.join(&format!(
-            "/api/boards/{}/tasks/{}/tags",
-            model.board_name, task_id
-        ))?
-    };
-    Ok(Client::new()
-        .put(url)
-        .json(&tags)
         .send()
         .await?
         .json::<()>()

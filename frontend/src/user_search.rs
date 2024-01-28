@@ -292,14 +292,14 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
             ul {
                 class: "py-2 text-sm text-gray-200 z-10 rounded-lg shadow bg-gray-700",
                 rsx!{
-                    for user in read_model
+                    for (user_id, user) in read_model
                         .users
                         .iter()
                         .filter(|(id, _)| !assignees.contains(id))
                         .sorted_by_key(|(_, user)| user.name.to_lowercase())
                     {rsx!{
                         li {
-                            key: "{user.0}",
+                            key: "{user_id}",
                             button {
                                 r#type: "button",
                                 class: "
@@ -310,13 +310,13 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
                                 onmousedown: |_| {},
                                 onclick: {
                                     let task_id = *task_id;
-                                    let user_id = *user.0;
+                                    let user_id = *user_id;
                                     move |event| {
                                         event.stop_propagation();
                                         add_task_assignee(model.clone(), task_id, user_id)
                                     }
                                 },
-                                user.1.name.clone(),
+                                user.name.clone(),
                             }
                         },
                     }}
