@@ -221,8 +221,9 @@ pub fn UserSearch<'a>(
 
 #[component]
 pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap().read();
-    let assignees: HashSet<_> = model.tasks[task_id]
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
+    let assignees: HashSet<_> = read_model.tasks[task_id]
         .assignees
         .iter()
         .map(|id| *id)
@@ -234,11 +235,11 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
             ",
             div {
                 class: "flex flex-row gap-2 flex-wrap",
-                for (user_id, user_name) in model
+                for (user_id, user_name) in read_model
                     .tasks[task_id]
                     .assignees
                     .iter()
-                    .map(|id| (id, &model.users[id].name))
+                    .map(|id| (id, &read_model.users[id].name))
                 {rsx!{
                     span {
                         class: "
@@ -254,9 +255,13 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
                                 hover:bg-gray-600 hover:text-gray-300
                             ",
                             "aria-label": "Remove",
-                            onclick: move |_| {
-                                // send remove user request
-                                todo!()
+                            onclick: {
+                            let task_id = *task_id;
+                            let user_id = *user_id;
+                                move |event| {
+                                    event.stop_propagation();
+                                    delete_task_user(model.clone(), task_id, user_id)
+                                }
                             },
                             svg {
                                 class: "w-2 h-2",
@@ -279,7 +284,7 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
             ul {
                 class: "py-2 text-sm text-gray-200 z-10 rounded-lg shadow bg-gray-700",
                 rsx!{
-                    for user in model
+                    for user in read_model
                         .users
                         .iter()
                         .filter(|(id, _)| !assignees.contains(id))
@@ -327,4 +332,33 @@ async fn create_user(model: UseSharedState<Model>, user_data: UserData) {
         requests::board(model.clone()).await;
         model.write().user_search_created_user = Some(user_data);
     }
+}
+
+async fn delete_task_user(model: UseSharedState<Model>, task_id: TaskId, user_id: UserId) {
+    if send_delete_task_user_request(model.clone(), task_id, user_id)
+        .await
+        .is_ok()
+    {
+        requests::board(model).await;
+    }
+}
+
+async fn send_delete_task_user_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    user_id: UserId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/users/{}",
+            model.board_name, task_id, user_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .delete(url)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
 }

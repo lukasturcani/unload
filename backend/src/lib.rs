@@ -1014,3 +1014,24 @@ WHERE
     tx.commit().await?;
     Ok(Json(()))
 }
+
+pub async fn delete_task_user(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id, user_id)): Path<(BoardName, TaskId, UserId)>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    task_assignments
+WHERE
+    board_name = ? AND task_id = ? AND user_id = ?",
+        board_name,
+        task_id,
+        user_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}

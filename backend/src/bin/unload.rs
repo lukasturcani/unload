@@ -8,8 +8,8 @@ use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use unload::{
     create_board, create_tag, create_task, create_user, delete_tag, delete_task, delete_task_tag,
-    delete_user, show_tag, show_tags, show_task, show_tasks, show_user, show_users,
-    update_tag_color, update_tag_name, update_task_assignees, update_task_description,
+    delete_task_user, delete_user, show_tag, show_tags, show_task, show_tasks, show_user,
+    show_users, update_tag_color, update_tag_name, update_task_assignees, update_task_description,
     update_task_due, update_task_size, update_task_status, update_task_tags, update_task_title,
     update_user_color, update_user_name, Result,
 };
@@ -48,6 +48,10 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
         .route(
             "/api/boards/:board_name/tasks/:task_id/tags/:tag_id",
             delete(delete_task_tag),
+        )
+        .route(
+            "/api/boards/:board_name/tasks/:task_id/users/:user_id",
+            delete(delete_task_user),
         )
         .route(
             "/api/boards/:board_name/tasks/:task_id",
