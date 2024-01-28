@@ -221,7 +221,7 @@ pub fn UserSearch<'a>(
 }
 
 #[component]
-pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
+pub fn CompactUserSearch(cx: Scope, task_id: TaskId, badge_style: &'static str) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     if model.read().user_search_created_user.is_some() {
         if let Some(user) = model.write().user_search_created_user.take() {
@@ -253,6 +253,7 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
                         class: "
                             flex flex-row gap-1 items-center px-2 py-1 text-sm
                             font-medium rounded bg-gray-700 text-gray-300
+                            {badge_style}
                         ",
                         user_name.clone()
                         button {

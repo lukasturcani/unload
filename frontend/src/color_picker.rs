@@ -149,6 +149,9 @@ pub fn ColorPicker<'a>(cx: Scope<'a>, on_pick_color: EventHandler<'a, Color>) ->
     cx.render(rsx! {
         div {
             class: "flex-1 flex grid grid-cols-4 gap-4 justify-items-center",
+            onclick: |event| {
+                event.stop_propagation();
+            },
             for (color, class) in
                 COLORS
                 .iter()

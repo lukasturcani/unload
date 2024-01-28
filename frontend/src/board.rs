@@ -1073,6 +1073,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     onclick: |event| event.stop_propagation(),
                     CompactUserSearch {
                         task_id: *task_id,
+                        badge_style: "bg-inherit border border-gray-700 text-white",
                     }
                 }
             }}
@@ -1275,6 +1276,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         task_id: *task_id,
                         ul_style: "border border-gray-700 divide-y divide-gray-700",
                         hover_style: "hover:bg-gray-800",
+                        text_input_style: "bg-gray-800"
                     }
                 }}
             }}
@@ -1433,6 +1435,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     onclick: |event| event.stop_propagation(),
                     CompactUserSearch {
                         task_id: *task_id,
+                        badge_style: "",
                     }
                 }
             }}
@@ -1661,14 +1664,15 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
                 if **show_assign_tag {rsx!{
-                    div {
-                        class: "p-2 rounded-lg bg-gray-800 border border-gray-700",
-                        onclick: |event| event.stop_propagation(),
-                        CompactTagSearch {
-                            task_id: *task_id,
-                            ul_style: "bg-gray-700",
-                            hover_style: "hover:bg-gray-600",
-                        }
+                    CompactTagSearch {
+                        task_id: *task_id,
+                        ul_style: "
+                            bg-gray-800
+                            rounded-lg border border-gray-700
+                            divide-y divide-gray-700
+                        ",
+                        hover_style: "hover:bg-gray-700",
+                        text_input_style: "",
                     }
                 }}
             }}

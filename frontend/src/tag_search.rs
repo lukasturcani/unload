@@ -229,6 +229,7 @@ pub fn CompactTagSearch(
     task_id: TaskId,
     ul_style: &'static str,
     hover_style: &'static str,
+    text_input_style: &'static str,
 ) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     if model.read().tag_search_created_tag.is_some() {
@@ -246,7 +247,7 @@ pub fn CompactTagSearch(
     let new_tag = use_state(cx, String::new);
     cx.render(rsx! {
         ul {
-            class: "py-2 text-sm text-gray-200 z-10 rounded-lg shadow {ul_style}",
+            class: "text-sm text-gray-200 z-10 rounded-lg shadow {ul_style}",
             rsx!{
                 for (tag_id, tag) in read_model
                     .tags
@@ -298,12 +299,9 @@ pub fn CompactTagSearch(
                     div {
                         class: "p-2",
                         div {
-                            class: "
-                                flex flex-col gap-2 p-2 bg-gray-800
-                                rounded-lg
-                            ",
+                            class: "flex flex-col gap-2 p-2",
                             input {
-                                class: styles::TEXT_INPUT,
+                                class: "{styles::TEXT_INPUT} {text_input_style}",
                                 r#type: "text",
                                 placeholder: "Tag",
                                 value: "{new_tag}",
