@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use dioxus::prelude::*;
 use itertools::Itertools;
+use reqwest::Client;
 use shared_models::{TaskId, UserData, UserId};
 
 use crate::{color_picker::ColorPicker, model::Model, requests, styles};
@@ -260,7 +261,7 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
                             let user_id = *user_id;
                                 move |event| {
                                     event.stop_propagation();
-                                    delete_task_user(model.clone(), task_id, user_id)
+                                    delete_task_assignee(model.clone(), task_id, user_id)
                                 }
                             },
                             svg {
@@ -300,7 +301,13 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
                                 ",
                                 prevent_default: "onmousedown",
                                 onmousedown: |_| {},
-                                onclick: move |_| {
+                                onclick: {
+                                    let task_id = *task_id;
+                                    let user_id = *user.0;
+                                    move |event| {
+                                        event.stop_propagation();
+                                        add_task_assignee(model.clone(), task_id, user_id)
+                                    }
                                 },
                                 user.1.name.clone(),
                             }
@@ -334,8 +341,8 @@ async fn create_user(model: UseSharedState<Model>, user_data: UserData) {
     }
 }
 
-async fn delete_task_user(model: UseSharedState<Model>, task_id: TaskId, user_id: UserId) {
-    if send_delete_task_user_request(model.clone(), task_id, user_id)
+async fn delete_task_assignee(model: UseSharedState<Model>, task_id: TaskId, assignee: UserId) {
+    if send_delete_task_assignee_request(model.clone(), task_id, assignee)
         .await
         .is_ok()
     {
@@ -343,20 +350,45 @@ async fn delete_task_user(model: UseSharedState<Model>, task_id: TaskId, user_id
     }
 }
 
-async fn send_delete_task_user_request(
+async fn send_delete_task_assignee_request(
     model: UseSharedState<Model>,
     task_id: TaskId,
-    user_id: UserId,
+    assignee: UserId,
 ) -> Result<(), anyhow::Error> {
     let url = {
         let model = model.read();
         model.url.join(&format!(
-            "/api/boards/{}/tasks/{}/users/{}",
-            model.board_name, task_id, user_id
+            "/api/boards/{}/tasks/{}/assignees/{}",
+            model.board_name, task_id, assignee
         ))?
     };
-    Ok(reqwest::Client::new()
-        .delete(url)
+    Ok(Client::new().delete(url).send().await?.json::<()>().await?)
+}
+
+async fn add_task_assignee(model: UseSharedState<Model>, task_id: TaskId, assignee: UserId) {
+    if send_add_task_assignee_request(model.clone(), task_id, assignee)
+        .await
+        .is_ok()
+    {
+        requests::board(model.clone()).await;
+    }
+}
+
+async fn send_add_task_assignee_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+    assignee: UserId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/assignees",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .post(url)
+        .json(&assignee)
         .send()
         .await?
         .json::<()>()

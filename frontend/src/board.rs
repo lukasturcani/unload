@@ -2335,36 +2335,6 @@ async fn send_set_task_due_request(
         .await?)
 }
 
-async fn set_task_assignees(model: UseSharedState<Model>, task_id: TaskId, assignees: Vec<UserId>) {
-    if send_set_task_assignees_request(model.clone(), task_id, assignees)
-        .await
-        .is_ok()
-    {
-        requests::board(model.clone()).await;
-    }
-}
-
-async fn send_set_task_assignees_request(
-    model: UseSharedState<Model>,
-    task_id: TaskId,
-    assignees: Vec<UserId>,
-) -> Result<(), anyhow::Error> {
-    let url = {
-        let model = model.read();
-        model.url.join(&format!(
-            "/api/boards/{}/tasks/{}/assignees",
-            model.board_name, task_id
-        ))?
-    };
-    Ok(Client::new()
-        .put(url)
-        .json(&assignees)
-        .send()
-        .await?
-        .json::<()>()
-        .await?)
-}
-
 async fn set_task_tags(model: UseSharedState<Model>, task_id: TaskId, tags: Vec<TagId>) {
     if send_set_task_tags_request(model.clone(), task_id, tags)
         .await
