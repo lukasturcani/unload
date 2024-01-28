@@ -224,7 +224,12 @@ pub fn TagSearch<'a>(
 }
 
 #[component]
-pub fn CompactTagSearch(cx: Scope, task_id: TaskId) -> Element {
+pub fn CompactTagSearch(
+    cx: Scope,
+    task_id: TaskId,
+    ul_style: &'static str,
+    hover_style: &'static str,
+) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     if model.read().tag_search_created_tag.is_some() {
         if let Some((tag_id, _)) = model.write().tag_search_created_tag.take() {
@@ -241,7 +246,7 @@ pub fn CompactTagSearch(cx: Scope, task_id: TaskId) -> Element {
     let new_tag = use_state(cx, String::new);
     cx.render(rsx! {
         ul {
-            class: "py-2 text-sm text-gray-200 z-10 rounded-lg shadow bg-gray-700",
+            class: "py-2 text-sm text-gray-200 z-10 rounded-lg shadow {ul_style}",
             rsx!{
                 for (tag_id, tag) in read_model
                     .tags
@@ -255,7 +260,7 @@ pub fn CompactTagSearch(cx: Scope, task_id: TaskId) -> Element {
                             r#type: "button",
                             class: "
                                 text-left w-full px-4 py-2
-                                hover:bg-gray-600 hover:text-white
+                                {hover_style} hover:text-white
                             ",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},
@@ -279,7 +284,7 @@ pub fn CompactTagSearch(cx: Scope, task_id: TaskId) -> Element {
                         r#type: "button",
                         class: "
                             text-left w-full px-4 py-2
-                            hover:bg-gray-600
+                            {hover_style}
                             font-medium text-blue-500 hover:underline
                         ",
                         prevent_default: "onmousedown",
