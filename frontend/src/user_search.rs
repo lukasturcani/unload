@@ -1,5 +1,8 @@
+use std::collections::HashSet;
+
 use dioxus::prelude::*;
-use shared_models::{UserData, UserId};
+use itertools::Itertools;
+use shared_models::{TaskId, UserData, UserId};
 
 use crate::{color_picker::ColorPicker, model::Model, requests, styles};
 
@@ -209,14 +212,113 @@ pub fn UserSearch<'a>(
                                 d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6",
                             },
                         },
-                        span {
-                            class: "sr-only",
-                            "Remove badge",
-                        },
                     },
                 },
             }},
         },
+    })
+}
+
+#[component]
+pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap().read();
+    let assignees: HashSet<_> = model.tasks[task_id]
+        .assignees
+        .iter()
+        .map(|id| *id)
+        .collect();
+    cx.render(rsx! {
+        div {
+            class: "
+                flex flex-col gap-2
+            ",
+            div {
+                class: "flex flex-row gap-2 flex-wrap",
+                for (user_id, user_name) in model
+                    .tasks[task_id]
+                    .assignees
+                    .iter()
+                    .map(|id| (id, &model.users[id].name))
+                {rsx!{
+                    span {
+                        class: "
+                            flex flex-row gap-1 items-center px-2 py-1 text-sm
+                            font-medium rounded bg-gray-700 text-gray-300
+                        ",
+                        user_name.clone()
+                        button {
+                            r#type: "button",
+                            class: "
+                                p-1 text-sm text-gray-400
+                                bg-transparent rounded-sm
+                                hover:bg-gray-600 hover:text-gray-300
+                            ",
+                            "aria-label": "Remove",
+                            onclick: move |_| {
+                                // send remove user request
+                                todo!()
+                            },
+                            svg {
+                                class: "w-2 h-2",
+                                "aria-hidden": "true",
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 14 14",
+                                path {
+                                    stroke: "currentColor",
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    "stroke-width": "2",
+                                    d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6",
+                                },
+                            },
+                        },
+                    },
+                }},
+            }
+            ul {
+                class: "py-2 text-sm text-gray-200 z-10 rounded-lg shadow bg-gray-700",
+                rsx!{
+                    for user in model
+                        .users
+                        .iter()
+                        .filter(|(id, _)| !assignees.contains(id))
+                        .sorted_by_key(|(_, user)| &user.name)
+                    {rsx!{
+                        li {
+                            key: "{user.0}",
+                            button {
+                                r#type: "button",
+                                class: "
+                                    text-left w-full px-4 py-2
+                                    hover:bg-gray-600 hover:text-white
+                                ",
+                                prevent_default: "onmousedown",
+                                onmousedown: |_| {},
+                                onclick: move |_| {
+                                },
+                                user.1.name.clone(),
+                            }
+                        },
+                    }}
+                }
+                li {
+                    key: "add user",
+                    button {
+                        r#type: "button",
+                        class: "
+                            text-left w-full px-4 py-2
+                            hover:bg-gray-600
+                            font-medium text-blue-500 hover:underline
+                        ",
+                        prevent_default: "onmousedown",
+                        onmousedown: |_| {},
+                        onclick: |_| {},
+                        "Add User"
+                    }
+                }
+            }
+        }
     })
 }
 
