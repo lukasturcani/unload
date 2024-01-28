@@ -259,7 +259,7 @@ pub fn CompactUserSearch(
                     span {
                         class: "
                             flex flex-row gap-1 items-center px-2 py-1 text-sm
-                            font-medium rounded bg-gray-700 text-gray-300
+                            font-medium rounded bg-gray-700 text-gray-200
                             {badge_style}
                         ",
                         user_name.clone()
@@ -268,7 +268,7 @@ pub fn CompactUserSearch(
                             class: "
                                 p-1 text-sm text-gray-400
                                 bg-transparent rounded-sm
-                                hover:bg-gray-600 hover:text-gray-300
+                                hover:bg-gray-600 hover:text-gray-200
                             ",
                             "aria-label": "Remove",
                             onclick: {
