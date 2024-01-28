@@ -4,7 +4,7 @@ use crate::filter_bar::{FilterBar, SizeFilter, TagFilter, UserFilter};
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
 use crate::tag_search::TagSearch;
-use crate::user_search::{CompactUserSearch, UserSearch};
+use crate::user_search::CompactUserSearch;
 use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
