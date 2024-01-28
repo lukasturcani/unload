@@ -223,6 +223,11 @@ pub fn UserSearch<'a>(
 #[component]
 pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
+    if model.read().user_search_created_user.is_some() {
+        if let Some(user) = model.write().user_search_created_user.take() {
+            spawn(add_task_assignee(model.clone(), *task_id, user.0));
+        }
+    }
     let read_model = model.read();
     let assignees: HashSet<_> = read_model.tasks[task_id]
         .assignees
@@ -230,6 +235,7 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
         .map(|id| *id)
         .collect();
     let show_add_user_button = use_state(cx, || true);
+    let new_user = use_state(cx, String::new);
     cx.render(rsx! {
         div {
             class: "
@@ -333,7 +339,39 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
                             "Add User"
                         }
                     }} else {rsx! {
-                        div {}
+                        div {
+                            class: "p-2",
+                            div {
+                                class: "
+                                    flex flex-col gap-2 p-2 bg-gray-800
+                                    rounded-lg
+                                ",
+                                input {
+                                    class: styles::TEXT_INPUT,
+                                    r#type: "text",
+                                    placeholder: "Name",
+                                    value: "{new_user}",
+                                    oninput: |event| {
+                                        new_user.set(event.value.clone())
+                                    },
+                                }
+                                ColorPicker {
+                                    on_pick_color: |color| {
+                                        show_add_user_button.set(true);
+                                        if new_user.trim().is_empty() {
+                                            return;
+                                        }
+                                        cx.spawn(create_user(
+                                            model.clone(),
+                                            UserData {
+                                                name: new_user.make_mut().drain(..).collect(),
+                                                color
+                                            },
+                                        ));
+                                    },
+                                }
+                            }
+                        }
                     }}
                 }
             }
