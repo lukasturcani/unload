@@ -1442,7 +1442,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             if **show_assign_user {rsx!{
                 div {
                     class: "
-                        bg-gray-800 px-3 py-2
+                        bg-gray-800 p-2
                         rounded-lg border border-gray-700
                     ",
                     onclick: |event| event.stop_propagation(),
