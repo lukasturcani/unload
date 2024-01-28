@@ -1052,7 +1052,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         "viewBox": "0 0 24 24" ,
                         "stroke-width": "1.5" ,
                         stroke: "white" ,
-                        class: "w-6 h-6 border border-white rounded cursor-pointer",
+                        class: "w-5 h-5 border border-white rounded cursor-pointer",
                         prevent_default: "onclick",
                         onclick: move |event| {
                             event.stop_propagation();
@@ -1073,14 +1073,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             }
             if **show_assign_user {rsx!{
                 div {
-                    class: "bg-gray-800 p-2 rounded w-72",
+                    class: "p-2 rounded-lg",
                     onclick: |event| event.stop_propagation(),
-                    UserSearch {
-                        id: "assign_user_modal",
-                        on_select_user: |user_id| assignees.write().push(user_id),
-                        on_remove_user: |user_id| assignees.write().retain(|&value| value != user_id),
-                        initial_users: assignees.read().clone(),
-                        always_show_suggestions: false,
+                    CompactUserSearch {
+                        task_id: *task_id,
                     }
                 }
             }}
