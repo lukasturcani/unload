@@ -74,11 +74,13 @@ pub fn TagSearch<'a>(
                 class: "flex flex-row flex-wrap gap-1",
                 for tag in selected.read().iter().map(|x| x.clone()) {rsx!{
                     span {
-                        class: "inline-flex items-center px-2 py-1 text-sm font-medium rounded bg-gray-700 text-gray-300",
+                        class: "flex flex-row gap-1 items-center px-2 py-1 text-sm font-medium rounded bg-gray-700 text-gray-300",
                         tag.1.clone(),
                         button {
                             r#type: "button",
-                            class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-600 hover:text-gray-300",
+                            class: "
+                                p-1 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-600 hover:text-gray-300
+                            ",
                             "aria-label": "Remove",
                             onclick: move |_| {
                                 selected.write().retain(|this| this.0 != tag.0);
@@ -97,10 +99,6 @@ pub fn TagSearch<'a>(
                                     "stroke-width": "2",
                                     d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6",
                                 },
-                            },
-                            span {
-                                class: "sr-only",
-                                "Remove badge",
                             },
                         },
                     },
@@ -149,7 +147,7 @@ pub fn TagSearch<'a>(
             },
             if **show_color_picker {rsx!{
                 div {
-                    class: "z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 p-4",
+                    class: "bg-gray-700 p-4",
                     ColorPicker {
                         on_pick_color: |color| {
                             show_color_picker.set(false);
@@ -166,59 +164,57 @@ pub fn TagSearch<'a>(
             }}
             if let Some((tags, show_add_tag_button)) = tag_data {rsx!{
                 if !tags.is_empty() || show_add_tag_button {rsx!{
-                    div {
-                        class: "z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700",
-                        ul {
-                            class: "py-2 text-sm text-gray-200",
-                            rsx!{
-                                for tag in tags {rsx!{
-                                    li {
-                                        key: "{tag.0}",
-                                        button {
-                                            r#type: "button",
-                                            class: "block text-left w-full px-4 py-2 hover:bg-gray-600 hover:text-white focus:border-blue-500",
-                                            prevent_default: "onmousedown",
-                                            onmousedown: |_| {},
-                                            onclick: move |_| {
-                                                search_input.set(String::new());
-                                                selected.write().push(tag.clone());
-                                                on_select_tag.call(tag.0);
-                                            },
-                                            tag.1.clone(),
-                                        }
-                                    },
-                                }}
-                            }
-                            if show_add_tag_button {rsx!{
+                    ul {
+                        class: "rounded-lg text-sm bg-gray-700 text-gray-200",
+                        rsx!{
+                            for tag in tags {rsx!{
                                 li {
-                                    key: "add tag",
+                                    key: "{tag.0}",
                                     button {
                                         r#type: "button",
-                                        class: "text-left w-full px-4 py-2
-                                            hover:bg-gray-600
-                                            font-medium text-blue-500 hover:underline",
+                                        class: "
+                                            text-left w-full px-4 py-2 hover:bg-gray-600 hover:text-white focus:border-blue-500
+                                        ",
                                         prevent_default: "onmousedown",
                                         onmousedown: |_| {},
-                                        onclick: |_| show_color_picker.set(true),
-                                        "Add Tag"
+                                        onclick: move |_| {
+                                            search_input.set(String::new());
+                                            selected.write().push(tag.clone());
+                                            on_select_tag.call(tag.0);
+                                        },
+                                        tag.1.clone(),
                                     }
                                 },
                             }}
                         }
+                        if show_add_tag_button {rsx!{
+                            li {
+                                key: "add tag",
+                                button {
+                                    r#type: "button",
+                                    class: "
+                                        text-left w-full px-4 py-2
+                                        hover:bg-gray-600
+                                        font-medium text-blue-500 hover:underline
+                                    ",
+                                    prevent_default: "onmousedown",
+                                    onmousedown: |_| {},
+                                    onclick: |_| show_color_picker.set(true),
+                                    "Add Tag"
+                                }
+                            },
+                        }}
                     }
                 }}
                 else {rsx!{
-                    div {
-                        class: "z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 focus:border-blue-500",
-                        ul {
-                            class: "py-2 text-sm text-gray-200 focus:border-blue-500",
-                            li {
-                                class: "italic text-gray-400 block text-left w-full px-4 py-2",
-                                prevent_default: "onmousedown",
-                                onmousedown: |_| {},
-                                "No matches"
-                            },
-                        }
+                    ul {
+                        class: "rounded-lg text-sm bg-gray-700 text-gray-200",
+                        li {
+                            class: "italic text-gray-400 text-left w-full px-4 py-2",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            "No matches"
+                        },
                     }
                 }}
             }}

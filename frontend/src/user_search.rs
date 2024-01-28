@@ -64,159 +64,162 @@ pub fn UserSearch<'a>(
         None
     };
     cx.render(rsx! {
-        label {
-            r#for: *id,
-            class: styles::TEXT_INPUT_LABEL,
-            "Assigned to"
-        },
         div {
-            class: "relative",
-            div {
-                class: "absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none",
-                svg {
-                    class: "w-4 h-4 text-gray-400",
-                    "aria-hidden": "true",
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none" ,
-                    "viewBox": "0 0 20 20",
-                    path {
-                        d: "m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z",
-                        stroke: "currentColor",
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        "stroke-width", "2",
-                    },
-                },
+            class: "flex flex-col gap-1",
+            label {
+                r#for: *id,
+                class: styles::TEXT_INPUT_LABEL,
+                "Assigned to"
             },
-            input {
-                r#type: "search",
-                id: *id,
-                class: "{styles::TEXT_INPUT} ps-10",
-                placeholder: "Search",
-                autocomplete: "off",
-                value: "{search_input}",
-                onfocusin: move |_| {
-                    if let Some(handler) = on_search_focus_in {
-                        handler.call(());
-                    }
-                    has_input_focus.set(true);
-                },
-                onfocusout: move |_| {
-                    if let Some(handler) = on_search_focus_out {
-                        handler.call(());
-                    }
-                    has_input_focus.set(false)
-                },
-                oninput: |event| search_input.set(event.data.value.clone())
-            },
-        },
-        if **show_color_picker {rsx!{
             div {
-                class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 p-4",
-                ColorPicker {
-                    on_pick_color: |color| {
-                        show_color_picker.set(false);
-                        cx.spawn(create_user(
-                            model.clone(),
-                            UserData {
-                                name: search_input.make_mut().drain(..).collect(),
-                                color
-                            },
-                        ));
-                    },
-                }
-            }
-        }}
-        if let Some((users, show_add_user_button)) = user_data {rsx!{
-            if !users.is_empty() || show_add_user_button {rsx!{
+                class: "relative",
                 div {
-                    class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700",
-                    ul {
-                        class: "py-2 text-sm text-gray-200",
-                        rsx!{
-                            for user in users {rsx!{
+                    class: "absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none",
+                    svg {
+                        class: "w-4 h-4 text-gray-400",
+                        "aria-hidden": "true",
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none" ,
+                        "viewBox": "0 0 20 20",
+                        path {
+                            d: "m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z",
+                            stroke: "currentColor",
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            "stroke-width", "2",
+                        },
+                    },
+                },
+                input {
+                    r#type: "search",
+                    id: *id,
+                    class: "{styles::TEXT_INPUT} ps-10",
+                    placeholder: "Search",
+                    autocomplete: "off",
+                    value: "{search_input}",
+                    onfocusin: move |_| {
+                        if let Some(handler) = on_search_focus_in {
+                            handler.call(());
+                        }
+                        has_input_focus.set(true);
+                    },
+                    onfocusout: move |_| {
+                        if let Some(handler) = on_search_focus_out {
+                            handler.call(());
+                        }
+                        has_input_focus.set(false)
+                    },
+                    oninput: |event| search_input.set(event.data.value.clone())
+                },
+            },
+            if **show_color_picker {rsx!{
+                div {
+                    class: "bg-gray-700 p-4",
+                    ColorPicker {
+                        on_pick_color: |color| {
+                            show_color_picker.set(false);
+                            cx.spawn(create_user(
+                                model.clone(),
+                                UserData {
+                                    name: search_input.make_mut().drain(..).collect(),
+                                    color
+                                },
+                            ));
+                        },
+                    }
+                }
+            }}
+            if let Some((users, show_add_user_button)) = user_data {rsx!{
+                if !users.is_empty() || show_add_user_button {rsx!{
+                    div {
+                        class: "bg-gray-700",
+                        ul {
+                            class: "py-2 text-sm text-gray-200",
+                            rsx!{
+                                for user in users {rsx!{
+                                    li {
+                                        key: "{user.0}",
+                                        button {
+                                            r#type: "button",
+                                            class: "block text-left w-full px-4 py-2 hover:bg-gray-600 hover:text-white focus:border-blue-500",
+                                            prevent_default: "onmousedown",
+                                            onmousedown: |_| {},
+                                            onclick: move |_| {
+                                                search_input.set(String::new());
+                                                selected.write().push(user.clone());
+                                                on_select_user.call(user.0);
+                                            },
+                                            user.1.clone(),
+                                        }
+                                    },
+                                }}
+                            }
+                            if show_add_user_button {rsx!{
                                 li {
-                                    key: "{user.0}",
+                                    key: "add user",
                                     button {
                                         r#type: "button",
-                                        class: "block text-left w-full px-4 py-2 hover:bg-gray-600 hover:text-white focus:border-blue-500",
+                                        class: "block text-left w-full px-4 py-2
+                                            hover:bg-gray-600
+                                            font-medium text-blue-500 hover:underline",
                                         prevent_default: "onmousedown",
                                         onmousedown: |_| {},
-                                        onclick: move |_| {
-                                            search_input.set(String::new());
-                                            selected.write().push(user.clone());
-                                            on_select_user.call(user.0);
-                                        },
-                                        user.1.clone(),
+                                        onclick: |_| show_color_picker.set(true),
+                                        "Add User"
                                     }
                                 },
                             }}
                         }
-                        if show_add_user_button {rsx!{
+                    }
+                }}
+                else {rsx!{
+                    div {
+                        class: "z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 focus:border-blue-500",
+                        ul {
+                            class: "py-2 text-sm text-gray-200 focus:border-blue-500",
                             li {
-                                key: "add user",
-                                button {
-                                    r#type: "button",
-                                    class: "block text-left w-full px-4 py-2
-                                        hover:bg-gray-600
-                                        font-medium text-blue-500 hover:underline",
-                                    prevent_default: "onmousedown",
-                                    onmousedown: |_| {},
-                                    onclick: |_| show_color_picker.set(true),
-                                    "Add User"
-                                }
+                                class: "italic text-gray-400 block text-left w-full px-4 py-2",
+                                prevent_default: "onmousedown",
+                                onmousedown: |_| {},
+                                "No matches"
                             },
-                        }}
+                        }
                     }
-                }
+                }}
             }}
-            else {rsx!{
-                div {
-                    class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 focus:border-blue-500",
-                    ul {
-                        class: "py-2 text-sm text-gray-200 focus:border-blue-500",
-                        li {
-                            class: "italic text-gray-400 block text-left w-full px-4 py-2",
-                            prevent_default: "onmousedown",
-                            onmousedown: |_| {},
-                            "No matches"
-                        },
-                    }
-                }
-            }}
-        }}
-        div {
-            class: "mt-2",
-            for user in selected.read().iter().map(|x| x.clone()) {rsx!{
-                span {
-                    class: "inline-flex items-center px-2 py-1 me-2 mt-2 text-sm font-medium rounded bg-gray-700 text-gray-300",
-                    user.1.clone(),
-                    button {
-                        r#type: "button",
-                        class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-600 hover:text-gray-300",
-                        "aria-label": "Remove",
-                        onclick: move |_| {
-                            selected.write().retain(|this| this.0 != user.0);
-                            on_remove_user.call(user.0);
-                        },
-                        svg {
-                            class: "w-2 h-2",
-                            "aria-hidden": "true",
-                            xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none",
-                            "viewBox": "0 0 14 14",
-                            path {
-                                stroke: "currentColor",
-                                "stroke-linecap": "round",
-                                "stroke-linejoin": "round",
-                                "stroke-width": "2",
-                                d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6",
+            div {
+                class: "mt-2",
+                for user in selected.read().iter().map(|x| x.clone()) {rsx!{
+                    span {
+                        class: "inline-flex items-center px-2 py-1 me-2 mt-2 text-sm font-medium rounded bg-gray-700 text-gray-300",
+                        user.1.clone(),
+                        button {
+                            r#type: "button",
+                            class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-600 hover:text-gray-300",
+                            "aria-label": "Remove",
+                            onclick: move |_| {
+                                selected.write().retain(|this| this.0 != user.0);
+                                on_remove_user.call(user.0);
+                            },
+                            svg {
+                                class: "w-2 h-2",
+                                "aria-hidden": "true",
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 14 14",
+                                path {
+                                    stroke: "currentColor",
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    "stroke-width": "2",
+                                    d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6",
+                                },
                             },
                         },
                     },
-                },
-            }},
-        },
+                }},
+            },
+        }
     })
 }
 
