@@ -98,6 +98,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                     onfocusin: |_| has_focus.set(true),
                     onfocusout: |_| has_focus.set(false),
                     div {
+                        class: "flex flex-col gap-1",
                         label {
                             r#for: "task_title",
                             class: styles::TEXT_INPUT_LABEL,
@@ -113,16 +114,15 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             },
                         },
                     }
-                    div {
-                        TagSearch {
-                            id: "tag_search",
-                            on_select_tag: |tag_id| tags.write().push(tag_id),
-                            on_remove_tag: |tag_id| tags.write().retain(|&value| value != tag_id),
-                            on_search_focus_in: |_| has_focus.set(true),
-                            on_search_focus_out: |_| has_focus.set(false),
-                        }
+                    TagSearch {
+                        id: "tag_search",
+                        on_select_tag: |tag_id| tags.write().push(tag_id),
+                        on_remove_tag: |tag_id| tags.write().retain(|&value| value != tag_id),
+                        on_search_focus_in: |_| has_focus.set(true),
+                        on_search_focus_out: |_| has_focus.set(false),
                     }
                     div {
+                        class: "flex flex-col gap-1",
                         label {
                             r#for: "status",
                             class: styles::TEXT_INPUT_LABEL,
@@ -184,6 +184,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                         },
                     },
                     div {
+                        class: "flex flex-col gap-1",
                         label {
                             r#for: "size",
                             class: styles::TEXT_INPUT_LABEL,
@@ -243,25 +244,28 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
 
                         },
                     },
+                    UserSearch {
+                        id: "user_search",
+                        on_select_user: |user_id| assigned_to.write().push(user_id),
+                        on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
+                        on_search_focus_in: |_| has_focus.set(true),
+                        on_search_focus_out: |_| has_focus.set(false),
+                    }
                     div {
-                        UserSearch {
-                            id: "user_search",
-                            on_select_user: |user_id| assigned_to.write().push(user_id),
-                            on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
-                            on_search_focus_in: |_| has_focus.set(true),
-                            on_search_focus_out: |_| has_focus.set(false),
-                        }
-                    },
-                    div {
+                        class: "flex flex-col gap-1",
                         label {
                             r#for: "task_description" ,
-                            class: "block mb-2 text-sm font-medium text-white",
+                            class: "text-sm font-medium text-white",
                             "Description"
                         },
                         textarea {
                             r#id: "task_description",
                             rows: "4",
-                            class: "block p-2.5 w-full text-base rounded-lg border bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
+                            class: "
+                                p-2.5 w-full text-base rounded-lg border bg-gray-700 border-gray-600
+                                placeholder-gray-400 text-white
+                                focus:ring-blue-500 focus:border-blue-500
+                            ",
                             placeholder: "Give a description...",
                             oninput: |event| {
                                 description.set(event.value.clone())
@@ -284,7 +288,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                         },
                     }
                     div {
-                        TaskSearch{
+                        TaskSearch {
                             id: "blocks_search",
                             title: "Blocks",
                             banned: blocked_by.read().clone(),
@@ -299,11 +303,12 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                         }
                     }
                     div {
+                        class: "flex flex-col gap-1",
                         label {
                             r#for: "task_due",
                             class: styles::TEXT_INPUT_LABEL,
                             "Due"
-                        },
+                        }
                         div {
                             id: "task_due",
                             input {
@@ -339,7 +344,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     }
                                 },
                             }}
-                        },
+                        }
                     }
                     button {
                         class: styles::BUTTON,
