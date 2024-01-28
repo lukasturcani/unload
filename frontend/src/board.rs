@@ -1310,6 +1310,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
     let draggable = use_state(cx, || true);
+    let show_assign_user = use_state(cx, || false);
     cx.render(rsx! {
         div {
             prevent_default: "onclick",
@@ -1412,6 +1413,10 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 class: "grid grid-cols-2",
                 Users {
                     task_id: *task_id,
+                    on_click_assign_user: move |event: Event<MouseData>| {
+                        event.stop_propagation();
+                        show_assign_user.set(!**show_assign_user);
+                    },
                 },
                 div {
                     class: "grid grid-rows-1 place-items-end",
@@ -1434,6 +1439,18 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
             }
+            if **show_assign_user {rsx!{
+                div {
+                    class: "
+                        bg-gray-800 px-3 py-2
+                        rounded-lg border border-gray-700
+                    ",
+                    onclick: |event| event.stop_propagation(),
+                    CompactUserSearch {
+                        task_id: *task_id,
+                    }
+                }
+            }}
             div {
                 class: "grid grid-cols-2",
                 div {
@@ -1865,7 +1882,11 @@ fn user_bg(model: &UseSharedState<Model>, user_id: &UserId, user_color: &Color) 
 }
 
 #[component]
-fn Users(cx: Scope, task_id: TaskId) -> Element {
+fn Users<'a>(
+    cx: Scope,
+    task_id: TaskId,
+    on_click_assign_user: EventHandler<'a, Event<MouseData>>,
+) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let data = &read_model.tasks[task_id];
@@ -1874,89 +1895,72 @@ fn Users(cx: Scope, task_id: TaskId) -> Element {
         .iter()
         .map(|user_id| (user_id, &read_model.users[user_id]))
         .collect();
-    let show_assign_user = use_state(cx, || false);
     cx.render(rsx! {
         div {
-            class: "flex flex-row flex-wrap gap-2",
-            for (user_id, user) in users {rsx!{
+            class: "flex flex-col gap-2",
+            div {
+                class: "flex flex-row flex-wrap gap-2",
+                for (user_id, user) in users {rsx!{
+                    div {
+                        class: "group relative",
+                        onclick: |event| event.stop_propagation(),
+                        div {
+                            class: "
+                                w-6 h-6 rounded cursor-pointer
+                                border-2 {color_picker::border_class(&user.color)}
+                                {user_bg(&model, user_id, &user.color)}
+                                {color_picker::bg_hover_class(&user.color)}
+                            ",
+                            onclick: {
+                                let user_id = *user_id;
+                                move |event| {
+                                    event.stop_propagation();
+                                    let mut model = model.write();
+                                    if model.user_filter.contains(&user_id) {
+                                        model.user_filter.remove(&user_id);
+                                    } else {
+                                        model.user_filter.insert(user_id);
+                                    }
+                                }
+                            },
+                        },
+                        div {
+                            class: styles::TOOLTIP,
+                            "{user.name}"
+                            div {
+                                class: "tooltip-arrow",
+                                "data-popper-arrow": "",
+                            }
+                        }
+                    }
+                }}
                 div {
                     class: "group relative",
-                    onclick: |event| event.stop_propagation(),
-                    div {
-                        class: "
-                            w-6 h-6 rounded cursor-pointer
-                            border-2 {color_picker::border_class(&user.color)}
-                            {user_bg(&model, user_id, &user.color)}
-                            {color_picker::bg_hover_class(&user.color)}
-                        ",
-                        onclick: {
-                            let user_id = *user_id;
-                            move |event| {
-                                event.stop_propagation();
-                                let mut model = model.write();
-                                if model.user_filter.contains(&user_id) {
-                                    model.user_filter.remove(&user_id);
-                                } else {
-                                    model.user_filter.insert(user_id);
-                                }
-                            }
-                        },
-                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24" ,
+                        "stroke-width": "1.5" ,
+                        stroke: "white" ,
+                        class: "w-6 h-6 border border-white rounded cursor-pointer",
+                        prevent_default: "onclick",
+                        onclick: |event| on_click_assign_user.call(event),
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M12 4.5v15m7.5-7.5h-15",
+                        }
+                    }
                     div {
                         class: styles::TOOLTIP,
-                        "{user.name}"
+                        "Assign User"
                         div {
                             class: "tooltip-arrow",
                             "data-popper-arrow": "",
                         }
                     }
                 }
-            }}
-            div {
-                class: "group relative",
-                svg {
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none",
-                    "viewBox": "0 0 24 24" ,
-                    "stroke-width": "1.5" ,
-                    stroke: "white" ,
-                    class: "w-6 h-6 border border-white rounded cursor-pointer",
-                    prevent_default: "onclick",
-                    onclick: |event| {
-                        event.stop_propagation();
-                        if !**show_assign_user {
-                            show_assign_user.set(true);
-                        } else {
-                            show_assign_user.set(false);
-                        }
-                    },
-                    path {
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        d: "M12 4.5v15m7.5-7.5h-15",
-                    }
-                }
-                div {
-                    class: styles::TOOLTIP,
-                    "Assign User"
-                    div {
-                        class: "tooltip-arrow",
-                        "data-popper-arrow": "",
-                    }
-                }
             }
-            if **show_assign_user {rsx!{
-                div {
-                    class: "
-                        bg-gray-800 w-72 px-3 py-2
-                        rounded-lg border border-gray-700
-                    ",
-                    onclick: |event| event.stop_propagation(),
-                    CompactUserSearch {
-                        task_id: *task_id,
-                    }
-                }
-            }}
         }
     })
 }

@@ -289,7 +289,7 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
                         .users
                         .iter()
                         .filter(|(id, _)| !assignees.contains(id))
-                        .sorted_by_key(|(_, user)| &user.name)
+                        .sorted_by_key(|(_, user)| user.name.to_lowercase())
                     {rsx!{
                         li {
                             key: "{user.0}",
