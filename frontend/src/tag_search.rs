@@ -74,12 +74,16 @@ pub fn TagSearch<'a>(
                 class: "flex flex-row flex-wrap gap-1",
                 for tag in selected.read().iter().map(|x| x.clone()) {rsx!{
                     span {
-                        class: "flex flex-row gap-1 items-center px-2 py-1 text-sm font-medium rounded bg-gray-700 text-gray-300",
+                        class: "
+                            flex flex-row gap-1 items-center
+                            px-2 py-1 text-sm font-medium rounded bg-gray-700 text-gray-300
+                        ",
                         tag.1.clone(),
                         button {
                             r#type: "button",
                             class: "
-                                p-1 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-600 hover:text-gray-300
+                                p-1 text-sm text-gray-400
+                                bg-transparent rounded-sm hover:bg-gray-600 hover:text-gray-300
                             ",
                             "aria-label": "Remove",
                             onclick: move |_| {
