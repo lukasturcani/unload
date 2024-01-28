@@ -229,6 +229,7 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
         .iter()
         .map(|id| *id)
         .collect();
+    let show_add_user_button = use_state(cx, || true);
     cx.render(rsx! {
         div {
             class: "
@@ -316,18 +317,24 @@ pub fn CompactUserSearch(cx: Scope, task_id: TaskId) -> Element {
                 }
                 li {
                     key: "add user",
-                    button {
-                        r#type: "button",
-                        class: "
-                            text-left w-full px-4 py-2
-                            hover:bg-gray-600
-                            font-medium text-blue-500 hover:underline
-                        ",
-                        prevent_default: "onmousedown",
-                        onmousedown: |_| {},
-                        onclick: |_| {},
-                        "Add User"
-                    }
+                    if **show_add_user_button {rsx! {
+                        button {
+                            r#type: "button",
+                            class: "
+                                text-left w-full px-4 py-2
+                                hover:bg-gray-600
+                                font-medium text-blue-500 hover:underline
+                            ",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            onclick: |_| {
+                                show_add_user_button.set(false);
+                            },
+                            "Add User"
+                        }
+                    }} else {rsx! {
+                        div {}
+                    }}
                 }
             }
         }
