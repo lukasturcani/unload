@@ -953,15 +953,11 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
         .iter()
         .map(|user_id| (user_id, &read_model.users[user_id]))
         .collect();
-    let tags: Vec<_> = data
-        .tags
-        .iter()
-        .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
-        .collect();
     let expanded = use_state(cx, || false);
     let editing_title = use_state(cx, || false);
     let new_title = use_state(cx, String::new);
     let show_assign_user = use_state(cx, || false);
+    let show_assign_tag = use_state(cx, || false);
     let assignees = use_ref(cx, Vec::new);
     let now = Utc::now();
     cx.render(rsx! {
@@ -1262,33 +1258,25 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
                 div {
-                    class: "flex flex-row gap-1 flex-wrap",
-                    for (tag_id, tag) in tags {rsx!{
-                        span {
-                            class: "
-                                text-sm font-medium px-2.5 py-0.5 rounded
-                                {tag_bg(model, tag_id, &tag.color)}
-                                {color_picker::bg_hover_class(&tag.color)}
-                                text-white cursor-pointer
-                                border {color_picker::border_class(&tag.color)}
-                                flex flex-row gap-2
-                            ",
-                            onclick: {
-                                let tag_id = *tag_id;
-                                move |event| {
-                                    event.stop_propagation();
-                                    let mut model = model.write();
-                                    if model.tag_filter.contains(&tag_id) {
-                                        model.tag_filter.remove(&tag_id);
-                                    } else {
-                                        model.tag_filter.insert(tag_id);
-                                    }
-                                }
+                    class: "grid grid-cols-8",
+                    div {
+                        class: "col-span-7 flex flex-row flex-wrap gap-2",
+                        Tags {
+                            task_id: *task_id,
+                            on_click_assign_tag: move |event: Event<MouseData>| {
+                                event.stop_propagation();
+                                show_assign_tag.set(!**show_assign_tag);
                             },
-                            "# {tag.name}",
                         }
-                    }}
+                    }
                 }
+                if **show_assign_tag {rsx!{
+                    div {
+                        class: "p-2 rounded-lg bg-gray-800 border border-gray-700",
+                        onclick: |event| event.stop_propagation(),
+                        CompactTagSearch { task_id: *task_id }
+                    }
+                }}
             }}
         }
     })
