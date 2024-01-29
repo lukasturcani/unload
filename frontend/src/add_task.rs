@@ -269,22 +269,17 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             },
                         },
                     },
-                    div {
-                        TaskSearch{
-                            id: "blocked_by_search",
-                            title: "Blocked by",
-                            banned: blocks.read().clone(),
-                            on_select_task: |task_id| blocked_by.write().push(task_id),
-                            on_remove_task: |task_id| {
-                                blocked_by
-                                .write()
-                                .retain(|&value| value != task_id)
-                            },
-                            on_search_focus_in: |_| has_focus.set(true),
-                            on_search_focus_out: |_| has_focus.set(false),
+                    TaskSearch{
+                        title: "Blocked by",
+                        on_select_task: |task_id| blocked_by.write().push(task_id),
+                        on_remove_task: |task_id| {
+                            blocked_by
+                            .write()
+                            .retain(|&value| value != task_id)
                         },
-                    }
-                    NewTaskSearch {
+                        banned: blocks.read().clone(),
+                    },
+                    TaskSearch {
                         title: "Blocks",
                         on_select_task: |task_id| blocks.write().push(task_id),
                         on_remove_task: |task_id| {
@@ -292,6 +287,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             .write()
                             .retain(|&value| value != task_id)
                         },
+                        banned: blocked_by.read().clone(),
                         }
                     div {
                         class: "flex flex-col gap-1",
@@ -408,11 +404,12 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
 }
 
 #[component]
-fn NewTaskSearch<'a>(
+fn TaskSearch<'a>(
     cx: Scope<'a>,
     title: &'static str,
     on_select_task: EventHandler<'a, TaskId>,
     on_remove_task: EventHandler<'a, TaskId>,
+    banned: Vec<TaskId>,
 ) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let selected = use_ref(cx, HashSet::new);
@@ -490,6 +487,7 @@ fn NewTaskSearch<'a>(
                         .iter()
                         .filter(|(id, task)| {
                             !read_selected.contains(id)
+                            && !banned.contains(id)
                             && task.title.to_lowercase().contains(&search_input.to_lowercase())
                         })
                         .sorted_by_key(|(_, task)| task.title.to_lowercase())
@@ -510,6 +508,7 @@ fn NewTaskSearch<'a>(
                                         event.stop_propagation();
                                         selected.write().insert(task_id);
                                         on_select_task.call(task_id);
+                                        search_input.set(String::new());
                                     }
                                 },
                                 task.title.clone(),
@@ -519,170 +518,6 @@ fn NewTaskSearch<'a>(
                 }
             }
         }
-    })
-}
-
-#[component]
-fn TaskSearch<'a>(
-    cx: Scope<'a>,
-    id: &'a str,
-    title: &'a str,
-    banned: Vec<TaskId>,
-    on_select_task: EventHandler<'a, TaskId>,
-    on_remove_task: EventHandler<'a, TaskId>,
-    on_search_focus_in: EventHandler<'a>,
-    on_search_focus_out: EventHandler<'a>,
-) -> Element<'a> {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    let has_input_focus = use_state(cx, || false);
-    let search_input = use_state(cx, String::default);
-    let selected = use_ref(cx, Vec::<(TaskId, String)>::new);
-    let dropdown_data: Option<Vec<_>> = has_input_focus.then(|| {
-        let model = model.read();
-        let selected = selected.read();
-        if search_input.is_empty() {
-            let mut data = model
-                .tasks
-                .iter()
-                .filter(|(id1, _)| {
-                    selected.iter().all(|(id2, _)| *id1 != id2)
-                        && banned.iter().all(|id2| *id1 != id2)
-                })
-                .collect::<Vec<_>>();
-            data.sort_by(|(_, a), (_, b)| a.updated.cmp(&b.updated));
-            data.truncate(5);
-            data.into_iter()
-                .map(|(id, task)| (*id, task.title.clone()))
-                .collect()
-        } else {
-            model
-                .tasks
-                .iter()
-                .filter(|(id, task)| {
-                    (task.title.contains(&**search_input)
-                        || task.description.contains(&**search_input))
-                        && selected.iter().all(|(selected_id, _)| *id != selected_id)
-                })
-                .map(|(id, task)| (*id, task.title.clone()))
-                .collect()
-        }
-    });
-    cx.render(rsx! {
-        label {
-            r#for: *id,
-            class: styles::TEXT_INPUT_LABEL,
-            title,
-        },
-        div {
-            class: "relative",
-            div {
-                class: "absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none",
-                svg {
-                    class: "w-4 h-4 text-gray-400",
-                    "aria-hidden": "true",
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none" ,
-                    "viewBox": "0 0 20 20",
-                    path {
-                        d: "m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z",
-                        stroke: "currentColor",
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        "stroke-width", "2",
-                    },
-                },
-            },
-            input {
-                r#type: "search",
-                id: *id,
-                class: "{styles::TEXT_INPUT} ps-10",
-                placeholder: "Search",
-                autocomplete: "off",
-                onfocusin: |_| {
-                    on_search_focus_in.call(());
-                    has_input_focus.set(true);
-                },
-                onfocusout: |_| {
-                    on_search_focus_out.call(());
-                    has_input_focus.set(true);
-                    has_input_focus.set(false);
-                },
-                oninput: |event| search_input.set(event.data.value.clone())
-            },
-        },
-        if let Some(suggestions) = dropdown_data {
-            if suggestions.is_empty() {rsx!{
-                div {
-                    class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 focus:border-blue-500",
-                    ul {
-                        class: "py-2 text-sm text-gray-200",
-                        li {
-                            class: "italic text-gray-400 block text-left w-full px-4 py-2",
-                            "No matches"
-                        },
-                    }
-                }
-            }} else {rsx!{
-                div {
-                    class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 focus:border-blue-500",
-                    ul {
-                        class: "py-2 text-sm text-gray-200",
-                        rsx!{
-                            for task in suggestions {rsx!{
-                                li {
-                                    key: "{task.0}",
-                                    button {
-                                        r#type: "button",
-                                        class: "block text-left w-full px-4 py-2 hover:bg-gray-600 hover:text-white focus:border-blue-500",
-                                        onclick: move |_| {
-                                            selected.write().push(task.clone());
-                                            on_select_task.call(task.0);
-                                        },
-                                        task.1.clone(),
-                                    }
-                                },
-                            }}
-                        }
-                    }
-                }}
-            }
-        }
-        div {
-            class: "mt-2",
-            for task in selected.read().iter().map(|x| x.clone()) {rsx!{
-                span {
-                    class: "inline-flex items-center px-2 py-1 me-2 mt-2 text-sm font-medium rounded bg-gray-700 text-gray-300",
-                    task.1.clone(),
-                    button {
-                        r#type: "button",
-                        class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-600 hover:text-gray-300",
-                        "aria-label": "Remove",
-                        onclick: move |_| {
-                            selected.write().retain(|this| this.0 != task.0);
-                            on_remove_task.call(task.0);
-                        },
-                        svg {
-                            class: "w-2 h-2",
-                            "aria-hidden": "true",
-                            xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none",
-                            "viewBox": "0 0 14 14",
-                            path {
-                                stroke: "currentColor",
-                                "stroke-linecap": "round",
-                                "stroke-linejoin": "round",
-                                "stroke-width": "2",
-                                d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6",
-                            },
-                        },
-                        span {
-                            class: "sr-only",
-                            "Remove badge",
-                        },
-                    },
-                },
-            }},
-        },
     })
 }
 
