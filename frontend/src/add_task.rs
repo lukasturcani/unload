@@ -5,7 +5,6 @@ use crate::color_picker::ColorPicker;
 use crate::requests;
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
-use crate::user_search::UserSearch;
 use crate::{model::Model, styles};
 use chrono::{offset::Local, NaiveDate, NaiveTime, TimeZone};
 use dioxus::prelude::*;
@@ -13,7 +12,7 @@ use dioxus_router::hooks::use_navigator;
 use dioxus_router::prelude::Navigator;
 use itertools::Itertools;
 use reqwest::Client;
-use shared_models::{BoardName, TagData, TagId, TaskId, TaskSize, TaskStatus};
+use shared_models::{BoardName, TagData, TagId, TaskId, TaskSize, TaskStatus, UserData, UserId};
 
 #[component]
 pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
@@ -246,11 +245,8 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                         },
                     },
                     UserSearch {
-                        id: "user_search",
                         on_select_user: |user_id| assigned_to.write().push(user_id),
                         on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
-                        on_search_focus_in: |_| has_focus.set(true),
-                        on_search_focus_out: |_| has_focus.set(false),
                     }
                     div {
                         class: "flex flex-col gap-1",
@@ -734,6 +730,169 @@ fn TagSearch<'a>(
     })
 }
 
+#[component]
+fn UserSearch<'a>(
+    cx: Scope,
+    on_select_user: EventHandler<'a, UserId>,
+    on_remove_user: EventHandler<'a, UserId>,
+) -> Element<'a> {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let selected = use_ref(cx, HashSet::new);
+    if model.read().user_search_created_user.is_some() {
+        if let Some((user_id, _)) = model.write().user_search_created_user.take() {
+            selected.write().insert(user_id);
+        }
+    }
+    let read_model = model.read();
+    let read_selected = selected.read();
+    let show_add_user_button = use_state(cx, || true);
+    let new_user = use_state(cx, String::new);
+    cx.render(rsx! {
+        div {
+            class: "flex flex-col gap-1",
+            p {
+                class: styles::TEXT_INPUT_LABEL,
+                "Users"
+            },
+            div {
+                class: "flex flex-row gap-2 flex-wrap",
+                for (user_id, user) in selected
+                    .read()
+                    .iter()
+                    .map(|user_id| (user_id, &read_model.users[user_id]))
+                {rsx!{
+                    span {
+                        class: "
+                            text-sm font-medium text-white
+                            px-2.5 py-0.5 rounded
+                            cursor-pointer
+                            border-2
+                            flex flex-row gap-2
+                            {color_picker::border_class(&user.color)}
+                        ",
+                        "{&user.name}"
+                        button {
+                            r#type: "button",
+                            class: "
+                                border border-transparent sm:hover:border-white
+                                inline-flex items-center p-1 font-medium rounded
+                            ",
+                            onclick: {
+                                let user_id = *user_id;
+                                move |_| {
+                                    selected.write().retain(|&this| this != user_id);
+                                    on_remove_user.call(user_id);
+                                }
+                            },
+                            svg {
+                                class: "w-2 h-2",
+                                "aria-hidden": "true",
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 14 14",
+                                path {
+                                    stroke: "currentColor",
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    "stroke-width": "2",
+                                    d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                }
+                            }
+                        }
+                    }
+                }}
+            }
+            ul {
+                class: "
+                    text-sm text-gray-200 rounded-lg
+                    border border-gray-700 divide-y divide-gray-700
+                ",
+                rsx!{
+                    for (user_id, user) in read_model
+                        .users
+                        .iter()
+                        .filter(|(id, _)| !read_selected.contains(id))
+                        .sorted_by_key(|(_, user)| user.name.to_lowercase())
+                    {rsx!{
+                        li {
+                            key: "{user_id}",
+                            button {
+                                r#type: "button",
+                                class: "
+                                    text-left w-full px-4 py-2
+                                    hover:bg-gray-800 hover:text-white
+                                ",
+                                prevent_default: "onmousedown",
+                                onmousedown: |_| {},
+                                onclick: {
+                                    let user_id = *user_id;
+                                    move |event| {
+                                        event.stop_propagation();
+                                        selected.write().insert(user_id);
+                                        on_select_user.call(user_id);
+                                    }
+                                },
+                                user.name.clone(),
+                            }
+                        },
+                    }}
+                }
+                li {
+                    key: "add user",
+                    if **show_add_user_button {rsx! {
+                        button {
+                            r#type: "button",
+                            class: "
+                                text-left w-full px-4 py-2
+                                hover:bg-gray-800
+                                font-medium text-blue-500 hover:underline
+                            ",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            onclick: |_| {
+                                show_add_user_button.set(false);
+                            },
+                            "Add User"
+                        }
+                    }} else {rsx! {
+                        div {
+                            class: "p-2",
+                            div {
+                                class: "flex flex-col gap-2 p-2",
+                                input {
+                                    class: styles::TEXT_INPUT,
+                                    r#type: "text",
+                                    placeholder: "Name",
+                                    value: "{new_user}",
+                                    oninput: |event| {
+                                        new_user.set(event.value.clone())
+                                    },
+                                }
+                                ColorPicker {
+                                    on_pick_color: |color| {
+                                        show_add_user_button.set(true);
+                                        if new_user.trim().is_empty() {
+                                            return;
+                                        }
+                                        cx.spawn(create_user(
+                                            model.clone(),
+                                            UserData {
+                                                name: new_user.make_mut().drain(..).collect(),
+                                                color
+                                            },
+                                        ));
+                                    },
+                                }
+                            }
+                        }
+                    }}
+                }
+
+            }
+        }
+    })
+}
+
 async fn create_task(
     model: UseSharedState<Model>,
     task_data: shared_models::TaskData,
@@ -774,5 +933,12 @@ async fn create_tag(model: UseSharedState<Model>, tag_data: TagData) {
     if let Ok(tag_data) = requests::create_tag(model.clone(), tag_data).await {
         requests::board(model.clone()).await;
         model.write().tag_search_created_tag = Some(tag_data);
+    }
+}
+
+async fn create_user(model: UseSharedState<Model>, user_data: UserData) {
+    if let Ok(user_data) = requests::create_user(model.clone(), user_data).await {
+        requests::board(model.clone()).await;
+        model.write().user_search_created_user = Some(user_data);
     }
 }
