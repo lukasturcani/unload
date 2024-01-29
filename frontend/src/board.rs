@@ -958,6 +958,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let new_title = use_state(cx, String::new);
     let editing_description = use_state(cx, || false);
     let new_description = use_state(cx, String::new);
+    let editing_size = use_state(cx, || false);
     let show_assign_user = use_state(cx, || false);
     let show_assign_tag = use_state(cx, || false);
     let assignees = use_ref(cx, Vec::new);
@@ -1135,153 +1136,188 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         }
                     }
                 }}
-                div{
-                    class: "grid grid-cols-2",
+                div {
+                    class:" grid grid-cols-2",
                     div {
-                        class: "flex flex-row gap-1 flex-wrap",
-                        match data.size {
-                            TaskSize::Small => {rsx!{
-                                span {
-                                    class: "
-                                        text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
-                                        flex flex-row gap-2 items-center
-                                        border-2 border-emerald-700
-                                        {size_bg(model, &data.size)}
-                                        sm:hover:bg-emerald-700
-                                        text-green-300
-                                    ",
-                                    onclick: |event| {
-                                        event.stop_propagation();
-                                        let mut model = model.write();
-                                        if model.size_filter == Some(TaskSize::Small) {
-                                            model.size_filter = None;
-                                        } else {
-                                            model.size_filter = Some(TaskSize::Small);
+                        class: "flex flex-row gap-2",
+                        if **editing_size {rsx! {
+                            span {
+                                class: "
+                                    text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                    border-2 border-emerald-700
+                                    sm:hover:bg-emerald-700 bg-inherit text-green-300
+                                ",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_size.set(false);
+                                    set_task_size(model.clone(), *task_id, TaskSize::Small)
+                                },
+                                "Small",
+                            }
+                            span {
+                                class: "
+                                    text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                    border-2 border-yellow-900
+                                    sm:hover:bg-yellow-900 bg-inherit text-yellow-300
+                                ",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_size.set(false);
+                                    set_task_size(model.clone(), *task_id, TaskSize::Medium)
+                                },
+                                "Medium",
+                            }
+                            span {
+                                class: "
+                                    text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                    border-2 border-red-900
+                                    sm:hover:bg-red-900 bg-inherit text-red-300
+                                ",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_size.set(false);
+                                    set_task_size(model.clone(), *task_id, TaskSize::Large)
+                                },
+                                "Large",
+                            }
+                        }} else {rsx! {
+                            match data.size {
+                                TaskSize::Small => {rsx!{
+                                    span {
+                                        class: "
+                                            text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
+                                            flex flex-row gap-2 items-center
+                                            border-2 border-emerald-700
+                                            {size_bg(model, &data.size)}
+                                            sm:hover:bg-emerald-700
+                                            text-green-300
+                                        ",
+                                        onclick: |event| {
+                                            event.stop_propagation();
+                                            let mut model = model.write();
+                                            if model.size_filter == Some(TaskSize::Small) {
+                                                model.size_filter = None;
+                                            } else {
+                                                model.size_filter = Some(TaskSize::Small);
+                                            }
+                                        },
+                                        "Small",
+                                        svg {
+                                            xmlns: "http://www.w3.org/2000/svg",
+                                            fill: "none",
+                                            "viewBox": "0 0 24 24",
+                                            "stroke-width": "1.5",
+                                            stroke: "currentColor",
+                                            class: "w-4 h-4",
+                                            onclick: |event| {
+                                                event.stop_propagation();
+                                                editing_size.set(true);
+                                            },
+                                            path {
+                                                "stroke-linecap": "round",
+                                                "stroke-linejoin": "round",
+                                                d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
+                                            }
                                         }
-                                    },
-                                    "Small",
-                                }
-                            }}
-                            TaskSize::Medium => {rsx!{
-                                span {
-                                    class: "
-                                        text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
-                                        flex flex-row gap-2 items-center
-                                        border-2 border-yellow-900
-                                        sm:hover:bg-yellow-900
-                                        {size_bg(model, &data.size)} text-yellow-300
-                                    ",
-                                    onclick: |event| {
-                                        event.stop_propagation();
-                                        let mut model = model.write();
-                                        if model.size_filter == Some(TaskSize::Medium) {
-                                            model.size_filter = None;
-                                        } else {
-                                            model.size_filter = Some(TaskSize::Medium);
+                                    }
+                                }}
+                                TaskSize::Medium => {rsx!{
+                                    span {
+                                        class: "
+                                            text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
+                                            flex flex-row gap-2 items-center
+                                            border-2 border-yellow-900
+                                            sm:hover:bg-yellow-900
+                                            {size_bg(model, &data.size)} text-yellow-300
+                                        ",
+                                        onclick: |event| {
+                                            event.stop_propagation();
+                                            let mut model = model.write();
+                                            if model.size_filter == Some(TaskSize::Medium) {
+                                                model.size_filter = None;
+                                            } else {
+                                                model.size_filter = Some(TaskSize::Medium);
+                                            }
+                                        },
+                                        "Medium",
+                                        svg {
+                                            xmlns: "http://www.w3.org/2000/svg",
+                                            fill: "none",
+                                            "viewBox": "0 0 24 24",
+                                            "stroke-width": "1.5",
+                                            stroke: "currentColor",
+                                            class: "w-4 h-4",
+                                            onclick: |event| {
+                                                event.stop_propagation();
+                                                editing_size.set(true);
+                                            },
+                                            path {
+                                                "stroke-linecap": "round",
+                                                "stroke-linejoin": "round",
+                                                d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
+                                            }
                                         }
-                                    },
-                                    "Medium",
-                                }
-                            }}
-                            TaskSize::Large => {rsx!{
-                                span {
-                                    class: "
-                                        text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
-                                        flex flex-row gap-2 items-center
-                                        border-2 border-red-900
-                                        sm:hover:bg-red-900
-                                        {size_bg(model, &data.size)} text-red-300
-                                    ",
-                                    onclick: |event| {
-                                        event.stop_propagation();
-                                        let mut model = model.write();
-                                        if model.size_filter == Some(TaskSize::Large) {
-                                            model.size_filter = None;
-                                        } else {
-                                            model.size_filter = Some(TaskSize::Large);
+                                    }
+                                }}
+                                TaskSize::Large => {rsx!{
+                                    span {
+                                        class: "
+                                            text-sm font-medium px-2.5 py-0.5 rounded  cursor-pointer
+                                            flex flex-row gap-2 items-center
+                                            border-2 border-red-900
+                                            sm:hover:bg-red-900
+                                            {size_bg(model, &data.size)} text-red-300
+                                        ",
+                                        onclick: |event| {
+                                            event.stop_propagation();
+                                            let mut model = model.write();
+                                            if model.size_filter == Some(TaskSize::Large) {
+                                                model.size_filter = None;
+                                            } else {
+                                                model.size_filter = Some(TaskSize::Large);
+                                            }
+                                        },
+                                        "Large",
+                                        svg {
+                                            xmlns: "http://www.w3.org/2000/svg",
+                                            fill: "none",
+                                            "viewBox": "0 0 24 24",
+                                            "stroke-width": "1.5",
+                                            stroke: "currentColor",
+                                            class: "w-4 h-4",
+                                            onclick: |event| {
+                                                event.stop_propagation();
+                                                editing_size.set(true);
+                                            },
+                                            path {
+                                                "stroke-linecap": "round",
+                                                "stroke-linejoin": "round",
+                                                d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
+                                            }
                                         }
-                                    },
-                                    "Large",
-                                }
-                            }}
-                        }
-
+                                    }
+                                }}
+                            }
+                        }}
                     }
                     div {
                         class: "grid grid-rows-1 justify-items-end",
-                        div {
-                            class: "flex flex-row gap-1 items-center",
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
-                                stroke: "currentColor",
-                                class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
-                                onclick: |event| {
-                                    event.stop_propagation();
-                                    set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
-                                },
-                                path {
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
-                                }
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-6 h-6 cursor-pointer text-red-600",
+                            onclick: move |event| {
+                                event.stop_propagation();
+                                delete_task(model.clone(), *task_id)
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0",
                             }
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
-                                stroke: "currentColor",
-                                "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
-                                onclick: |event| {
-                                    event.stop_propagation();
-                                    set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
-                                },
-                                path {
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
-                                }
-                            }
-                            svg {
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "1.5",
-                                stroke: "currentColor",
-                                class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
-                                onclick: |event| {
-                                    event.stop_propagation();
-                                    set_task_status(model.clone(), *task_id, TaskStatus::Done)
-                                },
-                                path {
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
-                                }
-                            }
-                        }
-                    }
-                }
-                div {
-                    class: "grid grid-rows-1 justify-items-end",
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none",
-                        "viewBox": "0 0 24 24",
-                        "stroke-width": "1.5",
-                        stroke: "currentColor",
-                        class: "w-6 h-6 cursor-pointer text-red-600",
-                        onclick: move |event| {
-                            event.stop_propagation();
-                            delete_task(model.clone(), *task_id)
-                        },
-                        path {
-                            "stroke-linecap": "round",
-                            "stroke-linejoin": "round",
-                            d: "m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0",
                         }
                     }
                 }
