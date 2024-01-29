@@ -13,7 +13,7 @@ use dioxus_router::hooks::use_navigator;
 use dioxus_router::prelude::Navigator;
 use itertools::Itertools;
 use reqwest::Client;
-use shared_models::{BoardName, TagData, TaskId, TaskSize, TaskStatus};
+use shared_models::{BoardName, TagData, TagId, TaskId, TaskSize, TaskStatus};
 
 #[component]
 pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
@@ -118,7 +118,10 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             },
                         },
                     }
-                    TagSearch {}
+                    TagSearch {
+                        on_select_tag: |tag_id| tags.write().push(tag_id),
+                        on_remove_tag: |tag_id| tags.write().retain(|&value| value != tag_id),
+                    }
                     div {
                         class: "flex flex-col gap-1",
                         label {
@@ -579,7 +582,11 @@ fn TaskSearch<'a>(
 }
 
 #[component]
-fn TagSearch(cx: Scope) -> Element {
+fn TagSearch<'a>(
+    cx: Scope,
+    on_select_tag: EventHandler<'a, TagId>,
+    on_remove_tag: EventHandler<'a, TagId>,
+) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
     let selected = use_ref(cx, HashSet::new);
     if model.read().tag_search_created_tag.is_some() {
@@ -615,6 +622,7 @@ fn TagSearch(cx: Scope) -> Element {
                                 let tag_id = *tag_id;
                                 move |_| {
                                     selected.write().retain(|&this| this != tag_id);
+                                    on_remove_tag.call(tag_id);
                                 }
                             },
                             svg {
@@ -662,6 +670,7 @@ fn TagSearch(cx: Scope) -> Element {
                                     move |event| {
                                         event.stop_propagation();
                                         selected.write().insert(tag_id);
+                                        on_select_tag.call(tag_id);
                                     }
                                 },
                                 tag.name.clone(),
