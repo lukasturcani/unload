@@ -288,7 +288,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             .retain(|&value| value != task_id)
                         },
                         banned: blocked_by.read().clone(),
-                        }
+                    }
                     div {
                         class: "flex flex-col gap-1",
                         label {
