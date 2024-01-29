@@ -8,7 +8,7 @@ use shared_models::{TaskId, UserData, UserId};
 use crate::{color_picker::ColorPicker, model::Model, requests, styles};
 
 #[component]
-pub fn CompactUserSearch(
+pub fn UserSearch(
     cx: Scope,
     task_id: TaskId,
     badge_style: &'static str,
@@ -26,7 +26,7 @@ pub fn CompactUserSearch(
     let assignees: HashSet<_> = read_model.tasks[task_id]
         .assignees
         .iter()
-        .map(|id| *id)
+        .copied()
         .collect();
     let show_add_user_button = use_state(cx, || true);
     let new_user = use_state(cx, String::new);

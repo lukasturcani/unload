@@ -4,7 +4,7 @@ use crate::filter_bar::{FilterBar, SizeFilter, TagFilter, UserFilter};
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
 use crate::tag_search::TagSearch;
-use crate::user_search::CompactUserSearch;
+use crate::user_search::UserSearch;
 use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
@@ -962,7 +962,6 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let show_assign_user = use_state(cx, || false);
     let show_assign_tag = use_state(cx, || false);
     let assignees = use_ref(cx, Vec::new);
-    let now = Utc::now();
     cx.render(rsx! {
         div {
             class: "
@@ -1074,7 +1073,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 div {
                     class: "p-2 rounded-lg",
                     onclick: |event| event.stop_propagation(),
-                    CompactUserSearch {
+                    UserSearch {
                         task_id: *task_id,
                         badge_style: "bg-inherit border border-gray-700",
                         ul_style: "border border-gray-700 divide-y divide-gray-700",
@@ -1486,7 +1485,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         rounded-lg border border-gray-700
                     ",
                     onclick: |event| event.stop_propagation(),
-                    CompactUserSearch {
+                    UserSearch {
                         task_id: *task_id,
                         badge_style: "",
                         ul_style: "

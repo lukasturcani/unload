@@ -22,11 +22,7 @@ pub fn TagSearch(
         }
     }
     let read_model = model.read();
-    let tags: HashSet<_> = read_model.tasks[task_id]
-        .tags
-        .iter()
-        .map(|id| *id)
-        .collect();
+    let tags: HashSet<_> = read_model.tasks[task_id].tags.iter().copied().collect();
     let show_add_tag_button = use_state(cx, || true);
     let new_tag = use_state(cx, String::new);
     cx.render(rsx! {
