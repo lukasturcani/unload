@@ -45,3 +45,16 @@ pub const TOOLTIP: &str = "
     rounded-lg shadow-sm tooltip bg-gray-800
     border border-gray-700
 ";
+
+pub const TAG_BADGE_SPAN: &str = "
+    text-sm font-medium text-white
+    px-2.5 py-0.5 rounded
+    cursor-pointer
+    border-2
+    flex flex-row gap-2
+";
+
+pub const TAG_BADGE_BUTTON: &str = "
+    border border-transparent sm:hover:border-white
+    inline-flex items-center p-1 font-medium rounded
+";

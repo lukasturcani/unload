@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crate::filter_bar::{FilterBar, SizeFilter, TagFilter, UserFilter};
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
-use crate::tag_search::CompactTagSearch;
+use crate::tag_search::TagSearch;
 use crate::user_search::CompactUserSearch;
 use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
@@ -1275,7 +1275,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
                 if **show_assign_tag {rsx!{
-                    CompactTagSearch {
+                    TagSearch {
                         task_id: *task_id,
                         ul_style: "border border-gray-700 divide-y divide-gray-700",
                         hover_style: "hover:bg-gray-800",
@@ -1674,11 +1674,11 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
                 if **show_assign_tag {rsx!{
-                    CompactTagSearch {
+                    TagSearch {
                         task_id: *task_id,
                         ul_style: "
                             bg-gray-800
-                            rounded-lg border border-gray-700
+                            border border-gray-700
                             divide-y divide-gray-700
                         ",
                         hover_style: "hover:bg-gray-700",
@@ -2006,12 +2006,10 @@ fn Tags<'a>(
         {rsx!{
             span {
                 class: "
-                    text-sm font-medium px-2.5 py-0.5 rounded
+                    {styles::TAG_BADGE_SPAN}
                     {tag_bg(model, tag_id, &tag.color)}
                     {color_picker::bg_hover_class(&tag.color)}
-                    text-white cursor-pointer
-                    border-2 {color_picker::border_class(&tag.color)}
-                    flex flex-row gap-2
+                    {color_picker::border_class(&tag.color)}
                 ",
                 onclick: {
                     let tag_id = *tag_id;
@@ -2028,10 +2026,7 @@ fn Tags<'a>(
                 "# {tag.name}",
                 button {
                     r#type: "button",
-                    class: "
-                        border border-transparent sm:hover:border-white
-                        inline-flex items-center p-1 font-medium rounded
-                    ",
+                    class: "{styles::TAG_BADGE_BUTTON}",
                     onclick: {
                         let task_id = *task_id;
                         let tag_id = *tag_id;
