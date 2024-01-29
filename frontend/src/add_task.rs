@@ -532,6 +532,7 @@ fn TagSearch<'a>(
     if model.read().tag_search_created_tag.is_some() {
         if let Some((tag_id, _)) = model.write().tag_search_created_tag.take() {
             selected.write().insert(tag_id);
+            on_select_tag.call(tag_id);
         }
     }
     let read_model = model.read();
@@ -685,6 +686,7 @@ fn UserSearch<'a>(
     if model.read().user_search_created_user.is_some() {
         if let Some((user_id, _)) = model.write().user_search_created_user.take() {
             selected.write().insert(user_id);
+            on_select_user.call(user_id);
         }
     }
     let read_model = model.read();
