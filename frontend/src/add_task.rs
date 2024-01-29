@@ -284,21 +284,15 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             on_search_focus_out: |_| has_focus.set(false),
                         },
                     }
-                    div {
-                        TaskSearch {
-                            id: "blocks_search",
-                            title: "Blocks",
-                            banned: blocked_by.read().clone(),
-                            on_select_task: |task_id| blocks.write().push(task_id),
-                            on_remove_task: |task_id| {
-                                blocks
-                                .write()
-                                .retain(|&value| value != task_id)
-                            },
-                            on_search_focus_in: |_| has_focus.set(true),
-                            on_search_focus_out: |_| has_focus.set(false),
+                    NewTaskSearch {
+                        title: "Blocks",
+                        on_select_task: |task_id| blocks.write().push(task_id),
+                        on_remove_task: |task_id| {
+                            blocks
+                            .write()
+                            .retain(|&value| value != task_id)
+                        },
                         }
-                    }
                     div {
                         class: "flex flex-col gap-1",
                         label {
@@ -410,6 +404,121 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                 }
             }}
         },
+    })
+}
+
+#[component]
+fn NewTaskSearch<'a>(
+    cx: Scope<'a>,
+    title: &'static str,
+    on_select_task: EventHandler<'a, TaskId>,
+    on_remove_task: EventHandler<'a, TaskId>,
+) -> Element<'a> {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let selected = use_ref(cx, HashSet::new);
+    let search_input = use_state(cx, String::default);
+    let read_selected = selected.read();
+    let read_model = model.read();
+    cx.render(rsx! {
+        div {
+            class: "flex flex-col gap-1",
+            p {
+                class: styles::TEXT_INPUT_LABEL,
+                title
+            },
+            input {
+                r#type: "text",
+                class: styles::TEXT_INPUT,
+                placeholder: "Search",
+                autocomplete: "off",
+                value: "{search_input}",
+                oninput: |event| search_input.set(event.data.value.clone())
+            }
+            div {
+                class: "flex flex-row gap-2 flex-wrap",
+                for (task_id, task) in selected
+                    .read()
+                    .iter()
+                    .map(|task_id| (task_id, &read_model.tasks[task_id]))
+                {rsx!{
+                    span {
+                        class: "
+                            text-sm font-medium text-white
+                            px-2.5 py-0.5 rounded
+                            cursor-pointer
+                            border-2 border-white
+                            flex flex-row gap-2
+                        ",
+                        "{&task.title}"
+                        button {
+                            r#type: "button",
+                            class: "{styles::TAG_BADGE_BUTTON}",
+                            onclick: {
+                                let tag_id = *task_id;
+                                move |_| {
+                                    selected.write().retain(|&this| this != tag_id);
+                                    on_remove_task.call(tag_id);
+                                }
+                            },
+                            svg {
+                                class: "w-2 h-2",
+                                "aria-hidden": "true",
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 14 14",
+                                path {
+                                    stroke: "currentColor",
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    "stroke-width": "2",
+                                    d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                }
+                            }
+                        }
+                    }
+                }}
+            }
+            ul {
+                class: "
+                    text-sm text-gray-200 rounded-lg
+                    border border-gray-700 divide-y divide-gray-700
+                    h-64 overflow-y-scroll
+                ",
+                rsx!{
+                    for (task_id, task) in read_model
+                        .tasks
+                        .iter()
+                        .filter(|(id, task)| {
+                            !read_selected.contains(id)
+                            && task.title.to_lowercase().contains(&search_input.to_lowercase())
+                        })
+                        .sorted_by_key(|(_, task)| task.title.to_lowercase())
+                    {rsx!{
+                        li {
+                            key: "{task_id}",
+                            button {
+                                r#type: "button",
+                                class: "
+                                    text-left w-full px-4 py-2
+                                    hover:bg-gray-800 hover:text-white
+                                ",
+                                prevent_default: "onmousedown",
+                                onmousedown: |_| {},
+                                onclick: {
+                                    let task_id = *task_id;
+                                    move |event| {
+                                        event.stop_propagation();
+                                        selected.write().insert(task_id);
+                                        on_select_task.call(task_id);
+                                    }
+                                },
+                                task.title.clone(),
+                            }
+                        },
+                    }}
+                }
+            }
+        }
     })
 }
 
