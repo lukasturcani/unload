@@ -956,6 +956,8 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
     let expanded = use_state(cx, || false);
     let editing_title = use_state(cx, || false);
     let new_title = use_state(cx, String::new);
+    let editing_description = use_state(cx, || false);
+    let new_description = use_state(cx, String::new);
     let show_assign_user = use_state(cx, || false);
     let show_assign_tag = use_state(cx, || false);
     let assignees = use_ref(cx, Vec::new);
@@ -1081,12 +1083,34 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 }
             }}
             if **expanded {rsx!{
-                div {
-                    class: "
-                        text-sm text-gray-400 whitespace-pre-wrap break-words
-                    ",
-                    "{data.description}"
-                }
+                if **editing_description {rsx! {
+                    textarea {
+                        class: "p-4 bg-gray-900 rounded border border-gray-700 text-white",
+                        rows: 8.max(data.description.lines().count() as i64),
+                        oninput: |event| new_description.set(event.value.clone()),
+                        onfocusout: |_| {
+                            editing_description.set(false);
+                            set_task_description(model.clone(), *task_id, (**new_description).clone())
+                        },
+                        value: "{new_description}",
+                    }
+                }} else {rsx! {
+                    div {
+                        class: "
+                            text-sm text-gray-400 whitespace-pre-wrap break-words
+                        ",
+                        onclick: |event| {
+                            event.stop_propagation();
+                            editing_description.set(true);
+                        },
+                        if data.description.is_empty() {rsx!{
+                            "Description"
+                        }} else {rsx!{
+                            "{data.description}"
+
+                        }}
+                    }
+                }}
                 if let Some(due_value) = data.due {rsx!{
                     div {
                         class: "flex flex-row gap-2",
