@@ -594,6 +594,10 @@ fn TagSearch(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: "flex flex-col gap-1",
+            label {
+                class: styles::TEXT_INPUT_LABEL,
+                "Tags"
+            },
             div {
                 class: "flex flex-row gap-2 flex-wrap",
                 for (tag_id, tag) in selected
