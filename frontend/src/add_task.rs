@@ -594,7 +594,7 @@ fn TagSearch(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
             class: "flex flex-col gap-1",
-            h1 {
+            p {
                 class: styles::TEXT_INPUT_LABEL,
                 "Tags"
             },
