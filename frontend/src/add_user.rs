@@ -1,6 +1,6 @@
 use crate::{
-    color_picker::ColorPicker, model::Model, requests, responsive_layout::ResponsiveLayout,
-    route::Route, styles,
+    color_picker::SelectingColorPicker, model::Model, requests,
+    responsive_layout::ResponsiveLayout, route::Route, styles,
 };
 use dioxus::prelude::*;
 use dioxus_router::{hooks::use_navigator, prelude::Navigator};
@@ -50,7 +50,7 @@ pub fn AddUser(cx: Scope, board_name: BoardName) -> Element {
                     }
                     div {
                         class: "flex justify-center",
-                        ColorPicker{
+                        SelectingColorPicker{
                             default_color: default_color,
                             on_pick_color: |c| color.set(c),
                         },

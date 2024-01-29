@@ -1,15 +1,18 @@
+use std::collections::HashSet;
+
+use crate::color_picker;
+use crate::color_picker::ColorPicker;
 use crate::requests;
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
-use crate::tag_search::TagSearch;
-use crate::user_search::UserSearch;
 use crate::{model::Model, styles};
 use chrono::{offset::Local, NaiveDate, NaiveTime, TimeZone};
 use dioxus::prelude::*;
 use dioxus_router::hooks::use_navigator;
 use dioxus_router::prelude::Navigator;
+use itertools::Itertools;
 use reqwest::Client;
-use shared_models::{BoardName, TaskId, TaskSize, TaskStatus};
+use shared_models::{BoardName, TagData, TagId, TaskId, TaskSize, TaskStatus, UserData, UserId};
 
 #[component]
 pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
@@ -98,6 +101,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                     onfocusin: |_| has_focus.set(true),
                     onfocusout: |_| has_focus.set(false),
                     div {
+                        class: "flex flex-col gap-1",
                         label {
                             r#for: "task_title",
                             class: styles::TEXT_INPUT_LABEL,
@@ -113,16 +117,12 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             },
                         },
                     }
-                    div {
-                        TagSearch {
-                            id: "tag_search",
-                            on_select_tag: |tag_id| tags.write().push(tag_id),
-                            on_remove_tag: |tag_id| tags.write().retain(|&value| value != tag_id),
-                            on_search_focus_in: |_| has_focus.set(true),
-                            on_search_focus_out: |_| has_focus.set(false),
-                        }
+                    TagSearch {
+                        on_select_tag: |tag_id| tags.write().push(tag_id),
+                        on_remove_tag: |tag_id| tags.write().retain(|&value| value != tag_id),
                     }
                     div {
+                        class: "flex flex-col gap-1",
                         label {
                             r#for: "status",
                             class: styles::TEXT_INPUT_LABEL,
@@ -184,6 +184,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                         },
                     },
                     div {
+                        class: "flex flex-col gap-1",
                         label {
                             r#for: "size",
                             class: styles::TEXT_INPUT_LABEL,
@@ -243,67 +244,58 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
 
                         },
                     },
+                    UserSearch {
+                        on_select_user: |user_id| assigned_to.write().push(user_id),
+                        on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
+                    }
                     div {
-                        UserSearch {
-                            id: "user_search",
-                            on_select_user: |user_id| assigned_to.write().push(user_id),
-                            on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
-                            on_search_focus_in: |_| has_focus.set(true),
-                            on_search_focus_out: |_| has_focus.set(false),
-                        }
-                    },
-                    div {
+                        class: "flex flex-col gap-1",
                         label {
                             r#for: "task_description" ,
-                            class: "block mb-2 text-sm font-medium text-white",
+                            class: "text-sm font-medium text-white",
                             "Description"
                         },
                         textarea {
                             r#id: "task_description",
                             rows: "4",
-                            class: "block p-2.5 w-full text-base rounded-lg border bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
+                            class: "
+                                p-2.5 w-full text-base rounded-lg border bg-gray-700 border-gray-600
+                                placeholder-gray-400 text-white
+                                focus:ring-blue-500 focus:border-blue-500
+                            ",
                             placeholder: "Give a description...",
                             oninput: |event| {
                                 description.set(event.value.clone())
                             },
                         },
                     },
-                    div {
-                        TaskSearch{
-                            id: "blocked_by_search",
-                            title: "Blocked by",
-                            banned: blocks.read().clone(),
-                            on_select_task: |task_id| blocked_by.write().push(task_id),
-                            on_remove_task: |task_id| {
-                                blocked_by
-                                .write()
-                                .retain(|&value| value != task_id)
-                            },
-                            on_search_focus_in: |_| has_focus.set(true),
-                            on_search_focus_out: |_| has_focus.set(false),
+                    TaskSearch{
+                        title: "Blocked by",
+                        on_select_task: |task_id| blocked_by.write().push(task_id),
+                        on_remove_task: |task_id| {
+                            blocked_by
+                            .write()
+                            .retain(|&value| value != task_id)
                         },
+                        banned: blocks.read().clone(),
+                    },
+                    TaskSearch {
+                        title: "Blocks",
+                        on_select_task: |task_id| blocks.write().push(task_id),
+                        on_remove_task: |task_id| {
+                            blocks
+                            .write()
+                            .retain(|&value| value != task_id)
+                        },
+                        banned: blocked_by.read().clone(),
                     }
                     div {
-                        TaskSearch{
-                            id: "blocks_search",
-                            title: "Blocks",
-                            banned: blocked_by.read().clone(),
-                            on_select_task: |task_id| blocks.write().push(task_id),
-                            on_remove_task: |task_id| {
-                                blocks
-                                .write()
-                                .retain(|&value| value != task_id)
-                            },
-                            on_search_focus_in: |_| has_focus.set(true),
-                            on_search_focus_out: |_| has_focus.set(false),
-                        }
-                    }
-                    div {
+                        class: "flex flex-col gap-1",
                         label {
                             r#for: "task_due",
                             class: styles::TEXT_INPUT_LABEL,
                             "Due"
-                        },
+                        }
                         div {
                             id: "task_due",
                             input {
@@ -339,7 +331,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     }
                                 },
                             }}
-                        },
+                        }
                     }
                     button {
                         class: styles::BUTTON,
@@ -414,164 +406,434 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
 #[component]
 fn TaskSearch<'a>(
     cx: Scope<'a>,
-    id: &'a str,
-    title: &'a str,
-    banned: Vec<TaskId>,
+    title: &'static str,
     on_select_task: EventHandler<'a, TaskId>,
     on_remove_task: EventHandler<'a, TaskId>,
-    on_search_focus_in: EventHandler<'a>,
-    on_search_focus_out: EventHandler<'a>,
+    banned: Vec<TaskId>,
 ) -> Element<'a> {
     let model = use_shared_state::<Model>(cx).unwrap();
-    let has_input_focus = use_state(cx, || false);
+    let selected = use_ref(cx, HashSet::new);
     let search_input = use_state(cx, String::default);
-    let selected = use_ref(cx, Vec::<(TaskId, String)>::new);
-    let dropdown_data: Option<Vec<_>> = has_input_focus.then(|| {
-        let model = model.read();
-        let selected = selected.read();
-        if search_input.is_empty() {
-            let mut data = model
-                .tasks
-                .iter()
-                .filter(|(id1, _)| {
-                    selected.iter().all(|(id2, _)| *id1 != id2)
-                        && banned.iter().all(|id2| *id1 != id2)
-                })
-                .collect::<Vec<_>>();
-            data.sort_by(|(_, a), (_, b)| a.updated.cmp(&b.updated));
-            data.truncate(5);
-            data.into_iter()
-                .map(|(id, task)| (*id, task.title.clone()))
-                .collect()
-        } else {
-            model
-                .tasks
-                .iter()
-                .filter(|(id, task)| {
-                    (task.title.contains(&**search_input)
-                        || task.description.contains(&**search_input))
-                        && selected.iter().all(|(selected_id, _)| *id != selected_id)
-                })
-                .map(|(id, task)| (*id, task.title.clone()))
-                .collect()
-        }
-    });
+    let read_selected = selected.read();
+    let read_model = model.read();
     cx.render(rsx! {
-        label {
-            r#for: *id,
-            class: styles::TEXT_INPUT_LABEL,
-            title,
-        },
         div {
-            class: "relative",
-            div {
-                class: "absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none",
-                svg {
-                    class: "w-4 h-4 text-gray-400",
-                    "aria-hidden": "true",
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none" ,
-                    "viewBox": "0 0 20 20",
-                    path {
-                        d: "m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z",
-                        stroke: "currentColor",
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        "stroke-width", "2",
-                    },
-                },
+            class: "flex flex-col gap-1",
+            p {
+                class: styles::TEXT_INPUT_LABEL,
+                title
             },
             input {
-                r#type: "search",
-                id: *id,
-                class: "{styles::TEXT_INPUT} ps-10",
+                r#type: "text",
+                class: styles::TEXT_INPUT,
                 placeholder: "Search",
                 autocomplete: "off",
-                onfocusin: |_| {
-                    on_search_focus_in.call(());
-                    has_input_focus.set(true);
-                },
-                onfocusout: |_| {
-                    on_search_focus_out.call(());
-                    has_input_focus.set(true);
-                    has_input_focus.set(false);
-                },
+                value: "{search_input}",
                 oninput: |event| search_input.set(event.data.value.clone())
-            },
-        },
-        if let Some(suggestions) = dropdown_data {
-            if suggestions.is_empty() {rsx!{
-                div {
-                    class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 focus:border-blue-500",
-                    ul {
-                        class: "py-2 text-sm text-gray-200",
-                        li {
-                            class: "italic text-gray-400 block text-left w-full px-4 py-2",
-                            "No matches"
-                        },
-                    }
-                }
-            }} else {rsx!{
-                div {
-                    class: "mt-2 z-10 divide-y divide-gray-100 rounded-lg shadow bg-gray-700 focus:border-blue-500",
-                    ul {
-                        class: "py-2 text-sm text-gray-200",
-                        rsx!{
-                            for task in suggestions {rsx!{
-                                li {
-                                    key: "{task.0}",
-                                    button {
-                                        r#type: "button",
-                                        class: "block text-left w-full px-4 py-2 hover:bg-gray-600 hover:text-white focus:border-blue-500",
-                                        onclick: move |_| {
-                                            selected.write().push(task.clone());
-                                            on_select_task.call(task.0);
-                                        },
-                                        task.1.clone(),
-                                    }
-                                },
-                            }}
+            }
+            div {
+                class: "flex flex-row gap-2 flex-wrap",
+                for (task_id, task) in selected
+                    .read()
+                    .iter()
+                    .map(|task_id| (task_id, &read_model.tasks[task_id]))
+                {rsx!{
+                    span {
+                        class: "
+                            text-sm font-medium text-white
+                            px-2.5 py-0.5 rounded
+                            cursor-pointer
+                            border-2 border-white
+                            flex flex-row gap-2
+                        ",
+                        "{&task.title}"
+                        button {
+                            r#type: "button",
+                            class: "{styles::TAG_BADGE_BUTTON}",
+                            onclick: {
+                                let tag_id = *task_id;
+                                move |_| {
+                                    selected.write().retain(|&this| this != tag_id);
+                                    on_remove_task.call(tag_id);
+                                }
+                            },
+                            svg {
+                                class: "w-2 h-2",
+                                "aria-hidden": "true",
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 14 14",
+                                path {
+                                    stroke: "currentColor",
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    "stroke-width": "2",
+                                    d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                }
+                            }
                         }
                     }
                 }}
             }
+            ul {
+                class: "
+                    text-sm text-gray-200 rounded-lg
+                    border border-gray-700 divide-y divide-gray-700
+                    h-64 overflow-y-scroll
+                ",
+                rsx!{
+                    for (task_id, task) in read_model
+                        .tasks
+                        .iter()
+                        .filter(|(id, task)| {
+                            !read_selected.contains(id)
+                            && !banned.contains(id)
+                            && task.title.to_lowercase().contains(&search_input.to_lowercase())
+                        })
+                        .sorted_by_key(|(_, task)| task.title.to_lowercase())
+                    {rsx!{
+                        li {
+                            key: "{task_id}",
+                            button {
+                                r#type: "button",
+                                class: "
+                                    text-left w-full px-4 py-2
+                                    hover:bg-gray-800 hover:text-white
+                                ",
+                                prevent_default: "onmousedown",
+                                onmousedown: |_| {},
+                                onclick: {
+                                    let task_id = *task_id;
+                                    move |event| {
+                                        event.stop_propagation();
+                                        selected.write().insert(task_id);
+                                        on_select_task.call(task_id);
+                                        search_input.set(String::new());
+                                    }
+                                },
+                                task.title.clone(),
+                            }
+                        },
+                    }}
+                }
+            }
         }
+    })
+}
+
+#[component]
+fn TagSearch<'a>(
+    cx: Scope,
+    on_select_tag: EventHandler<'a, TagId>,
+    on_remove_tag: EventHandler<'a, TagId>,
+) -> Element<'a> {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let selected = use_ref(cx, HashSet::new);
+    if model.read().tag_search_created_tag.is_some() {
+        if let Some((tag_id, _)) = model.write().tag_search_created_tag.take() {
+            selected.write().insert(tag_id);
+        }
+    }
+    let read_model = model.read();
+    let read_selected = selected.read();
+    let show_add_tag_button = use_state(cx, || true);
+    let new_tag = use_state(cx, String::new);
+    cx.render(rsx! {
         div {
-            class: "mt-2",
-            for task in selected.read().iter().map(|x| x.clone()) {rsx!{
-                span {
-                    class: "inline-flex items-center px-2 py-1 me-2 mt-2 text-sm font-medium rounded bg-gray-700 text-gray-300",
-                    task.1.clone(),
-                    button {
-                        r#type: "button",
-                        class: "inline-flex items-center p-1 ms-2 text-sm text-gray-400 bg-transparent rounded-sm hover:bg-gray-600 hover:text-gray-300",
-                        "aria-label": "Remove",
-                        onclick: move |_| {
-                            selected.write().retain(|this| this.0 != task.0);
-                            on_remove_task.call(task.0);
-                        },
-                        svg {
-                            class: "w-2 h-2",
-                            "aria-hidden": "true",
-                            xmlns: "http://www.w3.org/2000/svg",
-                            fill: "none",
-                            "viewBox": "0 0 14 14",
-                            path {
-                                stroke: "currentColor",
-                                "stroke-linecap": "round",
-                                "stroke-linejoin": "round",
-                                "stroke-width": "2",
-                                d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6",
+            class: "flex flex-col gap-1",
+            p {
+                class: styles::TEXT_INPUT_LABEL,
+                "Tags"
+            },
+            div {
+                class: "flex flex-row gap-2 flex-wrap",
+                for (tag_id, tag) in selected
+                    .read()
+                    .iter()
+                    .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
+                {rsx!{
+                    span {
+                        class: "{styles::TAG_BADGE_SPAN} {color_picker::border_class(&tag.color)}",
+                        "# {&tag.name}"
+                        button {
+                            r#type: "button",
+                            class: "{styles::TAG_BADGE_BUTTON}",
+                            onclick: {
+                                let tag_id = *tag_id;
+                                move |_| {
+                                    selected.write().retain(|&this| this != tag_id);
+                                    on_remove_tag.call(tag_id);
+                                }
                             },
+                            svg {
+                                class: "w-2 h-2",
+                                "aria-hidden": "true",
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 14 14",
+                                path {
+                                    stroke: "currentColor",
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    "stroke-width": "2",
+                                    d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                }
+                            }
+                        }
+                    }
+                }}
+            }
+            ul {
+                class: "
+                    text-sm text-gray-200 rounded-lg
+                    border border-gray-700 divide-y divide-gray-700
+                ",
+                rsx!{
+                    for (tag_id, tag) in read_model
+                        .tags
+                        .iter()
+                        .filter(|(id, _)| !read_selected.contains(id))
+                        .sorted_by_key(|(_, tag)| tag.name.to_lowercase())
+                    {rsx!{
+                        li {
+                            key: "{tag_id}",
+                            button {
+                                r#type: "button",
+                                class: "
+                                    text-left w-full px-4 py-2
+                                    hover:bg-gray-800 hover:text-white
+                                ",
+                                prevent_default: "onmousedown",
+                                onmousedown: |_| {},
+                                onclick: {
+                                    let tag_id = *tag_id;
+                                    move |event| {
+                                        event.stop_propagation();
+                                        selected.write().insert(tag_id);
+                                        on_select_tag.call(tag_id);
+                                    }
+                                },
+                                tag.name.clone(),
+                            }
                         },
-                        span {
-                            class: "sr-only",
-                            "Remove badge",
+                    }}
+                }
+                li {
+                    key: "add tag",
+                    if **show_add_tag_button {rsx! {
+                        button {
+                            r#type: "button",
+                            class: "
+                                text-left w-full px-4 py-2
+                                hover:bg-gray-800
+                                font-medium text-blue-500 hover:underline
+                            ",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            onclick: |_| {
+                                show_add_tag_button.set(false);
+                            },
+                            "Add Tag"
+                        }
+                    }} else {rsx! {
+                        div {
+                            class: "p-2",
+                            div {
+                                class: "flex flex-col gap-2 p-2",
+                                input {
+                                    class: styles::TEXT_INPUT,
+                                    r#type: "text",
+                                    placeholder: "Tag",
+                                    value: "{new_tag}",
+                                    oninput: |event| {
+                                        new_tag.set(event.value.clone())
+                                    },
+                                }
+                                ColorPicker {
+                                    on_pick_color: |color| {
+                                        show_add_tag_button.set(true);
+                                        if new_tag.trim().is_empty() {
+                                            return;
+                                        }
+                                        cx.spawn(create_tag(
+                                            model.clone(),
+                                            TagData {
+                                                name: new_tag.make_mut().drain(..).collect(),
+                                                color
+                                            },
+                                        ));
+                                    },
+                                }
+                            }
+                        }
+                    }}
+                }
+
+            }
+        }
+    })
+}
+
+#[component]
+fn UserSearch<'a>(
+    cx: Scope,
+    on_select_user: EventHandler<'a, UserId>,
+    on_remove_user: EventHandler<'a, UserId>,
+) -> Element<'a> {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let selected = use_ref(cx, HashSet::new);
+    if model.read().user_search_created_user.is_some() {
+        if let Some((user_id, _)) = model.write().user_search_created_user.take() {
+            selected.write().insert(user_id);
+        }
+    }
+    let read_model = model.read();
+    let read_selected = selected.read();
+    let show_add_user_button = use_state(cx, || true);
+    let new_user = use_state(cx, String::new);
+    cx.render(rsx! {
+        div {
+            class: "flex flex-col gap-1",
+            p {
+                class: styles::TEXT_INPUT_LABEL,
+                "Users"
+            },
+            div {
+                class: "flex flex-row gap-2 flex-wrap",
+                for (user_id, user) in selected
+                    .read()
+                    .iter()
+                    .map(|user_id| (user_id, &read_model.users[user_id]))
+                {rsx!{
+                    span {
+                        class: "
+                            text-sm font-medium text-white
+                            px-2.5 py-0.5 rounded
+                            cursor-pointer
+                            border-2
+                            flex flex-row gap-2
+                            {color_picker::border_class(&user.color)}
+                        ",
+                        "{&user.name}"
+                        button {
+                            r#type: "button",
+                            class: "
+                                border border-transparent sm:hover:border-white
+                                inline-flex items-center p-1 font-medium rounded
+                            ",
+                            onclick: {
+                                let user_id = *user_id;
+                                move |_| {
+                                    selected.write().retain(|&this| this != user_id);
+                                    on_remove_user.call(user_id);
+                                }
+                            },
+                            svg {
+                                class: "w-2 h-2",
+                                "aria-hidden": "true",
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 14 14",
+                                path {
+                                    stroke: "currentColor",
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    "stroke-width": "2",
+                                    d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                }
+                            }
+                        }
+                    }
+                }}
+            }
+            ul {
+                class: "
+                    text-sm text-gray-200 rounded-lg
+                    border border-gray-700 divide-y divide-gray-700
+                ",
+                rsx!{
+                    for (user_id, user) in read_model
+                        .users
+                        .iter()
+                        .filter(|(id, _)| !read_selected.contains(id))
+                        .sorted_by_key(|(_, user)| user.name.to_lowercase())
+                    {rsx!{
+                        li {
+                            key: "{user_id}",
+                            button {
+                                r#type: "button",
+                                class: "
+                                    text-left w-full px-4 py-2
+                                    hover:bg-gray-800 hover:text-white
+                                ",
+                                prevent_default: "onmousedown",
+                                onmousedown: |_| {},
+                                onclick: {
+                                    let user_id = *user_id;
+                                    move |event| {
+                                        event.stop_propagation();
+                                        selected.write().insert(user_id);
+                                        on_select_user.call(user_id);
+                                    }
+                                },
+                                user.name.clone(),
+                            }
                         },
-                    },
-                },
-            }},
-        },
+                    }}
+                }
+                li {
+                    key: "add user",
+                    if **show_add_user_button {rsx! {
+                        button {
+                            r#type: "button",
+                            class: "
+                                text-left w-full px-4 py-2
+                                hover:bg-gray-800
+                                font-medium text-blue-500 hover:underline
+                            ",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            onclick: |_| {
+                                show_add_user_button.set(false);
+                            },
+                            "Add User"
+                        }
+                    }} else {rsx! {
+                        div {
+                            class: "p-2",
+                            div {
+                                class: "flex flex-col gap-2 p-2",
+                                input {
+                                    class: styles::TEXT_INPUT,
+                                    r#type: "text",
+                                    placeholder: "Name",
+                                    value: "{new_user}",
+                                    oninput: |event| {
+                                        new_user.set(event.value.clone())
+                                    },
+                                }
+                                ColorPicker {
+                                    on_pick_color: |color| {
+                                        show_add_user_button.set(true);
+                                        if new_user.trim().is_empty() {
+                                            return;
+                                        }
+                                        cx.spawn(create_user(
+                                            model.clone(),
+                                            UserData {
+                                                name: new_user.make_mut().drain(..).collect(),
+                                                color
+                                            },
+                                        ));
+                                    },
+                                }
+                            }
+                        }
+                    }}
+                }
+
+            }
+        }
     })
 }
 
@@ -609,4 +871,18 @@ async fn send_create_task_request(
         .await?
         .json::<TaskId>()
         .await?)
+}
+
+async fn create_tag(model: UseSharedState<Model>, tag_data: TagData) {
+    if let Ok(tag_data) = requests::create_tag(model.clone(), tag_data).await {
+        requests::board(model.clone()).await;
+        model.write().tag_search_created_tag = Some(tag_data);
+    }
+}
+
+async fn create_user(model: UseSharedState<Model>, user_data: UserData) {
+    if let Ok(user_data) = requests::create_user(model.clone(), user_data).await {
+        requests::board(model.clone()).await;
+        model.write().user_search_created_user = Some(user_data);
+    }
 }

@@ -5,12 +5,12 @@ pub const BUTTON: &str = "
 ";
 pub const TEXT_INPUT: &str = "
     border text-base rounded-lg
-    block w-full p-2.5 bg-gray-700
+    w-full p-2.5 bg-gray-700
     border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500
     focus:border-blue-500
 ";
 pub const TEXT_INPUT_LABEL: &str = "
-    block mb-2 text-sm font-medium text-white
+    text-sm font-medium text-white
 ";
 
 pub const BOTTOM_BAR_BUTTON: &str = "
@@ -44,4 +44,17 @@ pub const TOOLTIP: &str = "
     z-10 px-3 py-2 text-sm font-medium text-white
     rounded-lg shadow-sm tooltip bg-gray-800
     border border-gray-700
+";
+
+pub const TAG_BADGE_SPAN: &str = "
+    text-sm font-medium text-white
+    px-2.5 py-0.5 rounded
+    cursor-pointer
+    border-2
+    flex flex-row gap-2
+";
+
+pub const TAG_BADGE_BUTTON: &str = "
+    border border-transparent sm:hover:border-white
+    inline-flex items-center p-1 font-medium rounded
 ";

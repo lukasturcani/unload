@@ -105,7 +105,7 @@ pub fn text_class(color: &Color) -> &'static str {
 }
 
 #[component]
-pub fn ColorPicker<'a>(
+pub fn SelectingColorPicker<'a>(
     cx: Scope<'a>,
     default_color: Option<Color>,
     on_pick_color: EventHandler<'a, Color>,
@@ -139,6 +139,30 @@ pub fn ColorPicker<'a>(
                         },
                     }
                 }}
+            }}
+        }
+    })
+}
+
+#[component]
+pub fn ColorPicker<'a>(cx: Scope<'a>, on_pick_color: EventHandler<'a, Color>) -> Element<'a> {
+    cx.render(rsx! {
+        div {
+            class: "flex-1 flex grid grid-cols-4 gap-4 justify-items-center",
+            onclick: |event| {
+                event.stop_propagation();
+            },
+            for (color, class) in
+                COLORS
+                .iter()
+                .map(|color| (color, bg_class(color)))
+            {rsx! {
+                div {
+                    class: "w-8 h-8 rounded cursor-pointer {class}",
+                    onclick: |_| {
+                        on_pick_color.call(*color);
+                    },
+                }
             }}
         }
     })

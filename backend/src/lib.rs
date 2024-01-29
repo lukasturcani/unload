@@ -1014,3 +1014,64 @@ WHERE
     tx.commit().await?;
     Ok(Json(()))
 }
+
+pub async fn delete_task_assignee(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id, user_id)): Path<(BoardName, TaskId, UserId)>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    task_assignments
+WHERE
+    board_name = ? AND task_id = ? AND user_id = ?",
+        board_name,
+        task_id,
+        user_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn add_task_assignee(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(assignee): Json<UserId>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+INSERT INTO task_assignments (board_name, user_id, task_id)
+VALUES (?, ?, ?)",
+        board_name,
+        assignee,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn add_task_tag(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(tag_id): Json<TagId>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+INSERT INTO task_tags (board_name, task_id, tag_id)
+VALUES (?, ?, ?)",
+        board_name,
+        task_id,
+        tag_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
