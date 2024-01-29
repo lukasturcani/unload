@@ -975,33 +975,91 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             div {
                 class: "flex justify-between",
                 div {
-                    div {
-                        if **editing_title {rsx!{
-                            input {
-                                class: "
-                                    bg-inherit
-                                    text-base tracking-tight text-white
-                                ",
-                                r#type: "text",
-                                oninput: |event| new_title.set(event.value.clone()),
-                                onfocusout: |_| {
-                                    editing_title.set(false);
-                                    set_task_title(model.clone(), *task_id, (**new_title).clone())
-                                },
-                                value: "{new_title}",
+                    class: "flex flex-row gap-1 items-center",
+                    if **editing_title {rsx!{
+                        input {
+                            class: "
+                                bg-inherit
+                                text-base tracking-tight text-white
+                            ",
+                            r#type: "text",
+                            oninput: |event| new_title.set(event.value.clone()),
+                            value: "{new_title}",
+                        }
+                        button {
+                            r#type: "button",
+                            class: "
+                                rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
+                                border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
+                            prevent_default: "onclick",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                editing_title.set(false);
+                                set_task_title(model.clone(), *task_id, (**new_title).clone())
+                            },
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                class: "w-6 h-6",
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "m4.5 12.75 6 6 9-13.5",
+                                }
                             }
-                        }} else {rsx!{
-                            p {
-                                class: "text-sm tracking-tight text-white",
-                                onclick: move |event| {
-                                    event.stop_propagation();
-                                    editing_title.set(true);
-                                    new_title.set(model.read().tasks[&task_id].title.clone());
-                                },
-                                "{data.title}"
+                        }
+                        button {
+                            r#type: "button",
+                            class: "
+                                rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
+                                border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
+                            prevent_default: "onclick",
+                            onclick: |event| {
+                                event.stop_propagation();
+                                editing_title.set(false);
+                            },
+                            svg {
+                                class: "stroke-red-500",
+                                stroke: "currentColor",
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                class: "w-6 h-6",
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "M6 18 18 6M6 6l12 12",
+                                }
                             }
-                        }}
-                    }
+                        }
+                    }} else {rsx!{
+                        p {
+                            class: "text-sm tracking-tight text-white",
+                            "{data.title}"
+                        }
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-4 h-4 text-white",
+                            onclick: move |event| {
+                                event.stop_propagation();
+                                new_title.set(model.read().tasks[&task_id].title.clone());
+                                editing_title.set(true);
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
+                            }
+                        }
+                    }}
                 }
                 div {
                     class: "flex flex-row gap-1",
@@ -1088,27 +1146,93 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         class: "p-4 bg-gray-900 rounded border border-gray-700 text-white",
                         rows: 8.max(data.description.lines().count() as i64),
                         oninput: |event| new_description.set(event.value.clone()),
-                        onfocusout: |_| {
-                            editing_description.set(false);
-                            set_task_description(model.clone(), *task_id, (**new_description).clone())
-                        },
                         value: "{new_description}",
+                    }
+                    div {
+                        class: "grid grid-rows-1 justify-items-end",
+                        div {
+                            class: "flex flex-row gap-1",
+                            button {
+                                r#type: "button",
+                                class: "
+                                    rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
+                                    border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
+                                prevent_default: "onclick",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_description.set(false);
+                                    set_task_description(model.clone(), *task_id, (**new_description).clone())
+                                },
+                                svg {
+                                    xmlns: "http://www.w3.org/2000/svg",
+                                    fill: "none",
+                                    "viewBox": "0 0 24 24",
+                                    "stroke-width": "1.5",
+                                    stroke: "currentColor",
+                                    class: "w-6 h-6",
+                                    path {
+                                        "stroke-linecap": "round",
+                                        "stroke-linejoin": "round",
+                                        d: "m4.5 12.75 6 6 9-13.5",
+                                    }
+                                }
+                            }
+                            button {
+                                r#type: "button",
+                                class: "
+                                    rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
+                                    border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
+                                prevent_default: "onclick",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    editing_description.set(false);
+                                },
+                                svg {
+                                    class: "stroke-red-500",
+                                    stroke: "currentColor",
+                                    xmlns: "http://www.w3.org/2000/svg",
+                                    fill: "none",
+                                    "viewBox": "0 0 24 24",
+                                    "stroke-width": "1.5",
+                                    class: "w-6 h-6",
+                                    path {
+                                        "stroke-linecap": "round",
+                                        "stroke-linejoin": "round",
+                                        d: "M6 18 18 6M6 6l12 12",
+                                    }
+                                }
+                            }
+                        }
                     }
                 }} else {rsx! {
                     div {
                         class: "
                             text-sm text-gray-400 whitespace-pre-wrap break-words
+                            flex flex-row gap-1
                         ",
-                        onclick: |event| {
-                            event.stop_propagation();
-                            editing_description.set(true);
-                        },
                         if data.description.is_empty() {rsx!{
                             "Description"
                         }} else {rsx!{
                             "{data.description}"
-
                         }}
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-4 h-4 text-gray-400",
+                            onclick: move |event| {
+                                event.stop_propagation();
+                                new_description.set(model.read().tasks[&task_id].description.clone());
+                                editing_description.set(true);
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
+                            }
+                        }
                     }
                 }}
                 if let Some(due) = data.due {rsx! {
