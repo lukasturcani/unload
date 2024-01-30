@@ -1238,7 +1238,6 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 div {
                     class: "grid grid-cols-2",
                     if let Some(due) = data.due {rsx! {
-
                         Due {
                             task_id: *task_id,
                             due: DueOptions {due, show_time_left: *status != TaskStatus::Done},
