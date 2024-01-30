@@ -41,7 +41,7 @@ pub fn TagSearch(
                             r#type: "button",
                             class: "
                                 text-left w-full px-4 py-2
-                                {hover_style} hover:text-white
+                                {hover_style} sm:hover:text-white
                             ",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},
@@ -66,7 +66,7 @@ pub fn TagSearch(
                         class: "
                             text-left w-full px-4 py-2
                             {hover_style}
-                            font-medium text-blue-500 hover:underline
+                            font-medium text-blue-500 sm:hover:underline
                         ",
                         prevent_default: "onmousedown",
                         onmousedown: |_| {},

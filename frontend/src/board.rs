@@ -1141,7 +1141,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         task_id: *task_id,
                         badge_style: "bg-inherit border border-gray-700",
                         ul_style: "border border-gray-700 divide-y divide-gray-700",
-                        hover_style: "hover:bg-gray-800",
+                        hover_style: "active:bg-gray-800 sm:hover:bg-gray-800",
                         text_input_style: "bg-gray-800",
                     }
                 }
@@ -1523,7 +1523,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     TagSearch {
                         task_id: *task_id,
                         ul_style: "border border-gray-700 divide-y divide-gray-700",
-                        hover_style: "hover:bg-gray-800",
+                        hover_style: "active:bg-gray-800 sm:hover:bg-gray-800",
                         text_input_style: "bg-gray-800"
                     }
                 }}
@@ -1689,7 +1689,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             rounded-lg border border-gray-700
                             divide-y divide-gray-700
                         ",
-                        hover_style: "hover:bg-gray-700",
+                        hover_style: "active:bg-gray-700 sm:hover:bg-gray-700",
                         text_input_style: "",
                     }
                 }
@@ -1930,7 +1930,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             border border-gray-700
                             divide-y divide-gray-700
                         ",
-                        hover_style: "hover:bg-gray-700",
+                        hover_style: "active:bg-gray-700 sm:hover:bg-gray-700",
                         text_input_style: "",
                     }
                 }}
