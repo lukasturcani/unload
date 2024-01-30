@@ -55,7 +55,8 @@ pub fn UserSearch(
                             class: "
                                 p-1 text-sm text-gray-400
                                 bg-transparent rounded-sm
-                                hover:bg-gray-600 hover:text-gray-200
+                                active:bg-gray-600 active:text-gray-200
+                                sm:hover:bg-gray-600 sm:hover:text-gray-200
                             ",
                             "aria-label": "Remove",
                             onclick: {
@@ -99,7 +100,9 @@ pub fn UserSearch(
                                 r#type: "button",
                                 class: "
                                     text-left w-full px-4 py-2
-                                    {hover_style} hover:text-white
+                                    {hover_style}
+                                    active:text-white
+                                    sm:hover:text-white
                                 ",
                                 prevent_default: "onmousedown",
                                 onmousedown: |_| {},
@@ -124,7 +127,9 @@ pub fn UserSearch(
                             class: "
                                 text-left w-full px-4 py-2
                                 {hover_style}
-                                font-medium text-blue-500 hover:underline
+                                font-medium text-blue-500
+                                active:underline
+                                sm:hover:underline
                             ",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},

@@ -1,7 +1,9 @@
 pub const BUTTON: &str = "
     text-white focus:ring-4 focus:outline-none
     font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5
-    text-center bg-blue-600 hover:bg-blue-700 focus:ring-blue-800
+    text-center bg-blue-600
+    active:bg-blue-700 sm:hover:bg-blue-700
+    focus:ring-blue-800
 ";
 pub const TEXT_INPUT: &str = "
     border text-base rounded-lg

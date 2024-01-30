@@ -498,7 +498,8 @@ fn TaskSearch<'a>(
                                 r#type: "button",
                                 class: "
                                     text-left w-full px-4 py-2
-                                    hover:bg-gray-800 hover:text-white
+                                    active:bg-gray-800 active:text-white
+                                    sm:hover:bg-gray-800 sm:hover:text-white
                                 ",
                                 prevent_default: "onmousedown",
                                 onmousedown: |_| {},
@@ -602,7 +603,8 @@ fn TagSearch<'a>(
                                 r#type: "button",
                                 class: "
                                     text-left w-full px-4 py-2
-                                    hover:bg-gray-800 hover:text-white
+                                    active:bg-gray-800 active:text-white
+                                    sm:hover:bg-gray-800 sm:hover:text-white
                                 ",
                                 prevent_default: "onmousedown",
                                 onmousedown: |_| {},
@@ -626,8 +628,9 @@ fn TagSearch<'a>(
                             r#type: "button",
                             class: "
                                 text-left w-full px-4 py-2
-                                hover:bg-gray-800
-                                font-medium text-blue-500 hover:underline
+                                active:bg-gray-800 active:underline
+                                sm:hover:bg-gray-800 sm:hover:underline
+                                font-medium text-blue-500
                             ",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},
@@ -766,7 +769,8 @@ fn UserSearch<'a>(
                                 r#type: "button",
                                 class: "
                                     text-left w-full px-4 py-2
-                                    hover:bg-gray-800 hover:text-white
+                                    active:bg-gray-800 active:text-white
+                                    sm:hover:bg-gray-800 sm:hover:text-white
                                 ",
                                 prevent_default: "onmousedown",
                                 onmousedown: |_| {},
@@ -790,8 +794,9 @@ fn UserSearch<'a>(
                             r#type: "button",
                             class: "
                                 text-left w-full px-4 py-2
-                                hover:bg-gray-800
-                                font-medium text-blue-500 hover:underline
+                                active:bg-gray-800 active:underline
+                                sm:hover:bg-gray-800 sm:hover:underline
+                                font-medium text-blue-500
                             ",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},

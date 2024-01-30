@@ -990,7 +990,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             r#type: "button",
                             class: "
                                 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
+                                border border-green-500 text-green-500
+                                active:bg-green-500 active:text-white
+                                sm:hover:bg-green-500 sm:hover:text-white
+                            ",
                             prevent_default: "onclick",
                             onclick: |event| {
                                 event.stop_propagation();
@@ -1015,7 +1018,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             r#type: "button",
                             class: "
                                 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
+                                border border-red-500 text-red-500
+                                active:bg-red-500 active:text-white
+                                sm:hover:bg-red-500 sm:hover:text-white
+                            ",
                             prevent_default: "onclick",
                             onclick: |event| {
                                 event.stop_propagation();
@@ -1135,7 +1141,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         task_id: *task_id,
                         badge_style: "bg-inherit border border-gray-700",
                         ul_style: "border border-gray-700 divide-y divide-gray-700",
-                        hover_style: "hover:bg-gray-800",
+                        hover_style: "active:bg-gray-800 sm:hover:bg-gray-800",
                         text_input_style: "bg-gray-800",
                     }
                 }
@@ -1156,7 +1162,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 r#type: "button",
                                 class: "
                                     rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                    border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
+                                    border border-green-500 text-green-500
+                                    active:bg-green-500 active:text-white
+                                    sm:hover:bg-green-500 sm:hover:text-white
+                                ",
                                 prevent_default: "onclick",
                                 onclick: |event| {
                                     event.stop_propagation();
@@ -1181,7 +1190,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 r#type: "button",
                                 class: "
                                     rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                    border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
+                                    border border-red-500 text-red-500
+                                    active:bg-red-500 active:text-white
+                                    sm:hover:bg-red-500 sm:hover:text-white
+                                ",
                                 prevent_default: "onclick",
                                 onclick: |event| {
                                     event.stop_propagation();
@@ -1208,12 +1220,11 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     div {
                         class: "
                             text-sm text-gray-400 whitespace-pre-wrap break-words
-                            flex flex-row gap-1
                         ",
                         if data.description.is_empty() {rsx!{
-                            "Description"
+                            "Description "
                         }} else {rsx!{
-                            "{data.description}"
+                            "{data.description} "
                         }}
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
@@ -1221,7 +1232,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             stroke: "currentColor",
-                            class: "w-4 h-4 text-gray-400 cursor-pointer",
+                            class: "w-4 h-4 text-gray-400 cursor-pointer inline-block",
                             onclick: move |event| {
                                 event.stop_propagation();
                                 new_description.set(model.read().tasks[&task_id].description.clone());
@@ -1235,20 +1246,86 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         }
                     }
                 }}
-                if let Some(due) = data.due {rsx! {
-                    Due {
-                        task_id: *task_id,
-                        due: DueOptions {due, show_time_left: *status != TaskStatus::Done},
-                        svg_style: "w-4 h-4",
-                        p_style: "text-sm",
+                div {
+                    class: "grid grid-cols-4",
+                    div {
+                        class: "
+                            col-span-3
+                            flex flex-row items-center
+                        ",
+                        if let Some(due) = data.due {rsx! {
+                            Due {
+                                task_id: *task_id,
+                                due: DueOptions {due, show_time_left: *status != TaskStatus::Done},
+                                svg_style: "w-4 h-4",
+                                p_style: "text-sm",
+                            }
+                        }} else {rsx! {
+                            Due {
+                                task_id: *task_id,
+                                svg_style: "w-4 h-4",
+                                p_style: "text-sm",
+                            }
+                        }}
                     }
-                }} else {rsx! {
-                    Due {
-                        task_id: *task_id,
-                        svg_style: "w-4 h-4",
-                        p_style: "text-sm",
+                    div {
+                        class: "grid grid-rows-1 justify-items-end",
+                        div {
+                            class: "flex flex-row gap-1 items-center",
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
+                                },
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                                }
+                            }
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
+                                },
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                                }
+                            }
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    set_task_status(model.clone(), *task_id, TaskStatus::Done)
+                                },
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                                }
+                            }
+                        }
                     }
-                }}
+                }
                 div {
                     class:" grid grid-cols-2",
                     div {
@@ -1451,7 +1528,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     TagSearch {
                         task_id: *task_id,
                         ul_style: "border border-gray-700 divide-y divide-gray-700",
-                        hover_style: "hover:bg-gray-800",
+                        hover_style: "active:bg-gray-800 sm:hover:bg-gray-800",
                         text_input_style: "bg-gray-800"
                     }
                 }}
@@ -1617,7 +1694,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             rounded-lg border border-gray-700
                             divide-y divide-gray-700
                         ",
-                        hover_style: "hover:bg-gray-700",
+                        hover_style: "active:bg-gray-700 sm:hover:bg-gray-700",
                         text_input_style: "",
                     }
                 }
@@ -1858,7 +1935,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             border border-gray-700
                             divide-y divide-gray-700
                         ",
-                        hover_style: "hover:bg-gray-700",
+                        hover_style: "active:bg-gray-700 sm:hover:bg-gray-700",
                         text_input_style: "",
                     }
                 }}
@@ -1962,7 +2039,10 @@ fn Due(
                     r#type: "button",
                     class: "
                         rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                        border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
+                        border border-green-500 text-green-500
+                        active:bg-green-500 active:text-white
+                        sm:hover:bg-green-500 sm:hover:text-white
+                    ",
                     prevent_default: "onclick",
                     onclick: |event| {
                         event.stop_propagation();
@@ -1995,7 +2075,10 @@ fn Due(
                     r#type: "button",
                     class: "
                         rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                        border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
+                        border border-red-500 text-red-500
+                        active:bg-red-500 active:text-white
+                        sm:hover:bg-red-500 sm:hover:text-white
+                    ",
                     prevent_default: "onclick",
                     onclick: |event| {
                         event.stop_propagation();
