@@ -1235,20 +1235,81 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         }
                     }
                 }}
-                if let Some(due) = data.due {rsx! {
-                    Due {
-                        task_id: *task_id,
-                        due: DueOptions {due, show_time_left: *status != TaskStatus::Done},
-                        svg_style: "w-4 h-4",
-                        p_style: "text-sm",
+                div {
+                    class: "grid grid-cols-2",
+                    if let Some(due) = data.due {rsx! {
+
+                        Due {
+                            task_id: *task_id,
+                            due: DueOptions {due, show_time_left: *status != TaskStatus::Done},
+                            svg_style: "w-4 h-4",
+                            p_style: "text-sm",
+                        }
+                    }} else {rsx! {
+                        Due {
+                            task_id: *task_id,
+                            svg_style: "w-4 h-4",
+                            p_style: "text-sm",
+                        }
+                    }}
+                    div {
+                        class: "grid grid-rows-1 justify-items-end",
+                        div {
+                            class: "flex flex-row gap-1 items-center",
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
+                                },
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                                }
+                            }
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
+                                },
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                                }
+                            }
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "1.5",
+                                stroke: "currentColor",
+                                class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
+                                onclick: |event| {
+                                    event.stop_propagation();
+                                    set_task_status(model.clone(), *task_id, TaskStatus::Done)
+                                },
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                                }
+                            }
+                        }
                     }
-                }} else {rsx! {
-                    Due {
-                        task_id: *task_id,
-                        svg_style: "w-4 h-4",
-                        p_style: "text-sm",
-                    }
-                }}
+                }
                 div {
                     class:" grid grid-cols-2",
                     div {
