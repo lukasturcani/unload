@@ -990,7 +990,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             r#type: "button",
                             class: "
                                 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
+                                border border-green-500 text-green-500
+                                active:bg-green-500 active:text-white
+                                sm:hover:bg-green-500 sm:hover:text-white
+                            ",
                             prevent_default: "onclick",
                             onclick: |event| {
                                 event.stop_propagation();
@@ -1015,7 +1018,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             r#type: "button",
                             class: "
                                 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
+                                border border-red-500 text-red-500
+                                active:bg-red-500 active:text-white
+                                sm:hover:bg-red-500 sm:hover:text-white
+                            ",
                             prevent_default: "onclick",
                             onclick: |event| {
                                 event.stop_propagation();
@@ -1156,7 +1162,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 r#type: "button",
                                 class: "
                                     rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                    border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
+                                    border border-green-500 text-green-500
+                                    active:bg-green-500 active:text-white
+                                    sm:hover:bg-green-500 sm:hover:text-white
+                                ",
                                 prevent_default: "onclick",
                                 onclick: |event| {
                                     event.stop_propagation();
@@ -1181,7 +1190,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 r#type: "button",
                                 class: "
                                     rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                                    border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
+                                    border border-red-500 text-red-500
+                                    active:bg-red-500 active:text-white
+                                    sm:hover:bg-red-500 sm:hover:text-white
+                                ",
                                 prevent_default: "onclick",
                                 onclick: |event| {
                                     event.stop_propagation();
@@ -2022,7 +2034,10 @@ fn Due(
                     r#type: "button",
                     class: "
                         rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                        border border-green-500 text-green-500 hover:bg-green-500 hover:text-white",
+                        border border-green-500 text-green-500
+                        active:bg-green-500 active:text-white
+                        sm:hover:bg-green-500 sm:hover:text-white
+                    ",
                     prevent_default: "onclick",
                     onclick: |event| {
                         event.stop_propagation();
@@ -2055,7 +2070,10 @@ fn Due(
                     r#type: "button",
                     class: "
                         rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8
-                        border border-red-500 text-red-500 hover:bg-red-500 hover:text-white",
+                        border border-red-500 text-red-500
+                        active:bg-red-500 active:text-white
+                        sm:hover:bg-red-500 sm:hover:text-white
+                    ",
                     prevent_default: "onclick",
                     onclick: |event| {
                         event.stop_propagation();
