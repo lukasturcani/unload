@@ -1220,12 +1220,11 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     div {
                         class: "
                             text-sm text-gray-400 whitespace-pre-wrap break-words
-                            flex flex-row gap-1
                         ",
                         if data.description.is_empty() {rsx!{
-                            "Description"
+                            "Description "
                         }} else {rsx!{
-                            "{data.description}"
+                            "{data.description} "
                         }}
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
@@ -1233,7 +1232,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             stroke: "currentColor",
-                            class: "w-4 h-4 text-gray-400 cursor-pointer",
+                            class: "w-4 h-4 text-gray-400 cursor-pointer inline-block",
                             onclick: move |event| {
                                 event.stop_propagation();
                                 new_description.set(model.read().tasks[&task_id].description.clone());
@@ -1248,21 +1247,27 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }}
                 div {
-                    class: "grid grid-cols-2",
-                    if let Some(due) = data.due {rsx! {
-                        Due {
-                            task_id: *task_id,
-                            due: DueOptions {due, show_time_left: *status != TaskStatus::Done},
-                            svg_style: "w-4 h-4",
-                            p_style: "text-sm",
-                        }
-                    }} else {rsx! {
-                        Due {
-                            task_id: *task_id,
-                            svg_style: "w-4 h-4",
-                            p_style: "text-sm",
-                        }
-                    }}
+                    class: "grid grid-cols-4",
+                    div {
+                        class: "
+                            col-span-3
+                            flex flex-row items-center
+                        ",
+                        if let Some(due) = data.due {rsx! {
+                            Due {
+                                task_id: *task_id,
+                                due: DueOptions {due, show_time_left: *status != TaskStatus::Done},
+                                svg_style: "w-4 h-4",
+                                p_style: "text-sm",
+                            }
+                        }} else {rsx! {
+                            Due {
+                                task_id: *task_id,
+                                svg_style: "w-4 h-4",
+                                p_style: "text-sm",
+                            }
+                        }}
+                    }
                     div {
                         class: "grid grid-rows-1 justify-items-end",
                         div {
