@@ -80,22 +80,25 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                     td {
                                         class: "p-3",
                                         match **edit_field {
-                                            Some((edit_row, Column::Color)) if edit_row == row_index => rsx!{
-                                                ColorPicker {
-                                                    on_pick_color: {
-                                                        let user_id = user.id;
-                                                        move |color| {
-                                                            edit_field.set(None);
-                                                            cx.spawn(
-                                                                set_user_color(
-                                                                    users.clone(),
-                                                                    url,
-                                                                    user_id,
-                                                                    color,
-                                                                )
-                                                            );
-                                                        }
-                                                    },
+                                            Some((edit_row, Column::Color)) if edit_row == row_index => {
+                                                let url = url.clone();
+                                                rsx!{
+                                                    ColorPicker {
+                                                        on_pick_color: {
+                                                            let user_id = user.id;
+                                                            move |color| {
+                                                                edit_field.set(None);
+                                                                cx.spawn(
+                                                                    set_user_color(
+                                                                        users.clone(),
+                                                                        url.clone(),
+                                                                        user_id,
+                                                                        color,
+                                                                    )
+                                                                );
+                                                            }
+                                                        },
+                                                    }
                                                 }
                                             },
                                             _ => rsx!{
@@ -103,11 +106,14 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                     class: "flex flex-row gap-1",
                                                     div {
                                                         class: "w-8 h-8 rounded cursor-pointer {color_picker::bg_class(&user.color)}",
-                                                        onclick: move |_| {
-                                                            color.set(user.color);
-                                                            edit_field.set(
-                                                                Some((row_index, Column::Color))
-                                                            );
+                                                        onclick: {
+                                                            let user_color = user.color;
+                                                            move |_| {
+                                                                color.set(user_color);
+                                                                edit_field.set(
+                                                                    Some((row_index, Column::Color))
+                                                                );
+                                                            }
                                                         },
                                                     },
                                                     svg {
@@ -117,11 +123,14 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                         "stroke-width": "1.5",
                                                         stroke: "currentColor",
                                                         class: "w-4 h-4",
-                                                        onclick: move |_| {
-                                                            color.set(user.color);
-                                                            edit_field.set(
-                                                                Some((row_index, Column::Color))
-                                                            );
+                                                        onclick: {
+                                                            let user_color = user.color;
+                                                            move |_| {
+                                                                color.set(user_color);
+                                                                edit_field.set(
+                                                                    Some((row_index, Column::Color))
+                                                                );
+                                                            }
                                                         },
                                                         path {
                                                             "stroke-linecap": "round",
@@ -136,33 +145,39 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                     td {
                                         class: "p-3",
                                         match **edit_field {
-                                            Some((edit_row, Column::Name)) if edit_row == row_index => rsx! {
-                                                input {
-                                                    r#type: "text",
-                                                    value: "{name}",
-                                                    class: "bg-inherit rounded text-sm",
-                                                    oninput: |event| name.set(event.data.value.clone()),
-                                                    onfocusout: {
-                                                        let user_id = user.id;
-                                                        move |_| {
-                                                            edit_field.set(None);
-                                                            set_user_name(
-                                                                users.clone(),
-                                                                url.clone(),
-                                                                user_id,
-                                                                name.to_string(),
-                                                            )
-                                                        }
-                                                    },
+                                            Some((edit_row, Column::Name)) if edit_row == row_index => {
+                                                let url = url.clone();
+                                                rsx! {
+                                                    input {
+                                                        r#type: "text",
+                                                        value: "{name}",
+                                                        class: "bg-inherit rounded text-sm",
+                                                        oninput: |event| name.set(event.data.value.clone()),
+                                                        onfocusout: {
+                                                            let user_id = user.id;
+                                                            move |_| {
+                                                                edit_field.set(None);
+                                                                set_user_name(
+                                                                    users.clone(),
+                                                                    url.clone(),
+                                                                    user_id,
+                                                                    name.to_string(),
+                                                                )
+                                                            }
+                                                        },
+                                                    }
                                                 }
                                             },
                                             _ => rsx!{
                                                 div {
                                                     class: "flex flex-row gap-1",
                                                     p {
-                                                        onclick: move |_| {
-                                                            name.set(user.name.clone());
-                                                            edit_field.set(Some((row_index, Column::Name)));
+                                                        onclick: {
+                                                            let user_name = user.name.clone();
+                                                            move |_| {
+                                                                name.set(user_name.clone());
+                                                                edit_field.set(Some((row_index, Column::Name)));
+                                                            }
                                                         },
                                                         "{user.name}"
                                                     }
@@ -173,11 +188,14 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                         "stroke-width": "1.5",
                                                         stroke: "currentColor",
                                                         class: "w-4 h-4",
-                                                        onclick: move |_| {
-                                                            name.set(user.name.clone());
-                                                            edit_field.set(
-                                                                Some((row_index, Column::Name))
-                                                            );
+                                                        onclick: {
+                                                            let user_name = user.name.clone();
+                                                            move |_| {
+                                                                name.set(user_name.clone());
+                                                                edit_field.set(
+                                                                    Some((row_index, Column::Name))
+                                                                );
+                                                            }
                                                         },
                                                         path {
                                                             "stroke-linecap": "round",
@@ -202,6 +220,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                 class: "w-6 h-6 cursor-pointer text-red-600",
                                                 onclick: {
                                                     let user_id = user.id;
+                                                    let url = url.clone();
                                                     move |_| {
                                                         delete_user(users.clone(), url.clone(), user_id)
                                                     }
