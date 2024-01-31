@@ -299,7 +299,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
 }
 
 async fn set_user_color(users: UseRef<Vec<UserEntry>>, url: Url, user_id: UserId, color: Color) {
-    send_set_user_color_request(url.clone(), user_id, color).await;
+    let _ = send_set_user_color_request(url.clone(), user_id, color).await;
     get_users(users, url).await;
 }
 
@@ -319,7 +319,7 @@ async fn send_set_user_color_request(
 }
 
 async fn set_user_name(users: UseRef<Vec<UserEntry>>, url: Url, user_id: UserId, name: String) {
-    send_set_user_name_request(url.clone(), user_id, name).await;
+    let _ = send_set_user_name_request(url.clone(), user_id, name).await;
     get_users(users, url).await;
 }
 
@@ -339,7 +339,7 @@ async fn send_set_user_name_request(
 }
 
 async fn delete_user(users: UseRef<Vec<UserEntry>>, url: Url, user_id: UserId) {
-    send_delete_user_request(url.clone(), user_id).await;
+    let _ = send_delete_user_request(url.clone(), user_id).await;
     get_users(users, url).await;
 }
 
