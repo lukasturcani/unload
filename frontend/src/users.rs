@@ -265,7 +265,7 @@ async fn set_user_color(model: UseSharedState<Model>, user_id: UserId, color: Co
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board_users(model).await;
     }
 }
 
@@ -295,7 +295,7 @@ async fn set_user_name(model: UseSharedState<Model>, user_id: UserId, name: Stri
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board_users(model).await;
     }
 }
 
@@ -325,7 +325,7 @@ async fn delete_user(model: UseSharedState<Model>, user_id: UserId) {
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board_users(model).await;
     }
 }
 
