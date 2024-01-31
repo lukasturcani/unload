@@ -77,7 +77,14 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
                                                         let tag_id = *tag_id;
                                                         move |color| {
                                                             edit_field.set(None);
-                                                            cx.spawn(set_tag_color(model.clone(), tag_id, color));
+                                                            cx.spawn(
+                                                                set_tag_color(
+                                                                    model.clone(),
+                                                                    archived_tags.clone(),
+                                                                    tag_id,
+                                                                    color,
+                                                                )
+                                                            );
                                                         }
                                                     },
                                                 }
@@ -132,7 +139,12 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
                                                         let tag_id = *tag_id;
                                                         move |_| {
                                                             edit_field.set(None);
-                                                            set_tag_name(model.clone(), tag_id, name.to_string())
+                                                            set_tag_name(
+                                                                model.clone(),
+                                                                archived_tags.clone(),
+                                                                tag_id,
+                                                                name.to_string()
+                                                            )
                                                         }
                                                     },
                                                 }
@@ -285,7 +297,14 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
                                                         let tag_id = tag.id;
                                                         move |color| {
                                                             edit_field.set(None);
-                                                            cx.spawn(set_tag_color(model.clone(), tag_id, color));
+                                                            cx.spawn(
+                                                                set_tag_color(
+                                                                    model.clone(),
+                                                                    archived_tags.clone(),
+                                                                    tag_id,
+                                                                    color,
+                                                                )
+                                                            );
                                                         }
                                                     },
                                                 }
@@ -340,7 +359,12 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
                                                         let tag_id = tag.id;
                                                         move |_| {
                                                             edit_field.set(None);
-                                                            set_tag_name(model.clone(), tag_id, name.to_string())
+                                                            set_tag_name(
+                                                                model.clone(),
+                                                                archived_tags.clone(),
+                                                                tag_id,
+                                                                name.to_string(),
+                                                            )
                                                         }
                                                     },
                                                 }
@@ -480,12 +504,20 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
     })
 }
 
-async fn set_tag_color(model: UseSharedState<Model>, tag_id: TagId, color: Color) {
+async fn set_tag_color(
+    model: UseSharedState<Model>,
+    archived_tags: UseRef<Vec<TagEntry>>,
+    tag_id: TagId,
+    color: Color,
+) {
     if send_set_tag_color_request(model.clone(), tag_id, color)
         .await
         .is_ok()
     {
-        requests::board_tags(model).await;
+        join!(
+            requests::board_tags(model.clone()),
+            get_archived_tags(model, archived_tags)
+        );
     }
 }
 
@@ -510,12 +542,20 @@ async fn send_set_tag_color_request(
         .await?)
 }
 
-async fn set_tag_name(model: UseSharedState<Model>, tag_id: TagId, name: String) {
+async fn set_tag_name(
+    model: UseSharedState<Model>,
+    archived_tags: UseRef<Vec<TagEntry>>,
+    tag_id: TagId,
+    name: String,
+) {
     if send_set_tag_name_request(model.clone(), tag_id, name)
         .await
         .is_ok()
     {
-        requests::board_tags(model).await;
+        join!(
+            requests::board_tags(model.clone()),
+            get_archived_tags(model, archived_tags)
+        );
     }
 }
 
