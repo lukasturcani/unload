@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nUPDATE\n    tasks\nSET\n    archived = TRUE\nWHERE\n    board_name = ?\n    AND id IN (\n        SELECT\n            task_id\n        FROM\n            task_tags\n        WHERE\n            board_name = ? AND tag_id = ?\n    )",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "b4c64996001fbf85491017163259c041148fd54fd9a61177cdceeb512234f64f"
+}

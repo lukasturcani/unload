@@ -987,6 +987,55 @@ WHERE
     Ok(Json(()))
 }
 
+pub async fn update_tag_archived(
+    State(pool): State<SqlitePool>,
+    Path((board_name, tag_id)): Path<(BoardName, TagId)>,
+    Json(archived): Json<bool>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tags
+SET
+    archived = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        archived,
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    if archived {
+        sqlx::query!(
+            "
+UPDATE
+    tasks
+SET
+    archived = TRUE
+WHERE
+    board_name = ?
+    AND id IN (
+        SELECT
+            task_id
+        FROM
+            task_tags
+        WHERE
+            board_name = ? AND tag_id = ?
+    )",
+            board_name,
+            board_name,
+            tag_id
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
 pub async fn update_task_tags(
     State(pool): State<SqlitePool>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
