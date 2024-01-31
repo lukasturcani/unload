@@ -251,7 +251,8 @@ SELECT
 FROM
     tasks
 WHERE
-    board_name = ?"#,
+    board_name = ?
+    AND archived = FALSE"#,
         board_name
     )
     .fetch_all(&mut *tx)
@@ -822,7 +823,8 @@ SELECT
 FROM
     tags
 WHERE
-    board_name = ?"#,
+    board_name = ?
+    AND archived = FALSE"#,
         board_name
     )
     .fetch_all(&mut *tx)
