@@ -218,7 +218,11 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
                                                     onclick: {
                                                         let tag_id = *tag_id;
                                                         move |_| {
-                                                            delete_tag(model.clone(), tag_id)
+                                                            delete_tag(
+                                                                model.clone(),
+                                                                archived_tags.clone(),
+                                                                tag_id,
+                                                            )
                                                         }
                                                     },
                                                     path {
@@ -422,7 +426,11 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
                                                     onclick: {
                                                         let tag_id = tag.id;
                                                         move |_| {
-                                                            delete_tag(model.clone(), tag_id)
+                                                            delete_tag(
+                                                                model.clone(),
+                                                                archived_tags.clone(),
+                                                                tag_id,
+                                                            )
                                                         }
                                                     },
                                                     path {
@@ -532,9 +540,16 @@ async fn send_set_tag_name_request(
         .await?)
 }
 
-async fn delete_tag(model: UseSharedState<Model>, tag_id: TagId) {
+async fn delete_tag(
+    model: UseSharedState<Model>,
+    archived_tags: UseRef<Vec<TagEntry>>,
+    tag_id: TagId,
+) {
     if send_delete_tag_request(model.clone(), tag_id).await.is_ok() {
-        requests::board_tags(model).await;
+        join!(
+            requests::board_tags(model.clone()),
+            get_archived_tags(model, archived_tags)
+        );
     }
 }
 

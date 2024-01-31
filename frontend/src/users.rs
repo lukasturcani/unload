@@ -20,7 +20,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
-    use_future(cx, (), |_| requests::board(model.clone()));
+    use_future(cx, (), |_| requests::board_users(model.clone()));
     let users = &model.read().users;
     let edit_field = use_state(cx, || None::<(usize, Column)>);
     let color = use_state(cx, || Color::Black);
