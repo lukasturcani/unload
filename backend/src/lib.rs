@@ -858,6 +858,29 @@ WHERE
     Ok(Json(tags))
 }
 
+pub async fn show_archived_tags(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<TagEntry>>> {
+    let mut tx = pool.begin().await?;
+    let tags = sqlx::query_as!(
+        TagEntry,
+        r#"
+SELECT
+    id, name, color AS "color: Color"
+FROM
+    tags
+WHERE
+    board_name = ?
+    AND archived = TRUE"#,
+        board_name
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(tags))
+}
+
 pub async fn create_tag(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,

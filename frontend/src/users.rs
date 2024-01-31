@@ -173,14 +173,14 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                     td {
                                         class: "p-3",
                                         div {
-                                            class: "grid grid-rows-1 place-items-end text-red-600",
+                                            class: "grid grid-rows-1 place-items-end",
                                             svg {
                                                 xmlns: "http://www.w3.org/2000/svg",
                                                 fill: "none",
                                                 "viewBox": "0 0 24 24",
                                                 "stroke-width": "1.5",
                                                 stroke: "currentColor",
-                                                class: "w-6 h-6 cursor-pointer",
+                                                class: "w-6 h-6 cursor-pointer text-red-600",
                                                 onclick: {
                                                     let user_id = *user_id;
                                                     move |_| {
