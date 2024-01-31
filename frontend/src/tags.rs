@@ -58,8 +58,9 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
                             }
                         }
                         tbody {
-                            for (row_index, (tag_id, tag)) in tags.iter().sorted_by_key(|x| x.0).enumerate() {
+                            for (row_index, (tag_id, tag)) in tags.iter().sorted_by_key(|x| x.1.name.to_lowercase()).enumerate() {
                                 tr {
+                                    key: "{tag_id}",
                                     class: if row_index == tags.len() - 1 {
                                         "bg-gray-800 sm:hover:bg-gray-600 border-gray-700"
                                     } else {
