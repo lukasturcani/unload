@@ -59,14 +59,11 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                             }
                         }
                         tbody {
+                            class: "divide-y divide-gray-700",
                             for (row_index, (user_id, user)) in users.iter().sorted_by_key(|x| x.1.name.to_lowercase()).enumerate() {
                                 tr {
                                     key: "{user_id}",
-                                    class: if row_index == users.len() - 1 {
-                                        "bg-gray-800 sm:hover:bg-gray-600 border-gray-700"
-                                    } else {
-                                        "bg-gray-800 sm:hover:bg-gray-600 border-gray-700 border-b"
-                                    },
+                                    class: "bg-gray-800 sm:hover:bg-gray-600",
                                     td {
                                         class: "p-3",
                                         match **edit_field {
