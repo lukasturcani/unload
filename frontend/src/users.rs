@@ -1,27 +1,35 @@
+use std::str::FromStr;
+
 use crate::color_picker::{self, ColorPicker};
 use crate::route::Route;
 use crate::styles;
-use crate::{model::Model, requests};
 use dioxus::prelude::*;
 use dioxus_router::hooks::use_navigator;
 use itertools::Itertools;
+use reqwest::Url;
 use shared_models::BoardName;
-use shared_models::{Color, UserId};
+use shared_models::{Color, UserEntry, UserId};
 
 enum Column {
     Color,
     Name,
 }
 
+fn get_url(board_name: &BoardName) -> Url {
+    #[cfg(debug_assertions)]
+    let url = Url::from_str("http://localhost:8080").unwrap();
+    #[cfg(not(debug_assertions))]
+    let url = Url::from_str("https://unload.fly.dev").unwrap();
+    url.join(&format!("/api/boards/{}/users", board_name))
+        .unwrap()
+}
+
 #[component]
 pub fn Users(cx: Scope, board_name: BoardName) -> Element {
+    let url = get_url(&board_name);
     let nav = use_navigator(cx);
-    let model = use_shared_state::<Model>(cx).unwrap();
-    if &model.read().board_name != board_name {
-        model.write().board_name = board_name.clone()
-    }
-    use_future(cx, (), |_| requests::board_users(model.clone()));
-    let users = &model.read().users;
+    let users = use_ref(cx, || Vec::<UserEntry>::new());
+    use_future(cx, (), |_| get_users(users.clone(), url.clone()));
     let edit_field = use_state(cx, || None::<(usize, Column)>);
     let color = use_state(cx, || Color::Black);
     let name = use_state(cx, String::new);
@@ -60,9 +68,14 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                         }
                         tbody {
                             class: "divide-y divide-gray-700",
-                            for (row_index, (user_id, user)) in users.iter().sorted_by_key(|x| x.1.name.to_lowercase()).enumerate() {
+                            for (row_index, user) in users
+                                .read()
+                                .iter()
+                                .sorted_by_key(|user| user.name.to_lowercase())
+                                .enumerate()
+                            {
                                 tr {
-                                    key: "{user_id}",
+                                    key: "{user.id}",
                                     class: "bg-gray-800 sm:hover:bg-gray-600",
                                     td {
                                         class: "p-3",
@@ -70,10 +83,17 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                             Some((edit_row, Column::Color)) if edit_row == row_index => rsx!{
                                                 ColorPicker {
                                                     on_pick_color: {
-                                                        let user_id = *user_id;
+                                                        let user_id = user.id;
                                                         move |color| {
                                                             edit_field.set(None);
-                                                            cx.spawn(set_user_color(model.clone(), user_id, color));
+                                                            cx.spawn(
+                                                                set_user_color(
+                                                                    users.clone(),
+                                                                    url,
+                                                                    user_id,
+                                                                    color,
+                                                                )
+                                                            );
                                                         }
                                                     },
                                                 }
@@ -83,12 +103,11 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                     class: "flex flex-row gap-1",
                                                     div {
                                                         class: "w-8 h-8 rounded cursor-pointer {color_picker::bg_class(&user.color)}",
-                                                        onclick: {
-                                                            let user_id = *user_id;
-                                                            move |_| {
-                                                                color.set(model.read().users[&user_id].color);
-                                                                edit_field.set(Some((row_index, Column::Color)));
-                                                            }
+                                                        onclick: move |_| {
+                                                            color.set(user.color);
+                                                            edit_field.set(
+                                                                Some((row_index, Column::Color))
+                                                            );
                                                         },
                                                     },
                                                     svg {
@@ -98,12 +117,11 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                         "stroke-width": "1.5",
                                                         stroke: "currentColor",
                                                         class: "w-4 h-4",
-                                                        onclick: {
-                                                            let user_id = *user_id;
-                                                            move |_| {
-                                                                color.set(model.read().users[&user_id].color);
-                                                                edit_field.set(Some((row_index, Column::Color)));
-                                                            }
+                                                        onclick: move |_| {
+                                                            color.set(user.color);
+                                                            edit_field.set(
+                                                                Some((row_index, Column::Color))
+                                                            );
                                                         },
                                                         path {
                                                             "stroke-linecap": "round",
@@ -125,10 +143,15 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                     class: "bg-inherit rounded text-sm",
                                                     oninput: |event| name.set(event.data.value.clone()),
                                                     onfocusout: {
-                                                        let user_id = *user_id;
+                                                        let user_id = user.id;
                                                         move |_| {
                                                             edit_field.set(None);
-                                                            set_user_name(model.clone(), user_id, name.to_string())
+                                                            set_user_name(
+                                                                users.clone(),
+                                                                url.clone(),
+                                                                user_id,
+                                                                name.to_string(),
+                                                            )
                                                         }
                                                     },
                                                 }
@@ -137,12 +160,9 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                 div {
                                                     class: "flex flex-row gap-1",
                                                     p {
-                                                        onclick: {
-                                                            let user_id = *user_id;
-                                                            move |_| {
-                                                                name.set(model.read().users[&user_id].name.clone());
-                                                                edit_field.set(Some((row_index, Column::Name)));
-                                                            }
+                                                        onclick: move |_| {
+                                                            name.set(user.name.clone());
+                                                            edit_field.set(Some((row_index, Column::Name)));
                                                         },
                                                         "{user.name}"
                                                     }
@@ -153,12 +173,11 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                         "stroke-width": "1.5",
                                                         stroke: "currentColor",
                                                         class: "w-4 h-4",
-                                                        onclick: {
-                                                            let user_id = *user_id;
-                                                            move |_| {
-                                                                name.set(model.read().users[&user_id].name.clone());
-                                                                edit_field.set(Some((row_index, Column::Name)));
-                                                            }
+                                                        onclick: move |_| {
+                                                            name.set(user.name.clone());
+                                                            edit_field.set(
+                                                                Some((row_index, Column::Name))
+                                                            );
                                                         },
                                                         path {
                                                             "stroke-linecap": "round",
@@ -182,9 +201,9 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                                                 stroke: "currentColor",
                                                 class: "w-6 h-6 cursor-pointer text-red-600",
                                                 onclick: {
-                                                    let user_id = *user_id;
+                                                    let user_id = user.id;
                                                     move |_| {
-                                                        delete_user(model.clone(), user_id)
+                                                        delete_user(users.clone(), url.clone(), user_id)
                                                     }
                                                 },
                                                 path {
@@ -260,27 +279,17 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
     })
 }
 
-async fn set_user_color(model: UseSharedState<Model>, user_id: UserId, color: Color) {
-    if send_set_user_color_request(model.clone(), user_id, color)
-        .await
-        .is_ok()
-    {
-        requests::board_users(model).await;
-    }
+async fn set_user_color(users: UseRef<Vec<UserEntry>>, url: Url, user_id: UserId, color: Color) {
+    send_set_user_color_request(url.clone(), user_id, color).await;
+    get_users(users, url).await;
 }
 
 async fn send_set_user_color_request(
-    model: UseSharedState<Model>,
+    url: Url,
     user_id: UserId,
     color: Color,
 ) -> Result<(), anyhow::Error> {
-    let url = {
-        let model = model.read();
-        model.url.join(&format!(
-            "/api/boards/{}/users/{}/color",
-            model.board_name, user_id
-        ))?
-    };
+    let url = url.join(&format!("/{}/color", user_id))?;
     Ok(reqwest::Client::new()
         .put(url)
         .json(&color)
@@ -290,27 +299,17 @@ async fn send_set_user_color_request(
         .await?)
 }
 
-async fn set_user_name(model: UseSharedState<Model>, user_id: UserId, name: String) {
-    if send_set_user_name_request(model.clone(), user_id, name)
-        .await
-        .is_ok()
-    {
-        requests::board_users(model).await;
-    }
+async fn set_user_name(users: UseRef<Vec<UserEntry>>, url: Url, user_id: UserId, name: String) {
+    send_set_user_name_request(url.clone(), user_id, name).await;
+    get_users(users, url).await;
 }
 
 async fn send_set_user_name_request(
-    model: UseSharedState<Model>,
+    url: Url,
     user_id: UserId,
     name: String,
 ) -> Result<(), anyhow::Error> {
-    let url = {
-        let model = model.read();
-        model.url.join(&format!(
-            "/api/boards/{}/users/{}/name",
-            model.board_name, user_id
-        ))?
-    };
+    let url = url.join(&format!("/{}/name", user_id))?;
     Ok(reqwest::Client::new()
         .put(url)
         .json(&name)
@@ -320,30 +319,34 @@ async fn send_set_user_name_request(
         .await?)
 }
 
-async fn delete_user(model: UseSharedState<Model>, user_id: UserId) {
-    if send_delete_user_request(model.clone(), user_id)
-        .await
-        .is_ok()
-    {
-        requests::board_users(model).await;
-    }
+async fn delete_user(users: UseRef<Vec<UserEntry>>, url: Url, user_id: UserId) {
+    send_delete_user_request(url.clone(), user_id).await;
+    get_users(users, url).await;
 }
 
-async fn send_delete_user_request(
-    model: UseSharedState<Model>,
-    user_id: UserId,
-) -> Result<(), anyhow::Error> {
-    let url = {
-        let model = model.read();
-        model.url.join(&format!(
-            "/api/boards/{}/users/{}",
-            model.board_name, user_id
-        ))?
-    };
+async fn send_delete_user_request(url: Url, user_id: UserId) -> Result<(), anyhow::Error> {
+    let url = url.join(&format!("/{}", user_id))?;
     Ok(reqwest::Client::new()
         .delete(url)
         .send()
         .await?
         .json::<()>()
+        .await?)
+}
+
+async fn get_users(users: UseRef<Vec<UserEntry>>, url: Url) {
+    if let Ok(result) = send_get_users_request(url).await {
+        let mut users = users.write();
+        users.clear();
+        users.extend(result);
+    }
+}
+
+async fn send_get_users_request(url: Url) -> Result<Vec<UserEntry>, anyhow::Error> {
+    Ok(reqwest::Client::new()
+        .get(url)
+        .send()
+        .await?
+        .json::<Vec<UserEntry>>()
         .await?)
 }
