@@ -626,6 +626,31 @@ WHERE
     Ok(Json(()))
 }
 
+pub async fn update_task_archived(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+    Json(archived): Json<bool>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    tasks
+SET
+    archived = ?
+WHERE
+   board_name = ? AND id = ?
+",
+        archived,
+        board_name,
+        task_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
 pub async fn update_task_title(
     State(pool): State<SqlitePool>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
