@@ -25,6 +25,17 @@ pub async fn board(model: UseSharedState<Model>) {
     }
 }
 
+pub async fn board_tags(model: UseSharedState<Model>) {
+    log::info!("sending board tags request");
+    if let Ok(tags) = tags(&model).await {
+        log::info!("got board tags");
+        let mut model = model.write();
+        model.tags = tags;
+    } else {
+        log::info!("failed to get board tags")
+    }
+}
+
 async fn users(model: &UseSharedState<Model>) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
     let url = {
         let model = model.read();

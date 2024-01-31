@@ -21,9 +21,7 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
     if &model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
-    // TODO: I can improve performance by only requesting an update to the
-    // tags instead of the whole board.
-    use_future(cx, (), |_| requests::board(model.clone()));
+    use_future(cx, (), |_| requests::board_tags(model.clone()));
     use_future(cx, (), |_| {
         get_archived_tags(model.clone(), archived_tags.clone())
     });
@@ -447,7 +445,7 @@ async fn set_tag_color(model: UseSharedState<Model>, tag_id: TagId, color: Color
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board_tags(model).await;
     }
 }
 
@@ -477,7 +475,7 @@ async fn set_tag_name(model: UseSharedState<Model>, tag_id: TagId, name: String)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board_tags(model).await;
     }
 }
 
@@ -504,7 +502,7 @@ async fn send_set_tag_name_request(
 
 async fn delete_tag(model: UseSharedState<Model>, tag_id: TagId) {
     if send_delete_tag_request(model.clone(), tag_id).await.is_ok() {
-        requests::board(model).await;
+        requests::board_tags(model).await;
     }
 }
 
@@ -536,7 +534,7 @@ async fn archive_tag(
         .is_ok()
     {
         join!(
-            requests::board(model.clone()),
+            requests::board_tags(model.clone()),
             get_archived_tags(model, archived_tags),
         );
     }
