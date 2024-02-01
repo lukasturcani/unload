@@ -31,6 +31,7 @@ pub fn TaskArchive(cx: Scope, board_name: BoardName) -> Element {
                                 class: "
                                     text-white
                                     p-2.5
+                                    active:bg-gray-600
                                     sm:hover:bg-gray-600
                                 ",
                                 task.title.clone()
