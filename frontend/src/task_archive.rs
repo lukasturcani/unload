@@ -24,7 +24,7 @@ pub fn TaskArchive(cx: Scope, board_name: BoardName) -> Element {
                 ",
                tasks
                     .iter()
-                    .map(|task| rsx!(Task{ task: task.clone() }))
+                    .map(|task| rsx!(Task{ key: "{task.id}", task: task.clone() }))
             }
             div {
                 class: styles::BOTTOM_BAR,
@@ -59,15 +59,21 @@ pub fn TaskArchive(cx: Scope, board_name: BoardName) -> Element {
 
 #[component]
 fn Task(cx: Scope, task: TaskEntry) -> Element {
+    let expanded = use_state(cx, || false);
     cx.render(rsx! {
         li {
-            class: "
-                text-white
-                p-2.5
-                active:bg-gray-600
-                sm:hover:bg-gray-600
-            ",
-            task.title.clone()
+            class: "p-2.5 active:bg-gray-600 sm:hover:bg-gray-600",
+            onclick: |_| expanded.set(!**expanded),
+            p {
+                class: "text-white",
+                task.title.clone()
+            }
+            if **expanded {rsx! {
+                p {
+                    class: "text-gray-400",
+                    task.description.clone()
+                }
+            }}
         }
     })
 }
