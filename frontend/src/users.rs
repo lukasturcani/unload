@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::color_picker::{self, ColorPicker};
+use crate::color_picker::{self, SelectingColorPicker};
 use crate::route::Route;
 use crate::styles;
 use dioxus::prelude::*;
@@ -152,7 +152,8 @@ fn UserRow(cx: Scope, user: UserEntry) -> Element {
             td {
                 class: "p-3",
                 if **editing_color {rsx!{
-                    ColorPicker {
+                    SelectingColorPicker {
+                        default_color: user.color,
                         on_pick_color: |picked_color| {
                             editing_color.set(false);
                             cx.spawn(
