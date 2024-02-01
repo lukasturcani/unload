@@ -10,8 +10,12 @@ use std::str::FromStr;
 use tokio::join;
 
 struct TagsUrl(reqwest::Url);
-struct TagEntries(Vec<TagEntry>);
-struct ArchivedTagEntries(Vec<TagEntry>);
+
+#[derive(Default)]
+struct TagEntries {
+    board: Vec<TagEntry>,
+    archived: Vec<TagEntry>,
+}
 
 #[component]
 pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
@@ -22,21 +26,19 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
         let url = Url::from_str("https://unload.fly.dev").unwrap();
         TagsUrl(url.join(&format!("/api/boards/{}/", board_name)).unwrap())
     });
-    use_shared_state_provider(cx, || TagEntries(Vec::new()));
-    use_shared_state_provider(cx, || ArchivedTagEntries(Vec::new()));
+    use_shared_state_provider(cx, TagEntries::default);
     let url = use_shared_state::<TagsUrl>(cx).unwrap();
     let tags = use_shared_state::<TagEntries>(cx).unwrap();
-    let archived_tags = use_shared_state::<ArchivedTagEntries>(cx).unwrap();
     let nav = use_navigator(cx);
     use_future(cx, (), {
         let url = url.clone();
         let tags = tags.clone();
-        let archived_tags = archived_tags.clone();
         |_| async move {
             let url = url.read();
-            get_tags(tags, archived_tags, &url.0)
+            get_tags(tags, &url.0)
         }
     });
+    let read_tags = tags.read();
     cx.render(rsx! {
         div {
             class: "
@@ -71,9 +73,8 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
                         }
                         tbody {
                             class: "divide-y divide-gray-700",
-                            tags
-                                .read()
-                                .0
+                            read_tags
+                                .board
                                 .iter()
                                 .sorted_by_key(|tag| tag.name.to_lowercase())
                                 .map(|tag| rsx!(
@@ -113,9 +114,8 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
                         }
                         tbody {
                             class: "divide-y divide-gray-700",
-                            archived_tags
-                                .read()
-                                .0
+                            read_tags
+                                .archived
                                 .iter()
                                 .sorted_by_key(|tag| tag.name.to_lowercase())
                                 .map(|tag| rsx!(
@@ -163,7 +163,6 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
 fn TagRow(cx: Scope, tag: TagEntry) -> Element {
     let url = use_shared_state::<TagsUrl>(cx).unwrap();
     let tags = use_shared_state::<TagEntries>(cx).unwrap();
-    let archived_tags = use_shared_state::<ArchivedTagEntries>(cx).unwrap();
     let editing_color = use_state(cx, || false);
     let name = use_state(cx, || None::<String>);
     cx.render(rsx! {
@@ -176,13 +175,7 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                         on_pick_color: |color| {
                             editing_color.set(false);
                             cx.spawn(
-                                set_tag_color(
-                                    tags.clone(),
-                                    archived_tags.clone(),
-                                    url.clone(),
-                                    tag.id,
-                                    color,
-                                )
+                                set_tag_color(tags.clone(), url.clone(), tag.id, color)
                             );
                         },
                     }
@@ -223,7 +216,6 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                             name.set(None);
                             set_tag_name(
                                 tags.clone(),
-                                archived_tags.clone(),
                                 url.clone(),
                                 tag.id,
                                 name_value.clone(),
@@ -270,16 +262,7 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                                 w-6 h-6 cursor-pointer text-gray-400
                                 sm:hover:text-blue-500 active:text-blue-500
                             ",
-                            onclick: |event| {
-                                event.stop_propagation();
-                                set_tag_archived(
-                                    tags.clone(),
-                                    archived_tags.clone(),
-                                    url.clone(),
-                                    tag.id,
-                                    true,
-                                )
-                            },
+                            onclick: |_| set_tag_archived(tags.clone(), url.clone(), tag.id, true),
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -293,14 +276,7 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "w-6 h-6 cursor-pointer text-red-600",
-                            onclick: move |_| {
-                                delete_tag(
-                                    tags.clone(),
-                                    archived_tags.clone(),
-                                    url.clone(),
-                                    tag.id,
-                                )
-                            },
+                            onclick: |_| delete_tag(tags.clone(), url.clone(), tag.id),
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -317,14 +293,13 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
 
 async fn set_tag_color(
     tags: UseSharedState<TagEntries>,
-    archived_tags: UseSharedState<ArchivedTagEntries>,
     url: UseSharedState<TagsUrl>,
     tag_id: TagId,
     color: Color,
 ) {
     let url = &url.read().0;
     let _ = send_set_tag_color_request(url, tag_id, color).await;
-    get_tags(tags, archived_tags, url).await;
+    get_tags(tags, url).await;
 }
 
 async fn send_set_tag_color_request(
@@ -344,14 +319,13 @@ async fn send_set_tag_color_request(
 
 async fn set_tag_name(
     tags: UseSharedState<TagEntries>,
-    archived_tags: UseSharedState<ArchivedTagEntries>,
     url: UseSharedState<TagsUrl>,
     tag_id: TagId,
     name: String,
 ) {
     let url = &url.read().0;
     let _ = send_set_tag_name_request(url, tag_id, name).await;
-    get_tags(tags, archived_tags, url).await;
+    get_tags(tags, url).await;
 }
 
 async fn send_set_tag_name_request(
@@ -369,15 +343,10 @@ async fn send_set_tag_name_request(
         .await?)
 }
 
-async fn delete_tag(
-    tags: UseSharedState<TagEntries>,
-    archived_tags: UseSharedState<ArchivedTagEntries>,
-    url: UseSharedState<TagsUrl>,
-    tag_id: TagId,
-) {
+async fn delete_tag(tags: UseSharedState<TagEntries>, url: UseSharedState<TagsUrl>, tag_id: TagId) {
     let url = &url.read().0;
     let _ = send_delete_tag_request(url, tag_id).await;
-    get_tags(tags, archived_tags, url).await;
+    get_tags(tags, url).await;
 }
 
 async fn send_delete_tag_request(url: &Url, tag_id: TagId) -> Result<(), anyhow::Error> {
@@ -392,14 +361,13 @@ async fn send_delete_tag_request(url: &Url, tag_id: TagId) -> Result<(), anyhow:
 
 async fn set_tag_archived(
     tags: UseSharedState<TagEntries>,
-    archived_tags: UseSharedState<ArchivedTagEntries>,
     url: UseSharedState<TagsUrl>,
     tag_id: TagId,
     archived: bool,
 ) {
     let url = &url.read().0;
     let _ = send_set_tag_archived_request(url, tag_id, archived).await;
-    get_tags(tags, archived_tags, url).await;
+    get_tags(tags, url).await;
 }
 
 async fn send_set_tag_archived_request(
@@ -417,24 +385,19 @@ async fn send_set_tag_archived_request(
         .await?)
 }
 
-async fn get_tags(
-    tags: UseSharedState<TagEntries>,
-    archived_tags: UseSharedState<ArchivedTagEntries>,
-    url: &Url,
-) {
+async fn get_tags(tags: UseSharedState<TagEntries>, url: &Url) {
     let (tags_result, archived_tags_result) = join!(
         send_get_tags_request(url),
         send_get_archived_tags_request(url)
     );
+    let mut tags = tags.write();
     if let Ok(result) = tags_result {
-        let mut tags = tags.write();
-        tags.0.clear();
-        tags.0.extend(result);
+        tags.board.clear();
+        tags.board.extend(result);
     }
     if let Ok(result) = archived_tags_result {
-        let mut archived_tags = archived_tags.write();
-        archived_tags.0.clear();
-        archived_tags.0.extend(result);
+        tags.archived.clear();
+        tags.archived.extend(result);
     }
 }
 
