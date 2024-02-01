@@ -83,7 +83,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 div {
                     class: styles::BOTTOM_BAR,
                     button {
-                        r#type: "button" ,
+                        r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
                         disabled: **column == TaskStatus::ToDo,
                         onclick: |_| {
@@ -110,7 +110,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                         }}
                     }
                     button {
-                        r#type: "button" ,
+                        r#type: "button",
                         class: if **show_filters {
                             styles::BOTTOM_BAR_ACTIVE_BUTTON
                         } else {
@@ -136,7 +136,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                         }
                     }
                     button {
-                        r#type: "button" ,
+                        r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
                         onclick: |_| {
                             nav.push(Route::Tags {
@@ -185,10 +185,10 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                         }
                     }
                     button {
-                        r#type: "button" ,
+                        r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
                         onclick: |_| {
-                            nav.push(Route::AddUser {
+                            nav.push(Route::TaskArchive {
                                 board_name: board_name.clone(),
                             });
                         },
@@ -202,7 +202,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
-                                d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                                d: "m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z",
                             }
                         }
                     }
@@ -283,7 +283,7 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
         div {
             class: styles::BOTTOM_BAR,
             button {
-                r#type: "button" ,
+                r#type: "button",
                 class: styles::BOTTOM_BAR_BUTTON,
                 onclick: |_| {
                     nav.push(Route::Tags {
@@ -332,10 +332,10 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
             button {
-                r#type: "button" ,
+                r#type: "button",
                 class: styles::BOTTOM_BAR_BUTTON,
                 onclick: |_| {
-                    nav.push(Route::AddUser {
+                    nav.push(Route::TaskArchive {
                         board_name: board_name.clone(),
                     });
                 },
@@ -349,7 +349,7 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
-                        d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
+                        d: "m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z",
                     }
                 }
             }
@@ -1111,9 +1111,9 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
-                        "viewBox": "0 0 24 24" ,
-                        "stroke-width": "1.5" ,
-                        stroke: "white" ,
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "white",
                         class: "w-5 h-5 border border-white rounded cursor-pointer",
                         prevent_default: "onclick",
                         onclick: move |event| {
@@ -1493,7 +1493,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     div {
                         class: "grid grid-rows-1 justify-items-end",
                         svg {
-                            xmlns: "http://www.w3.org/2000/svg" ,
+                            xmlns: "http://www.w3.org/2000/svg",
                             fill: "none",
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
@@ -1684,7 +1684,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 div {
                     class: "grid grid-rows-1 place-items-end",
                     svg {
-                        xmlns: "http://www.w3.org/2000/svg" ,
+                        xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
@@ -2267,9 +2267,9 @@ fn Users<'a>(
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
-                        "viewBox": "0 0 24 24" ,
-                        "stroke-width": "1.5" ,
-                        stroke: "white" ,
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "white",
                         class: "w-6 h-6 border border-white rounded cursor-pointer",
                         prevent_default: "onclick",
                         onclick: |event| on_click_assign_user.call(event),
@@ -2369,9 +2369,9 @@ fn Tags<'a>(
             svg {
                 xmlns: "http://www.w3.org/2000/svg",
                 fill: "none",
-                "viewBox": "0 0 24 24" ,
-                "stroke-width": "1.5" ,
-                stroke: "white" ,
+                "viewBox": "0 0 24 24",
+                "stroke-width": "1.5",
+                stroke: "white",
                 class: "w-6 h-6 border border-white rounded cursor-pointer",
                 prevent_default: "onclick",
                 onclick: |event| on_click_assign_tag.call(event),
