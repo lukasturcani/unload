@@ -395,7 +395,7 @@ fn ToDoColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-6 h-6 sm:w-8 sm:h-8 text-white",
+                        class: "w-6 h-6 sm:w-8 sm:h-8 text-white cursor-pointer",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
@@ -490,7 +490,7 @@ fn DenseToDoColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500",
+                        class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500 cursor-pointer",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
@@ -585,7 +585,7 @@ fn InProgressColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-6 h-6 sm:w-8 sm:h-8 text-white",
+                        class: "w-6 h-6 sm:w-8 sm:h-8 text-white cursor-pointer",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
@@ -680,7 +680,7 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500",
+                        class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500 cursor-pointer",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
@@ -775,7 +775,7 @@ fn DoneColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-6 h-6 sm:w-8 sm:h-8 text-white",
+                        class: "w-6 h-6 sm:w-8 sm:h-8 text-white cursor-pointer",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
@@ -870,7 +870,7 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                         "viewBox": "0 0 24 24",
                         "stroke-width": "1.5",
                         stroke: "currentColor",
-                        class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500",
+                        class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500 cursor-pointer",
                         onclick: |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
