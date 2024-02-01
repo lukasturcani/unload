@@ -35,7 +35,7 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
         let tags = tags.clone();
         |_| async move {
             let url = url.read();
-            get_tags(tags, &url.0)
+            get_tags(tags, &url.0).await
         }
     });
     let read_tags = tags.read();
@@ -172,6 +172,7 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                 class: "p-3",
                 if **editing_color {rsx! {
                     SelectingColorPicker {
+                        default_color: tag.color,
                         on_pick_color: |color| {
                             editing_color.set(false);
                             cx.spawn(
