@@ -12,5 +12,6 @@ pub mod route;
 pub mod styles;
 pub mod tag_search;
 pub mod tags;
+pub mod task_archive;
 pub mod user_search;
 pub mod users;
