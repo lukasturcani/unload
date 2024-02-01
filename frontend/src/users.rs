@@ -19,10 +19,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
         let url = Url::from_str("http://localhost:8080").unwrap();
         #[cfg(not(debug_assertions))]
         let url = Url::from_str("https://unload.fly.dev").unwrap();
-        UsersUrl(
-            url.join(&format!("/api/boards/{}/users", board_name))
-                .unwrap(),
-        )
+        UsersUrl(url.join(&format!("/api/boards/{}/", board_name)).unwrap())
     });
     use_shared_state_provider(cx, || UserEntries(Vec::new()));
     let url = use_shared_state::<UsersUrl>(cx).unwrap();
@@ -274,7 +271,7 @@ async fn send_set_user_color_request(
     user_id: UserId,
     color: Color,
 ) -> Result<(), anyhow::Error> {
-    let url = url.join(&format!("/{}/color", user_id))?;
+    let url = url.join(&format!("users/{}/color", user_id))?;
     Ok(reqwest::Client::new()
         .put(url)
         .json(&color)
@@ -300,7 +297,7 @@ async fn send_set_user_name_request(
     user_id: UserId,
     name: String,
 ) -> Result<(), anyhow::Error> {
-    let url = url.join(&format!("/{}/name", user_id))?;
+    let url = url.join(&format!("users/{}/name", user_id))?;
     Ok(reqwest::Client::new()
         .put(url)
         .json(&name)
@@ -321,7 +318,7 @@ async fn delete_user(
 }
 
 async fn send_delete_user_request(url: &Url, user_id: UserId) -> Result<(), anyhow::Error> {
-    let url = url.join(&format!("/{}", user_id))?;
+    let url = url.join(&format!("users/{}", user_id))?;
     Ok(reqwest::Client::new()
         .delete(url)
         .send()
@@ -339,6 +336,7 @@ async fn get_users(users: UseSharedState<UserEntries>, url: &Url) {
 }
 
 async fn send_get_users_request(url: &Url) -> Result<Vec<UserEntry>, anyhow::Error> {
+    let url = url.join("users")?;
     Ok(reqwest::Client::new()
         .get(url.clone())
         .send()
