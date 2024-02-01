@@ -144,7 +144,6 @@ fn UserRow(cx: Scope, user: UserEntry) -> Element {
     let name = use_state(cx, || None::<String>);
     cx.render(rsx! {
         tr {
-            key: "{user.id}",
             class: "bg-gray-800 sm:hover:bg-gray-600",
             td {
                 class: "p-3",

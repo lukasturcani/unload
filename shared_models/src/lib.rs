@@ -114,7 +114,7 @@ pub struct TagData {
     pub color: Color,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct TagEntry {
     pub id: TagId,
     pub name: String,
