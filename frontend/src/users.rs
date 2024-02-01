@@ -7,32 +7,35 @@ use dioxus::prelude::*;
 use dioxus_router::hooks::use_navigator;
 use itertools::Itertools;
 use reqwest::Url;
-use shared_models::BoardName;
-use shared_models::{Color, UserEntry, UserId};
+use shared_models::{BoardName, Color, UserEntry, UserId};
 
-enum Column {
-    Color,
-    Name,
-}
-
-fn get_url(board_name: &BoardName) -> Url {
-    #[cfg(debug_assertions)]
-    let url = Url::from_str("http://localhost:8080").unwrap();
-    #[cfg(not(debug_assertions))]
-    let url = Url::from_str("https://unload.fly.dev").unwrap();
-    url.join(&format!("/api/boards/{}/users", board_name))
-        .unwrap()
-}
+struct UsersUrl(reqwest::Url);
+struct UserEntries(Vec<UserEntry>);
 
 #[component]
 pub fn Users(cx: Scope, board_name: BoardName) -> Element {
-    let url = get_url(&board_name);
+    use_shared_state_provider(cx, || {
+        #[cfg(debug_assertions)]
+        let url = Url::from_str("http://localhost:8080").unwrap();
+        #[cfg(not(debug_assertions))]
+        let url = Url::from_str("https://unload.fly.dev").unwrap();
+        UsersUrl(
+            url.join(&format!("/api/boards/{}/users", board_name))
+                .unwrap(),
+        )
+    });
+    use_shared_state_provider(cx, || UserEntries(Vec::new()));
+    let url = use_shared_state::<UsersUrl>(cx).unwrap();
+    let users = use_shared_state::<UserEntries>(cx).unwrap();
     let nav = use_navigator(cx);
-    let users = use_ref(cx, || Vec::<UserEntry>::new());
-    use_future(cx, (), |_| get_users(users.clone(), url.clone()));
-    let edit_field = use_state(cx, || None::<(usize, Column)>);
-    let color = use_state(cx, || Color::Black);
-    let name = use_state(cx, String::new);
+    use_future(cx, (), {
+        let url = url.clone();
+        let users = users.clone();
+        |_| async move {
+            let url = url.read();
+            get_users(users, &url.0).await
+        }
+    });
     cx.render(rsx! {
         div {
             class: "
@@ -40,7 +43,6 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                 bg-gray-900
                 flex flex-col
             ",
-            onclick: |_|  edit_field.set(None),
             div {
                 class: "grow w-full p-4 overflow-auto",
                 div {
@@ -68,173 +70,12 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                         }
                         tbody {
                             class: "divide-y divide-gray-700",
-                            for (row_index, user) in users
+                            users
                                 .read()
+                                .0
                                 .iter()
                                 .sorted_by_key(|user| user.name.to_lowercase())
-                                .enumerate()
-                            {
-                                tr {
-                                    key: "{user.id}",
-                                    class: "bg-gray-800 sm:hover:bg-gray-600",
-                                    td {
-                                        class: "p-3",
-                                        match **edit_field {
-                                            Some((edit_row, Column::Color)) if edit_row == row_index => {
-                                                let url = url.clone();
-                                                rsx!{
-                                                    ColorPicker {
-                                                        on_pick_color: {
-                                                            let user_id = user.id;
-                                                            move |color| {
-                                                                edit_field.set(None);
-                                                                cx.spawn(
-                                                                    set_user_color(
-                                                                        users.clone(),
-                                                                        url.clone(),
-                                                                        user_id,
-                                                                        color,
-                                                                    )
-                                                                );
-                                                            }
-                                                        },
-                                                    }
-                                                }
-                                            },
-                                            _ => rsx!{
-                                                div {
-                                                    class: "flex flex-row gap-1",
-                                                    div {
-                                                        class: "w-8 h-8 rounded cursor-pointer {color_picker::bg_class(&user.color)}",
-                                                        onclick: {
-                                                            let user_color = user.color;
-                                                            move |_| {
-                                                                color.set(user_color);
-                                                                edit_field.set(
-                                                                    Some((row_index, Column::Color))
-                                                                );
-                                                            }
-                                                        },
-                                                    },
-                                                    svg {
-                                                        xmlns: "http://www.w3.org/2000/svg",
-                                                        fill: "none",
-                                                        "viewBox": "0 0 24 24",
-                                                        "stroke-width": "1.5",
-                                                        stroke: "currentColor",
-                                                        class: "w-4 h-4",
-                                                        onclick: {
-                                                            let user_color = user.color;
-                                                            move |_| {
-                                                                color.set(user_color);
-                                                                edit_field.set(
-                                                                    Some((row_index, Column::Color))
-                                                                );
-                                                            }
-                                                        },
-                                                        path {
-                                                            "stroke-linecap": "round",
-                                                            "stroke-linejoin": "round",
-                                                            d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                        }
-                                    }
-                                    td {
-                                        class: "p-3",
-                                        match **edit_field {
-                                            Some((edit_row, Column::Name)) if edit_row == row_index => {
-                                                let url = url.clone();
-                                                rsx! {
-                                                    input {
-                                                        r#type: "text",
-                                                        value: "{name}",
-                                                        class: "bg-inherit rounded text-sm",
-                                                        oninput: |event| name.set(event.data.value.clone()),
-                                                        onfocusout: {
-                                                            let user_id = user.id;
-                                                            move |_| {
-                                                                edit_field.set(None);
-                                                                set_user_name(
-                                                                    users.clone(),
-                                                                    url.clone(),
-                                                                    user_id,
-                                                                    name.to_string(),
-                                                                )
-                                                            }
-                                                        },
-                                                    }
-                                                }
-                                            },
-                                            _ => rsx!{
-                                                div {
-                                                    class: "flex flex-row gap-1",
-                                                    p {
-                                                        onclick: {
-                                                            let user_name = user.name.clone();
-                                                            move |_| {
-                                                                name.set(user_name.clone());
-                                                                edit_field.set(Some((row_index, Column::Name)));
-                                                            }
-                                                        },
-                                                        "{user.name}"
-                                                    }
-                                                    svg {
-                                                        xmlns: "http://www.w3.org/2000/svg",
-                                                        fill: "none",
-                                                        "viewBox": "0 0 24 24",
-                                                        "stroke-width": "1.5",
-                                                        stroke: "currentColor",
-                                                        class: "w-4 h-4",
-                                                        onclick: {
-                                                            let user_name = user.name.clone();
-                                                            move |_| {
-                                                                name.set(user_name.clone());
-                                                                edit_field.set(
-                                                                    Some((row_index, Column::Name))
-                                                                );
-                                                            }
-                                                        },
-                                                        path {
-                                                            "stroke-linecap": "round",
-                                                            "stroke-linejoin": "round",
-                                                            d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                        }
-                                    }
-                                    td {
-                                        class: "p-3",
-                                        div {
-                                            class: "grid grid-rows-1 place-items-end",
-                                            svg {
-                                                xmlns: "http://www.w3.org/2000/svg",
-                                                fill: "none",
-                                                "viewBox": "0 0 24 24",
-                                                "stroke-width": "1.5",
-                                                stroke: "currentColor",
-                                                class: "w-6 h-6 cursor-pointer text-red-600",
-                                                onclick: {
-                                                    let user_id = user.id;
-                                                    let url = url.clone();
-                                                    move |_| {
-                                                        delete_user(users.clone(), url.clone(), user_id)
-                                                    }
-                                                },
-                                                path {
-                                                    "stroke-linecap": "round",
-                                                    "stroke-linejoin": "round",
-                                                    d: "m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0",
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                                .map(|user| rsx!(UserRow { key: "{user.id}", user: user.clone() }))
                         }
                     }
                 }
@@ -298,13 +139,137 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
     })
 }
 
-async fn set_user_color(users: UseRef<Vec<UserEntry>>, url: Url, user_id: UserId, color: Color) {
-    let _ = send_set_user_color_request(url.clone(), user_id, color).await;
+#[component]
+fn UserRow(cx: Scope, user: UserEntry) -> Element {
+    let url = use_shared_state::<UsersUrl>(cx).unwrap();
+    let users = use_shared_state::<UserEntries>(cx).unwrap();
+    let editing_color = use_state(cx, || false);
+    let name = use_state(cx, || None::<String>);
+    cx.render(rsx! {
+        tr {
+            key: "{user.id}",
+            class: "bg-gray-800 sm:hover:bg-gray-600",
+            td {
+                class: "p-3",
+                if **editing_color {rsx!{
+                    ColorPicker {
+                        on_pick_color: |picked_color| {
+                            editing_color.set(false);
+                            cx.spawn(
+                                set_user_color(
+                                    users.clone(),
+                                    url.clone(),
+                                    user.id,
+                                    picked_color,
+                                )
+                            );
+                        },
+                    }
+                }} else {rsx! {
+                    div {
+                        class: "flex flex-row gap-1",
+                        div {
+                            class: "w-8 h-8 rounded cursor-pointer {color_picker::bg_class(&user.color)}",
+                            onclick: |_| editing_color.set(true),
+                        },
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-4 h-4",
+                            onclick: |_| editing_color.set(true),
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                            }
+                        }
+                    }
+
+                }}
+            }
+            td {
+                class: "p-3",
+                if let Some(name_value) = &**name { rsx!{
+                    input {
+                        r#type: "text",
+                        value: "{name_value}",
+                        class: "bg-inherit rounded text-sm",
+                        oninput: |event| name.set(Some(event.data.value.clone())),
+                        onfocusout: |_| {
+                            name.set(None);
+                            set_user_name(
+                                users.clone(),
+                                url.clone(),
+                                user.id,
+                                name_value.clone(),
+                            )
+                        },
+                    }
+                }} else { rsx!{
+                    div {
+                        class: "flex flex-row gap-1",
+                        p {
+                            onclick: |_| name.set(Some(user.name.clone())),
+                            "{user.name}"
+                        }
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-4 h-4",
+                            onclick: |_| name.set(Some(user.name.clone())),
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                            }
+                        }
+                    }
+                    }},
+            }
+            td {
+                class: "p-3",
+                div {
+                    class: "grid grid-rows-1 place-items-end",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "w-6 h-6 cursor-pointer text-red-600",
+                        onclick: |_| delete_user(users.clone(), url.clone(), user.id),
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0",
+                        }
+                    }
+                }
+            }
+
+        }
+    })
+}
+
+async fn set_user_color(
+    users: UseSharedState<UserEntries>,
+    url: UseSharedState<UsersUrl>,
+    user_id: UserId,
+    color: Color,
+) {
+    let url = &url.read().0;
+    let _ = send_set_user_color_request(url, user_id, color).await;
     get_users(users, url).await;
 }
 
 async fn send_set_user_color_request(
-    url: Url,
+    url: &Url,
     user_id: UserId,
     color: Color,
 ) -> Result<(), anyhow::Error> {
@@ -318,13 +283,19 @@ async fn send_set_user_color_request(
         .await?)
 }
 
-async fn set_user_name(users: UseRef<Vec<UserEntry>>, url: Url, user_id: UserId, name: String) {
-    let _ = send_set_user_name_request(url.clone(), user_id, name).await;
+async fn set_user_name(
+    users: UseSharedState<UserEntries>,
+    url: UseSharedState<UsersUrl>,
+    user_id: UserId,
+    name: String,
+) {
+    let url = &url.read().0;
+    let _ = send_set_user_name_request(url, user_id, name).await;
     get_users(users, url).await;
 }
 
 async fn send_set_user_name_request(
-    url: Url,
+    url: &Url,
     user_id: UserId,
     name: String,
 ) -> Result<(), anyhow::Error> {
@@ -338,12 +309,17 @@ async fn send_set_user_name_request(
         .await?)
 }
 
-async fn delete_user(users: UseRef<Vec<UserEntry>>, url: Url, user_id: UserId) {
-    let _ = send_delete_user_request(url.clone(), user_id).await;
+async fn delete_user(
+    users: UseSharedState<UserEntries>,
+    url: UseSharedState<UsersUrl>,
+    user_id: UserId,
+) {
+    let url = &url.read().0;
+    let _ = send_delete_user_request(url, user_id).await;
     get_users(users, url).await;
 }
 
-async fn send_delete_user_request(url: Url, user_id: UserId) -> Result<(), anyhow::Error> {
+async fn send_delete_user_request(url: &Url, user_id: UserId) -> Result<(), anyhow::Error> {
     let url = url.join(&format!("/{}", user_id))?;
     Ok(reqwest::Client::new()
         .delete(url)
@@ -353,17 +329,17 @@ async fn send_delete_user_request(url: Url, user_id: UserId) -> Result<(), anyho
         .await?)
 }
 
-async fn get_users(users: UseRef<Vec<UserEntry>>, url: Url) {
+async fn get_users(users: UseSharedState<UserEntries>, url: &Url) {
     if let Ok(result) = send_get_users_request(url).await {
         let mut users = users.write();
-        users.clear();
-        users.extend(result);
+        users.0.clear();
+        users.0.extend(result);
     }
 }
 
-async fn send_get_users_request(url: Url) -> Result<Vec<UserEntry>, anyhow::Error> {
+async fn send_get_users_request(url: &Url) -> Result<Vec<UserEntry>, anyhow::Error> {
     Ok(reqwest::Client::new()
-        .get(url)
+        .get(url.clone())
         .send()
         .await?
         .json::<Vec<UserEntry>>()
