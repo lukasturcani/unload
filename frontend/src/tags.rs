@@ -39,7 +39,7 @@ pub fn Tags(cx: Scope, board_name: BoardName) -> Element {
     cx.render(rsx! {
         div {
             class: "
-                w-screen h-screen
+                w-screen h-dvh
                 bg-gray-900
                 flex flex-col
             ",

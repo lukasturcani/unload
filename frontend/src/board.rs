@@ -58,7 +58,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "flex flex-col bg-gray-900 h-screen w-screen gap-1",
+            class: "flex flex-col bg-gray-900 h-dvh w-screen gap-1",
             div {
                 class: "grow grid grid-cols-1 p-1 overflow-y-auto",
                 match (**column, model.read().dense_view) {
@@ -240,7 +240,6 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
 }
 
 #[component]
-
 fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     if &model.read().board_name != board_name {
@@ -249,7 +248,7 @@ fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
     use_future(cx, (), |_| requests::board(model.clone()));
     cx.render(rsx! {
         div {
-            class: "flex flex-col bg-gray-900 h-screen w-screen",
+            class: "flex flex-col bg-gray-900 h-dvh w-screen",
             div {
                 class: "grow flex flex-col gap-2 overflow-y-auto p-4 pb-2",
                 div {

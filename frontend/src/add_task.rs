@@ -87,7 +87,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
     cx.render(rsx! {
         div {
             class: "
-                h-screen w-screen
+                h-dvh w-screen
                 bg-gray-900
                 flex flex-col
             ",
