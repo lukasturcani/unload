@@ -1,3 +1,4 @@
+use crate::color_picker;
 use crate::styles;
 use dioxus::prelude::*;
 use dioxus_router::hooks::use_navigator;
@@ -95,10 +96,15 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
     let archive = use_shared_state::<TaskArchive>(cx).unwrap();
     let archive_read = archive.read();
     let task = &archive_read.tasks[&task_id];
+    let users = &archive_read.users;
+    let tags = &archive_read.tags;
     let expanded = use_state(cx, || false);
     cx.render(rsx! {
         li {
-            class: "p-2.5 active:bg-gray-600 sm:hover:bg-gray-600",
+            class: "
+                p-2.5 active:bg-gray-600 sm:hover:bg-gray-600
+                flex flex-col gap-2
+            ",
             onclick: |_| expanded.set(!**expanded),
             div {
                 class: "flex flex-row justify-between",
@@ -142,9 +148,45 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                 }
             }
             if **expanded {rsx! {
+                div {
+                    class: "flex flex-row gap-2 flex-wrap",
+                    for user in task
+                        .assignees
+                        .iter()
+                        .map(|user_id| &users[user_id])
+                    {rsx!{
+                        span {
+                            class: "
+                                text-sm font-medium text-white
+                                px-2.5 py-0.5 rounded
+                                border-2
+                                {color_picker::border_class(&user.color)}
+                            ",
+                            user.name.clone()
+                        }
+                    }}
+                }
                 p {
                     class: "text-gray-400",
                     task.description.clone()
+                }
+                div {
+                    class: "flex flex-row gap-2 flex-wrap",
+                    for tag in task
+                        .tags
+                        .iter()
+                        .map(|tag_id| &tags[tag_id])
+                    {rsx!{
+                        span {
+                            class: "
+                                text-sm font-medium text-white
+                                px-2.5 py-0.5 rounded
+                                border-2
+                                {color_picker::border_class(&tag.color)}
+                            ",
+                            "# {&tag.name}"
+                        }
+                    }}
                 }
             }}
         }
