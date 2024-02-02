@@ -328,9 +328,7 @@ async fn send_delete_user_request(url: &Url, user_id: UserId) -> Result<(), anyh
 
 async fn get_users(users: UseSharedState<UserEntries>, url: &Url) {
     if let Ok(result) = send_get_users_request(url).await {
-        let mut users = users.write();
-        users.0.clear();
-        users.0.extend(result);
+        users.write().0 = result;
     }
 }
 

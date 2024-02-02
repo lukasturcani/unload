@@ -415,12 +415,10 @@ async fn get_tags(tags: UseSharedState<TagEntries>, url: &Url) {
     );
     let mut tags = tags.write();
     if let Ok(result) = tags_result {
-        tags.board.clear();
-        tags.board.extend(result);
+        tags.board = result;
     }
     if let Ok(result) = archived_tags_result {
-        tags.archived.clear();
-        tags.archived.extend(result);
+        tags.archived = result;
     }
 }
 
