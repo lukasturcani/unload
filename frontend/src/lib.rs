@@ -10,6 +10,7 @@ pub mod requests;
 pub mod responsive_layout;
 pub mod route;
 pub mod styles;
+pub mod tag_archive;
 pub mod tag_search;
 pub mod tags;
 pub mod task_archive;
