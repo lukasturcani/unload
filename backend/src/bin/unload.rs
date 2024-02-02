@@ -8,8 +8,9 @@ use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use unload::{
     add_task_assignee, add_task_tag, create_board, create_tag, create_task, create_user,
-    delete_tag, delete_task, delete_task_assignee, delete_task_tag, delete_user, show_tag,
-    show_tags, show_task, show_tasks, show_user, show_users, update_tag_color, update_tag_name,
+    delete_tag, delete_task, delete_task_assignee, delete_task_tag, delete_user,
+    show_archived_tags, show_archived_tasks, show_tag, show_tags, show_task, show_tasks, show_user,
+    show_users, update_tag_archived, update_tag_color, update_tag_name, update_task_archived,
     update_task_assignees, update_task_description, update_task_due, update_task_size,
     update_task_status, update_task_tags, update_task_title, update_user_color, update_user_name,
     Result,
@@ -37,6 +38,10 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
         .route(
             "/api/boards/:board_name/tasks/:task_id/due",
             put(update_task_due),
+        )
+        .route(
+            "/api/boards/:board_name/tasks/:task_id/archived",
+            put(update_task_archived),
         )
         .route(
             "/api/boards/:board_name/tasks/:task_id/assignees",
@@ -95,6 +100,18 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
             "/api/boards/:board_name/tags/:tag_id/color",
             put(update_tag_color),
         )
+        .route(
+            "/api/boards/:board_name/tags/:tag_id/archived",
+            put(update_tag_archived),
+        )
+        .route(
+            "/api/boards/:board_name/archive/tasks",
+            get(show_archived_tasks),
+        )
+        .route(
+            "/api/boards/:board_name/archive/tags",
+            get(show_archived_tags),
+        )
         .nest_service("/", ServeDir::new(serve_dir))
         .nest_service("/boards/:board_name", ServeDir::new(serve_dir))
         .nest_service("/boards/:board_name/add-user", ServeDir::new(serve_dir))
@@ -111,6 +128,10 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
         )
         .nest_service(
             "/boards/:board_name/add-done-task",
+            ServeDir::new(serve_dir),
+        )
+        .nest_service(
+            "/boards/:board_name/archive/tasks",
             ServeDir::new(serve_dir),
         )
 }

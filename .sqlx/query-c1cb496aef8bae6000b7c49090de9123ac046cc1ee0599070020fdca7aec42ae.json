@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\nSELECT\n    id, name, color AS \"color: Color\"\nFROM\n    tags\nWHERE\n    board_name = ?",
+  "query": "\nSELECT\n    id, name, color AS \"color: Color\"\nFROM\n    tags\nWHERE\n    board_name = ?\n    AND archived = FALSE",
   "describe": {
     "columns": [
       {
@@ -28,5 +28,5 @@
       false
     ]
   },
-  "hash": "eccc29f1dbadbb4ddd9d4d6ddc1b90b4ce22a727ac009c25f52cc697c7379bf5"
+  "hash": "c1cb496aef8bae6000b7c49090de9123ac046cc1ee0599070020fdca7aec42ae"
 }

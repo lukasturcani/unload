@@ -3,6 +3,7 @@ use crate::add_user::AddUser;
 use crate::board::Board;
 use crate::join_board::JoinBoard;
 use crate::tags::Tags;
+use crate::task_archive::TaskArchive;
 use crate::users::Users;
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
@@ -28,4 +29,6 @@ pub enum Route {
     AddInProgressTask { board_name: BoardName },
     #[route("/boards/:board_name/add-done-task")]
     AddDoneTask { board_name: BoardName },
+    #[route("/boards/:board_name/archive/tasks")]
+    TaskArchive { board_name: BoardName },
 }

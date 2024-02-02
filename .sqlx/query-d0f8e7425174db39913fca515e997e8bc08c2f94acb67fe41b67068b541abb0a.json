@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nUPDATE\n    tags\nSET\n    archived = ?\nWHERE\n   board_name = ? AND id = ?\n",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "d0f8e7425174db39913fca515e997e8bc08c2f94acb67fe41b67068b541abb0a"
+}
