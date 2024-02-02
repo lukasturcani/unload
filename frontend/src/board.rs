@@ -977,10 +977,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     class: "flex flex-row gap-1 items-center",
                     if **editing_title {rsx!{
                         input {
-                            class: "
-                                bg-inherit
-                                text-base tracking-tight text-white
-                            ",
+                            class: styles::TEXT_INPUT,
                             r#type: "text",
                             oninput: |event| new_title.set(event.value.clone()),
                             value: "{new_title}",
@@ -1585,10 +1582,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 class: "grid grid-cols-2",
                 if **editing_title {rsx!{
                     input {
-                        class: "
-                            bg-inherit text-lg sm:text-xl font-bold tracking-tight
-                            text-white underline underline-offset-8 rounded
-                        ",
+                        class: styles::TEXT_INPUT,
                         r#type: "text",
                         oninput: |event| new_title.set(event.value.clone()),
                         onfocusout: |_| {

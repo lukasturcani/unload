@@ -5,3 +5,11 @@
 html {
     @apply bg-gray-900;
 }
+
+input {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+textarea {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
