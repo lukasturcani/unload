@@ -2,10 +2,19 @@ use crate::styles;
 use dioxus::prelude::*;
 use dioxus_router::hooks::use_navigator;
 use reqwest::Url;
-use shared_models::{BoardName, TaskEntry, TaskId};
-use std::str::FromStr;
+use shared_models::{
+    BoardName, TagData, TagEntry, TagId, TaskData, TaskEntry, TaskId, UserData, UserEntry, UserId,
+};
+use std::{collections::HashMap, str::FromStr};
+use tokio::join;
 
-struct Tasks(Vec<TaskEntry>);
+#[derive(Default)]
+struct TaskArchive {
+    tasks: HashMap<TaskId, TaskData>,
+    users: HashMap<UserId, UserData>,
+    tags: HashMap<TagId, TagData>,
+}
+
 struct TasksUrl(Url);
 
 #[component]
@@ -17,18 +26,18 @@ pub fn TaskArchive(cx: Scope, board_name: BoardName) -> Element {
         let url = Url::from_str("https://unload.fly.dev").unwrap();
         TasksUrl(url.join(&format!("/api/boards/{}/", board_name)).unwrap())
     });
-    use_shared_state_provider(cx, || Tasks(Vec::new()));
+    use_shared_state_provider(cx, TaskArchive::default);
 
     let nav = use_navigator(cx);
-    let tasks = use_shared_state::<Tasks>(cx).unwrap();
+    let archive = use_shared_state::<TaskArchive>(cx).unwrap();
     let url = use_shared_state::<TasksUrl>(cx).unwrap();
     use_future(cx, (), {
         let url = url.clone();
-        let tasks = tasks.clone();
+        let tasks = archive.clone();
         |_| async move {
             let url = url.read();
             let tasks = tasks.clone();
-            get_tasks(tasks, &url.0).await
+            get_archive(tasks, &url.0).await
         }
     });
     cx.render(rsx! {
@@ -43,11 +52,11 @@ pub fn TaskArchive(cx: Scope, board_name: BoardName) -> Element {
                     grow w-full p-4 overflow-auto
                     divide-y divide-gray-700
                 ",
-               tasks
+               archive
                     .read()
-                    .0
-                    .iter()
-                    .map(|task| rsx!(Task{ key: "{task.id}", task: task.clone() }))
+                    .tasks
+                    .keys()
+                    .map(|task_id| rsx!(Task{ key: "{task_id}", task_id: *task_id }))
             }
             div {
                 class: styles::BOTTOM_BAR,
@@ -81,17 +90,39 @@ pub fn TaskArchive(cx: Scope, board_name: BoardName) -> Element {
 }
 
 #[component]
-fn Task(cx: Scope, task: TaskEntry) -> Element {
+fn Task(cx: Scope, task_id: TaskId) -> Element {
     let url = use_shared_state::<TasksUrl>(cx).unwrap();
-    let tasks = use_shared_state::<Tasks>(cx).unwrap();
+    let archive = use_shared_state::<TaskArchive>(cx).unwrap();
+    let archive_read = archive.read();
+    let task = &archive_read.tasks[&task_id];
     let expanded = use_state(cx, || false);
     cx.render(rsx! {
         li {
             class: "p-2.5 active:bg-gray-600 sm:hover:bg-gray-600",
             onclick: |_| expanded.set(!**expanded),
-            p {
-                class: "text-white",
-                task.title.clone()
+            div {
+                class: "flex flex-row justify-between",
+                p {
+                    class: "text-white",
+                    task.title.clone()
+                }
+                svg {
+                    xmlns: "http://www.w3.org/2000/svg" ,
+                    fill: "none",
+                    "viewBox": "0 0 24 24",
+                    "stroke-width": "1.5",
+                    stroke: "currentColor",
+                    class: "
+                        w-6 h-6 cursor-pointer text-gray-400
+                        sm:hover:text-blue-500 active:text-blue-500
+                    ",
+                    onclick: |_| unarchive_task(archive.clone(), url.clone(), *task_id),
+                    path {
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        d: "m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m6 4.125 2.25 2.25m0 0 2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z",
+                    }
+                }
             }
             if **expanded {rsx! {
                 p {
@@ -99,48 +130,115 @@ fn Task(cx: Scope, task: TaskEntry) -> Element {
                     task.description.clone()
                 }
             }}
-            svg {
-                xmlns: "http://www.w3.org/2000/svg" ,
-                fill: "none",
-                "viewBox": "0 0 24 24",
-                "stroke-width": "1.5",
-                stroke: "currentColor",
-                class: "
-                    w-6 h-6 cursor-pointer text-gray-400
-                    sm:hover:text-blue-500 active:text-blue-500
-                ",
-                onclick: |_| unarchive_task(tasks.clone(), url.clone(), task.id),
-                path {
-                    "stroke-linecap": "round",
-                    "stroke-linejoin": "round",
-                    d: "m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m6 4.125 2.25 2.25m0 0 2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z",
-                }
-            }
         }
     })
 }
 
-async fn get_tasks(tasks: UseSharedState<Tasks>, url: &Url) {
-    if let Ok(result) = send_get_tasks_request(url).await {
-        tasks.write().0 = result;
+async fn get_archive(archive: UseSharedState<TaskArchive>, url: &Url) {
+    let (tasks, users, tags) = join!(
+        send_get_tasks_request(url),
+        send_get_users_request(url),
+        send_get_tags_request(url),
+    );
+    let mut archive = archive.write();
+    if let Ok(result) = tasks {
+        archive.tasks = result;
+    }
+    if let Ok(result) = users {
+        archive.users = result;
+    }
+    if let Ok(result) = tags {
+        archive.tags = result;
     }
 }
 
-async fn send_get_tasks_request(url: &Url) -> Result<Vec<TaskEntry>, anyhow::Error> {
-    Ok(reqwest::get(url.join("archive/tasks").unwrap())
+async fn send_get_tasks_request(url: &Url) -> Result<HashMap<TaskId, TaskData>, anyhow::Error> {
+    let tasks = reqwest::get(url.join("archive/tasks").unwrap())
         .await?
         .json::<Vec<TaskEntry>>()
-        .await?)
+        .await?;
+    Ok(tasks
+        .into_iter()
+        .map(|task| {
+            (
+                task.id,
+                TaskData {
+                    title: task.title,
+                    description: task.description,
+                    due: task.due,
+                    size: task.size,
+                    status: task.status,
+                    assignees: task.assignees,
+                    blocks: task.blocks,
+                    blocked_by: task.blocked_by,
+                    tags: task.tags,
+                },
+            )
+        })
+        .collect())
+}
+
+async fn send_get_users_request(url: &Url) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
+    let users = reqwest::get(url.join("users").unwrap())
+        .await?
+        .json::<Vec<UserEntry>>()
+        .await?;
+    Ok(users
+        .into_iter()
+        .map(|user| {
+            (
+                user.id,
+                UserData {
+                    name: user.name,
+                    color: user.color,
+                },
+            )
+        })
+        .collect())
+}
+
+async fn send_get_tags_request(url: &Url) -> Result<HashMap<TagId, TagData>, anyhow::Error> {
+    match join!(reqwest_tags(url), reqwest_archived_tags(url)) {
+        (Ok(tags), Ok(archived_tags)) => Ok(tags
+            .into_iter()
+            .chain(archived_tags.into_iter())
+            .map(|tag| {
+                (
+                    tag.id,
+                    TagData {
+                        name: tag.name,
+                        color: tag.color,
+                    },
+                )
+            })
+            .collect()),
+        (Err(e), _) => Err(e.into()),
+        (_, Err(e)) => Err(e.into()),
+    }
+}
+
+async fn reqwest_tags(url: &Url) -> Result<Vec<TagEntry>, reqwest::Error> {
+    reqwest::get(url.join("tags").unwrap())
+        .await?
+        .json::<Vec<TagEntry>>()
+        .await
+}
+
+async fn reqwest_archived_tags(url: &Url) -> Result<Vec<TagEntry>, reqwest::Error> {
+    reqwest::get(url.join("archive/tags").unwrap())
+        .await?
+        .json::<Vec<TagEntry>>()
+        .await
 }
 
 async fn unarchive_task(
-    tasks: UseSharedState<Tasks>,
+    archive: UseSharedState<TaskArchive>,
     url: UseSharedState<TasksUrl>,
     task_id: TaskId,
 ) {
     let url = &url.read().0;
     let _ = send_unarchive_task_request(url, task_id).await;
-    get_tasks(tasks, url).await;
+    get_archive(archive, url).await;
 }
 
 async fn send_unarchive_task_request(url: &Url, task_id: TaskId) -> Result<(), anyhow::Error> {
