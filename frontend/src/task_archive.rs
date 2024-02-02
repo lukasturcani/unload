@@ -102,7 +102,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
     cx.render(rsx! {
         li {
             class: "
-                p-2.5 active:bg-gray-600 sm:hover:bg-gray-600
+                p-2.5 sm:hover:bg-gray-600
                 flex flex-col gap-2
             ",
             onclick: |_| expanded.set(!**expanded),
