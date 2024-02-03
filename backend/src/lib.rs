@@ -538,6 +538,7 @@ WHERE
     )
     .execute(&mut *tx)
     .await?;
+    tx.commit().await?;
     Ok(Json(task_id))
 }
 
