@@ -1688,7 +1688,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
-                            // archive_task(model.clone(), *task_id)
+                            clone_task(model.clone(), *task_id)
                         },
                         path {
                             "stroke-linecap": "round",
@@ -2681,5 +2681,33 @@ async fn send_delete_task_tag_request(
         .send()
         .await?
         .json::<()>()
+        .await?)
+}
+
+async fn clone_task(model: UseSharedState<Model>, task_id: TaskId) {
+    if send_clone_task_request(model.clone(), task_id)
+        .await
+        .is_ok()
+    {
+        requests::board(model).await;
+    }
+}
+
+async fn send_clone_task_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+) -> Result<TaskId, anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/clone",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .post(url)
+        .send()
+        .await?
+        .json::<TaskId>()
         .await?)
 }

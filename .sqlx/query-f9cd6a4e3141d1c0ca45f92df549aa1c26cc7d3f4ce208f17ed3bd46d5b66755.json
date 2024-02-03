@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nINSERT INTO\n    task_assignments (board_name, user_id, task_id)\nSELECT\n    board_name, user_id, task_id\nFROM\n    task_assignments\nWHERE\n    board_name = ? AND task_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "f9cd6a4e3141d1c0ca45f92df549aa1c26cc7d3f4ce208f17ed3bd46d5b66755"
+}

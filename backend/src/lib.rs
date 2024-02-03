@@ -500,6 +500,47 @@ WHERE
     Ok(Json(()))
 }
 
+pub async fn clone_task(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
+) -> Result<Json<TaskId>> {
+    let mut tx = pool.begin().await?;
+    let task_id = sqlx::query!(
+        r#"
+INSERT INTO
+    tasks (board_name, title, description, created, updated, due, size, status)
+SELECT
+    board_name, title, description, created, updated, due, size, status
+FROM
+    tasks
+WHERE
+    board_name = ? AND id = ?
+LIMIT 1"#,
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?
+    .last_insert_rowid()
+    .into();
+    sqlx::query!(
+        r#"
+INSERT INTO
+    task_assignments (board_name, user_id, task_id)
+SELECT
+    board_name, user_id, task_id
+FROM
+    task_assignments
+WHERE
+    board_name = ? AND task_id = ?"#,
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+    Ok(Json(task_id))
+}
+
 pub async fn show_user(
     State(pool): State<SqlitePool>,
     Path((board_name, user_id)): Path<(BoardName, UserId)>,
