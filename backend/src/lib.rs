@@ -505,7 +505,7 @@ pub async fn clone_task(
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
 ) -> Result<Json<TaskId>> {
     let mut tx = pool.begin().await?;
-    let task_id = sqlx::query!(
+    let clone_id = sqlx::query!(
         r#"
 INSERT INTO
     tasks (board_name, title, description, created, updated, due, size, status)
@@ -528,18 +528,19 @@ LIMIT 1"#,
 INSERT INTO
     task_assignments (board_name, user_id, task_id)
 SELECT
-    board_name, user_id, task_id
+    board_name, user_id, ?
 FROM
     task_assignments
 WHERE
     board_name = ? AND task_id = ?"#,
+        clone_id,
         board_name,
         task_id,
     )
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(Json(task_id))
+    Ok(Json(clone_id))
 }
 
 pub async fn show_user(
