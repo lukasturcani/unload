@@ -539,6 +539,22 @@ WHERE
     )
     .execute(&mut *tx)
     .await?;
+    sqlx::query!(
+        r#"
+INSERT INTO
+    task_tags (board_name, task_id, tag_id)
+SELECT
+    board_name, ?, tag_id
+FROM
+    task_tags
+WHERE
+    board_name = ? AND task_id = ?"#,
+        clone_id,
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
     tx.commit().await?;
     Ok(Json(clone_id))
 }
