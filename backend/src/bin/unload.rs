@@ -139,6 +139,10 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
             ServeDir::new(serve_dir),
         )
         .nest_service("/boards/:board_name/archive/tags", ServeDir::new(serve_dir))
+        .nest_service(
+            "/boards/:board_name/repeating-tasks",
+            ServeDir::new(serve_dir),
+        )
 }
 
 #[tokio::main]

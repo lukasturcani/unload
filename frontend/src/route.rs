@@ -2,6 +2,7 @@ use crate::add_task::{AddDoneTask, AddInProgressTask, AddTask, AddToDoTask};
 use crate::add_user::AddUser;
 use crate::board::Board;
 use crate::join_board::JoinBoard;
+use crate::repeating_tasks::RepeatingTasks;
 use crate::tag_archive::ArchivedTags;
 use crate::tags::Tags;
 use crate::task_archive::TaskArchive;
@@ -34,4 +35,6 @@ pub enum Route {
     AddDoneTask { board_name: BoardName },
     #[route("/boards/:board_name/archive/tasks")]
     TaskArchive { board_name: BoardName },
+    #[route("/boards/:board_name/repeating-tasks")]
+    RepeatingTasks { board_name: BoardName },
 }

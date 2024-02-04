@@ -16,7 +16,7 @@ pub const TEXT_INPUT_LABEL: &str = "
 ";
 
 pub const BOTTOM_BAR_BUTTON: &str = "
-    h-full w-1/6
+    h-full flex-1 sm:flex-initial sm:w-1/6
     grid place-items-center
     group
     first:border-s border-e border-gray-600
