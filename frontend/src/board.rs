@@ -124,9 +124,6 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
-                            onclick: move |event| {
-                                event.stop_propagation();
-                            },
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -321,9 +318,6 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
                     "stroke-width": "1.5",
                     stroke: "currentColor",
                     class: "w-6 h-6 text-gray-400 group-hover:text-blue-500",
-                    onclick: move |event| {
-                        event.stop_propagation();
-                    },
                     path {
                         "stroke-linecap": "round",
                         "stroke-linejoin": "round",
