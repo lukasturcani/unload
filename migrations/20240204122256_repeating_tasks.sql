@@ -31,7 +31,6 @@ IF NOT EXISTS repeat_weekly (
     FOREIGN KEY (task_id) REFERENCES tasks (id)
 );
 
-
 CREATE TABLE
 IF NOT EXISTS repeat_monthly (
     id INTEGER PRIMARY KEY NOT NULL,
