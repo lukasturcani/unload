@@ -9,13 +9,13 @@ pub struct BoardName(String);
 
 impl From<&str> for BoardName {
     fn from(value: &str) -> Self {
-        Self(value.to_string())
+        Self(value.to_lowercase())
     }
 }
 
 impl From<String> for BoardName {
     fn from(value: String) -> Self {
-        Self(value)
+        Self(value.to_lowercase())
     }
 }
 
