@@ -73,8 +73,6 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
     let description = use_state(cx, String::default);
     let size = use_state(cx, || TaskSize::Small);
     let status = use_state(cx, || *default_status);
-    let blocked_by = use_ref(cx, Vec::new);
-    let blocks = use_ref(cx, Vec::new);
     let assigned_to = use_ref(cx, Vec::new);
     let due_date = use_state(cx, || None::<NaiveDate>);
     let due_time = use_state(cx, || NaiveTime::from_hms_opt(0, 0, 0).unwrap());
@@ -269,26 +267,6 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             },
                         },
                     },
-                    TaskSearch{
-                        title: "Blocked by",
-                        on_select_task: |task_id| blocked_by.write().push(task_id),
-                        on_remove_task: |task_id| {
-                            blocked_by
-                            .write()
-                            .retain(|&value| value != task_id)
-                        },
-                        banned: blocks.read().clone(),
-                    },
-                    TaskSearch {
-                        title: "Blocks",
-                        on_select_task: |task_id| blocks.write().push(task_id),
-                        on_remove_task: |task_id| {
-                            blocks
-                            .write()
-                            .retain(|&value| value != task_id)
-                        },
-                        banned: blocked_by.read().clone(),
-                    }
                     div {
                         class: "flex flex-col gap-1",
                         label {
@@ -359,8 +337,6 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     size: **size,
                                     status: **status,
                                     assignees: assigned_to.write().drain(..).collect(),
-                                    blocks: blocks.write().drain(..).collect(),
-                                    blocked_by: blocked_by.write().drain(..).collect(),
                                     tags: tags.write().drain(..).collect(),
                                 },
                                 nav.clone(),
@@ -400,125 +376,6 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                 }
             }}
         },
-    })
-}
-
-#[component]
-fn TaskSearch<'a>(
-    cx: Scope<'a>,
-    title: &'static str,
-    on_select_task: EventHandler<'a, TaskId>,
-    on_remove_task: EventHandler<'a, TaskId>,
-    banned: Vec<TaskId>,
-) -> Element<'a> {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    let selected = use_ref(cx, HashSet::new);
-    let search_input = use_state(cx, String::default);
-    let read_selected = selected.read();
-    let read_model = model.read();
-    cx.render(rsx! {
-        div {
-            class: "flex flex-col gap-1",
-            p {
-                class: styles::TEXT_INPUT_LABEL,
-                title
-            },
-            input {
-                r#type: "text",
-                class: styles::TEXT_INPUT,
-                placeholder: "Search",
-                autocomplete: "off",
-                value: "{search_input}",
-                oninput: |event| search_input.set(event.data.value.clone())
-            }
-            div {
-                class: "flex flex-row gap-2 flex-wrap",
-                for (task_id, task) in selected
-                    .read()
-                    .iter()
-                    .map(|task_id| (task_id, &read_model.tasks[task_id]))
-                {rsx!{
-                    span {
-                        class: "
-                            text-sm font-medium text-white
-                            px-2.5 py-0.5 rounded
-                            cursor-pointer
-                            border-2 border-white
-                            flex flex-row gap-2
-                        ",
-                        "{&task.title}"
-                        button {
-                            r#type: "button",
-                            class: "{styles::TAG_BADGE_BUTTON}",
-                            onclick: {
-                                let tag_id = *task_id;
-                                move |_| {
-                                    selected.write().retain(|&this| this != tag_id);
-                                    on_remove_task.call(tag_id);
-                                }
-                            },
-                            svg {
-                                class: "w-2 h-2",
-                                "aria-hidden": "true",
-                                xmlns: "http://www.w3.org/2000/svg",
-                                fill: "none",
-                                "viewBox": "0 0 14 14",
-                                path {
-                                    stroke: "currentColor",
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    "stroke-width": "2",
-                                    d: "m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                                }
-                            }
-                        }
-                    }
-                }}
-            }
-            ul {
-                class: "
-                    text-sm text-gray-200 rounded-lg
-                    border border-gray-700 divide-y divide-gray-700
-                    h-64 overflow-y-scroll
-                ",
-                rsx!{
-                    for (task_id, task) in read_model
-                        .tasks
-                        .iter()
-                        .filter(|(id, task)| {
-                            !read_selected.contains(id)
-                            && !banned.contains(id)
-                            && task.title.to_lowercase().contains(&search_input.to_lowercase())
-                        })
-                        .sorted_by_key(|(_, task)| task.title.to_lowercase())
-                    {rsx!{
-                        li {
-                            key: "{task_id}",
-                            button {
-                                r#type: "button",
-                                class: "
-                                    text-left w-full px-4 py-2
-                                    active:bg-gray-800 active:text-white
-                                    sm:hover:bg-gray-800 sm:hover:text-white
-                                ",
-                                prevent_default: "onmousedown",
-                                onmousedown: |_| {},
-                                onclick: {
-                                    let task_id = *task_id;
-                                    move |event| {
-                                        event.stop_propagation();
-                                        selected.write().insert(task_id);
-                                        on_select_task.call(task_id);
-                                        search_input.set(String::new());
-                                    }
-                                },
-                                task.title.clone(),
-                            }
-                        },
-                    }}
-                }
-            }
-        }
     })
 }
 

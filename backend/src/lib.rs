@@ -25,13 +25,7 @@ struct TaskRow {
 }
 
 impl TaskRow {
-    fn into_entry(
-        self,
-        assignees: Vec<UserId>,
-        blocks: Vec<TaskId>,
-        blocked_by: Vec<TaskId>,
-        tags: Vec<TagId>,
-    ) -> TaskEntry {
+    fn into_entry(self, assignees: Vec<UserId>, tags: Vec<TagId>) -> TaskEntry {
         TaskEntry {
             id: self.id,
             title: self.title,
@@ -42,8 +36,6 @@ impl TaskRow {
             size: self.size,
             status: self.status,
             assignees,
-            blocks,
-            blocked_by,
             tags,
         }
     }
@@ -167,48 +159,6 @@ WHERE
     .map(|AssigneeRow { user_id }| user_id)
     .collect();
 
-    struct BlocksRow {
-        blocks_id: TaskId,
-    }
-    let blocks = sqlx::query_as!(
-        BlocksRow,
-        "
-SELECT
-    blocks_id
-FROM
-    task_dependencies
-WHERE
-    board_name = ? AND task_id = ?",
-        board_name,
-        task_id,
-    )
-    .fetch_all(&mut *tx)
-    .await?
-    .into_iter()
-    .map(|BlocksRow { blocks_id }| blocks_id)
-    .collect();
-
-    struct BlockedByRow {
-        task_id: TaskId,
-    }
-    let blocked_by = sqlx::query_as!(
-        BlockedByRow,
-        "
-SELECT
-    task_id
-FROM
-    task_dependencies
-WHERE
-    board_name = ? and blocks_id = ?",
-        board_name,
-        task_id,
-    )
-    .fetch_all(&mut *tx)
-    .await?
-    .into_iter()
-    .map(|BlockedByRow { task_id }| task_id)
-    .collect();
-
     struct TagRow {
         tag_id: TagId,
     }
@@ -231,7 +181,7 @@ WHERE
     .collect();
 
     tx.commit().await?;
-    Ok(Json(task.into_entry(assignees, blocks, blocked_by, tags)))
+    Ok(Json(task.into_entry(assignees, tags)))
 }
 
 pub async fn show_tasks(
@@ -285,38 +235,6 @@ WHERE
             map
         });
 
-    struct BlocksRow {
-        task_id: TaskId,
-        blocks_id: TaskId,
-    }
-    let blocks = sqlx::query_as!(
-        BlocksRow,
-        "
-SELECT
-    task_id, blocks_id
-FROM
-    task_dependencies
-WHERE
-    board_name = ?",
-        board_name,
-    )
-    .fetch_all(&mut *tx)
-    .await?;
-    let (mut blocks_assignments, mut blocked_by_assignmnets) = blocks.into_iter().fold(
-        (HashMap::new(), HashMap::new()),
-        |(mut blocks, mut blocked_by), row| {
-            blocks
-                .entry(row.task_id)
-                .or_insert_with(Vec::new)
-                .push(row.blocks_id);
-            blocked_by
-                .entry(row.blocks_id)
-                .or_insert_with(Vec::new)
-                .push(row.task_id);
-            (blocks, blocked_by)
-        },
-    );
-
     struct TagRow {
         task_id: TaskId,
         tag_id: TagId,
@@ -350,10 +268,6 @@ WHERE
             let task_id = task_row.id;
             task_row.into_entry(
                 task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
-                blocks_assignments.remove(&task_id).unwrap_or_else(Vec::new),
-                blocked_by_assignmnets
-                    .remove(&task_id)
-                    .unwrap_or_else(Vec::new),
                 tag_assignments.remove(&task_id).unwrap_or_else(Vec::new),
             )
         })
@@ -398,30 +312,6 @@ VALUES (?, ?, ?)",
         .execute(&mut *tx)
         .await?;
     }
-    for other in task_data.blocks.iter() {
-        sqlx::query!(
-            "
-INSERT INTO task_dependencies (board_name, task_id, blocks_id)
-VALUES (?, ?, ?)",
-            board_name,
-            task_id,
-            other
-        )
-        .execute(&mut *tx)
-        .await?;
-    }
-    for other in task_data.blocked_by.iter() {
-        sqlx::query!(
-            "
-INSERT INTO task_dependencies (board_name, task_id, blocks_id)
-VALUES (?, ?, ?)",
-            board_name,
-            other,
-            task_id,
-        )
-        .execute(&mut *tx)
-        .await?;
-    }
     for tag_id in task_data.tags.iter() {
         sqlx::query!(
             "
@@ -451,21 +341,6 @@ DELETE FROM
     task_assignments
 WHERE
     board_name = ? AND task_id = ?",
-        board_name,
-        task_id,
-    )
-    .execute(&mut *tx)
-    .await?;
-
-    sqlx::query!(
-        "
-DELETE FROM
-    task_dependencies
-WHERE
-    (board_name = ? AND task_id = ?)
-    OR (board_name = ? AND blocks_id = ?)",
-        board_name,
-        task_id,
         board_name,
         task_id,
     )
@@ -991,38 +866,6 @@ WHERE
             map
         });
 
-    struct BlocksRow {
-        task_id: TaskId,
-        blocks_id: TaskId,
-    }
-    let blocks = sqlx::query_as!(
-        BlocksRow,
-        "
-SELECT
-    task_id, blocks_id
-FROM
-    task_dependencies
-WHERE
-    board_name = ?",
-        board_name,
-    )
-    .fetch_all(&mut *tx)
-    .await?;
-    let (mut blocks_assignments, mut blocked_by_assignmnets) = blocks.into_iter().fold(
-        (HashMap::new(), HashMap::new()),
-        |(mut blocks, mut blocked_by), row| {
-            blocks
-                .entry(row.task_id)
-                .or_insert_with(Vec::new)
-                .push(row.blocks_id);
-            blocked_by
-                .entry(row.blocks_id)
-                .or_insert_with(Vec::new)
-                .push(row.task_id);
-            (blocks, blocked_by)
-        },
-    );
-
     struct TagRow {
         task_id: TaskId,
         tag_id: TagId,
@@ -1056,10 +899,6 @@ WHERE
             let task_id = task_row.id;
             task_row.into_entry(
                 task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
-                blocks_assignments.remove(&task_id).unwrap_or_else(Vec::new),
-                blocked_by_assignmnets
-                    .remove(&task_id)
-                    .unwrap_or_else(Vec::new),
                 tag_assignments.remove(&task_id).unwrap_or_else(Vec::new),
             )
         })

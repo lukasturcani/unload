@@ -125,8 +125,6 @@ async fn tasks(model: &UseSharedState<Model>) -> Result<TasksResponse, anyhow::E
                     due: task.due,
                     size: task.size,
                     assignees: task.assignees,
-                    blocks: task.blocks,
-                    blocked_by: task.blocked_by,
                     tags: task.tags,
                 },
             );
@@ -164,8 +162,6 @@ impl From<Vec<TaskEntry>> for TasksResponse {
                     due: task.due,
                     size: task.size,
                     assignees: task.assignees,
-                    blocks: task.blocks,
-                    blocked_by: task.blocked_by,
                     tags: task.tags,
                 },
             );

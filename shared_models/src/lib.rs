@@ -129,8 +129,6 @@ pub struct TaskData {
     pub size: TaskSize,
     pub status: TaskStatus,
     pub assignees: Vec<UserId>,
-    pub blocks: Vec<TaskId>,
-    pub blocked_by: Vec<TaskId>,
     pub tags: Vec<TagId>,
 }
 
@@ -145,8 +143,6 @@ pub struct TaskEntry {
     pub size: TaskSize,
     pub status: TaskStatus,
     pub assignees: Vec<UserId>,
-    pub blocks: Vec<TaskId>,
-    pub blocked_by: Vec<TaskId>,
     pub tags: Vec<TagId>,
 }
 
