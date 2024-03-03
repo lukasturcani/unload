@@ -81,8 +81,6 @@ pub struct TaskData {
     pub due: Option<DateTime<Utc>>,
     pub size: TaskSize,
     pub assignees: Vec<UserId>,
-    pub blocks: Vec<TaskId>,
-    pub blocked_by: Vec<TaskId>,
     pub tags: Vec<TagId>,
 }
 
@@ -96,8 +94,6 @@ impl From<TaskEntry> for TaskData {
             due: value.due,
             size: value.size,
             assignees: value.assignees,
-            blocks: value.blocks,
-            blocked_by: value.blocked_by,
             tags: value.tags,
         }
     }

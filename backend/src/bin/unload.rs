@@ -285,15 +285,13 @@ mod tests {
         // Create tasks
 
         let mut task_ids = Vec::new();
-        let mut task1 = TaskData {
+        let task1 = TaskData {
             title: "first".to_string(),
             description: "first description".to_string(),
             due: Some(Utc::now()),
             size: TaskSize::Small,
             status: TaskStatus::ToDo,
             assignees: user_ids.clone(),
-            blocks: Vec::new(),
-            blocked_by: Vec::new(),
             tags: Vec::new(),
         };
         task_ids.push(
@@ -303,15 +301,13 @@ mod tests {
                 .await
                 .json(),
         );
-        let mut task2 = TaskData {
+        let task2 = TaskData {
             title: "second".to_string(),
             description: "second description".to_string(),
             due: Some(Utc::now()),
             size: TaskSize::Medium,
             status: TaskStatus::InProgress,
             assignees: user_ids.clone(),
-            blocks: vec![task_ids[0]],
-            blocked_by: Vec::new(),
             tags: vec![tag_ids[0]],
         };
         task_ids.push(
@@ -321,7 +317,6 @@ mod tests {
                 .await
                 .json(),
         );
-        task1.blocked_by.push(*task_ids.last().unwrap());
         let task3 = TaskData {
             title: "third".to_string(),
             description: "third description".to_string(),
@@ -329,8 +324,6 @@ mod tests {
             size: TaskSize::Large,
             status: TaskStatus::Done,
             assignees: user_ids.clone(),
-            blocks: vec![task_ids[0]],
-            blocked_by: vec![task_ids[1]],
             tags: vec![tag_ids[0], tag_ids[1]],
         };
         task_ids.push(
@@ -340,8 +333,6 @@ mod tests {
                 .await
                 .json(),
         );
-        task1.blocked_by.push(*task_ids.last().unwrap());
-        task2.blocks.push(*task_ids.last().unwrap());
 
         // Check tasks one by one
 
@@ -362,8 +353,6 @@ mod tests {
                 size: task_data.size.clone(),
                 status: task_data.status.clone(),
                 assignees: task_data.assignees.clone(),
-                blocks: task_data.blocks.clone(),
-                blocked_by: task_data.blocked_by.clone(),
                 tags: task_data.tags.clone(),
             };
             assert_eq!(task_entry, expected);
@@ -383,18 +372,6 @@ mod tests {
         // Check task deletion
 
         let removed_task = expected_tasks.pop().unwrap();
-        for expected_task in expected_tasks.iter_mut() {
-            expected_task.blocks = expected_task
-                .blocks
-                .iter()
-                .filter_map(|&task_id| (task_id != removed_task.id).then_some(task_id))
-                .collect();
-            expected_task.blocked_by = expected_task
-                .blocked_by
-                .iter()
-                .filter_map(|&task_id| (task_id != removed_task.id).then_some(task_id))
-                .collect();
-        }
         let _ = server
             .delete(&format!(
                 "/api/boards/{board_name}/tasks/{}",

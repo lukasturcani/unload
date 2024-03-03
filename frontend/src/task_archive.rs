@@ -228,8 +228,6 @@ async fn send_get_tasks_request(url: &Url) -> Result<HashMap<TaskId, TaskData>, 
                     size: task.size,
                     status: task.status,
                     assignees: task.assignees,
-                    blocks: task.blocks,
-                    blocked_by: task.blocked_by,
                     tags: task.tags,
                 },
             )
