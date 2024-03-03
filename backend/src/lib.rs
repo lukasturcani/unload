@@ -350,21 +350,6 @@ WHERE
     sqlx::query!(
         "
 DELETE FROM
-    task_dependencies
-WHERE
-    (board_name = ? AND task_id = ?)
-    OR (board_name = ? AND blocks_id = ?)",
-        board_name,
-        task_id,
-        board_name,
-        task_id,
-    )
-    .execute(&mut *tx)
-    .await?;
-
-    sqlx::query!(
-        "
-DELETE FROM
     task_tags
 WHERE
     board_name = ? AND task_id = ?",
