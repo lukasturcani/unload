@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS task_dependencies;
+
 CREATE TABLE
 IF NOT EXISTS repeat_daily (
     id INTEGER PRIMARY KEY NOT NULL,
