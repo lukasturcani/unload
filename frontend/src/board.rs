@@ -361,6 +361,7 @@ fn ToDoColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let nav = use_navigator(cx);
+    let show_quick_add = use_state(cx, || false);
     cx.render(rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -422,28 +423,55 @@ fn ToDoColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            button {
-                r#type: "button",
-                class: " grid place-items-center group p-2 border-t border-gray-700",
-                onclick: |_| {
-                    nav.push(Route::AddToDoTask {
-                        board_name: model.read().board_name.clone(),
-                    });
-                },
-                svg {
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none",
-                    "viewBox": "0 0 24 24",
-                    "stroke-width": "1.5",
-                    "stroke": "currentColor",
-                    class: "
-                        w-6 h-6 text-white
-                        group-active:text-blue-500 sm:group-hover:text-blue-500
-                    ",
-                    path {
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+            if **show_quick_add {rsx!{
+                QuickAddTask {}
+            }}
+            div {
+                class: "grid grid-cols-2",
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| {
+                        nav.push(Route::AddToDoTask {
+                            board_name: model.read().board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+                        }
                     }
                 }
             }
@@ -922,6 +950,16 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                     }
                 }
             }
+        }
+    })
+}
+
+#[component]
+fn QuickAddTask(cx: Scope) -> Element {
+    cx.render(rsx! {
+        div {
+            class: "bg-blue-800 ",
+            "hi"
         }
     })
 }
