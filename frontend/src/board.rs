@@ -957,9 +957,41 @@ fn DenseDoneColumn(cx: Scope) -> Element {
 #[component]
 fn QuickAddTask(cx: Scope) -> Element {
     cx.render(rsx! {
-        div {
-            class: "bg-blue-800 ",
-            "hi"
+        ul {
+            class: "
+                text-sm text-gray-200
+                border-t border-gray-700 divide-y divide-gray-700
+                shrink-0 h-1/4 overflow-y-scroll
+            ",
+            for (task_id, task) in &[
+                (1, "first"),
+                (2, "second"),
+                (3, "third"),
+                (4, "fourth"),
+                (5, "fifth"),
+                (6, "sixth"),
+                (7, "seventh"),
+                (8, "eighth"),
+                (9, "ninth"),
+                (10, "tenth"),
+            ] {rsx! {
+                li {
+                    key: "{task_id}",
+                    button {
+                        r#type: "button",
+                        class: "
+                            text-left w-full px-4 py-2
+                            active:bg-gray-800 active:text-white
+                            last:border-b border-gray-700
+                            sm:hover:bg-gray-800 sm:hover:text-white
+                        ",
+                        prevent_default: "onmousedown",
+                        onmousedown: |_| {},
+                        onclick: |_| {},
+                        task
+                    }
+                }
+            }}
         }
     })
 }
