@@ -1200,3 +1200,10 @@ VALUES (?, ?, ?)",
     tx.commit().await?;
     Ok(Json(()))
 }
+
+pub async fn add_quick_add_task(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+    Json(task_data): Json<QuickAddTaskData>,
+) -> Result<Json<()>> {
+}
