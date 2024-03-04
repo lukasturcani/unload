@@ -8,8 +8,9 @@ use crate::user_search::UserSearch;
 use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
+use itertools::Itertools;
 use reqwest::Client;
-use shared_models::{Color, QuickAddData, QuickAddTaskId, TagId, TaskStatus};
+use shared_models::{Color, QuickAddData, QuickAddTaskId, TagId, TaskData, TaskStatus};
 use shared_models::{TaskSize, UserId};
 
 use crate::model::Model;
@@ -424,7 +425,9 @@ fn ToDoColumn(cx: Scope) -> Element {
                 },
             }
             if **show_quick_add {rsx!{
-                QuickAddTasks {}
+                QuickAddTasks {
+                    status: TaskStatus::ToDo,
+                }
             }}
             div {
                 class: "grid grid-cols-2 divide-x border-gray-700",
@@ -955,7 +958,7 @@ fn DenseDoneColumn(cx: Scope) -> Element {
 }
 
 #[component]
-fn QuickAddTasks(cx: Scope) -> Element {
+fn QuickAddTasks(cx: Scope, status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     cx.render(rsx! {
@@ -965,10 +968,11 @@ fn QuickAddTasks(cx: Scope) -> Element {
                 border-t border-gray-700 divide-y divide-gray-700
                 shrink-0 h-1/4 overflow-y-scroll
             ",
-            read_model.quick_add.keys().map(|task_id| {
+            read_model.quick_add.keys().sorted().map(|task_id| {
                 rsx!(QuickAddTask {
                     key: "{task_id}",
                     task_id: *task_id,
+                    status: *status,
                 })
             })
         }
@@ -976,7 +980,7 @@ fn QuickAddTasks(cx: Scope) -> Element {
 }
 
 #[component]
-fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId) -> Element {
+fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId, status: TaskStatus) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let data = &read_model.quick_add[task_id];
@@ -997,7 +1001,20 @@ fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId) -> Element {
                 ",
                 prevent_default: "onmousedown",
                 onmousedown: |_| {},
-                onclick: |_| {},
+                onclick: move |event| {
+                    let read_model = model.read();
+                    let data = &read_model.quick_add[task_id];
+                    event.stop_propagation();
+                    create_task(model.clone(), TaskData {
+                        title: data.title.clone(),
+                        description: data.description.clone(),
+                        size: data.size,
+                        assignees: data.assignees.clone(),
+                        status: *status,
+                        tags: data.tags.clone(),
+                        due: None,
+                    })
+                },
                 div {
                     class: "flex flex-row justify-between",
                     "{data.title}"
@@ -1042,6 +1059,23 @@ fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId) -> Element {
                                 }
                             }
                         }}
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-6 h-6 cursor-pointer text-red-600",
+                            onclick: move |event| {
+                                event.stop_propagation();
+                                delete_quick_add_task(model.clone(), *task_id)
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0",
+                            }
+                        }
                     }
                 }
             }
@@ -2913,4 +2947,43 @@ async fn send_create_quick_add_task_request(
         .await?
         .json::<TaskId>()
         .await?)
+}
+
+async fn delete_quick_add_task(model: UseSharedState<Model>, task_id: QuickAddTaskId) {
+    if send_delete_quick_add_task_request(model.clone(), task_id)
+        .await
+        .is_ok()
+    {
+        requests::board(model).await;
+    }
+}
+
+async fn send_delete_quick_add_task_request(
+    model: UseSharedState<Model>,
+    task_id: QuickAddTaskId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/quick-add/{}",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .delete(url)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn create_task(model: UseSharedState<Model>, task_data: TaskData) {
+    if task_data.title.is_empty() {
+        log::info!("empty task title, doing nothing");
+        return;
+    }
+    if let Ok(task_id) = requests::create_task(&model, &task_data).await {
+        log::info!("created task: {task_id}");
+    }
+    requests::board(model).await;
 }

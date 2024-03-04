@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nDELETE FROM\n    quick_add_task_assignments\nWHERE\n    board_name = ? AND task_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "a0cc79322992fe3327deb5408a5d2b1d158e699e9b4fd99dddca09db0c4c03a7"
+}

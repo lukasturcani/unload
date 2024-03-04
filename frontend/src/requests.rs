@@ -256,3 +256,22 @@ pub async fn create_tag(
         tag_data.name,
     ))
 }
+
+pub async fn create_task(
+    model: &UseSharedState<Model>,
+    task_data: &shared_models::TaskData,
+) -> Result<TaskId, anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model
+            .url
+            .join(&format!("/api/boards/{}/tasks", model.board_name))?
+    };
+    Ok(Client::new()
+        .post(url)
+        .json(task_data)
+        .send()
+        .await?
+        .json::<TaskId>()
+        .await?)
+}

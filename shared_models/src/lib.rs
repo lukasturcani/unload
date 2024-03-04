@@ -214,16 +214,6 @@ pub struct QuickAddData {
     pub tags: Vec<TagId>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct QuickAddEntry {
-    pub id: QuickAddTaskId,
-    pub title: String,
-    pub description: String,
-    pub size: TaskSize,
-    pub assignees: Vec<UserId>,
-    pub tags: Vec<TagId>,
-}
-
 impl From<QuickAddEntry> for QuickAddData {
     fn from(value: QuickAddEntry) -> Self {
         Self {
@@ -234,4 +224,14 @@ impl From<QuickAddEntry> for QuickAddData {
             tags: value.tags,
         }
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct QuickAddEntry {
+    pub id: QuickAddTaskId,
+    pub title: String,
+    pub description: String,
+    pub size: TaskSize,
+    pub assignees: Vec<UserId>,
+    pub tags: Vec<TagId>,
 }

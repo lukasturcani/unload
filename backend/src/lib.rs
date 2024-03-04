@@ -1384,3 +1384,48 @@ WHERE
     tx.commit().await?;
     Ok(Json(task_entries))
 }
+
+pub async fn delete_quick_add_task(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, QuickAddTaskId)>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    quick_add_task_assignments
+WHERE
+    board_name = ? AND task_id = ?",
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
+    quick_add_task_tags
+WHERE
+    board_name = ? AND task_id = ?",
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
+    quick_add_tasks
+WHERE
+    board_name = ? AND id = ?",
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(Json(()))
+}
