@@ -3,6 +3,7 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
+use shared_models::QuickAddData;
 use shared_models::TagData;
 use shared_models::TagEntry;
 use shared_models::TagId;
@@ -522,6 +523,18 @@ WHERE
     sqlx::query!(
         "
 DELETE FROM
+    quick_add_task_assignments
+WHERE
+    board_name = ? AND user_id = ?",
+        board_name,
+        user_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
     users
 WHERE
     board_name = ? AND id = ?",
@@ -973,6 +986,18 @@ WHERE
     sqlx::query!(
         "
 DELETE FROM
+    quick_add_task_tags
+WHERE
+    board_name = ? AND tag_id = ?",
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
     tags
 WHERE
     board_name = ? AND id = ?",
@@ -1201,9 +1226,51 @@ VALUES (?, ?, ?)",
     Ok(Json(()))
 }
 
-pub async fn add_quick_add_task(
+pub async fn create_quick_add_task(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
-    Json(task_data): Json<QuickAddTaskData>,
+    Json(task_data): Json<QuickAddData>,
 ) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    let task_id = sqlx::query!(
+        "
+INSERT INTO quick_add_tasks (board_name, title, description, size)
+VALUES (?, ?, ?, ?)",
+        board_name,
+        task_data.title,
+        task_data.description,
+        task_data.size,
+    )
+    .execute(&mut *tx)
+    .await?
+    .last_insert_rowid()
+    .into();
+
+    for assignee in task_data.assignees.iter() {
+        sqlx::query!(
+            "
+INSERT INTO quick_add_task_assignments (board_name, user_id, task_id)
+VALUES (?, ?, ?)",
+            board_name,
+            assignee,
+            task_id,
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+    for tag_id in task_data.tags.iter() {
+        sqlx::query!(
+            "
+INSERT INTO quick_add_task_tags (board_name, task_id, tag_id)
+VALUES (?, ?, ?)",
+            board_name,
+            task_id,
+            tag_id
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    tx.commit().await?;
+    Ok(Json(()))
 }

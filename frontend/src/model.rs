@@ -5,7 +5,9 @@ use std::{
 
 use chrono::{DateTime, Utc};
 use reqwest::Url;
-use shared_models::{BoardName, TagData, TagId, TaskEntry, TaskId, TaskSize, UserData, UserId};
+use shared_models::{
+    BoardName, QuickAddData, TagData, TagId, TaskEntry, TaskId, TaskSize, UserData, UserId,
+};
 
 pub struct Model {
     pub url: Url,
@@ -99,15 +101,6 @@ impl From<TaskEntry> for TaskData {
             tags: value.tags,
         }
     }
-}
-
-#[derive(Clone, Debug)]
-pub struct QuickAddData {
-    pub title: String,
-    pub description: String,
-    pub size: TaskSize,
-    pub assignees: Vec<UserId>,
-    pub tags: Vec<TagId>,
 }
 
 impl From<TaskData> for QuickAddData {

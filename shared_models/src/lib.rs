@@ -58,6 +58,31 @@ impl FromStr for TaskId {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(transparent))]
+pub struct QuickAddTaskId(i64);
+
+impl From<i64> for QuickAddTaskId {
+    fn from(value: i64) -> Self {
+        Self(value)
+    }
+}
+
+impl Display for QuickAddTaskId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl FromStr for QuickAddTaskId {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(s.parse::<i64>()?.into())
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum TaskSize {
@@ -178,4 +203,13 @@ pub enum Color {
     Blue,
     Teal,
     Aqua,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct QuickAddData {
+    pub title: String,
+    pub description: String,
+    pub size: TaskSize,
+    pub assignees: Vec<UserId>,
+    pub tags: Vec<TagId>,
 }

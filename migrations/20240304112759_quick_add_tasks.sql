@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS quick_add_tasks (
     size TEXT CHECK (size IN ('Small', 'Medium', 'Large')) NOT NULL,
     FOREIGN KEY (board_name) REFERENCES boards (name)
 );
-CREATE INDEX IF NOT EXISTS quick_add_tasks_board_name_idx ON quick_add_tasks (board_name);
+CREATE INDEX
+IF NOT EXISTS quick_add_tasks_board_name_idx
+ON quick_add_tasks (board_name);
 
 CREATE TABLE IF NOT EXISTS quick_add_task_assignments (
     id INTEGER PRIMARY KEY NOT NULL,

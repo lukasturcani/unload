@@ -427,7 +427,7 @@ fn ToDoColumn(cx: Scope) -> Element {
                 QuickAddTask {}
             }}
             div {
-                class: "grid grid-cols-2",
+                class: "grid grid-cols-2 divide-x border-gray-700",
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
