@@ -976,13 +976,13 @@ fn QuickAddTask(cx: Scope) -> Element {
                 (10, "tenth"),
             ] {rsx! {
                 li {
+                    class: "last:border-b border-gray-700",
                     key: "{task_id}",
                     button {
                         r#type: "button",
                         class: "
                             text-left w-full px-4 py-2
                             active:bg-gray-800 active:text-white
-                            last:border-b border-gray-700
                             sm:hover:bg-gray-800 sm:hover:text-white
                         ",
                         prevent_default: "onmousedown",
