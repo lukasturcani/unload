@@ -4,6 +4,7 @@ use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
 use shared_models::QuickAddData;
+use shared_models::QuickAddTaskId;
 use shared_models::TagData;
 use shared_models::TagEntry;
 use shared_models::TagId;
@@ -1230,7 +1231,7 @@ pub async fn create_quick_add_task(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
     Json(task_data): Json<QuickAddData>,
-) -> Result<Json<()>> {
+) -> Result<Json<QuickAddTaskId>> {
     let mut tx = pool.begin().await?;
     let task_id = sqlx::query!(
         "
@@ -1272,5 +1273,5 @@ VALUES (?, ?, ?)",
     }
 
     tx.commit().await?;
-    Ok(Json(()))
+    Ok(Json(task_id))
 }
