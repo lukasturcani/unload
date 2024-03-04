@@ -976,7 +976,6 @@ fn QuickAddTask(cx: Scope) -> Element {
                 (10, "tenth"),
             ] {rsx! {
                 li {
-                    class: "last:border-b border-gray-700",
                     key: "{task_id}",
                     button {
                         r#type: "button",
