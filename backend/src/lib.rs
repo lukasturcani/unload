@@ -1275,3 +1275,90 @@ VALUES (?, ?, ?)",
     tx.commit().await?;
     Ok(Json(task_id))
 }
+
+pub async fn show_quick_add_tasks(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<QuickAddTaskEntry>>> {
+    let mut tx = pool.begin().await?;
+    let tasks = sqlx::query_as!(
+        QuickAddTaskRow,
+        r#"
+SELECT
+    id, title, description, size
+FROM
+    quick_add_tasks
+WHERE
+    board_name = ?"#,
+        board_name
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+
+    struct QuickAddTaskAssignmentRow {
+        task_id: QuickAddTaskId,
+        user_id: UserId,
+    }
+    let assignments = sqlx::query_as!(
+        QuickAddTaskAssignmentRow,
+        "
+SELECT
+    task_id, user_id
+FROM
+    quick_add_task_assignments
+WHERE
+    board_name = ?",
+        board_name,
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    let mut task_assignments = assignments
+        .into_iter()
+        .fold(HashMap::new(), |mut map, row| {
+            #[allow(clippy::unwrap_or_default)]
+            map.entry(row.task_id)
+                .or_insert_with(Vec::new)
+                .push(row.user_id);
+            map
+        });
+
+    struct QuickAddTagRow {
+        task_id: QuickAddTaskId,
+        tag_id: TagId,
+    }
+
+    let tag_assignments = sqlx::query_as!(
+        QuickAddTagRow,
+        "
+SELECT
+    task_id, tag_id
+FROM
+    quick_add_task_tags
+WHERE
+    board_name = ?",
+        board_name,
+    );
+    let mut tag_assignments = tag_assignments.fetch_all(&mut *tx).await?.into_iter().fold(
+        HashMap::new(),
+        |mut map, row| {
+            #[allow(clippy::unwrap_or_default)]
+            map.entry(row.task_id)
+                .or_insert_with(Vec::new)
+                .push(row.tag_id);
+            map
+        },
+    );
+
+    let task_entries: Vec<QuickAddTaskEntry> = tasks
+        .into_iter()
+        .map(|task_row| {
+            let task_id = task_row.id;
+            task_row.into_entry(
+                task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
+                tag_assignments.remove(&task_id).unwrap_or_else(Vec::new),
+            )
+        })
+        .collect();
+    tx.commit().await?;
+    Ok(Json(task_entries))
+}
