@@ -9,7 +9,7 @@ use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
 use reqwest::Client;
-use shared_models::{Color, TagId, TaskStatus};
+use shared_models::{Color, QuickAddData, TagId, TaskStatus};
 use shared_models::{TaskSize, UserId};
 
 use crate::model::Model;
@@ -1777,6 +1777,26 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
+                            create_quick_add_task(model.clone(), *task_id)
+                        },
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+                        }
+                    }
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "
+                            w-6 h-6 cursor-pointer text-white
+                            sm:hover:text-blue-500 active:text-blue-500
+                        ",
+                        onclick: move |event| {
+                            event.stop_propagation();
                             clone_task(model.clone(), *task_id)
                         },
                         path {
@@ -2795,6 +2815,45 @@ async fn send_clone_task_request(
     };
     Ok(reqwest::Client::new()
         .post(url)
+        .send()
+        .await?
+        .json::<TaskId>()
+        .await?)
+}
+
+async fn create_quick_add_task(model: UseSharedState<Model>, task_id: TaskId) {
+    if send_create_quick_add_task_request(model.clone(), task_id)
+        .await
+        .is_ok()
+    {
+        requests::board(model).await;
+    }
+}
+
+async fn send_create_quick_add_task_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+) -> Result<TaskId, anyhow::Error> {
+    let (url, task_data) = {
+        let model = model.read();
+        let url = model
+            .url
+            .join(&format!("/api/boards/{}/quick-add", model.board_name))?;
+        let task = &model.tasks[&task_id];
+        (
+            url,
+            QuickAddData {
+                title: task.title.clone(),
+                description: task.description.clone(),
+                size: task.size.clone(),
+                tags: task.tags.clone(),
+                assignees: task.assignees.clone(),
+            },
+        )
+    };
+    Ok(reqwest::Client::new()
+        .post(url)
+        .json(&task_data)
         .send()
         .await?
         .json::<TaskId>()
