@@ -4,6 +4,7 @@ use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
 use shared_models::QuickAddData;
+use shared_models::QuickAddEntry;
 use shared_models::QuickAddTaskId;
 use shared_models::TagData;
 use shared_models::TagEntry;
@@ -37,6 +38,26 @@ impl TaskRow {
             due: self.due,
             size: self.size,
             status: self.status,
+            assignees,
+            tags,
+        }
+    }
+}
+
+struct QuickAddTaskRow {
+    id: QuickAddTaskId,
+    title: String,
+    description: String,
+    size: TaskSize,
+}
+
+impl QuickAddTaskRow {
+    fn into_entry(self, assignees: Vec<UserId>, tags: Vec<TagId>) -> QuickAddEntry {
+        QuickAddEntry {
+            id: self.id,
+            title: self.title,
+            description: self.description,
+            size: self.size,
             assignees,
             tags,
         }
@@ -1279,13 +1300,14 @@ VALUES (?, ?, ?)",
 pub async fn show_quick_add_tasks(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
-) -> Result<Json<Vec<QuickAddTaskEntry>>> {
+) -> Result<Json<Vec<QuickAddEntry>>> {
     let mut tx = pool.begin().await?;
+
     let tasks = sqlx::query_as!(
         QuickAddTaskRow,
         r#"
 SELECT
-    id, title, description, size
+    id, title, description, size AS "size: TaskSize"
 FROM
     quick_add_tasks
 WHERE
@@ -1349,7 +1371,7 @@ WHERE
         },
     );
 
-    let task_entries: Vec<QuickAddTaskEntry> = tasks
+    let task_entries: Vec<QuickAddEntry> = tasks
         .into_iter()
         .map(|task_row| {
             let task_id = task_row.id;

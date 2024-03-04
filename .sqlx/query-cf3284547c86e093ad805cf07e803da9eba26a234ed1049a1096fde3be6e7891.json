@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\nSELECT\n    id, title, description, size\nFROM\n    quick_add_tasks\nWHERE\n    board_name = ?",
+  "query": "\nSELECT\n    id, title, description, size AS \"size: TaskSize\"\nFROM\n    quick_add_tasks\nWHERE\n    board_name = ?",
   "describe": {
     "columns": [
       {
@@ -19,7 +19,7 @@
         "type_info": "Text"
       },
       {
-        "name": "size",
+        "name": "size: TaskSize",
         "ordinal": 3,
         "type_info": "Text"
       }
@@ -34,5 +34,5 @@
       false
     ]
   },
-  "hash": "06e485586dbda991f6ae935acae6660aeca7ed74786efaee0910707b0c214a4d"
+  "hash": "cf3284547c86e093ad805cf07e803da9eba26a234ed1049a1096fde3be6e7891"
 }
