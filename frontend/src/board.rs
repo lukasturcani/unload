@@ -1808,6 +1808,26 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             ",
                             onclick: move |event| {
                                 event.stop_propagation();
+                                create_quick_add_task(model.clone(), *task_id)
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+                            }
+                        }
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "
+                                w-6 h-6 cursor-pointer text-white
+                                sm:hover:text-blue-500 active:text-blue-500
+                            ",
+                            onclick: move |event| {
+                                event.stop_propagation();
                                 clone_task(model.clone(), *task_id)
                             },
                             path {
