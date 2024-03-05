@@ -8,8 +8,9 @@ use crate::user_search::UserSearch;
 use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone};
 use chrono::{Local, Utc};
 use dioxus_router::hooks::use_navigator;
+use itertools::Itertools;
 use reqwest::Client;
-use shared_models::{Color, TagId, TaskStatus};
+use shared_models::{Color, QuickAddData, QuickAddTaskId, TagId, TaskData, TaskStatus};
 use shared_models::{TaskSize, UserId};
 
 use crate::model::Model;
@@ -361,6 +362,7 @@ fn ToDoColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let nav = use_navigator(cx);
+    let show_quick_add = use_state(cx, || false);
     cx.render(rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -422,28 +424,57 @@ fn ToDoColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            button {
-                r#type: "button",
-                class: " grid place-items-center group p-2 border-t border-gray-700",
-                onclick: |_| {
-                    nav.push(Route::AddToDoTask {
-                        board_name: model.read().board_name.clone(),
-                    });
-                },
-                svg {
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none",
-                    "viewBox": "0 0 24 24",
-                    "stroke-width": "1.5",
-                    "stroke": "currentColor",
-                    class: "
-                        w-6 h-6 text-white
-                        group-active:text-blue-500 sm:group-hover:text-blue-500
-                    ",
-                    path {
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+            if **show_quick_add {rsx!{
+                QuickAddTasks {
+                    status: TaskStatus::ToDo,
+                }
+            }}
+            div {
+                class: "grid grid-cols-2 divide-x border-gray-700",
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| {
+                        nav.push(Route::AddToDoTask {
+                            board_name: model.read().board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+                        }
                     }
                 }
             }
@@ -456,6 +487,7 @@ fn DenseToDoColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let nav = use_navigator(cx);
+    let show_quick_add = use_state(cx, || false);
     cx.render(rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -517,28 +549,57 @@ fn DenseToDoColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            button {
-                r#type: "button",
-                class: " grid place-items-center group p-2 border-t border-gray-700",
-                onclick: |_| {
-                    nav.push(Route::AddToDoTask {
-                        board_name: model.read().board_name.clone(),
-                    });
-                },
-                svg {
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none",
-                    "viewBox": "0 0 24 24",
-                    "stroke-width": "1.5",
-                    "stroke": "currentColor",
-                    class: "
-                        w-6 h-6 text-white
-                        group-active:text-blue-500 sm:group-hover:text-blue-500
-                    ",
-                    path {
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+            if **show_quick_add {rsx!{
+                QuickAddTasks {
+                    status: TaskStatus::ToDo,
+                }
+            }}
+            div {
+                class: "grid grid-cols-2 divide-x border-gray-700",
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| {
+                        nav.push(Route::AddToDoTask {
+                            board_name: model.read().board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+                        }
                     }
                 }
             }
@@ -551,6 +612,7 @@ fn InProgressColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let nav = use_navigator(cx);
+    let show_quick_add = use_state(cx, || false);
     cx.render(rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -612,28 +674,57 @@ fn InProgressColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            button {
-                r#type: "button",
-                class: " grid place-items-center group p-2 border-t border-gray-700",
-                onclick: |_| {
-                    nav.push(Route::AddInProgressTask {
-                        board_name: model.read().board_name.clone(),
-                    });
-                },
-                svg {
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none",
-                    "viewBox": "0 0 24 24",
-                    "stroke-width": "1.5",
-                    "stroke": "currentColor",
-                    class: "
-                        w-6 h-6 text-white
-                        group-active:text-blue-500 sm:group-hover:text-blue-500
-                    ",
-                    path {
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+            if **show_quick_add {rsx!{
+                QuickAddTasks {
+                    status: TaskStatus::InProgress,
+                }
+            }}
+            div {
+                class: "grid grid-cols-2 divide-x border-gray-700",
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| {
+                        nav.push(Route::AddInProgressTask {
+                            board_name: model.read().board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+                        }
                     }
                 }
             }
@@ -646,6 +737,7 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let nav = use_navigator(cx);
+    let show_quick_add = use_state(cx, || false);
     cx.render(rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -707,28 +799,57 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            button {
-                r#type: "button",
-                class: " grid place-items-center group p-2 border-t border-gray-700",
-                onclick: |_| {
-                    nav.push(Route::AddInProgressTask {
-                        board_name: model.read().board_name.clone(),
-                    });
-                },
-                svg {
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none",
-                    "viewBox": "0 0 24 24",
-                    "stroke-width": "1.5",
-                    "stroke": "currentColor",
-                    class: "
-                        w-6 h-6 text-white
-                        group-active:text-blue-500 sm:group-hover:text-blue-500
-                    ",
-                    path {
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+            if **show_quick_add {rsx!{
+                QuickAddTasks {
+                    status: TaskStatus::InProgress,
+                }
+            }}
+            div {
+                class: "grid grid-cols-2 divide-x border-gray-700",
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| {
+                        nav.push(Route::AddInProgressTask {
+                            board_name: model.read().board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+                        }
                     }
                 }
             }
@@ -741,6 +862,7 @@ fn DoneColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let nav = use_navigator(cx);
+    let show_quick_add = use_state(cx, || false);
     cx.render(rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -802,28 +924,57 @@ fn DoneColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            button {
-                r#type: "button",
-                class: " grid place-items-center group p-2 border-t border-gray-700",
-                onclick: |_| {
-                    nav.push(Route::AddDoneTask {
-                        board_name: model.read().board_name.clone(),
-                    });
-                },
-                svg {
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none",
-                    "viewBox": "0 0 24 24",
-                    "stroke-width": "1.5",
-                    "stroke": "currentColor",
-                    class: "
-                        w-6 h-6 text-white
-                        group-active:text-blue-500 sm:group-hover:text-blue-500
-                    ",
-                    path {
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+            if **show_quick_add {rsx!{
+                QuickAddTasks {
+                    status: TaskStatus::Done,
+                }
+            }}
+            div {
+                class: "grid grid-cols-2 divide-x border-gray-700",
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| {
+                        nav.push(Route::AddDoneTask {
+                            board_name: model.read().board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+                        }
                     }
                 }
             }
@@ -836,6 +987,7 @@ fn DenseDoneColumn(cx: Scope) -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
     let read_model = model.read();
     let nav = use_navigator(cx);
+    let show_quick_add = use_state(cx, || false);
     cx.render(rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -897,32 +1049,188 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            button {
-                r#type: "button",
-                class: " grid place-items-center group p-2 border-t border-gray-700",
-                onclick: |_| {
-                    nav.push(Route::AddDoneTask {
-                        board_name: model.read().board_name.clone(),
-                    });
-                },
-                svg {
-                    xmlns: "http://www.w3.org/2000/svg",
-                    fill: "none",
-                    "viewBox": "0 0 24 24",
-                    "stroke-width": "1.5",
-                    "stroke": "currentColor",
-                    class: "
-                        w-6 h-6 text-white
-                        group-active:text-blue-500 sm:group-hover:text-blue-500
-                    ",
-                    path {
-                        "stroke-linecap": "round",
-                        "stroke-linejoin": "round",
-                        d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+            if **show_quick_add {rsx!{
+                QuickAddTasks {
+                    status: TaskStatus::Done,
+                }
+            }}
+            div {
+                class: "grid grid-cols-2 divide-x border-gray-700",
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| {
+                        nav.push(Route::AddDoneTask {
+                            board_name: model.read().board_name.clone(),
+                        });
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+                        }
+                    }
+                }
+                button {
+                    r#type: "button",
+                    class: " grid place-items-center group p-2 border-t border-gray-700",
+                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        "stroke": "currentColor",
+                        class: "
+                            w-6 h-6 text-white
+                            group-active:text-blue-500 sm:group-hover:text-blue-500
+                        ",
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+                        }
                     }
                 }
             }
         }
+    })
+}
+
+#[component]
+fn QuickAddTasks(cx: Scope, status: TaskStatus) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
+    cx.render(rsx! {
+        ul {
+            class: "
+                text-sm text-gray-200
+                border-t border-gray-700 divide-y divide-gray-700
+                shrink-0 h-1/4 overflow-y-scroll
+            ",
+            read_model.quick_add.keys().sorted().map(|task_id| {
+                rsx!(QuickAddTask {
+                    key: "{task_id}",
+                    task_id: *task_id,
+                    status: *status,
+                })
+            })
+        }
+    })
+}
+
+#[component]
+fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId, status: TaskStatus) -> Element {
+    let model = use_shared_state::<Model>(cx).unwrap();
+    let read_model = model.read();
+    let data = &read_model.quick_add[task_id];
+    let users: Vec<_> = data
+        .assignees
+        .iter()
+        .map(|user_id| (user_id, &read_model.users[user_id]))
+        .collect();
+    cx.render(rsx! {
+        li {
+            key: "{task_id}",
+            button {
+                r#type: "button",
+                class: "
+                    text-left w-full px-4 py-2
+                    active:bg-gray-800 active:text-white
+                    sm:hover:bg-gray-800 sm:hover:text-white
+                ",
+                prevent_default: "onmousedown",
+                onmousedown: |_| {},
+                onclick: move |event| {
+                    let read_model = model.read();
+                    let data = &read_model.quick_add[task_id];
+                    event.stop_propagation();
+                    create_task(model.clone(), TaskData {
+                        title: data.title.clone(),
+                        description: data.description.clone(),
+                        size: data.size,
+                        assignees: data.assignees.clone(),
+                        status: *status,
+                        tags: data.tags.clone(),
+                        due: None,
+                    })
+                },
+                div {
+                    class: "flex flex-row justify-between",
+                    "{data.title}"
+                    div {
+                        class: "flex flex-row gap-1",
+                        for (user_id, user) in users {rsx!{
+                            div {
+                                class: "group relative",
+                                onclick: |event| event.stop_propagation(),
+                                div {
+                                    class: "
+                                        w-5 h-5 rounded cursor-pointer
+                                        border-2 {color_picker::border_class(&user.color)}
+                                        {user_bg(&model, user_id, &user.color)}
+                                        {color_picker::bg_hover_class(&user.color)}
+                                    ",
+                                    onclick: {
+                                        let user_id = *user_id;
+                                        move |event| {
+                                            event.stop_propagation();
+                                            let mut model = model.write();
+                                            if model.user_filter.contains(&user_id) {
+                                                model.user_filter.remove(&user_id);
+                                            } else {
+                                                model.user_filter.insert(user_id);
+                                            }
+                                        }
+                                    },
+                                },
+                                div {
+                                    dir: "rtl",
+                                    div {
+                                        class: "
+                                            pointer-events-none absolute start-0 w-max
+                                            opacity-0 transition-opacity group-hover:opacity-100
+                                            z-10 px-3 py-2 text-sm font-medium text-white
+                                            rounded-lg shadow-sm tooltip bg-gray-800
+                                            border border-gray-700
+                                        ",
+                                        "{user.name}"
+                                    }
+                                }
+                            }
+                        }}
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            fill: "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "1.5",
+                            stroke: "currentColor",
+                            class: "w-6 h-6 cursor-pointer text-red-600",
+                            onclick: move |event| {
+                                event.stop_propagation();
+                                delete_quick_add_task(model.clone(), *task_id)
+                            },
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                d: "m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0",
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     })
 }
 
@@ -1696,6 +2004,26 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                 },
                 div {
                     class: "flex flex-row gap-1",
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        fill: "none",
+                        "viewBox": "0 0 24 24",
+                        "stroke-width": "1.5",
+                        stroke: "currentColor",
+                        class: "
+                            w-6 h-6 cursor-pointer text-white
+                            sm:hover:text-blue-500 active:text-blue-500
+                        ",
+                        onclick: move |event| {
+                            event.stop_propagation();
+                            create_quick_add_task(model.clone(), *task_id)
+                        },
+                        path {
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+                        }
+                    }
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -2730,4 +3058,82 @@ async fn send_clone_task_request(
         .await?
         .json::<TaskId>()
         .await?)
+}
+
+async fn create_quick_add_task(model: UseSharedState<Model>, task_id: TaskId) {
+    if send_create_quick_add_task_request(model.clone(), task_id)
+        .await
+        .is_ok()
+    {
+        requests::board(model).await;
+    }
+}
+
+async fn send_create_quick_add_task_request(
+    model: UseSharedState<Model>,
+    task_id: TaskId,
+) -> Result<TaskId, anyhow::Error> {
+    let (url, task_data) = {
+        let model = model.read();
+        let url = model
+            .url
+            .join(&format!("/api/boards/{}/quick-add", model.board_name))?;
+        let task = &model.tasks[&task_id];
+        (
+            url,
+            QuickAddData {
+                title: task.title.clone(),
+                description: task.description.clone(),
+                size: task.size.clone(),
+                tags: task.tags.clone(),
+                assignees: task.assignees.clone(),
+            },
+        )
+    };
+    Ok(reqwest::Client::new()
+        .post(url)
+        .json(&task_data)
+        .send()
+        .await?
+        .json::<TaskId>()
+        .await?)
+}
+
+async fn delete_quick_add_task(model: UseSharedState<Model>, task_id: QuickAddTaskId) {
+    if send_delete_quick_add_task_request(model.clone(), task_id)
+        .await
+        .is_ok()
+    {
+        requests::board(model).await;
+    }
+}
+
+async fn send_delete_quick_add_task_request(
+    model: UseSharedState<Model>,
+    task_id: QuickAddTaskId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/quick-add/{}",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .delete(url)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn create_task(model: UseSharedState<Model>, task_data: TaskData) {
+    if task_data.title.is_empty() {
+        log::info!("empty task title, doing nothing");
+        return;
+    }
+    if let Ok(task_id) = requests::create_task(&model, &task_data).await {
+        log::info!("created task: {task_id}");
+    }
+    requests::board(model).await;
 }

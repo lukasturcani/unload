@@ -3,6 +3,9 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
+use shared_models::QuickAddData;
+use shared_models::QuickAddEntry;
+use shared_models::QuickAddTaskId;
 use shared_models::TagData;
 use shared_models::TagEntry;
 use shared_models::TagId;
@@ -35,6 +38,26 @@ impl TaskRow {
             due: self.due,
             size: self.size,
             status: self.status,
+            assignees,
+            tags,
+        }
+    }
+}
+
+struct QuickAddTaskRow {
+    id: QuickAddTaskId,
+    title: String,
+    description: String,
+    size: TaskSize,
+}
+
+impl QuickAddTaskRow {
+    fn into_entry(self, assignees: Vec<UserId>, tags: Vec<TagId>) -> QuickAddEntry {
+        QuickAddEntry {
+            id: self.id,
+            title: self.title,
+            description: self.description,
+            size: self.size,
             assignees,
             tags,
         }
@@ -522,6 +545,18 @@ WHERE
     sqlx::query!(
         "
 DELETE FROM
+    quick_add_task_assignments
+WHERE
+    board_name = ? AND user_id = ?",
+        board_name,
+        user_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
     users
 WHERE
     board_name = ? AND id = ?",
@@ -973,6 +1008,18 @@ WHERE
     sqlx::query!(
         "
 DELETE FROM
+    quick_add_task_tags
+WHERE
+    board_name = ? AND tag_id = ?",
+        board_name,
+        tag_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
     tags
 WHERE
     board_name = ? AND id = ?",
@@ -1197,6 +1244,188 @@ VALUES (?, ?, ?)",
     )
     .execute(&mut *tx)
     .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
+pub async fn create_quick_add_task(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+    Json(task_data): Json<QuickAddData>,
+) -> Result<Json<QuickAddTaskId>> {
+    let mut tx = pool.begin().await?;
+    let task_id = sqlx::query!(
+        "
+INSERT INTO quick_add_tasks (board_name, title, description, size)
+VALUES (?, ?, ?, ?)",
+        board_name,
+        task_data.title,
+        task_data.description,
+        task_data.size,
+    )
+    .execute(&mut *tx)
+    .await?
+    .last_insert_rowid()
+    .into();
+
+    for assignee in task_data.assignees.iter() {
+        sqlx::query!(
+            "
+INSERT INTO quick_add_task_assignments (board_name, user_id, task_id)
+VALUES (?, ?, ?)",
+            board_name,
+            assignee,
+            task_id,
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+    for tag_id in task_data.tags.iter() {
+        sqlx::query!(
+            "
+INSERT INTO quick_add_task_tags (board_name, task_id, tag_id)
+VALUES (?, ?, ?)",
+            board_name,
+            task_id,
+            tag_id
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    tx.commit().await?;
+    Ok(Json(task_id))
+}
+
+pub async fn show_quick_add_tasks(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<QuickAddEntry>>> {
+    let mut tx = pool.begin().await?;
+
+    let tasks = sqlx::query_as!(
+        QuickAddTaskRow,
+        r#"
+SELECT
+    id, title, description, size AS "size: TaskSize"
+FROM
+    quick_add_tasks
+WHERE
+    board_name = ?"#,
+        board_name
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+
+    struct QuickAddTaskAssignmentRow {
+        task_id: QuickAddTaskId,
+        user_id: UserId,
+    }
+    let assignments = sqlx::query_as!(
+        QuickAddTaskAssignmentRow,
+        "
+SELECT
+    task_id, user_id
+FROM
+    quick_add_task_assignments
+WHERE
+    board_name = ?",
+        board_name,
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    let mut task_assignments = assignments
+        .into_iter()
+        .fold(HashMap::new(), |mut map, row| {
+            #[allow(clippy::unwrap_or_default)]
+            map.entry(row.task_id)
+                .or_insert_with(Vec::new)
+                .push(row.user_id);
+            map
+        });
+
+    struct QuickAddTagRow {
+        task_id: QuickAddTaskId,
+        tag_id: TagId,
+    }
+
+    let tag_assignments = sqlx::query_as!(
+        QuickAddTagRow,
+        "
+SELECT
+    task_id, tag_id
+FROM
+    quick_add_task_tags
+WHERE
+    board_name = ?",
+        board_name,
+    );
+    let mut tag_assignments = tag_assignments.fetch_all(&mut *tx).await?.into_iter().fold(
+        HashMap::new(),
+        |mut map, row| {
+            #[allow(clippy::unwrap_or_default)]
+            map.entry(row.task_id)
+                .or_insert_with(Vec::new)
+                .push(row.tag_id);
+            map
+        },
+    );
+
+    let task_entries: Vec<QuickAddEntry> = tasks
+        .into_iter()
+        .map(|task_row| {
+            let task_id = task_row.id;
+            task_row.into_entry(
+                task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
+                tag_assignments.remove(&task_id).unwrap_or_else(Vec::new),
+            )
+        })
+        .collect();
+    tx.commit().await?;
+    Ok(Json(task_entries))
+}
+
+pub async fn delete_quick_add_task(
+    State(pool): State<SqlitePool>,
+    Path((board_name, task_id)): Path<(BoardName, QuickAddTaskId)>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+DELETE FROM
+    quick_add_task_assignments
+WHERE
+    board_name = ? AND task_id = ?",
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
+    quick_add_task_tags
+WHERE
+    board_name = ? AND task_id = ?",
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "
+DELETE FROM
+    quick_add_tasks
+WHERE
+    board_name = ? AND id = ?",
+        board_name,
+        task_id,
+    )
+    .execute(&mut *tx)
+    .await?;
+
     tx.commit().await?;
     Ok(Json(()))
 }

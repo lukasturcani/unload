@@ -28,36 +28,34 @@ pub fn TagSearch(
     cx.render(rsx! {
         ul {
             class: "text-sm text-gray-200 z-10 rounded-lg shadow {ul_style}",
-            rsx!{
-                for (tag_id, tag) in read_model
-                    .tags
-                    .iter()
-                    .filter(|(id, _)| !tags.contains(id))
-                    .sorted_by_key(|(_, tag)| tag.name.to_lowercase())
-                {rsx!{
-                    li {
-                        key: "{tag_id}",
-                        button {
-                            r#type: "button",
-                            class: "
-                                text-left w-full px-4 py-2
-                                {hover_style} sm:hover:text-white
-                            ",
-                            prevent_default: "onmousedown",
-                            onmousedown: |_| {},
-                            onclick: {
-                                let task_id = *task_id;
-                                let tag_id = *tag_id;
-                                move |event| {
-                                    event.stop_propagation();
-                                    add_task_tag(model.clone(), task_id, tag_id)
-                                }
-                            },
-                            tag.name.clone(),
-                        }
-                    },
-                }}
-            }
+            for (tag_id, tag) in read_model
+                .tags
+                .iter()
+                .filter(|(id, _)| !tags.contains(id))
+                .sorted_by_key(|(_, tag)| tag.name.to_lowercase())
+            {rsx!{
+                li {
+                    key: "{tag_id}",
+                    button {
+                        r#type: "button",
+                        class: "
+                            text-left w-full px-4 py-2
+                            {hover_style} sm:hover:text-white
+                        ",
+                        prevent_default: "onmousedown",
+                        onmousedown: |_| {},
+                        onclick: {
+                            let task_id = *task_id;
+                            let tag_id = *tag_id;
+                            move |event| {
+                                event.stop_propagation();
+                                add_task_tag(model.clone(), task_id, tag_id)
+                            }
+                        },
+                        tag.name.clone(),
+                    }
+                },
+            }}
             li {
                 key: "add tag",
                 if **show_add_tag_button {rsx! {

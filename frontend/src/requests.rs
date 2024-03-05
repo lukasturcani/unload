@@ -2,6 +2,9 @@ use crate::model::Model;
 use crate::model::TaskData;
 use dioxus::prelude::*;
 use reqwest::Client;
+use shared_models::QuickAddData;
+use shared_models::QuickAddEntry;
+use shared_models::QuickAddTaskId;
 use shared_models::TagData;
 use shared_models::TagEntry;
 use shared_models::TagId;
@@ -11,7 +14,12 @@ use tokio::join;
 
 pub async fn board(model: UseSharedState<Model>) {
     log::info!("sending board data request");
-    if let (Ok(users), Ok(tasks), Ok(tags)) = join!(users(&model), tasks(&model), tags(&model)) {
+    if let (Ok(users), Ok(tasks), Ok(tags), Ok(quick_add)) = join!(
+        users(&model),
+        tasks(&model),
+        tags(&model),
+        quick_add(&model)
+    ) {
         log::info!("got board data");
         let mut model = model.write();
         model.users = users;
@@ -20,6 +28,7 @@ pub async fn board(model: UseSharedState<Model>) {
         model.to_do = tasks.to_do;
         model.in_progress = tasks.in_progress;
         model.done = tasks.done;
+        model.quick_add = quick_add;
     } else {
         log::info!("failed to get board data")
     }
@@ -137,6 +146,28 @@ async fn tasks(model: &UseSharedState<Model>) -> Result<TasksResponse, anyhow::E
         }))
 }
 
+async fn quick_add(
+    model: &UseSharedState<Model>,
+) -> Result<HashMap<QuickAddTaskId, QuickAddData>, anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model
+            .url
+            .join(&format!("/api/boards/{}/quick-add", model.board_name))?
+    };
+    Ok(Client::new()
+        .get(url)
+        .send()
+        .await?
+        .json::<Vec<QuickAddEntry>>()
+        .await?
+        .into_iter()
+        .fold(HashMap::new(), |mut quick_add, task| {
+            quick_add.insert(task.id, task.into());
+            quick_add
+        }))
+}
+
 #[derive(Default, Debug)]
 struct TasksResponse {
     tasks: HashMap<TaskId, TaskData>,
@@ -224,4 +255,23 @@ pub async fn create_tag(
             .await?,
         tag_data.name,
     ))
+}
+
+pub async fn create_task(
+    model: &UseSharedState<Model>,
+    task_data: &shared_models::TaskData,
+) -> Result<TaskId, anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model
+            .url
+            .join(&format!("/api/boards/{}/tasks", model.board_name))?
+    };
+    Ok(Client::new()
+        .post(url)
+        .json(task_data)
+        .send()
+        .await?
+        .json::<TaskId>()
+        .await?)
 }

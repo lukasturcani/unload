@@ -11,8 +11,7 @@ use dioxus::prelude::*;
 use dioxus_router::hooks::use_navigator;
 use dioxus_router::prelude::Navigator;
 use itertools::Itertools;
-use reqwest::Client;
-use shared_models::{BoardName, TagData, TagId, TaskId, TaskSize, TaskStatus, UserData, UserId};
+use shared_models::{BoardName, TagData, TagId, TaskSize, TaskStatus, UserData, UserId};
 
 #[component]
 pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
@@ -710,31 +709,12 @@ async fn create_task(
         log::info!("empty task title, doing nothing");
         return;
     }
-    if let Ok(task_id) = send_create_task_request(&model, &task_data).await {
+    if let Ok(task_id) = requests::create_task(&model, &task_data).await {
         log::info!("created task: {task_id}");
     }
     nav.push(Route::Board {
         board_name: model.read().board_name.clone(),
     });
-}
-
-async fn send_create_task_request(
-    model: &UseSharedState<Model>,
-    task_data: &shared_models::TaskData,
-) -> Result<TaskId, anyhow::Error> {
-    let url = {
-        let model = model.read();
-        model
-            .url
-            .join(&format!("/api/boards/{}/tasks", model.board_name))?
-    };
-    Ok(Client::new()
-        .post(url)
-        .json(task_data)
-        .send()
-        .await?
-        .json::<TaskId>()
-        .await?)
 }
 
 async fn create_tag(model: UseSharedState<Model>, tag_data: TagData) {

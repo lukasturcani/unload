@@ -5,7 +5,10 @@ use std::{
 
 use chrono::{DateTime, Utc};
 use reqwest::Url;
-use shared_models::{BoardName, TagData, TagId, TaskEntry, TaskId, TaskSize, UserData, UserId};
+use shared_models::{
+    BoardName, QuickAddData, QuickAddTaskId, TagData, TagId, TaskEntry, TaskId, TaskSize, UserData,
+    UserId,
+};
 
 pub struct Model {
     pub url: Url,
@@ -22,6 +25,7 @@ pub struct Model {
     pub size_filter: Option<TaskSize>,
     pub user_filter: HashSet<UserId>,
     pub dense_view: bool,
+    pub quick_add: HashMap<QuickAddTaskId, QuickAddData>,
 }
 
 impl Model {
@@ -68,6 +72,7 @@ impl Default for Model {
             size_filter: None,
             user_filter: HashSet::default(),
             dense_view: false,
+            quick_add: HashMap::default(),
         }
     }
 }
@@ -95,6 +100,30 @@ impl From<TaskEntry> for TaskData {
             size: value.size,
             assignees: value.assignees,
             tags: value.tags,
+        }
+    }
+}
+
+impl From<TaskData> for QuickAddData {
+    fn from(value: TaskData) -> Self {
+        Self {
+            title: value.title,
+            description: value.description,
+            size: value.size,
+            assignees: value.assignees,
+            tags: value.tags,
+        }
+    }
+}
+
+impl From<&TaskData> for QuickAddData {
+    fn from(value: &TaskData) -> Self {
+        Self {
+            title: value.title.clone(),
+            description: value.description.clone(),
+            size: value.size,
+            assignees: value.assignees.clone(),
+            tags: value.tags.clone(),
         }
     }
 }
