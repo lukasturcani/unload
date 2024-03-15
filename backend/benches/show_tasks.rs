@@ -8,16 +8,12 @@ use unload::show_tasks;
 fn bench_show_tasks(c: &mut Criterion) {
     let bench_db = std::env::var("BENCH_DATABASE_URL").unwrap();
     let runtime = Runtime::new().unwrap();
-    let pool = State(
-        Runtime::new()
-            .unwrap()
-            .block_on(SqlitePool::connect(&bench_db))
-            .unwrap(),
-    );
+    let pool = State(runtime.block_on(SqlitePool::connect(&bench_db)).unwrap());
     c.bench_function("show_tasks", |b| {
         b.to_async(&runtime)
             .iter(|| show_tasks(pool.clone(), Path("board-535".into())))
     });
+    runtime.block_on(pool.0.close());
 }
 
 criterion_group!(benches, bench_show_tasks);
