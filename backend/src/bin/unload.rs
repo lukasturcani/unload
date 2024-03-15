@@ -3,7 +3,7 @@ use axum::{
     Router,
 };
 use sqlx::SqlitePool;
-use std::{net::SocketAddr, path::PathBuf};
+use std::{net::SocketAddr, path::Path, path::PathBuf};
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use unload::{
@@ -15,7 +15,7 @@ use unload::{
     update_task_description, update_task_due, update_task_size, update_task_status,
     update_task_tags, update_task_title, update_user_color, update_user_name, Result,
 };
-fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
+fn router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
     Router::new()
         .route("/api/boards", post(create_board))
         .route("/api/boards/:board_name/tasks/:task_id", get(show_task))
@@ -128,27 +128,27 @@ fn router(serve_dir: &PathBuf) -> Router<SqlitePool> {
             "/api/boards/:board_name/archive/tags",
             get(show_archived_tags),
         )
-        .nest_service("/", ServeDir::new(serve_dir))
-        .nest_service("/boards/:board_name", ServeDir::new(serve_dir))
-        .nest_service("/boards/:board_name/add-user", ServeDir::new(serve_dir))
-        .nest_service("/boards/:board_name/users", ServeDir::new(serve_dir))
-        .nest_service("/boards/:board_name/tags", ServeDir::new(serve_dir))
-        .nest_service("/boards/:board_name/add-task", ServeDir::new(serve_dir))
+        .nest_service("/", ServeDir::new(&serve_dir))
+        .nest_service("/boards/:board_name", ServeDir::new(&serve_dir))
+        .nest_service("/boards/:board_name/add-user", ServeDir::new(&serve_dir))
+        .nest_service("/boards/:board_name/users", ServeDir::new(&serve_dir))
+        .nest_service("/boards/:board_name/tags", ServeDir::new(&serve_dir))
+        .nest_service("/boards/:board_name/add-task", ServeDir::new(&serve_dir))
         .nest_service(
             "/boards/:board_name/add-to-do-task",
-            ServeDir::new(serve_dir),
+            ServeDir::new(&serve_dir),
         )
         .nest_service(
             "/boards/:board_name/add-in-progress-task",
-            ServeDir::new(serve_dir),
+            ServeDir::new(&serve_dir),
         )
         .nest_service(
             "/boards/:board_name/add-done-task",
-            ServeDir::new(serve_dir),
+            ServeDir::new(&serve_dir),
         )
         .nest_service(
             "/boards/:board_name/archive/tasks",
-            ServeDir::new(serve_dir),
+            ServeDir::new(&serve_dir),
         )
         .nest_service("/boards/:board_name/archive/tags", ServeDir::new(serve_dir))
 }
@@ -165,7 +165,7 @@ async fn main() -> Result<()> {
     };
     let pool = SqlitePool::connect(&database_url).await?;
     sqlx::migrate!("../migrations").run(&pool).await?;
-    let app = router(&std::env::var("UNLOAD_SERVE_DIR")?.parse::<PathBuf>()?).with_state(pool);
+    let app = router(std::env::var("UNLOAD_SERVE_DIR")?.parse::<PathBuf>()?).with_state(pool);
     let listener = TcpListener::bind(server_address).await?;
     axum::serve(listener, app).await?;
     Ok(())
@@ -186,7 +186,7 @@ mod tests {
         let pool = SqlitePool::connect(&std::env::var("TEST_DATABASE_URL").unwrap())
             .await
             .unwrap();
-        let app = router(&PathBuf::from("does_not_matter")).with_state(pool);
+        let app = router(PathBuf::from("does_not_matter")).with_state(pool);
         let server = TestServer::new(app).unwrap();
 
         // Create board
