@@ -1,5 +1,4 @@
 use axum::extract::{Path, State};
-use criterion::BatchSize;
 use criterion::Criterion;
 use criterion::{criterion_group, criterion_main};
 use sqlx::SqlitePool;
@@ -16,11 +15,8 @@ fn bench_show_tasks(c: &mut Criterion) {
             .unwrap(),
     );
     c.bench_function("show_tasks", |b| {
-        b.to_async(&runtime).iter_batched(
-            || (pool.clone(), Path("board-535".into())),
-            |(pool, board_name)| show_tasks(pool, board_name),
-            BatchSize::PerIteration,
-        )
+        b.to_async(&runtime)
+            .iter(|| show_tasks(pool.clone(), Path("board-535".into())))
     });
 }
 

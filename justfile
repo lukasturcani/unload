@@ -50,7 +50,7 @@ create-bench-dbs database-dir:
   just create-db "sqlite:{{database-dir}}/small.db"
   cargo run --release --bin create_bench_db -- \
   "sqlite:{{database-dir}}/small.db" \
-  --num-boards 1000 \
+  --num-boards 100 \
   --num-tasks-per-board 10000 \
   --num-users-per-board 20 \
   --num-tags-per-board 20 \
@@ -59,7 +59,7 @@ create-bench-dbs database-dir:
   just create-db "sqlite:{{database-dir}}/large.db"
   cargo run --release --bin create_bench_db -- \
   "sqlite:{{database-dir}}/large.db" \
-  --num-boards 100 \
+  --num-boards 1000 \
   --num-tasks-per-board 10000 \
   --num-users-per-board 20 \
   --num-tags-per-board 20 \
