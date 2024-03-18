@@ -11,7 +11,7 @@ fn bench_show_tasks(c: &mut Criterion) {
     let pool = State(runtime.block_on(SqlitePool::connect(&bench_db)).unwrap());
     c.bench_function("show_tasks", |b| {
         b.to_async(&runtime)
-            .iter(|| show_tasks(pool.clone(), Path("board-535".into())))
+            .iter(|| show_tasks(pool.clone(), Path("board-35".into())))
     });
     runtime.block_on(pool.0.close());
 }
