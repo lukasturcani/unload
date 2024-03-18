@@ -47,6 +47,7 @@ prepare-db database:
 # prepare the bench databases
 create-bench-dbs database-dir:
   mkdir -p {{database-dir}}
+  # create small database
   just create-db "sqlite:{{database-dir}}/small.db"
   cargo run --release --bin create_bench_db -- \
   "sqlite:{{database-dir}}/small.db" \
@@ -56,6 +57,7 @@ create-bench-dbs database-dir:
   --num-tags-per-board 20 \
   --num-assignees-per-task 5 \
   --num-tags-per-task 5
+  # create large database
   just create-db "sqlite:{{database-dir}}/large.db"
   cargo run --release --bin create_bench_db -- \
   "sqlite:{{database-dir}}/large.db" \
