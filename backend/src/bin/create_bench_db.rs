@@ -16,10 +16,17 @@ struct Args {
     /// Number of users per board
     #[clap(long, default_value = "20")]
     num_users_per_board: u32,
+    /// Number of tags per board
+    #[clap(long, default_value = "20")]
+    num_tags_per_board: u32,
     /// Number of assignees per task
     #[clap(long, default_value = "5")]
     num_assignees_per_task: u32,
+    /// Number of tags per task
+    #[clap(long, default_value = "5")]
+    num_tags_per_task: u32,
 }
+
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     let args = Args::parse();
@@ -47,11 +54,23 @@ async fn main() -> Result<(), anyhow::Error> {
             .execute(&mut *tx)
             .await?;
         }
+        for tag_id in 0..args.num_tags_per_board {
+            sqlx::query(
+                "INSERT INTO tags (id, board_name, name, color)
+                 VALUES (?, ?, ?, ?)",
+            )
+            .bind(board_id * args.num_tags_per_board + tag_id)
+            .bind(format!("board-{}", board_id))
+            .bind(format!("tag-{}", tag_id))
+            .bind(Color::Blue)
+            .execute(&mut *tx)
+            .await?;
+        }
         for task_id in 0..args.num_tasks_per_board {
             sqlx::query(
                 "
-INSERT INTO tasks (id, board_name, title, description, created, updated, due, size, status)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+INSERT INTO tasks (id, board_name, title, description, created, updated, due, size, status, archived)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             )
             .bind(board_id * args.num_tasks_per_board + task_id)
             .bind(format!("board-{}", board_id))
@@ -62,6 +81,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             .bind(Some(task_id))
             .bind(TaskSize::Small)
             .bind(TaskStatus::ToDo)
+            .bind(task_id > 100)
             .execute(&mut *tx)
             .await?;
             for assignment in 0..args.num_assignees_per_task {
@@ -72,6 +92,18 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 )
                 .bind(format!("board-{}", board_id))
                 .bind(board_id * args.num_users_per_board + assignment)
+                .bind(board_id * args.num_tasks_per_board + task_id)
+                .execute(&mut *tx)
+                .await?;
+            }
+            for tag in 0..args.num_tags_per_task {
+                sqlx::query(
+                    "
+                INSERT INTO task_tags (board_name, tag_id, task_id)
+                VALUES (?, ?, ?)",
+                )
+                .bind(format!("board-{}", board_id))
+                .bind(board_id * args.num_tags_per_board + tag)
                 .bind(board_id * args.num_tasks_per_board + task_id)
                 .execute(&mut *tx)
                 .await?;
