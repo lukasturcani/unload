@@ -5,7 +5,10 @@ use axum::{
 use sqlx::SqlitePool;
 use std::{net::SocketAddr, path::Path, path::PathBuf};
 use tokio::net::TcpListener;
-use tower_http::services::ServeDir;
+use tower_http::{services::ServeDir, trace::TraceLayer};
+use tracing::{debug_span, Instrument};
+use tracing_log::LogTracer;
+use tracing_subscriber::{prelude::*, Registry};
 use unload::{
     add_task_assignee, add_task_tag, clone_task, create_board, create_quick_add_task, create_tag,
     create_task, create_user, delete_quick_add_task, delete_tag, delete_task, delete_task_assignee,
@@ -155,6 +158,10 @@ fn router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    LogTracer::init()?;
+    let subscriber = Registry::default().with(tracing_subscriber::fmt::layer());
+    tracing::subscriber::set_global_default(subscriber).unwrap();
+
     let database_url = std::env::var("UNLOAD_DATABASE_URL")?;
     let server_address = {
         if let Ok(address) = std::env::var("UNLOAD_SERVER_ADDRESS") {
@@ -164,9 +171,15 @@ async fn main() -> Result<()> {
         }
     };
     let pool = SqlitePool::connect(&database_url).await?;
-    sqlx::migrate!("../migrations").run(&pool).await?;
-    let app = router(std::env::var("UNLOAD_SERVE_DIR")?.parse::<PathBuf>()?).with_state(pool);
+    sqlx::migrate!("../migrations")
+        .run(&pool)
+        .instrument(debug_span!("migrations"))
+        .await?;
+    let app = router(std::env::var("UNLOAD_SERVE_DIR")?.parse::<PathBuf>()?)
+        .with_state(pool)
+        .layer(TraceLayer::new_for_http());
     let listener = TcpListener::bind(server_address).await?;
+    tracing::debug!("Listening on: {}", listener.local_addr()?);
     axum::serve(listener, app).await?;
     Ok(())
 }
