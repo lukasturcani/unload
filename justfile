@@ -131,6 +131,12 @@ backend database: frontend
   UNLOAD_SERVE_DIR="frontend/dist" \
   cargo run --release --bin unload
 
+# watch the backend
+watch-backend database: frontend
+  UNLOAD_DATABASE_URL="sqlite:{{database}}" \
+  UNLOAD_SERVE_DIR="frontend/dist" \
+  cargo watch -x 'run -- --bin unload'
+
 # connect to fly.io volume
 fly-volume:
   fly machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
