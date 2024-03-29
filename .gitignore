@@ -1,4 +1,6 @@
 frontend/dist
 frontend/public
+frontend/static
+frontend/.dioxus
 frontend/node_modules
 /target

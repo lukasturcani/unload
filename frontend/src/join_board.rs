@@ -2,8 +2,6 @@ use crate::model::Model;
 use crate::route::Route;
 use crate::styles;
 use dioxus::prelude::*;
-use dioxus_router::hooks::use_navigator;
-use dioxus_router::prelude::Navigator;
 use reqwest::Client;
 use shared_models::BoardName;
 
@@ -15,9 +13,9 @@ const TEXT_INPUT: &str = "
 ";
 
 #[component]
-pub fn JoinBoard(cx: Scope) -> Element {
+pub fn JoinBoard() -> Element {
     let model = use_shared_state::<Model>(cx).unwrap();
-    let nav = use_navigator(cx);
+    let nav = use_navigator();
     cx.render(rsx! {
         div{
             class: "bg-gray-900 h-dvh w-screen",

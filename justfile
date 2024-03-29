@@ -120,6 +120,13 @@ frontend:
   cd frontend && npx tailwindcss -i ./input.css -o ./public/tailwind.css
   cd frontend && dx build
 
+# watch the frontend
+watch-frontend:
+  watchexec -e rs "\
+  cd frontend && \
+  npx tailwindcss -i ./input.css -o ./public/tailwind.css && \
+  dx build"
+
 # build the frontend
 frontend-release:
   cd frontend && npx tailwindcss -i ./input.css -o ./public/tailwind.css
