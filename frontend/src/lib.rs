@@ -1,6 +1,17 @@
+mod add_task;
+mod add_user;
 pub mod app;
 mod board;
+mod color_picker;
+mod filter_bar;
 mod join_board;
 mod model;
+mod requests;
+mod responsive_layout;
 mod route;
 mod styles;
+mod tag_archive;
+mod tag_search;
+mod tags;
+mod user_search;
+mod users;

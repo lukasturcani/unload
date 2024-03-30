@@ -1370,6 +1370,7 @@ dependencies = [
  "reqwest",
  "shared_models",
  "tokio",
+ "web-sys",
 ]
 
 [[package]]
