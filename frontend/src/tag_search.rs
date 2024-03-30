@@ -16,21 +16,22 @@ pub fn TagSearch(
 ) -> Element {
     let mut model = use_context::<Signal<Model>>();
     if model.read().tag_search_created_tag.is_some() {
-        if let Some((tag_id, _)) = model.write().tag_search_created_tag.take() {
-            spawn(add_task_tag(model.clone(), task_id, tag_id));
+        let maybe_tag = model.write().tag_search_created_tag.take();
+        if let Some((tag_id, _)) = maybe_tag {
+            spawn(add_task_tag(model, task_id, tag_id));
         }
     }
     let read_model = model.read();
     let tags: HashSet<_> = read_model.tasks[&task_id].tags.iter().copied().collect();
 
-    let show_add_tag_button_signal = use_signal(|| true);
+    let mut show_add_tag_button_signal = use_signal(|| true);
     let show_add_tag_button = show_add_tag_button_signal();
 
-    let new_tag = use_signal(String::new);
+    let mut new_tag = use_signal(String::new);
     rsx! {
         ul {
             class: "text-sm text-gray-200 z-10 rounded-lg shadow {ul_style}",
-            for (tag_id, tag) in read_model
+            for (&tag_id, tag) in read_model
                 .tags
                 .iter()
                 .filter(|(id, _)| !tags.contains(id))
@@ -46,11 +47,9 @@ pub fn TagSearch(
                         ",
                         prevent_default: "onmousedown",
                         onmousedown: |_| {},
-                        onclick: {
-                            move |event| {
-                                event.stop_propagation();
-                                add_task_tag(model, task_id, *tag_id)
-                            }
+                        onclick: move |event| {
+                            event.stop_propagation();
+                            add_task_tag(model, task_id, tag_id)
                         },
                         "{tag.name}"
                     }

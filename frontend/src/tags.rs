@@ -24,9 +24,9 @@ pub fn Tags(board_name: BoardName) -> Element {
     });
     let tags = use_signal(TagEntries::default);
     let nav = use_navigator();
-    use_resource(move || {
+    use_resource(move || async move {
         let url = &url.read().0;
-        get_tags(tags, url)
+        get_tags(tags, url).await
     });
     let read_tags = tags.read();
     rsx! {
@@ -84,7 +84,7 @@ pub fn Tags(board_name: BoardName) -> Element {
                 button {
                     r#type: "button" ,
                     class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.go_back();
                     },
                     svg {
@@ -108,7 +108,7 @@ pub fn Tags(board_name: BoardName) -> Element {
                 button {
                     r#type: "button",
                     class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::ArchivedTags {
                             board_name: board_name.clone(),
                         });
@@ -134,11 +134,11 @@ pub fn Tags(board_name: BoardName) -> Element {
 
 #[component]
 fn TagRow(tag: TagEntry, url: Signal<TagsUrl>, tags: Signal<TagEntries>) -> Element {
-    let editing_color_signal = use_signal(|| false);
+    let mut editing_color_signal = use_signal(|| false);
     let editing_color = editing_color_signal();
 
-    let name_signal = use_signal(|| None::<String>);
-    let name = name_signal.read();
+    let mut name_signal = use_signal(|| None::<String>);
+    let name = name_signal();
 
     rsx! {
         tr {
@@ -182,7 +182,7 @@ fn TagRow(tag: TagEntry, url: Signal<TagsUrl>, tags: Signal<TagEntries>) -> Elem
             }
             td {
                 class: "p-3",
-                if let Some(name_value) = *name {
+                if let Some(name_value) = name {
                     input {
                         r#type: "text",
                         value: "{name_value}",
@@ -202,7 +202,10 @@ fn TagRow(tag: TagEntry, url: Signal<TagsUrl>, tags: Signal<TagEntries>) -> Elem
                     div {
                         class: "flex flex-row gap-1",
                         p {
-                            onclick: move |_| name_signal.set(Some(tag.name.clone())),
+                            onclick: {
+                                let tag_name = tag.name.clone();
+                                move |_| name_signal.set(Some(tag_name.clone()))
+                            },
                             "{tag.name}"
                         }
                         svg {
@@ -212,7 +215,10 @@ fn TagRow(tag: TagEntry, url: Signal<TagsUrl>, tags: Signal<TagEntries>) -> Elem
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "w-4 h-4",
-                            onclick: move |_| name_signal.set(Some(tag.name.clone())),
+                            onclick: {
+                                let tag_name = tag.name.clone();
+                                move |_| name_signal.set(Some(tag_name.clone()))
+                            },
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -238,7 +244,7 @@ fn TagRow(tag: TagEntry, url: Signal<TagsUrl>, tags: Signal<TagEntries>) -> Elem
                                 w-6 h-6 cursor-pointer text-gray-400
                                 sm:hover:text-blue-500 active:text-blue-500
                             ",
-                            onclick: |_| set_tag_archived(tags.clone(), url.clone(), tag.id),
+                            onclick: move |_| set_tag_archived(tags, url, tag.id),
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -252,7 +258,7 @@ fn TagRow(tag: TagEntry, url: Signal<TagsUrl>, tags: Signal<TagEntries>) -> Elem
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "w-6 h-6 cursor-pointer text-red-600",
-                            onclick: |_| delete_tag(tags.clone(), url.clone(), tag.id),
+                            onclick: move |_| delete_tag(tags, url, tag.id),
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",

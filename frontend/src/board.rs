@@ -54,11 +54,15 @@ fn OneColumnBoard(board_name: BoardName) -> Element {
         model.write().board_name = board_name.clone()
     }
     let nav = use_navigator();
-    let column_signal = use_signal(|| TaskStatus::ToDo);
+
+    let mut column_signal = use_signal(|| TaskStatus::ToDo);
     let column = column_signal();
-    let show_filters_signal = use_signal(|| false);
+
+    let mut show_filters_signal = use_signal(|| false);
     let show_filters = show_filters_signal();
-    use_resource(|| requests::board(model));
+
+    use_resource(move || requests::board(model));
+
     rsx! {
         div {
             class: "flex flex-col bg-gray-900 h-dvh w-screen gap-1",
@@ -115,10 +119,13 @@ fn OneColumnBoard(board_name: BoardName) -> Element {
                     button {
                         r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
-                        onclick: |_| {
-                            nav.push(Route::TaskArchive {
-                                board_name: board_name.clone(),
-                            });
+                        onclick: {
+                            let board_name = board_name.clone();
+                            move |_| {
+                                nav.push(Route::TaskArchive {
+                                    board_name: board_name.clone(),
+                                });
+                            }
                         },
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
@@ -163,10 +170,13 @@ fn OneColumnBoard(board_name: BoardName) -> Element {
                     button {
                         r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
-                        onclick: |_| {
-                            nav.push(Route::Tags {
-                                board_name: board_name.clone(),
-                            });
+                        onclick: {
+                            let board_name = board_name.clone();
+                            move |_| {
+                                nav.push(Route::Tags {
+                                    board_name: board_name.clone(),
+                                });
+                            }
                         },
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
@@ -190,7 +200,7 @@ fn OneColumnBoard(board_name: BoardName) -> Element {
                     button {
                         r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
-                        onclick: |_| {
+                        onclick: move |_| {
                             nav.push(Route::Users {
                                 board_name: board_name.clone(),
                             });
@@ -248,7 +258,7 @@ fn ThreeColumnBoard(board_name: BoardName) -> Element {
     if model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
-    use_resource(|| requests::board(model));
+    use_resource(move || requests::board(model));
     rsx! {
         div {
             class: "flex flex-col bg-gray-900 h-dvh w-screen",
@@ -287,10 +297,13 @@ fn BottomBar(board_name: BoardName) -> Element {
             button {
                 r#type: "button",
                 class: styles::BOTTOM_BAR_BUTTON,
-                onclick: |_| {
-                    nav.push(Route::TaskArchive {
-                        board_name: board_name.clone(),
-                    });
+                onclick: {
+                    let board_name = board_name.clone();
+                    move |_| {
+                        nav.push(Route::TaskArchive {
+                            board_name: board_name.clone(),
+                        });
+                    }
                 },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
@@ -309,10 +322,13 @@ fn BottomBar(board_name: BoardName) -> Element {
             button {
                 r#type: "button",
                 class: styles::BOTTOM_BAR_BUTTON,
-                onclick: |_| {
-                    nav.push(Route::Tags {
-                        board_name: board_name.clone(),
-                    });
+                onclick: {
+                    let board_name = board_name.clone();
+                    move |_| {
+                        nav.push(Route::Tags {
+                            board_name: board_name.clone(),
+                        });
+                    }
                 },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
@@ -336,10 +352,13 @@ fn BottomBar(board_name: BoardName) -> Element {
             button {
                 r#type: "button",
                 class: styles::BOTTOM_BAR_BUTTON,
-                onclick: |_| {
-                    nav.push(Route::Users {
-                        board_name: board_name.clone(),
-                    });
+                onclick: {
+                    let board_name = board_name.clone();
+                    move |_| {
+                        nav.push(Route::Users {
+                            board_name: board_name.clone(),
+                        });
+                    }
                 },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
@@ -361,11 +380,13 @@ fn BottomBar(board_name: BoardName) -> Element {
 
 #[component]
 fn ToDoColumn() -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let nav = use_navigator();
-    let show_quick_add_signal = use_signal(|| false);
+
+    let mut show_quick_add_signal = use_signal(|| false);
     let show_quick_add = show_quick_add_signal();
+
     rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -437,7 +458,7 @@ fn ToDoColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddToDoTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -487,11 +508,13 @@ fn ToDoColumn() -> Element {
 
 #[component]
 fn DenseToDoColumn() -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let nav = use_navigator();
-    let show_quick_add_signal = use_signal(|| false);
+
+    let mut show_quick_add_signal = use_signal(|| false);
     let show_quick_add = show_quick_add_signal();
+
     rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -563,7 +586,7 @@ fn DenseToDoColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddToDoTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -613,11 +636,13 @@ fn DenseToDoColumn() -> Element {
 
 #[component]
 fn InProgressColumn() -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let nav = use_navigator();
-    let show_quick_add_signal = use_signal(|| false);
+
+    let mut show_quick_add_signal = use_signal(|| false);
     let show_quick_add = show_quick_add_signal();
+
     rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -689,7 +714,7 @@ fn InProgressColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddInProgressTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -739,11 +764,13 @@ fn InProgressColumn() -> Element {
 
 #[component]
 fn DenseInProgressColumn() -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let nav = use_navigator();
-    let show_quick_add_signal = use_signal(|| false);
+
+    let mut show_quick_add_signal = use_signal(|| false);
     let show_quick_add = show_quick_add_signal();
+
     rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -815,7 +842,7 @@ fn DenseInProgressColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddInProgressTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -865,11 +892,13 @@ fn DenseInProgressColumn() -> Element {
 
 #[component]
 fn DoneColumn() -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let nav = use_navigator();
-    let show_quick_add_signal = use_signal(|| false);
+
+    let mut show_quick_add_signal = use_signal(|| false);
     let show_quick_add = show_quick_add_signal();
+
     rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -941,7 +970,7 @@ fn DoneColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddDoneTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -991,11 +1020,13 @@ fn DoneColumn() -> Element {
 
 #[component]
 fn DenseDoneColumn() -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let nav = use_navigator();
-    let show_quick_add_signal = use_signal(|| false);
+
+    let mut show_quick_add_signal = use_signal(|| false);
     let show_quick_add = show_quick_add_signal();
+
     rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
@@ -1067,7 +1098,7 @@ fn DenseDoneColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddDoneTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -1117,7 +1148,7 @@ fn DenseDoneColumn() -> Element {
 
 #[component]
 fn QuickAddTasks(status: TaskStatus) -> Element {
-    let model = use_context::<Signal<Model>>().read();
+    let model = use_context::<Signal<Model>>();
     rsx! {
         ul {
             class: "
@@ -1125,7 +1156,12 @@ fn QuickAddTasks(status: TaskStatus) -> Element {
                 border-t border-gray-700 divide-y divide-gray-700
                 shrink-0 h-1/4 overflow-y-scroll
             ",
-            for &task_id in model.quick_add.keys().sorted() {
+            for &task_id in model
+                .read()
+                .quick_add
+                .keys()
+                .sorted()
+            {
                 QuickAddTask {
                     key: "{task_id}",
                     task_id,
@@ -1138,7 +1174,7 @@ fn QuickAddTasks(status: TaskStatus) -> Element {
 
 #[component]
 fn QuickAddTask(task_id: QuickAddTaskId, status: TaskStatus) -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let data = &read_model.quick_add[&task_id];
     let users: Vec<_> = data
@@ -1177,7 +1213,7 @@ fn QuickAddTask(task_id: QuickAddTaskId, status: TaskStatus) -> Element {
                     "{data.title}"
                     div {
                         class: "flex flex-row gap-1",
-                        for (user_id, user) in users {
+                        for (&user_id, user) in users {
                             div {
                                 class: "group relative",
                                 onclick: |event| event.stop_propagation(),
@@ -1185,16 +1221,16 @@ fn QuickAddTask(task_id: QuickAddTaskId, status: TaskStatus) -> Element {
                                     class: "
                                         w-5 h-5 rounded cursor-pointer
                                         border-2 {color_picker::border_class(&user.color)}
-                                        {user_bg(model, user_id, &user.color)}
+                                        {user_bg(model, &user_id, &user.color)}
                                         {color_picker::bg_hover_class(&user.color)}
                                     ",
                                     onclick: move |event| {
                                         event.stop_propagation();
                                         let mut model = model.write();
-                                        if model.user_filter.contains(user_id) {
-                                            model.user_filter.remove(user_id);
+                                        if model.user_filter.contains(&user_id) {
+                                            model.user_filter.remove(&user_id);
                                         } else {
-                                            model.user_filter.insert(*user_id);
+                                            model.user_filter.insert(user_id);
                                         }
                                     },
                                 },
@@ -1255,7 +1291,7 @@ fn size_bg(model: Signal<Model>, size: &TaskSize) -> &'static str {
 
 #[component]
 fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let data = &read_model.tasks[&task_id];
     let users: Vec<_> = data
@@ -1264,29 +1300,29 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
         .map(|user_id| (user_id, &read_model.users[user_id]))
         .collect();
 
-    let expanded_signal = use_signal(|| false);
+    let mut expanded_signal = use_signal(|| false);
     let expanded = expanded_signal();
 
-    let editing_title_signal = use_signal(|| false);
+    let mut editing_title_signal = use_signal(|| false);
     let editing_title = editing_title_signal();
 
-    let new_title_signal = use_signal(String::new);
+    let mut new_title_signal = use_signal(String::new);
 
-    let editing_description_signal = use_signal(|| false);
+    let mut editing_description_signal = use_signal(|| false);
     let editing_description = editing_description_signal();
 
-    let new_description_signal = use_signal(String::new);
+    let mut new_description_signal = use_signal(String::new);
 
-    let editing_size_signal = use_signal(|| false);
+    let mut editing_size_signal = use_signal(|| false);
     let editing_size = editing_size_signal();
 
-    let show_assign_user_signal = use_signal(|| false);
+    let mut show_assign_user_signal = use_signal(|| false);
     let show_assign_user = show_assign_user_signal();
 
-    let show_assign_tag_signal = use_signal(|| false);
+    let mut show_assign_tag_signal = use_signal(|| false);
     let show_assign_tag = show_assign_tag_signal();
 
-    let assignees_signal = use_signal(Vec::new);
+    let mut assignees_signal = use_signal(Vec::new);
 
     rsx! {
         div {
@@ -1392,7 +1428,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                 }
                 div {
                     class: "flex flex-row gap-1",
-                    for (user_id, user) in users {
+                    for (&user_id, user) in users {
                         div {
                             class: "group relative",
                             onclick: |event| event.stop_propagation(),
@@ -1400,16 +1436,16 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 class: "
                                     w-5 h-5 rounded cursor-pointer
                                     border-2 {color_picker::border_class(&user.color)}
-                                    {user_bg(model, user_id, &user.color)}
+                                    {user_bg(model, &user_id, &user.color)}
                                     {color_picker::bg_hover_class(&user.color)}
                                 ",
                                 onclick:  move |event| {
                                     event.stop_propagation();
                                     let mut model = model.write();
-                                    if model.user_filter.contains(user_id) {
-                                        model.user_filter.remove(user_id);
+                                    if model.user_filter.contains(&user_id) {
+                                        model.user_filter.remove(&user_id);
                                     } else {
-                                        model.user_filter.insert(*user_id);
+                                        model.user_filter.insert(user_id);
                                     }
                                 },
                             },
@@ -1599,7 +1635,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 "stroke-width": "1.5",
                                 stroke: "currentColor",
                                 class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
                                     set_task_status(model, task_id, TaskStatus::ToDo)
                                 },
@@ -1616,7 +1652,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 "stroke-width": "1.5",
                                 stroke: "currentColor",
                                 "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
                                     set_task_status(model, task_id, TaskStatus::InProgress)
                                 },
@@ -1633,7 +1669,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 "stroke-width": "1.5",
                                 stroke: "currentColor",
                                 class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
                                     set_task_status(model, task_id, TaskStatus::Done)
                                 },
@@ -1922,34 +1958,34 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
 
 #[component]
 fn Task(task_id: TaskId, status: TaskStatus) -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
 
-    let expanded_signal = use_signal(|| false);
+    let mut expanded_signal = use_signal(|| false);
     let expanded = expanded_signal();
 
-    let editing_title_signal = use_signal(|| false);
+    let mut editing_title_signal = use_signal(|| false);
     let editing_title = editing_title_signal();
 
-    let new_title = use_signal(String::new);
+    let mut new_title = use_signal(String::new);
 
-    let editing_description_signal = use_signal(|| false);
+    let mut editing_description_signal = use_signal(|| false);
     let editing_description = editing_description_signal();
 
-    let new_description = use_signal(String::new);
+    let mut new_description = use_signal(String::new);
 
-    let editing_size_signal = use_signal(|| false);
+    let mut editing_size_signal = use_signal(|| false);
     let editing_size = editing_size_signal();
 
     let read_model = model.read();
     let data = &read_model.tasks[&task_id];
 
-    let draggable_signal = use_signal(|| true);
+    let mut draggable_signal = use_signal(|| true);
     let draggable = draggable_signal();
 
-    let show_assign_user_signal = use_signal(|| false);
+    let mut show_assign_user_signal = use_signal(|| false);
     let show_assign_user = show_assign_user_signal();
 
-    let show_assign_tag_signal = use_signal(|| false);
+    let mut show_assign_tag_signal = use_signal(|| false);
     let show_assign_tag = show_assign_tag_signal();
 
     rsx! {
@@ -2000,7 +2036,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
                                 set_task_status(model, task_id, TaskStatus::ToDo)
                             },
@@ -2017,7 +2053,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
                                 set_task_status(model, task_id, TaskStatus::InProgress)
                             },
@@ -2034,7 +2070,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
                                 set_task_status(model, task_id, TaskStatus::Done)
                             },
@@ -2420,13 +2456,13 @@ fn Due(
 ) -> Element {
     let model = use_context::<Signal<Model>>();
 
-    let editing_signal = use_signal(|| false);
+    let mut editing_signal = use_signal(|| false);
     let editing = editing_signal();
 
-    let new_date_signal = use_signal(|| None::<NaiveDate>);
+    let mut new_date_signal = use_signal(|| None::<NaiveDate>);
     let new_date = new_date_signal.read();
 
-    let new_time_signal = use_signal(|| NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+    let mut new_time_signal = use_signal(|| NaiveTime::from_hms_opt(0, 0, 0).unwrap());
     let new_time = new_time_signal.read();
 
     let now = Utc::now();
@@ -2451,7 +2487,7 @@ fn Due(
                 }
                 div {
                     class: "grid grid-cols-2 gap-2 place-items-center",
-                    if let Some(new_date_value) = *new_date {
+                    if let Some(new_date_value) = new_date {
                         input {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
@@ -2632,7 +2668,7 @@ fn user_bg(model: Signal<Model>, user_id: &UserId, user_color: &Color) -> String
 
 #[component]
 fn Users(task_id: TaskId, on_click_assign_user: EventHandler<MouseEvent>) -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let data = &read_model.tasks[&task_id];
     let users: Vec<_> = data
@@ -2645,7 +2681,7 @@ fn Users(task_id: TaskId, on_click_assign_user: EventHandler<MouseEvent>) -> Ele
             class: "flex flex-col gap-2",
             div {
                 class: "flex flex-row flex-wrap gap-2",
-                for (user_id, user) in users {
+                for (&user_id, user) in users {
                     div {
                         class: "group relative",
                         onclick: |event| event.stop_propagation(),
@@ -2653,16 +2689,16 @@ fn Users(task_id: TaskId, on_click_assign_user: EventHandler<MouseEvent>) -> Ele
                             class: "
                                 w-6 h-6 rounded cursor-pointer
                                 border-2 {color_picker::border_class(&user.color)}
-                                {user_bg(model, user_id, &user.color)}
+                                {user_bg(model, &user_id, &user.color)}
                                 {color_picker::bg_hover_class(&user.color)}
                             ",
                             onclick:  move |event| {
                                 event.stop_propagation();
                                 let mut model = model.write();
-                                if model.user_filter.contains(user_id) {
-                                    model.user_filter.remove(user_id);
+                                if model.user_filter.contains(&user_id) {
+                                    model.user_filter.remove(&user_id);
                                 } else {
-                                    model.user_filter.insert(*user_id);
+                                    model.user_filter.insert(user_id);
                                 }
                             },
                         },
@@ -2686,7 +2722,7 @@ fn Users(task_id: TaskId, on_click_assign_user: EventHandler<MouseEvent>) -> Ele
                         stroke: "white",
                         class: "w-6 h-6 border border-white rounded cursor-pointer",
                         prevent_default: "onclick",
-                        onclick: |event| on_click_assign_user.call(event),
+                        onclick: move |event| on_click_assign_user.call(event),
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
@@ -2717,10 +2753,10 @@ fn tag_bg(model: Signal<Model>, tag_id: &TagId, tag_color: &Color) -> String {
 
 #[component]
 fn Tags(task_id: TaskId, on_click_assign_tag: EventHandler<MouseEvent>) -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     rsx! {
-        for (tag_id, tag) in read_model
+        for (&tag_id, tag) in read_model
             .tasks[&task_id]
             .tags
             .iter()
@@ -2729,17 +2765,17 @@ fn Tags(task_id: TaskId, on_click_assign_tag: EventHandler<MouseEvent>) -> Eleme
             span {
                 class: "
                     {styles::TAG_BADGE_SPAN}
-                    {tag_bg(model, tag_id, &tag.color)}
+                    {tag_bg(model, &tag_id, &tag.color)}
                     {color_picker::bg_hover_class(&tag.color)}
                     {color_picker::border_class(&tag.color)}
                 ",
                 onclick:  move |event| {
                     event.stop_propagation();
                     let mut model = model.write();
-                    if model.tag_filter.contains(tag_id) {
-                        model.tag_filter.remove(tag_id);
+                    if model.tag_filter.contains(&tag_id) {
+                        model.tag_filter.remove(&tag_id);
                     } else {
-                        model.tag_filter.insert(*tag_id);
+                        model.tag_filter.insert(tag_id);
                     }
                 },
                 "# {tag.name}",
@@ -2748,7 +2784,7 @@ fn Tags(task_id: TaskId, on_click_assign_tag: EventHandler<MouseEvent>) -> Eleme
                     class: "{styles::TAG_BADGE_BUTTON}",
                     onclick:  move |event| {
                         event.stop_propagation();
-                        delete_task_tag(model, task_id, *tag_id)
+                        delete_task_tag(model, task_id, tag_id)
                     },
                     svg {
                         class: "w-2 h-2",
@@ -2777,7 +2813,7 @@ fn Tags(task_id: TaskId, on_click_assign_tag: EventHandler<MouseEvent>) -> Eleme
                 stroke: "white",
                 class: "w-6 h-6 border border-white rounded cursor-pointer",
                 prevent_default: "onclick",
-                onclick: |event| on_click_assign_tag.call(event),
+                onclick: move |event| on_click_assign_tag.call(event),
                 path {
                     "stroke-linecap": "round",
                     "stroke-linejoin": "round",

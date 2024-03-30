@@ -26,7 +26,7 @@ fn tag_bg(model: Signal<Model>, tag_id: &TagId, tag_color: &Color) -> String {
 
 #[component]
 pub fn TagFilter() -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     rsx! {
         div {
             class: "
@@ -78,14 +78,14 @@ fn user_bg(model: Signal<Model>, user_id: &UserId, user_color: &Color) -> String
 
 #[component]
 pub fn UserFilter() -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     rsx! {
         div {
             class: "
                 flex flex-row flex-wrap gap-2
                 justify-center sm:justify-start
             ",
-            for (user_id, user) in model.read().users.iter() {
+            for (&user_id, user) in model.read().users.iter() {
                 div {
                     class: "group relative",
                     onclick: |event| event.stop_propagation(),
@@ -93,16 +93,16 @@ pub fn UserFilter() -> Element {
                         class: "
                             w-6 h-6 rounded cursor-pointer
                             border-2 {color_picker::border_class(&user.color)}
-                            {user_bg(model, user_id, &user.color)}
+                            {user_bg(model, &user_id, &user.color)}
                             {color_picker::bg_hover_class(&user.color)}
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
                             let mut model = model.write();
-                            if model.user_filter.contains(user_id) {
-                                model.user_filter.remove(user_id);
+                            if model.user_filter.contains(&user_id) {
+                                model.user_filter.remove(&user_id);
                             } else {
-                                model.user_filter.insert(*user_id);
+                                model.user_filter.insert(user_id);
                             }
                         },
                     },
@@ -195,7 +195,7 @@ pub fn SizeFilter() -> Element {
                         sm:hover:bg-red-900
                         {size_bg(model, &TaskSize::Large)} text-red-300
                     ",
-                    onclick: |event| {
+                    onclick: move |event| {
                         event.stop_propagation();
                         let mut model = model.write();
                         if model.size_filter == Some(TaskSize::Large) {

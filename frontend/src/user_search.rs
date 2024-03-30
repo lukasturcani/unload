@@ -62,9 +62,12 @@ pub fn UserSearch(
                                 sm:hover:bg-gray-600 sm:hover:text-gray-200
                             ",
                             "aria-label": "Remove",
-                            onclick: move |event| {
-                                event.stop_propagation();
-                                delete_task_assignee(model, task_id, *user_id)
+                            onclick: {
+                                let user_id = *user_id;
+                                move |event| {
+                                    event.stop_propagation();
+                                    delete_task_assignee(model, task_id, user_id)
+                                }
                             },
                             svg {
                                 class: "w-2 h-2",
@@ -104,9 +107,12 @@ pub fn UserSearch(
                             ",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},
-                            onclick: move |event| {
-                                event.stop_propagation();
-                                add_task_assignee(model, task_id, *user_id)
+                            onclick: {
+                                let user_id = *user_id;
+                                move |event| {
+                                    event.stop_propagation();
+                                    add_task_assignee(model, task_id, user_id)
+                                }
                             },
                             "{user.name}",
                         }

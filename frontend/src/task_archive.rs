@@ -96,7 +96,7 @@ fn Task(task_id: TaskId, url: Signal<TasksUrl>, archive: Signal<TaskArchive>) ->
     let users = &archive_read.users;
     let tags = &archive_read.tags;
 
-    let expanded_signal = use_signal(|| false);
+    let mut expanded_signal = use_signal(|| false);
     let expanded = expanded_signal();
 
     rsx! {

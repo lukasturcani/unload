@@ -109,7 +109,7 @@ pub fn SelectingColorPicker(
     default_color: Option<Color>,
     on_pick_color: EventHandler<Color>,
 ) -> Element {
-    let selected_signal = use_signal(|| default_color);
+    let mut selected_signal = use_signal(|| default_color);
     let selected = selected_signal();
     rsx! {
         div {
@@ -152,15 +152,15 @@ pub fn ColorPicker(on_pick_color: EventHandler<Color>) -> Element {
             onclick: |event| {
                 event.stop_propagation();
             },
-            for (color, class) in
+            for (&color, class) in
                 COLORS
                 .iter()
                 .map(|color| (color, bg_class(color)))
             {
                 div {
                     class: "w-8 h-8 rounded cursor-pointer {class}",
-                    onclick: |_| {
-                        on_pick_color.call(*color);
+                    onclick: move |_| {
+                        on_pick_color.call(color);
                     },
                 }
             }
