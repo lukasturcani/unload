@@ -93,19 +93,16 @@ pub fn UserFilter() -> Element {
                         class: "
                             w-6 h-6 rounded cursor-pointer
                             border-2 {color_picker::border_class(&user.color)}
-                            {user_bg(&model, user_id, &user.color)}
+                            {user_bg(model, user_id, &user.color)}
                             {color_picker::bg_hover_class(&user.color)}
                         ",
-                        onclick: {
-                            let user_id = *user_id;
-                            move |event| {
-                                event.stop_propagation();
-                                let mut model = model.write();
-                                if model.user_filter.contains(&user_id) {
-                                    model.user_filter.remove(&user_id);
-                                } else {
-                                    model.user_filter.insert(user_id);
-                                }
+                        onclick: move |event| {
+                            event.stop_propagation();
+                            let mut model = model.write();
+                            if model.user_filter.contains(user_id) {
+                                model.user_filter.remove(user_id);
+                            } else {
+                                model.user_filter.insert(*user_id);
                             }
                         },
                     },

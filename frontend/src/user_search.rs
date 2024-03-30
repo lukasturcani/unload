@@ -17,7 +17,8 @@ pub fn UserSearch(
 ) -> Element {
     let mut model = use_context::<Signal<Model>>();
     if model.read().user_search_created_user.is_some() {
-        if let Some(user) = model.write().user_search_created_user.take() {
+        let maybe_user = model.write().user_search_created_user.take();
+        if let Some(user) = maybe_user {
             spawn(add_task_assignee(model, task_id, user.0));
         }
     }
@@ -28,10 +29,10 @@ pub fn UserSearch(
         .copied()
         .collect();
 
-    let show_add_user_button_signal = use_signal(|| true);
+    let mut show_add_user_button_signal = use_signal(|| true);
     let show_add_user_button = show_add_user_button_signal();
 
-    let new_user = use_signal(String::new);
+    let mut new_user = use_signal(String::new);
     rsx! {
         div {
             class: "

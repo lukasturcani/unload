@@ -12,7 +12,7 @@ use shared_models::{TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId};
 use std::collections::HashMap;
 use tokio::join;
 
-pub async fn board(model: Signal<Model>) {
+pub async fn board(mut model: Signal<Model>) {
     log::info!("sending board data request");
     if let (Ok(users), Ok(tasks), Ok(tags), Ok(quick_add)) =
         join!(users(model), tasks(model), tags(model), quick_add(model))
@@ -31,7 +31,7 @@ pub async fn board(model: Signal<Model>) {
     }
 }
 
-pub async fn board_tags(model: Signal<Model>) {
+pub async fn board_tags(mut model: Signal<Model>) {
     log::info!("sending board tags request");
     if let Ok(tags) = tags(model).await {
         log::info!("got board tags");
@@ -42,7 +42,7 @@ pub async fn board_tags(model: Signal<Model>) {
     }
 }
 
-pub async fn board_users(model: Signal<Model>) {
+pub async fn board_users(mut model: Signal<Model>) {
     log::info!("sending board users request");
     if let Ok(users) = users(model).await {
         log::info!("got board users");

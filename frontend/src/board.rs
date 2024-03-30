@@ -49,7 +49,7 @@ pub fn Board(board_name: BoardName) -> Element {
 
 #[component]
 fn OneColumnBoard(board_name: BoardName) -> Element {
-    let model = use_context::<Signal<Model>>();
+    let mut model = use_context::<Signal<Model>>();
     if model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
@@ -526,7 +526,7 @@ fn DenseToDoColumn() -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500 cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
                         },
@@ -588,7 +588,7 @@ fn DenseToDoColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add_signal.set(!show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -652,7 +652,7 @@ fn InProgressColumn() -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-white cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
                         },
@@ -714,7 +714,7 @@ fn InProgressColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add_signal.set(!show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -778,7 +778,7 @@ fn DenseInProgressColumn() -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500 cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
                         },
@@ -840,7 +840,7 @@ fn DenseInProgressColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add_signal.set(!show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -904,7 +904,7 @@ fn DoneColumn() -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-white cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
                         },
@@ -966,7 +966,7 @@ fn DoneColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add_signal.set(!show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -1030,7 +1030,7 @@ fn DenseDoneColumn() -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500 cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
                         },
@@ -1092,7 +1092,7 @@ fn DenseDoneColumn() -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add_signal.set(!show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -1185,19 +1185,16 @@ fn QuickAddTask(task_id: QuickAddTaskId, status: TaskStatus) -> Element {
                                     class: "
                                         w-5 h-5 rounded cursor-pointer
                                         border-2 {color_picker::border_class(&user.color)}
-                                        {user_bg(&model, user_id, &user.color)}
+                                        {user_bg(model, user_id, &user.color)}
                                         {color_picker::bg_hover_class(&user.color)}
                                     ",
-                                    onclick: {
-                                        let user_id = *user_id;
-                                        move |event| {
-                                            event.stop_propagation();
-                                            let mut model = model.write();
-                                            if model.user_filter.contains(&user_id) {
-                                                model.user_filter.remove(&user_id);
-                                            } else {
-                                                model.user_filter.insert(user_id);
-                                            }
+                                    onclick: move |event| {
+                                        event.stop_propagation();
+                                        let mut model = model.write();
+                                        if model.user_filter.contains(user_id) {
+                                            model.user_filter.remove(user_id);
+                                        } else {
+                                            model.user_filter.insert(*user_id);
                                         }
                                     },
                                 },
@@ -1309,8 +1306,8 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                         input {
                             class: styles::TEXT_INPUT,
                             r#type: "text",
-                            oninput: |event| new_title.set(event.value.clone()),
-                            value: "{new_title}",
+                            oninput: move |event| new_title_signal.set(event.value()),
+                            value: "{new_title_signal}",
                         }
                         button {
                             r#type: "button",
@@ -1321,10 +1318,10 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 sm:hover:bg-green-500 sm:hover:text-white
                             ",
                             prevent_default: "onclick",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
-                                editing_title.set(false);
-                                set_task_title(model, *task_id, (**new_title).clone())
+                                editing_title_signal.set(false);
+                                set_task_title(model, task_id, new_title_signal())
                             },
                             svg {
                                 xmlns: "http://www.w3.org/2000/svg",
@@ -1349,9 +1346,9 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 sm:hover:bg-red-500 sm:hover:text-white
                             ",
                             prevent_default: "onclick",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
-                                editing_title.set(false);
+                                editing_title_signal.set(false);
                             },
                             svg {
                                 class: "stroke-red-500",
@@ -1403,19 +1400,16 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 class: "
                                     w-5 h-5 rounded cursor-pointer
                                     border-2 {color_picker::border_class(&user.color)}
-                                    {user_bg(&model, user_id, &user.color)}
+                                    {user_bg(model, user_id, &user.color)}
                                     {color_picker::bg_hover_class(&user.color)}
                                 ",
-                                onclick: {
-                                    let user_id = *user_id;
-                                    move |event| {
-                                        event.stop_propagation();
-                                        let mut model = model.write();
-                                        if model.user_filter.contains(&user_id) {
-                                            model.user_filter.remove(&user_id);
-                                        } else {
-                                            model.user_filter.insert(user_id);
-                                        }
+                                onclick:  move |event| {
+                                    event.stop_propagation();
+                                    let mut model = model.write();
+                                    if model.user_filter.contains(user_id) {
+                                        model.user_filter.remove(user_id);
+                                    } else {
+                                        model.user_filter.insert(*user_id);
                                     }
                                 },
                             },
@@ -1445,7 +1439,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                         onclick: move |event| {
                             event.stop_propagation();
                             if !show_assign_user {
-                                assignees.set(model.read().tasks[&task_id].assignees.clone());
+                                assignees_signal.set(model.read().tasks[&task_id].assignees.clone());
                                 show_assign_user_signal.set(true);
                             } else {
                                show_assign_user_signal.set(false);
@@ -1477,8 +1471,8 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                     textarea {
                         class: "p-4 bg-gray-900 rounded border border-gray-700 text-white",
                         rows: 8.max(data.description.lines().count() as i64),
-                        oninput: |event| new_description.set(event.value.clone()),
-                        value: "{new_description}",
+                        oninput: move |event| new_description_signal.set(event.value()),
+                        value: "{new_description_signal}",
                     }
                     div {
                         class: "grid grid-rows-1 justify-items-end",
@@ -1493,10 +1487,10 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                     sm:hover:bg-green-500 sm:hover:text-white
                                 ",
                                 prevent_default: "onclick",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
                                     editing_description_signal.set(false);
-                                    set_task_description(model, task_id, (**new_description).clone())
+                                    set_task_description(model, task_id, new_description_signal())
                                 },
                                 svg {
                                     xmlns: "http://www.w3.org/2000/svg",
@@ -1521,7 +1515,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                     sm:hover:bg-red-500 sm:hover:text-white
                                 ",
                                 prevent_default: "onclick",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
                                     editing_description_signal.set(false);
                                 },
@@ -1561,7 +1555,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                             class: "w-4 h-4 text-gray-400 cursor-pointer inline-block",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                new_description.set(model.read().tasks[&task_id].description.clone());
+                                new_description_signal.set(model.read().tasks[&task_id].description.clone());
                                 editing_description_signal.set(true);
                             },
                             path {
@@ -1663,7 +1657,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                     border-2 border-emerald-700
                                     sm:hover:bg-emerald-700 bg-inherit text-green-300
                                 ",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
                                     editing_size_signal.set(false);
                                     set_task_size(model, task_id, TaskSize::Small)
@@ -1676,7 +1670,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                     border-2 border-yellow-900
                                     sm:hover:bg-yellow-900 bg-inherit text-yellow-300
                                 ",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
                                     editing_size_signal.set(false);
                                     set_task_size(model, task_id, TaskSize::Medium)
@@ -1689,7 +1683,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                     border-2 border-red-900
                                     sm:hover:bg-red-900 bg-inherit text-red-300
                                 ",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
                                     editing_size_signal.set(false);
                                     set_task_size(model, task_id, TaskSize::Large)
@@ -1708,7 +1702,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                             sm:hover:bg-emerald-700
                                             text-green-300
                                         ",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
                                             let mut model = model.write();
                                             if model.size_filter == Some(TaskSize::Small) {
@@ -1725,7 +1719,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                             "stroke-width": "1.5",
                                             stroke: "currentColor",
                                             class: "w-4 h-4",
-                                            onclick: |event| {
+                                            onclick: move |event| {
                                                 event.stop_propagation();
                                                 editing_size_signal.set(true);
                                             },
@@ -1746,7 +1740,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                             sm:hover:bg-yellow-900
                                             {size_bg(model, &data.size)} text-yellow-300
                                         ",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
                                             let mut model = model.write();
                                             if model.size_filter == Some(TaskSize::Medium) {
@@ -1763,7 +1757,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                             "stroke-width": "1.5",
                                             stroke: "currentColor",
                                             class: "w-4 h-4",
-                                            onclick: |event| {
+                                            onclick: move |event| {
                                                 event.stop_propagation();
                                                 editing_size_signal.set(true);
                                             },
@@ -1784,7 +1778,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                             sm:hover:bg-red-900
                                             {size_bg(model, &data.size)} text-red-300
                                         ",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
                                             let mut model = model.write();
                                             if model.size_filter == Some(TaskSize::Large) {
@@ -1801,7 +1795,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                             "stroke-width": "1.5",
                                             stroke: "currentColor",
                                             class: "w-4 h-4",
-                                            onclick: |event| {
+                                            onclick: move |event| {
                                                 event.stop_propagation();
                                                 editing_size_signal.set(true);
                                             },
@@ -1937,7 +1931,10 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
     let editing_title = editing_title_signal();
 
     let new_title = use_signal(String::new);
-    let editing_description = use_signal(|| false);
+
+    let editing_description_signal = use_signal(|| false);
+    let editing_description = editing_description_signal();
+
     let new_description = use_signal(String::new);
 
     let editing_size_signal = use_signal(|| false);
@@ -1959,7 +1956,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
         div {
             prevent_default: "onclick",
             draggable,
-            onclick: |_| expanded_signal.set(!expanded),
+            onclick: move |_| expanded_signal.set(!expanded),
             class: "
                 flex flex-col gap-2 p-3 border rounded-lg shadow
                 bg-gray-800 border-gray-700 sm:hover:bg-gray-700",
@@ -1969,13 +1966,13 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                     input {
                         class: styles::TEXT_INPUT,
                         r#type: "text",
-                        oninput: |event| new_title.set(event.value.clone()),
-                        onfocusout: |_| {
+                        oninput: move |event| new_title.set(event.value()),
+                        onfocusout: move |_| {
                             editing_title_signal.set(false);
-                            set_task_title(model, task_id, (**new_title).clone())
+                            set_task_title(model, task_id, new_title())
                         },
-                        onmouseenter: |_| draggable_signal.set(false),
-                        onmouseleave: |_| draggable_signal.set(true),
+                        onmouseenter: move |_| draggable_signal.set(false),
+                        onmouseleave: move |_| draggable_signal.set(true),
                         value: "{new_title}",
                     }
                 } else {
@@ -2154,7 +2151,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                                 border-2 border-emerald-700
                                 sm:hover:bg-emerald-700 bg-inherit text-green-300
                             ",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
                                 editing_size_signal.set(false);
                                 set_task_size(model, task_id, TaskSize::Small)
@@ -2167,7 +2164,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                                 border-2 border-yellow-900
                                 sm:hover:bg-yellow-900 bg-inherit text-yellow-300
                             ",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
                                 editing_size_signal.set(false);
                                 set_task_size(model, task_id, TaskSize::Medium)
@@ -2180,7 +2177,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                                 border-2 border-red-900
                                 sm:hover:bg-red-900 bg-inherit text-red-300
                             ",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
                                 editing_size_signal.set(false);
                                 set_task_size(model, task_id, TaskSize::Large)
@@ -2199,7 +2196,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                                         sm:hover:bg-emerald-700
                                         text-green-300
                                     ",
-                                    onclick: |event| {
+                                    onclick: move |event| {
                                         event.stop_propagation();
                                         let mut model = model.write();
                                         if model.size_filter == Some(TaskSize::Small) {
@@ -2216,7 +2213,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                                         "stroke-width": "1.5",
                                         stroke: "currentColor",
                                         class: "w-4 h-4",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
                                             editing_size_signal.set(true);
                                         },
@@ -2237,7 +2234,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                                         sm:hover:bg-yellow-900
                                         {size_bg(model, &data.size)} text-yellow-300
                                     ",
-                                    onclick: |event| {
+                                    onclick: move |event| {
                                         event.stop_propagation();
                                         let mut model = model.write();
                                         if model.size_filter == Some(TaskSize::Medium) {
@@ -2254,7 +2251,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                                         "stroke-width": "1.5",
                                         stroke: "currentColor",
                                         class: "w-4 h-4",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
                                             editing_size_signal.set(true);
                                         },
@@ -2275,7 +2272,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                                         sm:hover:bg-red-900
                                         {size_bg(model, &data.size)} text-red-300
                                     ",
-                                    onclick: |event| {
+                                    onclick: move |event| {
                                         event.stop_propagation();
                                         let mut model = model.write();
                                         if model.size_filter == Some(TaskSize::Large) {
@@ -2292,7 +2289,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                                         "stroke-width": "1.5",
                                         stroke: "currentColor",
                                         class: "w-4 h-4",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
                                             editing_size_signal.set(true);
                                         },
@@ -2310,7 +2307,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
             }
             if let Some(due_value) = data.due {
                 Due {
-                    task_id: *task_id,
+                    task_id,
                     due: DueOptions{
                         due: due_value,
                         show_time_left: match status {
@@ -2322,25 +2319,25 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                     p_style: "",
                 }
             }
-            if **expanded && data.due.is_none() {
+            if expanded && data.due.is_none() {
                 Due {
-                    task_id: *task_id,
+                    task_id,
                     svg_style: "w-6 h-6",
                     p_style: "",
                 }
             }
-            if **expanded {
-                if **editing_description {
+            if expanded {
+                if editing_description {
                     textarea {
                         class: "p-4 bg-gray-900 rounded border border-gray-700 text-white",
                         rows: 8.max(data.description.lines().count() as i64),
-                        oninput: |event| new_description.set(event.value.clone()),
-                        onfocusout: |_| {
-                            editing_description.set(false);
-                            set_task_description(model, *task_id, (**new_description).clone())
+                        oninput: move |event| new_description.set(event.value()),
+                        onfocusout: move |_| {
+                            editing_description_signal.set(false);
+                            set_task_description(model, task_id, new_description())
                         },
-                        onmouseenter: |_| draggable.set(false),
-                        onmouseleave: |_| draggable.set(true),
+                        onmouseenter: move |_| draggable_signal.set(false),
+                        onmouseleave: move |_| draggable_signal.set(true),
                         value: "{new_description}",
                     }
 
@@ -2352,8 +2349,8 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
-                            editing_description.set(true);
-                            new_description.set(model.read().tasks[task_id].description.clone());
+                            editing_description_signal.set(true);
+                            new_description.set(model.read().tasks[&task_id].description.clone());
                         },
                         "{data.description}"
                     }
@@ -2422,12 +2419,19 @@ fn Due(
     p_style: &'static str,
 ) -> Element {
     let model = use_context::<Signal<Model>>();
-    let editing = use_signal(|| false);
-    let new_date = use_signal(|| None::<NaiveDate>);
-    let new_time = use_signal(|| NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+
+    let editing_signal = use_signal(|| false);
+    let editing = editing_signal();
+
+    let new_date_signal = use_signal(|| None::<NaiveDate>);
+    let new_date = new_date_signal.read();
+
+    let new_time_signal = use_signal(|| NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+    let new_time = new_time_signal.read();
+
     let now = Utc::now();
     rsx! {
-        if **editing {
+        if editing {
             div {
                 class: "flex flex-row gap-2 items-center",
                 svg {
@@ -2436,9 +2440,9 @@ fn Due(
                     "xmlns": "http://www.w3.org/2000/svg",
                     "fill": "none",
                     "viewBox": "0 0 20 20",
-                    onclick: |event| {
+                    onclick: move |event| {
                         event.stop_propagation();
-                        editing.set(false);
+                        editing_signal.set(false);
                     },
                     path {
                         fill: "currentColor",
@@ -2447,55 +2451,55 @@ fn Due(
                 }
                 div {
                     class: "grid grid-cols-2 gap-2 place-items-center",
-                    if let Some(new_date_value) = **new_date {
+                    if let Some(new_date_value) = *new_date {
                         input {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
                             value: "{new_date_value.format(\"%Y-%m-%d\")}",
-                            oninput: |event| {
-                                if event.value.is_empty() {
-                                    new_date.set(None);
-                                    new_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
-                                } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                    new_date.set(Some(date))
+                            oninput: move |event| {
+                                let event_value = event.value();
+                                if event_value.is_empty() {
+                                    new_date_signal.set(None);
+                                    new_time_signal.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                                } else if let Ok(date) = NaiveDate::parse_from_str(&event_value, "%Y-%m-%d") {
+                                    new_date_signal.set(Some(date))
                                 }
                             },
-                        },
+                        }
                         select {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
-                            value: "{format_due_time(&**new_time)}",
-                            onchange: |event| {
-                                if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
-                                    new_time.set(time);
+                            value: "{format_due_time(&new_time)}",
+                            onchange: move |event| {
+                                if let Ok(time) = NaiveTime::parse_from_str(&event.value(), "%H:%M") {
+                                    new_time_signal.set(time);
                                 }
                             },
                             option {
-                                value: "{format_due_time(&**new_time)}",
-                                "{format_due_time(&**new_time)}"
+                                value: "{format_due_time(&new_time)}",
+                                "{format_due_time(&new_time)}"
                             },
                             for hour in 0..24 {
                                 for minute in [0, 15, 30, 45] {
-                                    rsx!{
-                                        option {
-                                            value: "{hour:02}:{minute:02}",
-                                            "{hour:02}:{minute:02}"
-                                        },
+                                    option {
+                                        value: "{hour:02}:{minute:02}",
+                                        "{hour:02}:{minute:02}"
                                     }
                                 }
                             }
-                        },
+                        }
                     } else {
                         input {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
-                            oninput: |event| {
-                                if event.value.is_empty() {
-                                    new_date.set(None)
-                                } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                    new_date.set(Some(date))
+                            oninput: move |event| {
+                                let event_value = event.value();
+                                if event_value.is_empty() {
+                                    new_date_signal.set(None)
+                                } else if let Ok(date) = NaiveDate::parse_from_str(&event_value, "%Y-%m-%d") {
+                                    new_date_signal.set(Some(date))
                                 }
-                            },
-                        },
+                            }
+                        }
                     }
                 }
                 button {
@@ -2507,14 +2511,14 @@ fn Due(
                         sm:hover:bg-green-500 sm:hover:text-white
                     ",
                     prevent_default: "onclick",
-                    onclick: |event| {
+                    onclick: move |event| {
                         event.stop_propagation();
-                        editing.set(false);
+                        editing_signal.set(false);
                         set_task_due(
                             model,
-                            *task_id,
+                            task_id,
                             new_date.map(|date| {
-                                Local.from_local_datetime(&date.and_time(**new_time))
+                                Local.from_local_datetime(&date.and_time(new_time.clone()))
                                 .unwrap()
                                 .into()
                             })
@@ -2543,9 +2547,9 @@ fn Due(
                         sm:hover:bg-red-500 sm:hover:text-white
                     ",
                     prevent_default: "onclick",
-                    onclick: |event| {
+                    onclick: move |event| {
                         event.stop_propagation();
-                        editing.set(false);
+                        editing_signal.set(false);
                     },
                     svg {
                         class: "stroke-red-500",
@@ -2564,14 +2568,14 @@ fn Due(
                 }
             }
         } else {
-            if let Some(DueOptions{due: due_value, show_time_left}) = due {rsx!{
+            if let Some(DueOptions{due: due_value, show_time_left}) = due {
                 div {
                     class: "flex flex-row gap-2",
                     onclick: move |_| {
-                        editing.set(true);
-                        let local = utc_to_local(due_value);
-                        new_date.set(Some(local.date_naive()));
-                        new_time.set(local.time());
+                        editing_signal.set(true);
+                        let local = utc_to_local(&due_value);
+                        new_date_signal.set(Some(local.date_naive()));
+                        new_time_signal.set(local.time());
                     },
                     svg {
                         class: "text-gray-400 cursor-pointer {svg_style}",
@@ -2586,22 +2590,22 @@ fn Due(
                     }
                     p {
                         class: "font-normal text-gray-400 {p_style}",
-                        if *show_time_left {rsx!{
+                        if show_time_left {
                             "{format_datetime(utc_to_local(&due_value))} ({time_delta(&now, &due_value)})"
-                        }} else {rsx!{
+                        } else {
                             "{format_datetime(utc_to_local(&due_value))}"
-                        }}
+                        }
                     }
                 }
-            }} else {rsx!{
+            } else {
                 div {
                     class: "flex flex-row gap-2",
                     svg {
                         class: "text-gray-400 cursor-pointer {svg_style}",
                         onclick: move |_| {
-                            editing.set(true);
-                            new_date.set(None);
-                            new_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                            editing_signal.set(true);
+                            new_date_signal.set(None);
+                            new_time_signal.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
                         },
                         "aria-hidden": "true",
                         "xmlns": "http://www.w3.org/2000/svg",
@@ -2612,7 +2616,7 @@ fn Due(
                             d: "M6 1a1 1 0 0 0-2 0h2ZM4 4a1 1 0 0 0 2 0H4Zm7-3a1 1 0 1 0-2 0h2ZM9 4a1 1 0 1 0 2 0H9Zm7-3a1 1 0 1 0-2 0h2Zm-2 3a1 1 0 1 0 2 0h-2ZM1 6a1 1 0 0 0 0 2V6Zm18 2a1 1 0 1 0 0-2v2ZM5 11v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 11v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 15v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 15v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 11v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM5 15v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM2 4h16V2H2v2Zm16 0h2a2 2 0 0 0-2-2v2Zm0 0v14h2V4h-2Zm0 14v2a2 2 0 0 0 2-2h-2Zm0 0H2v2h16v-2ZM2 18H0a2 2 0 0 0 2 2v-2Zm0 0V4H0v14h2ZM2 4V2a2 2 0 0 0-2 2h2Zm2-3v3h2V1H4Zm5 0v3h2V1H9Zm5 0v3h2V1h-2ZM1 8h18V6H1v2Zm3 3v.01h2V11H4Zm1 1.01h.01v-2H5v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H5v2h.01v-2ZM9 11v.01h2V11H9Zm1 1.01h.01v-2H10v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM9 15v.01h2V15H9Zm1 1.01h.01v-2H10v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM14 15v.01h2V15h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM14 11v.01h2V11h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM4 15v.01h2V15H4Zm1 1.01h.01v-2H5v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H5v2h.01v-2Z",
                         }
                     }
-                }}
+                }
             }
         }
     }
@@ -2649,19 +2653,16 @@ fn Users(task_id: TaskId, on_click_assign_user: EventHandler<MouseEvent>) -> Ele
                             class: "
                                 w-6 h-6 rounded cursor-pointer
                                 border-2 {color_picker::border_class(&user.color)}
-                                {user_bg(&model, user_id, &user.color)}
+                                {user_bg(model, user_id, &user.color)}
                                 {color_picker::bg_hover_class(&user.color)}
                             ",
-                            onclick: {
-                                let user_id = *user_id;
-                                move |event| {
-                                    event.stop_propagation();
-                                    let mut model = model.write();
-                                    if model.user_filter.contains(&user_id) {
-                                        model.user_filter.remove(&user_id);
-                                    } else {
-                                        model.user_filter.insert(user_id);
-                                    }
+                            onclick:  move |event| {
+                                event.stop_propagation();
+                                let mut model = model.write();
+                                if model.user_filter.contains(user_id) {
+                                    model.user_filter.remove(user_id);
+                                } else {
+                                    model.user_filter.insert(*user_id);
                                 }
                             },
                         },
@@ -2720,7 +2721,7 @@ fn Tags(task_id: TaskId, on_click_assign_tag: EventHandler<MouseEvent>) -> Eleme
     let read_model = model.read();
     rsx! {
         for (tag_id, tag) in read_model
-            .tasks[task_id]
+            .tasks[&task_id]
             .tags
             .iter()
             .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
@@ -2732,29 +2733,22 @@ fn Tags(task_id: TaskId, on_click_assign_tag: EventHandler<MouseEvent>) -> Eleme
                     {color_picker::bg_hover_class(&tag.color)}
                     {color_picker::border_class(&tag.color)}
                 ",
-                onclick: {
-                    let tag_id = *tag_id;
-                    move |event| {
-                        event.stop_propagation();
-                        let mut model = model.write();
-                        if model.tag_filter.contains(&tag_id) {
-                            model.tag_filter.remove(&tag_id);
-                        } else {
-                            model.tag_filter.insert(tag_id);
-                        }
+                onclick:  move |event| {
+                    event.stop_propagation();
+                    let mut model = model.write();
+                    if model.tag_filter.contains(tag_id) {
+                        model.tag_filter.remove(tag_id);
+                    } else {
+                        model.tag_filter.insert(*tag_id);
                     }
                 },
                 "# {tag.name}",
                 button {
                     r#type: "button",
                     class: "{styles::TAG_BADGE_BUTTON}",
-                    onclick: {
-                        let task_id = *task_id;
-                        let tag_id = *tag_id;
-                        move |event| {
-                            event.stop_propagation();
-                            delete_task_tag(model, task_id, tag_id)
-                        }
+                    onclick:  move |event| {
+                        event.stop_propagation();
+                        delete_task_tag(model, task_id, *tag_id)
                     },
                     svg {
                         class: "w-2 h-2",

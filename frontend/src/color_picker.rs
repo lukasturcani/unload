@@ -109,7 +109,8 @@ pub fn SelectingColorPicker(
     default_color: Option<Color>,
     on_pick_color: EventHandler<Color>,
 ) -> Element {
-    let selected = use_signal(|| default_color);
+    let selected_signal = use_signal(|| default_color);
+    let selected = selected_signal();
     rsx! {
         div {
             class: "flex-1 flex grid grid-cols-4 gap-4 justify-items-center",
@@ -124,16 +125,16 @@ pub fn SelectingColorPicker(
                             w-8 h-8 rounded cursor-pointer {class}
                             ring-blue-600 ring-2
                         ",
-                        onclick: |_| {
-                            selected.set(Some(*color));
+                        onclick: move |_| {
+                            selected_signal.set(Some(*color));
                             on_pick_color.call(*color);
                         },
                     }
                 } else {
                     div {
                         class: "w-8 h-8 rounded cursor-pointer {class}",
-                        onclick: |_| {
-                            selected.set(Some(*color));
+                        onclick: move |_| {
+                            selected_signal.set(Some(*color));
                             on_pick_color.call(*color);
                         },
                     }
