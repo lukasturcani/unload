@@ -117,12 +117,19 @@ install-deps:
 
 # build the frontend
 frontend:
-  cd frontend && npx tailwindcss -i ./input.css -o ./public/tailwind.css
+  cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
   cd frontend && dx build
+
+# watch the frontend
+watch-frontend:
+  watchexec -e rs -w frontend -w shared_models "\
+  cd frontend && \
+  npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
+  dx build"
 
 # build the frontend
 frontend-release:
-  cd frontend && npx tailwindcss -i ./input.css -o ./public/tailwind.css
+  cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
   cd frontend && dx build --release
 
 # run the backend
@@ -135,7 +142,7 @@ backend database: frontend
 watch-backend database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
   UNLOAD_SERVE_DIR="frontend/dist" \
-  cargo watch -x 'run -- --bin unload'
+  cargo watch -w backend -w shared_models -x 'run -- --bin unload'
 
 # connect to fly.io volume
 fly-volume:

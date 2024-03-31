@@ -83,87 +83,66 @@ pub fn border_class(color: &Color) -> &'static str {
     }
 }
 
-pub fn text_class(color: &Color) -> &'static str {
-    match color {
-        Color::Black => "text-orange-500",
-        Color::White => "text-teal-600",
-        Color::Gray => "text-gray-400",
-        Color::Silver => "text-slate-500",
-        Color::Maroon => "text-rose-400",
-        Color::Red => "text-red-600",
-        Color::Purple => "text-purple-600",
-        Color::Fushsia => "text-fuchsia-400",
-        Color::Green => "text-emerald-500",
-        Color::Lime => "text-lime-500",
-        Color::Olive => "text-indigo-400",
-        Color::Yellow => "text-yellow-400",
-        Color::Navy => "text-amber-200",
-        Color::Blue => "text-blue-400",
-        Color::Teal => "text-teal-300",
-        Color::Aqua => "text-cyan-500",
-    }
-}
-
 #[component]
-pub fn SelectingColorPicker<'a>(
-    cx: Scope<'a>,
+pub fn SelectingColorPicker(
     default_color: Option<Color>,
-    on_pick_color: EventHandler<'a, Color>,
-) -> Element<'a> {
-    let selected = use_state(cx, || *default_color);
-    cx.render(rsx! {
+    on_pick_color: EventHandler<Color>,
+) -> Element {
+    let mut selected_signal = use_signal(|| default_color);
+    let selected = selected_signal();
+    rsx! {
         div {
             class: "flex-1 flex grid grid-cols-4 gap-4 justify-items-center",
             for (color, class) in
                 COLORS
                 .iter()
                 .map(|color| (color, bg_class(color)))
-            {rsx! {
-                if selected.map_or(false, |selected_color| selected_color == *color) {rsx!{
+            {
+                if selected.map_or(false, |selected_color| selected_color == *color) {
                     div {
                         class: "
                             w-8 h-8 rounded cursor-pointer {class}
                             ring-blue-600 ring-2
                         ",
-                        onclick: |_| {
-                            selected.set(Some(*color));
+                        onclick: move |_| {
+                            selected_signal.set(Some(*color));
                             on_pick_color.call(*color);
                         },
                     }
-                }} else {rsx!{
+                } else {
                     div {
                         class: "w-8 h-8 rounded cursor-pointer {class}",
-                        onclick: |_| {
-                            selected.set(Some(*color));
+                        onclick: move |_| {
+                            selected_signal.set(Some(*color));
                             on_pick_color.call(*color);
                         },
                     }
-                }}
-            }}
+                }
+            }
         }
-    })
+    }
 }
 
 #[component]
-pub fn ColorPicker<'a>(cx: Scope<'a>, on_pick_color: EventHandler<'a, Color>) -> Element<'a> {
-    cx.render(rsx! {
+pub fn ColorPicker(on_pick_color: EventHandler<Color>) -> Element {
+    rsx! {
         div {
             class: "flex-1 flex grid grid-cols-4 gap-4 justify-items-center",
             onclick: |event| {
                 event.stop_propagation();
             },
-            for (color, class) in
+            for (&color, class) in
                 COLORS
                 .iter()
                 .map(|color| (color, bg_class(color)))
-            {rsx! {
+            {
                 div {
                     class: "w-8 h-8 rounded cursor-pointer {class}",
-                    onclick: |_| {
-                        on_pick_color.call(*color);
+                    onclick: move |_| {
+                        on_pick_color.call(color);
                     },
                 }
-            }}
+            }
         }
-    })
+    }
 }

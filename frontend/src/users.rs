@@ -13,27 +13,21 @@ struct UsersUrl(reqwest::Url);
 struct UserEntries(Vec<UserEntry>);
 
 #[component]
-pub fn Users(cx: Scope, board_name: BoardName) -> Element {
-    use_shared_state_provider(cx, || {
+pub fn Users(board_name: BoardName) -> Element {
+    let url = use_signal(|| {
         #[cfg(debug_assertions)]
         let url = Url::from_str("http://localhost:8080").unwrap();
         #[cfg(not(debug_assertions))]
         let url = Url::from_str("https://unload.fly.dev").unwrap();
         UsersUrl(url.join(&format!("/api/boards/{}/", board_name)).unwrap())
     });
-    use_shared_state_provider(cx, || UserEntries(Vec::new()));
-    let url = use_shared_state::<UsersUrl>(cx).unwrap();
-    let users = use_shared_state::<UserEntries>(cx).unwrap();
-    let nav = use_navigator(cx);
-    use_future(cx, (), {
-        let url = url.clone();
-        let users = users.clone();
-        |_| async move {
-            let url = url.read();
-            get_users(users, &url.0).await
-        }
+    let users = use_signal(|| UserEntries(Vec::new()));
+    let nav = use_navigator();
+    use_future(move || async move {
+        let url = &url.read().0;
+        get_users(users, url).await;
     });
-    cx.render(rsx! {
+    rsx! {
         div {
             class: "
                 w-screen h-dvh
@@ -67,12 +61,19 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                         }
                         tbody {
                             class: "divide-y divide-gray-700",
-                            users
+                            for user in users
                                 .read()
                                 .0
                                 .iter()
                                 .sorted_by_key(|user| user.name.to_lowercase())
-                                .map(|user| rsx!(UserRow { key: "{user.id}", user: user.clone() }))
+                            {
+                                UserRow {
+                                    key: "{user.id}",
+                                    user: user.clone(),
+                                    url,
+                                    users,
+                                }
+                            }
                         }
                     }
                 }
@@ -82,10 +83,13 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                 button {
                     r#type: "button",
                     class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: |_| {
-                        nav.push(Route::Board {
-                            board_name: board_name.clone(),
-                        });
+                    onclick: {
+                            let board_name = board_name.clone();
+                            move |_| {
+                            nav.push(Route::Board {
+                                board_name: board_name.clone(),
+                            });
+                        }
                     },
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
@@ -108,7 +112,7 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                 button {
                     r#type: "button" ,
                     class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddUser {
                             board_name: board_name.clone(),
                         });
@@ -133,41 +137,36 @@ pub fn Users(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn UserRow(cx: Scope, user: UserEntry) -> Element {
-    let url = use_shared_state::<UsersUrl>(cx).unwrap();
-    let users = use_shared_state::<UserEntries>(cx).unwrap();
-    let editing_color = use_state(cx, || false);
-    let name = use_state(cx, || None::<String>);
-    cx.render(rsx! {
+fn UserRow(user: UserEntry, url: Signal<UsersUrl>, users: Signal<UserEntries>) -> Element {
+    let mut editing_color_signal = use_signal(|| false);
+    let editing_color = editing_color_signal();
+
+    let mut name = use_signal(|| None::<String>);
+    rsx! {
         tr {
             class: "bg-gray-800 sm:hover:bg-gray-600",
             td {
                 class: "p-3",
-                if **editing_color {rsx!{
+                if editing_color {
                     SelectingColorPicker {
                         default_color: user.color,
-                        on_pick_color: |picked_color| {
-                            editing_color.set(false);
-                            cx.spawn(
-                                set_user_color(
-                                    users.clone(),
-                                    url.clone(),
-                                    user.id,
-                                    picked_color,
-                                )
+                        on_pick_color: move |picked_color| {
+                            editing_color_signal.set(false);
+                            spawn(
+                                set_user_color(users, url, user.id, picked_color)
                             );
                         },
                     }
-                }} else {rsx! {
+                } else {
                     div {
                         class: "flex flex-row gap-1",
                         div {
                             class: "w-8 h-8 rounded cursor-pointer {color_picker::bg_class(&user.color)}",
-                            onclick: |_| editing_color.set(true),
+                            onclick: move |_| editing_color_signal.set(true),
                         },
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
@@ -176,7 +175,7 @@ fn UserRow(cx: Scope, user: UserEntry) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "w-4 h-4",
-                            onclick: |_| editing_color.set(true),
+                            onclick: move |_| editing_color_signal.set(true),
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -185,31 +184,29 @@ fn UserRow(cx: Scope, user: UserEntry) -> Element {
                         }
                     }
 
-                }}
+                }
             }
             td {
                 class: "p-3",
-                if let Some(name_value) = &**name { rsx!{
+                if let Some(name_value) = name() {
                     input {
                         r#type: "text",
                         value: "{name_value}",
                         class: "bg-inherit rounded text-sm",
-                        oninput: |event| name.set(Some(event.data.value.clone())),
-                        onfocusout: |_| {
+                        oninput: move |event| name.set(Some(event.data.value())),
+                        onfocusout: move |_| {
                             name.set(None);
-                            set_user_name(
-                                users.clone(),
-                                url.clone(),
-                                user.id,
-                                name_value.clone(),
-                            )
+                            set_user_name(users, url, user.id, name_value.clone())
                         },
                     }
-                }} else { rsx!{
+                } else {
                     div {
                         class: "flex flex-row gap-1",
                         p {
-                            onclick: |_| name.set(Some(user.name.clone())),
+                            onclick: {
+                                let user_name = user.name.clone();
+                                move |_| name.set(Some(user_name.clone()))
+                            },
                             "{user.name}"
                         }
                         svg {
@@ -219,7 +216,7 @@ fn UserRow(cx: Scope, user: UserEntry) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "w-4 h-4",
-                            onclick: |_| name.set(Some(user.name.clone())),
+                            onclick: move |_| name.set(Some(user.name.clone())),
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -227,7 +224,7 @@ fn UserRow(cx: Scope, user: UserEntry) -> Element {
                             }
                         }
                     }
-                    }},
+                },
             }
             td {
                 class: "p-3",
@@ -240,7 +237,7 @@ fn UserRow(cx: Scope, user: UserEntry) -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 cursor-pointer text-red-600",
-                        onclick: |_| delete_user(users.clone(), url.clone(), user.id),
+                        onclick: move |_| delete_user(users, url, user.id),
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
@@ -251,12 +248,12 @@ fn UserRow(cx: Scope, user: UserEntry) -> Element {
             }
 
         }
-    })
+    }
 }
 
 async fn set_user_color(
-    users: UseSharedState<UserEntries>,
-    url: UseSharedState<UsersUrl>,
+    users: Signal<UserEntries>,
+    url: Signal<UsersUrl>,
     user_id: UserId,
     color: Color,
 ) {
@@ -281,8 +278,8 @@ async fn send_set_user_color_request(
 }
 
 async fn set_user_name(
-    users: UseSharedState<UserEntries>,
-    url: UseSharedState<UsersUrl>,
+    users: Signal<UserEntries>,
+    url: Signal<UsersUrl>,
     user_id: UserId,
     name: String,
 ) {
@@ -306,11 +303,7 @@ async fn send_set_user_name_request(
         .await?)
 }
 
-async fn delete_user(
-    users: UseSharedState<UserEntries>,
-    url: UseSharedState<UsersUrl>,
-    user_id: UserId,
-) {
+async fn delete_user(users: Signal<UserEntries>, url: Signal<UsersUrl>, user_id: UserId) {
     let url = &url.read().0;
     let _ = send_delete_user_request(url, user_id).await;
     get_users(users, url).await;
@@ -326,7 +319,7 @@ async fn send_delete_user_request(url: &Url, user_id: UserId) -> Result<(), anyh
         .await?)
 }
 
-async fn get_users(users: UseSharedState<UserEntries>, url: &Url) {
+async fn get_users(mut users: Signal<UserEntries>, url: &Url) {
     if let Ok(result) = send_get_users_request(url).await {
         users.write().0 = result;
     }

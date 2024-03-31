@@ -1,7 +1,6 @@
 use crate::color_picker::{self, SelectingColorPicker};
 use crate::styles;
 use dioxus::prelude::*;
-use dioxus_router::hooks::use_navigator;
 use itertools::Itertools;
 use reqwest::Url;
 use shared_models::BoardName;
@@ -14,28 +13,22 @@ struct TagsUrl(reqwest::Url);
 struct TagEntries(Vec<TagEntry>);
 
 #[component]
-pub fn ArchivedTags(cx: Scope, board_name: BoardName) -> Element {
-    use_shared_state_provider(cx, || {
+pub fn ArchivedTags(board_name: BoardName) -> Element {
+    let url = use_signal(|| {
         #[cfg(debug_assertions)]
         let url = Url::from_str("http://localhost:8080").unwrap();
         #[cfg(not(debug_assertions))]
         let url = Url::from_str("https://unload.fly.dev").unwrap();
         TagsUrl(url.join(&format!("/api/boards/{}/", board_name)).unwrap())
     });
-    use_shared_state_provider(cx, TagEntries::default);
-    let url = use_shared_state::<TagsUrl>(cx).unwrap();
-    let tags = use_shared_state::<TagEntries>(cx).unwrap();
-    let nav = use_navigator(cx);
-    use_future(cx, (), {
-        let url = url.clone();
-        let tags = tags.clone();
-        |_| async move {
-            let url = url.read();
-            get_tags(tags, &url.0).await
-        }
+    let tags = use_signal(TagEntries::default);
+    let nav = use_navigator();
+    use_future(move || async move {
+        let url = &url.read().0;
+        get_tags(tags, url).await;
     });
     let read_tags = tags.read();
-    cx.render(rsx! {
+    rsx! {
         div {
             class: "
                 w-screen h-dvh
@@ -69,16 +62,18 @@ pub fn ArchivedTags(cx: Scope, board_name: BoardName) -> Element {
                         }
                         tbody {
                             class: "divide-y divide-gray-700",
-                            read_tags
+                            for tag in read_tags
                                 .0
                                 .iter()
                                 .sorted_by_key(|tag| tag.name.to_lowercase())
-                                .map(|tag| rsx!(
-                                    TagRow {
-                                        key: "{tag.id}",
-                                        tag: tag.clone(),
-                                    }
-                                ))
+                            {
+                                TagRow {
+                                    key: "{tag.id}",
+                                    tag: tag.clone(),
+                                    url,
+                                    tags,
+                                }
+                            }
                         }
                     }
                 }
@@ -88,7 +83,7 @@ pub fn ArchivedTags(cx: Scope, board_name: BoardName) -> Element {
                 button {
                     r#type: "button" ,
                     class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.go_back();
                     },
                     svg {
@@ -111,37 +106,39 @@ pub fn ArchivedTags(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn TagRow(cx: Scope, tag: TagEntry) -> Element {
-    let url = use_shared_state::<TagsUrl>(cx).unwrap();
-    let tags = use_shared_state::<TagEntries>(cx).unwrap();
-    let editing_color = use_state(cx, || false);
-    let name = use_state(cx, || None::<String>);
-    cx.render(rsx! {
+fn TagRow(tag: TagEntry, url: Signal<TagsUrl>, tags: Signal<TagEntries>) -> Element {
+    let mut editing_color_signal = use_signal(|| false);
+    let editing_color = editing_color_signal();
+
+    let mut name_signal = use_signal(|| None::<String>);
+    let name = name_signal();
+
+    rsx! {
         tr {
             class: "bg-gray-800 sm:hover:bg-gray-600",
             td {
                 class: "p-3",
-                if **editing_color {rsx! {
+                if editing_color {
                     SelectingColorPicker {
                         default_color: tag.color,
-                        on_pick_color: |color| {
-                            editing_color.set(false);
-                            cx.spawn(
-                                set_tag_color(tags.clone(), url.clone(), tag.id, color)
+                        on_pick_color: move |color| {
+                            editing_color_signal.set(false);
+                            spawn(
+                                set_tag_color(tags, url, tag.id, color)
                             );
                         },
                     }
 
-                }} else {rsx! {
+                } else {
                     div {
                         class: "flex flex-row gap-1",
                         div {
                             class: "w-8 h-8 rounded cursor-pointer {color_picker::bg_class(&tag.color)}",
-                            onclick: |_| editing_color.set(true),
+                            onclick: move |_| editing_color_signal.set(true),
                         },
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
@@ -150,7 +147,7 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "w-4 h-4",
-                            onclick: |_| editing_color.set(true),
+                            onclick: move |_| editing_color_signal.set(true),
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -158,31 +155,29 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                             }
                         }
                     }
-                }}
+                }
             }
             td {
                 class: "p-3",
-                if let Some(name_value) = &**name { rsx! {
+                if let Some(name_value) = name {
                     input {
                         r#type: "text",
                         value: "{name_value}",
                         class: "bg-inherit rounded text-sm",
-                        oninput: |event| name.set(Some(event.data.value.clone())),
+                        oninput: move |event| name_signal.set(Some(event.data.value())),
                         onfocusout:  move |_| {
-                            name.set(None);
-                            set_tag_name(
-                                tags.clone(),
-                                url.clone(),
-                                tag.id,
-                                name_value.clone(),
-                            )
+                            name_signal.set(None);
+                            set_tag_name(tags, url, tag.id, name_value.clone())
                         },
                     }
-                }} else {rsx! {
+                } else {
                     div {
                         class: "flex flex-row gap-1",
                         p {
-                            onclick: |_| name.set(Some(tag.name.clone())),
+                            onclick: {
+                                let tag_name = tag.name.clone();
+                                move |_| name_signal.set(Some(tag_name.clone()))
+                            },
                             "{tag.name}"
                         }
                         svg {
@@ -192,7 +187,7 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "w-4 h-4",
-                            onclick: |_| name.set(Some(tag.name.clone())),
+                            onclick: move |_| name_signal.set(Some(tag.name.clone())),
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -200,7 +195,7 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                             }
                         }
                     }
-                }}
+                }
             }
             td {
                 class: "p-3",
@@ -218,7 +213,7 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                                 w-6 h-6 cursor-pointer text-gray-400
                                 sm:hover:text-blue-500 active:text-blue-500
                             ",
-                            onclick: |_| set_tag_archived(tags.clone(), url.clone(), tag.id),
+                            onclick: move |_| set_tag_archived(tags, url, tag.id),
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -232,7 +227,7 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "w-6 h-6 cursor-pointer text-red-600",
-                            onclick: |_| delete_tag(tags.clone(), url.clone(), tag.id),
+                            onclick: move |_| delete_tag(tags, url, tag.id),
                             path {
                                 "stroke-linecap": "round",
                                 "stroke-linejoin": "round",
@@ -244,12 +239,12 @@ fn TagRow(cx: Scope, tag: TagEntry) -> Element {
             }
 
         }
-    })
+    }
 }
 
 async fn set_tag_color(
-    tags: UseSharedState<TagEntries>,
-    url: UseSharedState<TagsUrl>,
+    tags: Signal<TagEntries>,
+    url: Signal<TagsUrl>,
     tag_id: TagId,
     color: Color,
 ) {
@@ -273,12 +268,7 @@ async fn send_set_tag_color_request(
         .await?)
 }
 
-async fn set_tag_name(
-    tags: UseSharedState<TagEntries>,
-    url: UseSharedState<TagsUrl>,
-    tag_id: TagId,
-    name: String,
-) {
+async fn set_tag_name(tags: Signal<TagEntries>, url: Signal<TagsUrl>, tag_id: TagId, name: String) {
     let url = &url.read().0;
     let _ = send_set_tag_name_request(url, tag_id, name).await;
     get_tags(tags, url).await;
@@ -299,7 +289,7 @@ async fn send_set_tag_name_request(
         .await?)
 }
 
-async fn delete_tag(tags: UseSharedState<TagEntries>, url: UseSharedState<TagsUrl>, tag_id: TagId) {
+async fn delete_tag(tags: Signal<TagEntries>, url: Signal<TagsUrl>, tag_id: TagId) {
     let url = &url.read().0;
     let _ = send_delete_tag_request(url, tag_id).await;
     get_tags(tags, url).await;
@@ -315,11 +305,7 @@ async fn send_delete_tag_request(url: &Url, tag_id: TagId) -> Result<(), anyhow:
         .await?)
 }
 
-async fn set_tag_archived(
-    tags: UseSharedState<TagEntries>,
-    url: UseSharedState<TagsUrl>,
-    tag_id: TagId,
-) {
+async fn set_tag_archived(tags: Signal<TagEntries>, url: Signal<TagsUrl>, tag_id: TagId) {
     let url = &url.read().0;
     let _ = send_set_tag_archived_request(url, tag_id).await;
     get_tags(tags, url).await;
@@ -336,7 +322,7 @@ async fn send_set_tag_archived_request(url: &Url, tag_id: TagId) -> Result<(), a
         .await?)
 }
 
-async fn get_tags(tags: UseSharedState<TagEntries>, url: &Url) {
+async fn get_tags(mut tags: Signal<TagEntries>, url: &Url) {
     if let Ok(result) = send_get_tags_request(url).await {
         tags.write().0 = result;
     }

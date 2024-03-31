@@ -1,4 +1,6 @@
 frontend/dist
-frontend/public
+frontend/assets/tailwind.css
+frontend/static
+frontend/.dioxus
 frontend/node_modules
 /target

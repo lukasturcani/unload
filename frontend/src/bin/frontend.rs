@@ -1,6 +1,9 @@
+use dioxus::prelude::*;
 use frontend::app::App;
+use log::LevelFilter;
 
 fn main() {
-    wasm_logger::init(wasm_logger::Config::default());
-    dioxus_web::launch(App);
+    dioxus_logger::init(LevelFilter::Info).expect("failed to init logger");
+    console_error_panic_hook::set_once();
+    launch(App);
 }

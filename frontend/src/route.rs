@@ -7,10 +7,9 @@ use crate::tags::Tags;
 use crate::task_archive::TaskArchive;
 use crate::users::Users;
 use dioxus::prelude::*;
-use dioxus_router::prelude::*;
 use shared_models::BoardName;
 
-#[derive(Routable, Clone)]
+#[derive(Clone, Routable, Debug, PartialEq)]
 pub enum Route {
     #[route("/")]
     JoinBoard {},

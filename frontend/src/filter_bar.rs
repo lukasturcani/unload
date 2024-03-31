@@ -5,18 +5,18 @@ use shared_models::{Color, TagId, TaskSize, UserId};
 use crate::{color_picker, model::Model, styles};
 
 #[component]
-pub fn FilterBar(cx: Scope) -> Element {
-    cx.render(rsx! {
+pub fn FilterBar() -> Element {
+    rsx! {
         div {
             class: "grid grid-cols-3 gap-2",
             TagFilter {}
             UserFilter {}
             SizeFilter {}
         }
-    })
+    }
 }
 
-fn tag_bg(model: &UseSharedState<Model>, tag_id: &TagId, tag_color: &Color) -> String {
+fn tag_bg(model: Signal<Model>, tag_id: &TagId, tag_color: &Color) -> String {
     if model.read().tag_filter.contains(tag_id) {
         format!("{} ring ring-blue-500", color_picker::bg_class(tag_color))
     } else {
@@ -25,9 +25,9 @@ fn tag_bg(model: &UseSharedState<Model>, tag_id: &TagId, tag_color: &Color) -> S
 }
 
 #[component]
-pub fn TagFilter(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    cx.render(rsx! {
+pub fn TagFilter() -> Element {
+    let mut model = use_context::<Signal<Model>>();
+    rsx! {
         div {
             class: "
                 flex flex-row flex-wrap gap-2
@@ -38,7 +38,7 @@ pub fn TagFilter(cx: Scope) -> Element {
                 .tags
                 .iter()
                 .sorted_by(|(_, tag1), (_, tag2)| tag1.name.cmp(&tag2.name))
-            {rsx!{
+            {
                 span {
                     class: "
                         text-sm font-medium px-2.5 py-0.5 rounded
@@ -62,13 +62,13 @@ pub fn TagFilter(cx: Scope) -> Element {
                     },
                     "# {tag.name}",
                 }
-            }}
+            }
 
         }
-    })
+    }
 }
 
-fn user_bg(model: &UseSharedState<Model>, user_id: &UserId, user_color: &Color) -> String {
+fn user_bg(model: Signal<Model>, user_id: &UserId, user_color: &Color) -> String {
     if model.read().user_filter.contains(user_id) {
         format!("{} ring ring-blue-500", color_picker::bg_class(user_color))
     } else {
@@ -77,15 +77,15 @@ fn user_bg(model: &UseSharedState<Model>, user_id: &UserId, user_color: &Color) 
 }
 
 #[component]
-pub fn UserFilter(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    cx.render(rsx! {
+pub fn UserFilter() -> Element {
+    let mut model = use_context::<Signal<Model>>();
+    rsx! {
         div {
             class: "
                 flex flex-row flex-wrap gap-2
                 justify-center sm:justify-start
             ",
-            for (user_id, user) in model.read().users.iter() {rsx!{
+            for (&user_id, user) in model.read().users.iter() {
                 div {
                     class: "group relative",
                     onclick: |event| event.stop_propagation(),
@@ -93,19 +93,16 @@ pub fn UserFilter(cx: Scope) -> Element {
                         class: "
                             w-6 h-6 rounded cursor-pointer
                             border-2 {color_picker::border_class(&user.color)}
-                            {user_bg(&model, user_id, &user.color)}
+                            {user_bg(model, &user_id, &user.color)}
                             {color_picker::bg_hover_class(&user.color)}
                         ",
-                        onclick: {
-                            let user_id = *user_id;
-                            move |event| {
-                                event.stop_propagation();
-                                let mut model = model.write();
-                                if model.user_filter.contains(&user_id) {
-                                    model.user_filter.remove(&user_id);
-                                } else {
-                                    model.user_filter.insert(user_id);
-                                }
+                        onclick: move |event| {
+                            event.stop_propagation();
+                            let mut model = model.write();
+                            if model.user_filter.contains(&user_id) {
+                                model.user_filter.remove(&user_id);
+                            } else {
+                                model.user_filter.insert(user_id);
                             }
                         },
                     },
@@ -118,12 +115,12 @@ pub fn UserFilter(cx: Scope) -> Element {
                         }
                     }
                 }
-            }}
+            }
         }
-    })
+    }
 }
 
-fn size_bg(model: &UseSharedState<Model>, size: &TaskSize) -> &'static str {
+fn size_bg(model: Signal<Model>, size: &TaskSize) -> &'static str {
     if model
         .read()
         .size_filter
@@ -140,9 +137,9 @@ fn size_bg(model: &UseSharedState<Model>, size: &TaskSize) -> &'static str {
 }
 
 #[component]
-pub fn SizeFilter(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    cx.render(rsx! {
+pub fn SizeFilter() -> Element {
+    let mut model = use_context::<Signal<Model>>();
+    rsx! {
         div {
             div {
                 class: "
@@ -158,7 +155,7 @@ pub fn SizeFilter(cx: Scope) -> Element {
                         sm:hover:bg-emerald-700
                         {size_bg(model, &TaskSize::Small)} text-green-300
                     ",
-                    onclick: |event| {
+                    onclick: move |event| {
                         event.stop_propagation();
                         let mut model = model.write();
                         if model.size_filter == Some(TaskSize::Small) {
@@ -178,7 +175,7 @@ pub fn SizeFilter(cx: Scope) -> Element {
                         sm:hover:bg-yellow-900
                         {size_bg(model, &TaskSize::Medium)} text-yellow-300
                     ",
-                    onclick: |event| {
+                    onclick: move |event| {
                         event.stop_propagation();
                         let mut model = model.write();
                         if model.size_filter == Some(TaskSize::Medium) {
@@ -198,7 +195,7 @@ pub fn SizeFilter(cx: Scope) -> Element {
                         sm:hover:bg-red-900
                         {size_bg(model, &TaskSize::Large)} text-red-300
                     ",
-                    onclick: |event| {
+                    onclick: move |event| {
                         event.stop_propagation();
                         let mut model = model.write();
                         if model.size_filter == Some(TaskSize::Large) {
@@ -211,5 +208,5 @@ pub fn SizeFilter(cx: Scope) -> Element {
                 }
             }
         }
-    })
+    }
 }

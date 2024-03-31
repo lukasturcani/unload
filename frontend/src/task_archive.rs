@@ -1,7 +1,6 @@
 use crate::color_picker;
 use crate::styles;
 use dioxus::prelude::*;
-use dioxus_router::hooks::use_navigator;
 use reqwest::Url;
 use shared_models::{
     BoardName, TagData, TagEntry, TagId, TaskData, TaskEntry, TaskId, UserData, UserEntry, UserId,
@@ -19,29 +18,22 @@ struct TaskArchive {
 struct TasksUrl(Url);
 
 #[component]
-pub fn TaskArchive(cx: Scope, board_name: BoardName) -> Element {
-    use_shared_state_provider(cx, || {
+pub fn TaskArchive(board_name: BoardName) -> Element {
+    let url = use_signal(|| {
         #[cfg(debug_assertions)]
         let url = Url::from_str("http://localhost:8080").unwrap();
         #[cfg(not(debug_assertions))]
         let url = Url::from_str("https://unload.fly.dev").unwrap();
         TasksUrl(url.join(&format!("/api/boards/{}/", board_name)).unwrap())
     });
-    use_shared_state_provider(cx, TaskArchive::default);
+    let archive = use_signal(TaskArchive::default);
 
-    let nav = use_navigator(cx);
-    let archive = use_shared_state::<TaskArchive>(cx).unwrap();
-    let url = use_shared_state::<TasksUrl>(cx).unwrap();
-    use_future(cx, (), {
-        let url = url.clone();
-        let tasks = archive.clone();
-        |_| async move {
-            let url = url.read();
-            let tasks = tasks.clone();
-            get_archive(tasks, &url.0).await
-        }
+    let nav = use_navigator();
+    use_future(move || async move {
+        let url = &url.read().0;
+        get_archive(archive, url).await
     });
-    cx.render(rsx! {
+    rsx! {
         div {
             class: "
                 w-screen h-dvh
@@ -53,18 +45,25 @@ pub fn TaskArchive(cx: Scope, board_name: BoardName) -> Element {
                     grow w-full p-4 overflow-auto
                     divide-y divide-gray-700
                 ",
-               archive
+                for task_id in archive
                     .read()
                     .tasks
                     .keys()
-                    .map(|task_id| rsx!(Task{ key: "{task_id}", task_id: *task_id }))
+                {
+                    Task {
+                        key: "{task_id}",
+                        task_id: *task_id,
+                        url,
+                        archive
+                    }
+                }
             }
             div {
                 class: styles::BOTTOM_BAR,
                 button {
                     r#type: "button" ,
                     class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.go_back();
                     },
                     svg {
@@ -87,30 +86,31 @@ pub fn TaskArchive(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn Task(cx: Scope, task_id: TaskId) -> Element {
-    let url = use_shared_state::<TasksUrl>(cx).unwrap();
-    let archive = use_shared_state::<TaskArchive>(cx).unwrap();
+fn Task(task_id: TaskId, url: Signal<TasksUrl>, archive: Signal<TaskArchive>) -> Element {
     let archive_read = archive.read();
     let task = &archive_read.tasks[&task_id];
     let users = &archive_read.users;
     let tags = &archive_read.tags;
-    let expanded = use_state(cx, || false);
-    cx.render(rsx! {
+
+    let mut expanded_signal = use_signal(|| false);
+    let expanded = expanded_signal();
+
+    rsx! {
         li {
             class: "
                 p-2.5 sm:hover:bg-gray-600
                 flex flex-col gap-2
             ",
-            onclick: |_| expanded.set(!**expanded),
+            onclick: move |_| expanded_signal.set(!expanded),
             div {
                 class: "flex flex-row justify-between",
                 p {
                     class: "text-white",
-                    task.title.clone()
+                    "{task.title}"
                 }
                 div {
                 class: "flex flex-row gap-2",
@@ -124,7 +124,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                             w-6 h-6 cursor-pointer text-gray-400
                             sm:hover:text-blue-500 active:text-blue-500
                         ",
-                        onclick: |_| unarchive_task(archive.clone(), url.clone(), *task_id),
+                        onclick: move |_| unarchive_task(archive, url, task_id),
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
@@ -138,7 +138,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 cursor-pointer text-red-600",
-                        onclick: |_| delete_task(archive.clone(), url.clone(), *task_id),
+                        onclick: move |_| delete_task(archive, url, task_id),
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
@@ -147,14 +147,14 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                     }
                 }
             }
-            if **expanded {rsx! {
+            if expanded {
                 div {
                     class: "flex flex-row gap-2 flex-wrap",
                     for user in task
                         .assignees
                         .iter()
                         .map(|user_id| &users[user_id])
-                    {rsx!{
+                    {
                         span {
                             class: "
                                 text-sm font-medium text-white
@@ -162,13 +162,13 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                                 border-2
                                 {color_picker::border_class(&user.color)}
                             ",
-                            user.name.clone()
+                            "{user.name}"
                         }
-                    }}
+                    }
                 }
                 p {
                     class: "text-gray-400",
-                    task.description.clone()
+                    "{task.description}"
                 }
                 div {
                     class: "flex flex-row gap-2 flex-wrap",
@@ -176,7 +176,7 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                         .tags
                         .iter()
                         .map(|tag_id| &tags[tag_id])
-                    {rsx!{
+                    {
                         span {
                             class: "
                                 text-sm font-medium text-white
@@ -186,14 +186,14 @@ fn Task(cx: Scope, task_id: TaskId) -> Element {
                             ",
                             "# {&tag.name}"
                         }
-                    }}
+                    }
                 }
-            }}
+            }
         }
-    })
+    }
 }
 
-async fn get_archive(archive: UseSharedState<TaskArchive>, url: &Url) {
+async fn get_archive(mut archive: Signal<TaskArchive>, url: &Url) {
     let (tasks, users, tags) = join!(
         send_get_tasks_request(url),
         send_get_users_request(url),
@@ -288,11 +288,7 @@ async fn reqwest_archived_tags(url: &Url) -> Result<Vec<TagEntry>, reqwest::Erro
         .await
 }
 
-async fn unarchive_task(
-    archive: UseSharedState<TaskArchive>,
-    url: UseSharedState<TasksUrl>,
-    task_id: TaskId,
-) {
+async fn unarchive_task(archive: Signal<TaskArchive>, url: Signal<TasksUrl>, task_id: TaskId) {
     let url = &url.read().0;
     let _ = send_unarchive_task_request(url, task_id).await;
     get_archive(archive, url).await;
@@ -309,11 +305,7 @@ async fn send_unarchive_task_request(url: &Url, task_id: TaskId) -> Result<(), a
         .await?)
 }
 
-async fn delete_task(
-    archive: UseSharedState<TaskArchive>,
-    url: UseSharedState<TasksUrl>,
-    task_id: TaskId,
-) {
+async fn delete_task(archive: Signal<TaskArchive>, url: Signal<TasksUrl>, task_id: TaskId) {
     let url = &url.read().0;
     let _ = send_delete_task_request(url, task_id).await;
     get_archive(archive, url).await;

@@ -9,28 +9,31 @@ use crate::{color_picker::ColorPicker, model::Model, requests, styles};
 
 #[component]
 pub fn UserSearch(
-    cx: Scope,
     task_id: TaskId,
     badge_style: &'static str,
     ul_style: &'static str,
     hover_style: &'static str,
     text_input_style: &'static str,
 ) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
+    let mut model = use_context::<Signal<Model>>();
     if model.read().user_search_created_user.is_some() {
-        if let Some(user) = model.write().user_search_created_user.take() {
-            spawn(add_task_assignee(model.clone(), *task_id, user.0));
+        let maybe_user = model.write().user_search_created_user.take();
+        if let Some(user) = maybe_user {
+            spawn(add_task_assignee(model, task_id, user.0));
         }
     }
     let read_model = model.read();
-    let assignees: HashSet<_> = read_model.tasks[task_id]
+    let assignees: HashSet<_> = read_model.tasks[&task_id]
         .assignees
         .iter()
         .copied()
         .collect();
-    let show_add_user_button = use_state(cx, || true);
-    let new_user = use_state(cx, String::new);
-    cx.render(rsx! {
+
+    let mut show_add_user_button_signal = use_signal(|| true);
+    let show_add_user_button = show_add_user_button_signal();
+
+    let mut new_user = use_signal(String::new);
+    rsx! {
         div {
             class: "
                 flex flex-col gap-2
@@ -38,18 +41,18 @@ pub fn UserSearch(
             div {
                 class: "flex flex-row gap-2 flex-wrap",
                 for (user_id, user_name) in read_model
-                    .tasks[task_id]
+                    .tasks[&task_id]
                     .assignees
                     .iter()
                     .map(|id| (id, &read_model.users[id].name))
-                {rsx!{
+                {
                     span {
                         class: "
                             flex flex-row gap-1 items-center px-2 py-1 text-sm
                             font-medium rounded bg-gray-700 text-gray-200
                             {badge_style}
                         ",
-                        user_name.clone()
+                        "{user_name}"
                         button {
                             r#type: "button",
                             class: "
@@ -60,11 +63,10 @@ pub fn UserSearch(
                             ",
                             "aria-label": "Remove",
                             onclick: {
-                            let task_id = *task_id;
-                            let user_id = *user_id;
+                                let user_id = *user_id;
                                 move |event| {
                                     event.stop_propagation();
-                                    delete_task_assignee(model.clone(), task_id, user_id)
+                                    delete_task_assignee(model, task_id, user_id)
                                 }
                             },
                             svg {
@@ -82,46 +84,43 @@ pub fn UserSearch(
                                 },
                             },
                         },
-                    },
-                }},
+                    }
+                },
             }
             ul {
                 class: "text-sm text-gray-200 z-10 rounded-lg shadow {ul_style}",
-                rsx!{
-                    for (user_id, user) in read_model
-                        .users
-                        .iter()
-                        .filter(|(id, _)| !assignees.contains(id))
-                        .sorted_by_key(|(_, user)| user.name.to_lowercase())
-                    {rsx!{
-                        li {
-                            key: "{user_id}",
-                            button {
-                                r#type: "button",
-                                class: "
-                                    text-left w-full px-4 py-2
-                                    {hover_style}
-                                    active:text-white
-                                    sm:hover:text-white
-                                ",
-                                prevent_default: "onmousedown",
-                                onmousedown: |_| {},
-                                onclick: {
-                                    let task_id = *task_id;
-                                    let user_id = *user_id;
-                                    move |event| {
-                                        event.stop_propagation();
-                                        add_task_assignee(model.clone(), task_id, user_id)
-                                    }
-                                },
-                                user.name.clone(),
-                            }
-                        },
-                    }}
+                for (user_id, user) in read_model
+                    .users
+                    .iter()
+                    .filter(|(id, _)| !assignees.contains(id))
+                    .sorted_by_key(|(_, user)| user.name.to_lowercase())
+                {
+                    li {
+                        key: "{user_id}",
+                        button {
+                            r#type: "button",
+                            class: "
+                                text-left w-full px-4 py-2
+                                {hover_style}
+                                active:text-white
+                                sm:hover:text-white
+                            ",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            onclick: {
+                                let user_id = *user_id;
+                                move |event| {
+                                    event.stop_propagation();
+                                    add_task_assignee(model, task_id, user_id)
+                                }
+                            },
+                            "{user.name}",
+                        }
+                    }
                 }
                 li {
-                    key: "add user",
-                    if **show_add_user_button {rsx! {
+                    key: "{\"add user\"}",
+                    if show_add_user_button {
                         button {
                             r#type: "button",
                             class: "
@@ -133,12 +132,12 @@ pub fn UserSearch(
                             ",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},
-                            onclick: |_| {
-                                show_add_user_button.set(false);
+                            onclick: move |_| {
+                                show_add_user_button_signal.set(false);
                             },
                             "Add User"
                         }
-                    }} else {rsx! {
+                    } else {
                         div {
                             class: "p-2",
                             div {
@@ -148,20 +147,20 @@ pub fn UserSearch(
                                     r#type: "text",
                                     placeholder: "Name",
                                     value: "{new_user}",
-                                    oninput: |event| {
-                                        new_user.set(event.value.clone())
+                                    oninput: move |event| {
+                                        new_user.set(event.value())
                                     },
                                 }
                                 ColorPicker {
-                                    on_pick_color: |color| {
-                                        show_add_user_button.set(true);
-                                        if new_user.trim().is_empty() {
+                                    on_pick_color: move |color| {
+                                        show_add_user_button_signal.set(true);
+                                        if new_user.read().trim().is_empty() {
                                             return;
                                         }
-                                        cx.spawn(create_user(
-                                            model.clone(),
+                                        spawn(create_user(
+                                            model,
                                             UserData {
-                                                name: new_user.make_mut().drain(..).collect(),
+                                                name: new_user.write().drain(..).collect(),
                                                 color
                                             },
                                         ));
@@ -169,22 +168,22 @@ pub fn UserSearch(
                                 }
                             }
                         }
-                    }}
+                    }
                 }
             }
         }
-    })
+    }
 }
 
-async fn create_user(model: UseSharedState<Model>, user_data: UserData) {
-    if let Ok(user_data) = requests::create_user(model.clone(), user_data).await {
-        requests::board(model.clone()).await;
+async fn create_user(mut model: Signal<Model>, user_data: UserData) {
+    if let Ok(user_data) = requests::create_user(model, user_data).await {
+        requests::board(model).await;
         model.write().user_search_created_user = Some(user_data);
     }
 }
 
-async fn delete_task_assignee(model: UseSharedState<Model>, task_id: TaskId, assignee: UserId) {
-    if send_delete_task_assignee_request(model.clone(), task_id, assignee)
+async fn delete_task_assignee(model: Signal<Model>, task_id: TaskId, assignee: UserId) {
+    if send_delete_task_assignee_request(model, task_id, assignee)
         .await
         .is_ok()
     {
@@ -193,7 +192,7 @@ async fn delete_task_assignee(model: UseSharedState<Model>, task_id: TaskId, ass
 }
 
 async fn send_delete_task_assignee_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
     assignee: UserId,
 ) -> Result<(), anyhow::Error> {
@@ -207,17 +206,17 @@ async fn send_delete_task_assignee_request(
     Ok(Client::new().delete(url).send().await?.json::<()>().await?)
 }
 
-async fn add_task_assignee(model: UseSharedState<Model>, task_id: TaskId, assignee: UserId) {
-    if send_add_task_assignee_request(model.clone(), task_id, assignee)
+async fn add_task_assignee(model: Signal<Model>, task_id: TaskId, assignee: UserId) {
+    if send_add_task_assignee_request(model, task_id, assignee)
         .await
         .is_ok()
     {
-        requests::board(model.clone()).await;
+        requests::board(model).await;
     }
 }
 
 async fn send_add_task_assignee_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
     assignee: UserId,
 ) -> Result<(), anyhow::Error> {

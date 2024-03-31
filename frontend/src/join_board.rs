@@ -2,8 +2,6 @@ use crate::model::Model;
 use crate::route::Route;
 use crate::styles;
 use dioxus::prelude::*;
-use dioxus_router::hooks::use_navigator;
-use dioxus_router::prelude::Navigator;
 use reqwest::Client;
 use shared_models::BoardName;
 
@@ -15,10 +13,10 @@ const TEXT_INPUT: &str = "
 ";
 
 #[component]
-pub fn JoinBoard(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    let nav = use_navigator(cx);
-    cx.render(rsx! {
+pub fn JoinBoard() -> Element {
+    let mut model = use_context::<Signal<Model>>();
+    let nav = use_navigator();
+    rsx! {
         div{
             class: "bg-gray-900 h-dvh w-screen",
             form {
@@ -31,14 +29,14 @@ pub fn JoinBoard(cx: Scope) -> Element {
                         required: true,
                         placeholder: "Board Name",
                         value: "{model.read().board_name}",
-                        oninput: |event| {
-                            model.write().board_name = event.value.clone().into()
+                        oninput: move |event| {
+                            model.write().board_name = event.data.value().into()
                         },
                     },
                     button {
                         class: styles::BUTTON,
                         r#type: "submit",
-                        onclick: |_| {
+                        onclick: move |_| {
                             nav.push(Route::Board {
                                 board_name: model.read().board_name.clone(),
                             });
@@ -61,23 +59,21 @@ pub fn JoinBoard(cx: Scope) -> Element {
                 class: "inline-flex items-center justify-center w-full py-5",
                 button {
                     class: styles::BUTTON,
-                    onclick: |_| create_board(model.clone(), nav.clone()),
+                    onclick: move |_| create_board(model, nav),
                     "Create New Board",
                 },
             },
         }
-    })
+    }
 }
 
-async fn create_board(model: UseSharedState<Model>, nav: Navigator) {
-    if let Ok(board_name) = send_create_board_request(&model).await {
+async fn create_board(model: Signal<Model>, nav: Navigator) {
+    if let Ok(board_name) = send_create_board_request(model).await {
         nav.push(Route::Board { board_name });
     }
 }
 
-async fn send_create_board_request(
-    model: &UseSharedState<Model>,
-) -> Result<BoardName, anyhow::Error> {
+async fn send_create_board_request(model: Signal<Model>) -> Result<BoardName, anyhow::Error> {
     let request = {
         let model = model.read();
         let client = Client::new();

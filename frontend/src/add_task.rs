@@ -8,49 +8,47 @@ use crate::route::Route;
 use crate::{model::Model, styles};
 use chrono::{offset::Local, NaiveDate, NaiveTime, TimeZone};
 use dioxus::prelude::*;
-use dioxus_router::hooks::use_navigator;
-use dioxus_router::prelude::Navigator;
 use itertools::Itertools;
 use shared_models::{BoardName, TagData, TagId, TaskSize, TaskStatus, UserData, UserId};
 
 #[component]
-pub fn AddTask(cx: Scope, board_name: BoardName) -> Element {
-    cx.render(rsx! {
+pub fn AddTask(board_name: BoardName) -> Element {
+    rsx! {
         AddTaskImpl {
             board_name: board_name.clone(),
             default_status: TaskStatus::ToDo,
         }
-    })
+    }
 }
 
 #[component]
-pub fn AddToDoTask(cx: Scope, board_name: BoardName) -> Element {
-    cx.render(rsx! {
+pub fn AddToDoTask(board_name: BoardName) -> Element {
+    rsx! {
         AddTaskImpl {
             board_name: board_name.clone(),
             default_status: TaskStatus::ToDo,
         }
-    })
+    }
 }
 
 #[component]
-pub fn AddInProgressTask(cx: Scope, board_name: BoardName) -> Element {
-    cx.render(rsx! {
+pub fn AddInProgressTask(board_name: BoardName) -> Element {
+    rsx! {
         AddTaskImpl {
             board_name: board_name.clone(),
             default_status: TaskStatus::InProgress,
         }
-    })
+    }
 }
 
 #[component]
-pub fn AddDoneTask(cx: Scope, board_name: BoardName) -> Element {
-    cx.render(rsx! {
+pub fn AddDoneTask(board_name: BoardName) -> Element {
+    rsx! {
         AddTaskImpl {
             board_name: board_name.clone(),
             default_status: TaskStatus::Done,
         }
-    })
+    }
 }
 
 const RADIO_DIV: &str = "
@@ -64,24 +62,37 @@ const RADIO_LABEL: &str = "
 ";
 
 #[component]
-fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    let nav = use_navigator(cx);
-    let title = use_state(cx, String::default);
-    let tags = use_ref(cx, Vec::new);
-    let description = use_state(cx, String::default);
-    let size = use_state(cx, || TaskSize::Small);
-    let status = use_state(cx, || *default_status);
-    let assigned_to = use_ref(cx, Vec::new);
-    let due_date = use_state(cx, || None::<NaiveDate>);
-    let due_time = use_state(cx, || NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+fn AddTaskImpl(board_name: BoardName, default_status: TaskStatus) -> Element {
+    let mut model = use_context::<Signal<Model>>();
+    let nav = use_navigator();
+    let mut title = use_signal(String::new);
+    let mut tags = use_signal(Vec::new);
+    let mut description = use_signal(String::new);
+
+    let mut size_signal = use_signal(|| TaskSize::Small);
+    let size = size_signal();
+
+    let mut status_signal = use_signal(|| default_status);
+    let status = status_signal();
+
+    let mut assigned_to = use_signal(Vec::new);
+
+    let mut due_date_signal = use_signal(|| None::<NaiveDate>);
+    let due_date = due_date_signal();
+
+    let mut due_time_signal = use_signal(|| NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+    let due_time = due_time_signal();
+
     let layout = ResponsiveLayout::from_window();
-    let has_focus = use_state(cx, || false);
-    if &model.read().board_name != board_name {
+
+    let mut has_focus_signal = use_signal(|| false);
+    let has_focus = has_focus_signal();
+
+    if model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
-    use_future(cx, (), |_| requests::board(model.clone()));
-    cx.render(rsx! {
+    use_future(move || requests::board(model));
+    rsx! {
         div {
             class: "
                 h-dvh w-screen
@@ -95,8 +106,8 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                 ",
                 form {
                     class: "flex flex-col gap-5 items-left w-full max-w-lg",
-                    onfocusin: |_| has_focus.set(true),
-                    onfocusout: |_| has_focus.set(false),
+                    onfocusin: move |_| has_focus_signal.set(true),
+                    onfocusout: move |_| has_focus_signal.set(false),
                     div {
                         class: "flex flex-col gap-1",
                         label {
@@ -109,14 +120,12 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                             r#type: "text",
                             id: "task_title",
                             value: "{title}",
-                            oninput: |event| {
-                                title.set(event.value.clone())
-                            },
+                            oninput: move |event| title.set(event.value()),
                         },
                     }
                     TagSearch {
-                        on_select_tag: |tag_id| tags.write().push(tag_id),
-                        on_remove_tag: |tag_id| tags.write().retain(|&value| value != tag_id),
+                        on_select_tag: move |tag_id| tags.write().push(tag_id),
+                        on_remove_tag: move |tag_id| tags.write().retain(|&value| value != tag_id),
                     }
                     div {
                         class: "flex flex-col gap-1",
@@ -135,8 +144,8 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     r#type: "radio",
                                     value: "To do",
                                     name: "status",
-                                    checked: *status == TaskStatus::ToDo,
-                                    oninput: |_| status.set(TaskStatus::ToDo),
+                                    checked: status == TaskStatus::ToDo,
+                                    oninput: move |_| status_signal.set(TaskStatus::ToDo),
                                 },
                                 label {
                                     r#for: "status_to_do",
@@ -152,8 +161,8 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     r#type: "radio",
                                     value: "In progress",
                                     name: "status",
-                                    checked: *status == TaskStatus::InProgress,
-                                    oninput: |_| status.set(TaskStatus::InProgress),
+                                    checked: status == TaskStatus::InProgress,
+                                    oninput: move |_| status_signal.set(TaskStatus::InProgress),
                                 },
                                 label {
                                     r#for: "status_in_progress",
@@ -169,8 +178,8 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     r#type: "radio",
                                     value: "Done",
                                     name: "status",
-                                    checked: *status == TaskStatus::Done,
-                                    oninput: |_| status.set(TaskStatus::Done),
+                                    checked: status == TaskStatus::Done,
+                                    oninput: move |_| status_signal.set(TaskStatus::Done),
                                 },
                                 label {
                                     r#for: "status_done",
@@ -198,7 +207,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     value: "Small",
                                     name: "size",
                                     checked: true,
-                                    oninput: |_| size.set(TaskSize::Small),
+                                    oninput: move |_| size_signal.set(TaskSize::Small),
                                 },
                                 label {
                                     r#for: "size_small",
@@ -214,7 +223,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     r#type: "radio",
                                     value: "Medium",
                                     name: "size",
-                                    oninput: |_| size.set(TaskSize::Medium),
+                                    oninput: move |_| size_signal.set(TaskSize::Medium),
                                 },
                                 label {
                                     r#for: "size_medium",
@@ -230,7 +239,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                     r#type: "radio",
                                     value: "Large",
                                     name: "size",
-                                    oninput: |_| size.set(TaskSize::Large),
+                                    oninput: move |_| size_signal.set(TaskSize::Large),
                                 },
                                 label {
                                     r#for: "size_large",
@@ -242,8 +251,8 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                         },
                     },
                     UserSearch {
-                        on_select_user: |user_id| assigned_to.write().push(user_id),
-                        on_remove_user: |user_id| assigned_to.write().retain(|&value| value != user_id),
+                        on_select_user: move |user_id| assigned_to.write().push(user_id),
+                        on_remove_user: move |user_id| assigned_to.write().retain(|&value| value != user_id),
                     }
                     div {
                         class: "flex flex-col gap-1",
@@ -261,9 +270,7 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 focus:ring-blue-500 focus:border-blue-500
                             ",
                             placeholder: "Give a description...",
-                            oninput: |event| {
-                                description.set(event.value.clone())
-                            },
+                            oninput: move |event| description.set(event.value()),
                         },
                     },
                     div {
@@ -279,62 +286,61 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                                 id: "task_due_date",
                                 class: "mb-2 border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                                 r#type: "date",
-                                oninput: |event| {
-                                    if event.value.is_empty() {
-                                        due_date.set(None)
-                                    } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                        due_date.set(Some(date))
+                                oninput: move |event| {
+                                    let event_value = event.value();
+                                    if event_value.is_empty() {
+                                        due_date_signal.set(None)
+                                    } else if let Ok(date) = NaiveDate::parse_from_str(&event_value, "%Y-%m-%d") {
+                                        due_date_signal.set(Some(date))
                                     }
                                 },
                             },
-                            if due_date.is_some() {rsx!{
+                            if due_date.is_some() {
                                 select {
                                     id: "task_due_time",
                                     class: "border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
-                                    onchange: |event| {
-                                        if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
-                                            due_time.set(time)
+                                    onchange: move |event| {
+                                        if let Ok(time) = NaiveTime::parse_from_str(&event.value(), "%H:%M") {
+                                            due_time_signal.set(time)
                                         }
                                     },
                                     for hour in 0..24 {
                                         for minute in [0, 15, 30, 45] {
-                                            rsx!{
-                                                option {
-                                                    value: "{hour:02}:{minute:02}",
-                                                    "{hour:02}:{minute:02}"
-                                                },
+                                            option {
+                                                value: "{hour:02}:{minute:02}",
+                                                "{hour:02}:{minute:02}"
                                             }
                                         }
                                     }
-                                },
-                            }}
+                                }
+                            }
                         }
                     }
                     button {
                         class: styles::BUTTON,
                         r#type: "submit",
                         prevent_default: "onclick",
-                        onclick: |_| {
+                        onclick: move |_| {
                             // TODO: once future issue is fixed change page
                             // as first thing
                             create_task(
-                                model.clone(),
+                                model,
                                 shared_models::TaskData {
                                     title:
                                         title
-                                        .make_mut()
+                                        .write()
                                         .drain(..)
                                         .collect::<String>()
                                         .trim()
                                         .to_string(),
-                                    description: description.make_mut().drain(..).collect(),
+                                    description: description.write().drain(..).collect(),
                                     due: due_date.map(|date| {
-                                        Local.from_local_datetime(&date.and_time(**due_time))
+                                        Local.from_local_datetime(&date.and_time(due_time))
                                         .unwrap()
                                         .into()
                                     }),
-                                    size: **size,
-                                    status: **status,
+                                    size,
+                                    status,
                                     assignees: assigned_to.write().drain(..).collect(),
                                     tags: tags.write().drain(..).collect(),
                                 },
@@ -345,13 +351,13 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                     }
                 }
             }
-            if (layout == ResponsiveLayout::Wide) || (!has_focus && layout == ResponsiveLayout::Narrow) {rsx! {
+            if (layout == ResponsiveLayout::Wide) || (!has_focus && layout == ResponsiveLayout::Narrow) {
                 div {
                     class: styles::BOTTOM_BAR,
                     button {
                         r#type: "button" ,
                         class: styles::BOTTOM_BAR_BUTTON,
-                        onclick: |_| {
+                        onclick: move |_| {
                             nav.go_back();
                         },
                         svg {
@@ -373,19 +379,15 @@ fn AddTaskImpl(cx: Scope, board_name: BoardName, default_status: TaskStatus) -> 
                         }
                     }
                 }
-            }}
+            }
         },
-    })
+    }
 }
 
 #[component]
-fn TagSearch<'a>(
-    cx: Scope,
-    on_select_tag: EventHandler<'a, TagId>,
-    on_remove_tag: EventHandler<'a, TagId>,
-) -> Element<'a> {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    let selected = use_ref(cx, HashSet::new);
+fn TagSearch(on_select_tag: EventHandler<TagId>, on_remove_tag: EventHandler<TagId>) -> Element {
+    let mut model = use_context::<Signal<Model>>();
+    let mut selected = use_signal(HashSet::new);
     if model.read().tag_search_created_tag.is_some() {
         if let Some((tag_id, _)) = model.write().tag_search_created_tag.take() {
             selected.write().insert(tag_id);
@@ -394,9 +396,12 @@ fn TagSearch<'a>(
     }
     let read_model = model.read();
     let read_selected = selected.read();
-    let show_add_tag_button = use_state(cx, || true);
-    let new_tag = use_state(cx, String::new);
-    cx.render(rsx! {
+
+    let mut show_add_tag_button_signal = use_signal(|| true);
+    let show_add_tag_button = show_add_tag_button_signal();
+
+    let mut new_tag = use_signal(String::new);
+    rsx! {
         div {
             class: "flex flex-col gap-1",
             p {
@@ -409,7 +414,7 @@ fn TagSearch<'a>(
                     .read()
                     .iter()
                     .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
-                {rsx!{
+                {
                     span {
                         class: "{styles::TAG_BADGE_SPAN} {color_picker::border_class(&tag.color)}",
                         "# {&tag.name}"
@@ -439,47 +444,45 @@ fn TagSearch<'a>(
                             }
                         }
                     }
-                }}
+                }
             }
             ul {
                 class: "
                     text-sm text-gray-200 rounded-lg
                     border border-gray-700 divide-y divide-gray-700
                 ",
-                rsx!{
-                    for (tag_id, tag) in read_model
-                        .tags
-                        .iter()
-                        .filter(|(id, _)| !read_selected.contains(id))
-                        .sorted_by_key(|(_, tag)| tag.name.to_lowercase())
-                    {rsx!{
-                        li {
-                            key: "{tag_id}",
-                            button {
-                                r#type: "button",
-                                class: "
-                                    text-left w-full px-4 py-2
-                                    active:bg-gray-800 active:text-white
-                                    sm:hover:bg-gray-800 sm:hover:text-white
-                                ",
-                                prevent_default: "onmousedown",
-                                onmousedown: |_| {},
-                                onclick: {
-                                    let tag_id = *tag_id;
-                                    move |event| {
-                                        event.stop_propagation();
-                                        selected.write().insert(tag_id);
-                                        on_select_tag.call(tag_id);
-                                    }
-                                },
-                                tag.name.clone(),
-                            }
-                        },
-                    }}
+                for (tag_id, tag) in read_model
+                    .tags
+                    .iter()
+                    .filter(|(id, _)| !read_selected.contains(id))
+                    .sorted_by_key(|(_, tag)| tag.name.to_lowercase())
+                {
+                    li {
+                        key: "{tag_id}",
+                        button {
+                            r#type: "button",
+                            class: "
+                                text-left w-full px-4 py-2
+                                active:bg-gray-800 active:text-white
+                                sm:hover:bg-gray-800 sm:hover:text-white
+                            ",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            onclick: {
+                                let tag_id = *tag_id;
+                                move |event| {
+                                    event.stop_propagation();
+                                    selected.write().insert(tag_id);
+                                    on_select_tag.call(tag_id);
+                                }
+                            },
+                            "{tag.name}"
+                        }
+                    }
                 }
                 li {
-                    key: "add tag",
-                    if **show_add_tag_button {rsx! {
+                    key: "{\"add tag\"}",
+                    if show_add_tag_button {
                         button {
                             r#type: "button",
                             class: "
@@ -490,12 +493,12 @@ fn TagSearch<'a>(
                             ",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},
-                            onclick: |_| {
-                                show_add_tag_button.set(false);
+                            onclick: move |_| {
+                                show_add_tag_button_signal.set(false);
                             },
                             "Add Tag"
                         }
-                    }} else {rsx! {
+                    } else {
                         div {
                             class: "p-2",
                             div {
@@ -505,20 +508,21 @@ fn TagSearch<'a>(
                                     r#type: "text",
                                     placeholder: "Tag",
                                     value: "{new_tag}",
-                                    oninput: |event| {
-                                        new_tag.set(event.value.clone())
+                                    oninput: move |event| {
+                                        new_tag.set(event.value())
                                     },
                                 }
                                 ColorPicker {
-                                    on_pick_color: |color| {
-                                        show_add_tag_button.set(true);
+                                    on_pick_color: move |color| {
+                                        show_add_tag_button_signal.set(true);
+                                        let mut new_tag = new_tag.write();
                                         if new_tag.trim().is_empty() {
                                             return;
                                         }
-                                        cx.spawn(create_tag(
-                                            model.clone(),
+                                        spawn(create_tag(
+                                            model,
                                             TagData {
-                                                name: new_tag.make_mut().drain(..).collect(),
+                                                name: new_tag.drain(..).collect(),
                                                 color
                                             },
                                         ));
@@ -526,22 +530,21 @@ fn TagSearch<'a>(
                                 }
                             }
                         }
-                    }}
+                    }
                 }
 
             }
         }
-    })
+    }
 }
 
 #[component]
-fn UserSearch<'a>(
-    cx: Scope,
-    on_select_user: EventHandler<'a, UserId>,
-    on_remove_user: EventHandler<'a, UserId>,
-) -> Element<'a> {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    let selected = use_ref(cx, HashSet::new);
+fn UserSearch(
+    on_select_user: EventHandler<UserId>,
+    on_remove_user: EventHandler<UserId>,
+) -> Element {
+    let mut model = use_context::<Signal<Model>>();
+    let mut selected = use_signal(HashSet::new);
     if model.read().user_search_created_user.is_some() {
         if let Some((user_id, _)) = model.write().user_search_created_user.take() {
             selected.write().insert(user_id);
@@ -550,9 +553,12 @@ fn UserSearch<'a>(
     }
     let read_model = model.read();
     let read_selected = selected.read();
-    let show_add_user_button = use_state(cx, || true);
-    let new_user = use_state(cx, String::new);
-    cx.render(rsx! {
+
+    let mut show_add_user_button_signal = use_signal(|| true);
+    let show_add_user_button = show_add_user_button_signal();
+
+    let mut new_user = use_signal(String::new);
+    rsx! {
         div {
             class: "flex flex-col gap-1",
             p {
@@ -565,7 +571,7 @@ fn UserSearch<'a>(
                     .read()
                     .iter()
                     .map(|user_id| (user_id, &read_model.users[user_id]))
-                {rsx!{
+                {
                     span {
                         class: "
                             text-sm font-medium text-white
@@ -605,47 +611,45 @@ fn UserSearch<'a>(
                             }
                         }
                     }
-                }}
+                }
             }
             ul {
                 class: "
                     text-sm text-gray-200 rounded-lg
                     border border-gray-700 divide-y divide-gray-700
                 ",
-                rsx!{
-                    for (user_id, user) in read_model
-                        .users
-                        .iter()
-                        .filter(|(id, _)| !read_selected.contains(id))
-                        .sorted_by_key(|(_, user)| user.name.to_lowercase())
-                    {rsx!{
-                        li {
-                            key: "{user_id}",
-                            button {
-                                r#type: "button",
-                                class: "
-                                    text-left w-full px-4 py-2
-                                    active:bg-gray-800 active:text-white
-                                    sm:hover:bg-gray-800 sm:hover:text-white
-                                ",
-                                prevent_default: "onmousedown",
-                                onmousedown: |_| {},
-                                onclick: {
-                                    let user_id = *user_id;
-                                    move |event| {
-                                        event.stop_propagation();
-                                        selected.write().insert(user_id);
-                                        on_select_user.call(user_id);
-                                    }
-                                },
-                                user.name.clone(),
-                            }
-                        },
-                    }}
+                for (user_id, user) in read_model
+                    .users
+                    .iter()
+                    .filter(|(id, _)| !read_selected.contains(id))
+                    .sorted_by_key(|(_, user)| user.name.to_lowercase())
+                {
+                    li {
+                        key: "{user_id}",
+                        button {
+                            r#type: "button",
+                            class: "
+                                text-left w-full px-4 py-2
+                                active:bg-gray-800 active:text-white
+                                sm:hover:bg-gray-800 sm:hover:text-white
+                            ",
+                            prevent_default: "onmousedown",
+                            onmousedown: |_| {},
+                            onclick: {
+                                let user_id = *user_id;
+                                move |event| {
+                                    event.stop_propagation();
+                                    selected.write().insert(user_id);
+                                    on_select_user.call(user_id);
+                                }
+                            },
+                            "{user.name}"
+                        }
+                    }
                 }
                 li {
-                    key: "add user",
-                    if **show_add_user_button {rsx! {
+                    key: "{\"add user\"}",
+                    if show_add_user_button {
                         button {
                             r#type: "button",
                             class: "
@@ -656,12 +660,12 @@ fn UserSearch<'a>(
                             ",
                             prevent_default: "onmousedown",
                             onmousedown: |_| {},
-                            onclick: |_| {
-                                show_add_user_button.set(false);
+                            onclick: move |_| {
+                                show_add_user_button_signal.set(false);
                             },
                             "Add User"
                         }
-                    }} else {rsx! {
+                    } else {
                         div {
                             class: "p-2",
                             div {
@@ -671,20 +675,21 @@ fn UserSearch<'a>(
                                     r#type: "text",
                                     placeholder: "Name",
                                     value: "{new_user}",
-                                    oninput: |event| {
-                                        new_user.set(event.value.clone())
+                                    oninput: move |event| {
+                                        new_user.set(event.value())
                                     },
                                 }
                                 ColorPicker {
-                                    on_pick_color: |color| {
-                                        show_add_user_button.set(true);
+                                    on_pick_color: move |color| {
+                                        show_add_user_button_signal.set(true);
+                                        let mut new_user = new_user.write();
                                         if new_user.trim().is_empty() {
                                             return;
                                         }
-                                        cx.spawn(create_user(
-                                            model.clone(),
+                                        spawn(create_user(
+                                            model,
                                             UserData {
-                                                name: new_user.make_mut().drain(..).collect(),
+                                                name: new_user.drain(..).collect(),
                                                 color
                                             },
                                         ));
@@ -692,24 +697,19 @@ fn UserSearch<'a>(
                                 }
                             }
                         }
-                    }}
+                    }
                 }
-
             }
         }
-    })
+    }
 }
 
-async fn create_task(
-    model: UseSharedState<Model>,
-    task_data: shared_models::TaskData,
-    nav: Navigator,
-) {
+async fn create_task(model: Signal<Model>, task_data: shared_models::TaskData, nav: Navigator) {
     if task_data.title.is_empty() {
         log::info!("empty task title, doing nothing");
         return;
     }
-    if let Ok(task_id) = requests::create_task(&model, &task_data).await {
+    if let Ok(task_id) = requests::create_task(model, &task_data).await {
         log::info!("created task: {task_id}");
     }
     nav.push(Route::Board {
@@ -717,16 +717,16 @@ async fn create_task(
     });
 }
 
-async fn create_tag(model: UseSharedState<Model>, tag_data: TagData) {
-    if let Ok(tag_data) = requests::create_tag(model.clone(), tag_data).await {
-        requests::board(model.clone()).await;
+async fn create_tag(mut model: Signal<Model>, tag_data: TagData) {
+    if let Ok(tag_data) = requests::create_tag(model, tag_data).await {
+        requests::board(model).await;
         model.write().tag_search_created_tag = Some(tag_data);
     }
 }
 
-async fn create_user(model: UseSharedState<Model>, user_data: UserData) {
-    if let Ok(user_data) = requests::create_user(model.clone(), user_data).await {
-        requests::board(model.clone()).await;
+async fn create_user(mut model: Signal<Model>, user_data: UserData) {
+    if let Ok(user_data) = requests::create_user(model, user_data).await {
+        requests::board(model).await;
         model.write().user_search_created_user = Some(user_data);
     }
 }

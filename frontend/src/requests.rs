@@ -12,14 +12,11 @@ use shared_models::{TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId};
 use std::collections::HashMap;
 use tokio::join;
 
-pub async fn board(model: UseSharedState<Model>) {
+pub async fn board(mut model: Signal<Model>) {
     log::info!("sending board data request");
-    if let (Ok(users), Ok(tasks), Ok(tags), Ok(quick_add)) = join!(
-        users(&model),
-        tasks(&model),
-        tags(&model),
-        quick_add(&model)
-    ) {
+    if let (Ok(users), Ok(tasks), Ok(tags), Ok(quick_add)) =
+        join!(users(model), tasks(model), tags(model), quick_add(model))
+    {
         log::info!("got board data");
         let mut model = model.write();
         model.users = users;
@@ -34,29 +31,7 @@ pub async fn board(model: UseSharedState<Model>) {
     }
 }
 
-pub async fn board_tags(model: UseSharedState<Model>) {
-    log::info!("sending board tags request");
-    if let Ok(tags) = tags(&model).await {
-        log::info!("got board tags");
-        let mut model = model.write();
-        model.tags = tags;
-    } else {
-        log::info!("failed to get board tags")
-    }
-}
-
-pub async fn board_users(model: UseSharedState<Model>) {
-    log::info!("sending board users request");
-    if let Ok(users) = users(&model).await {
-        log::info!("got board users");
-        let mut model = model.write();
-        model.users = users;
-    } else {
-        log::info!("failed to get board users")
-    }
-}
-
-async fn users(model: &UseSharedState<Model>) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
+async fn users(model: Signal<Model>) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
     let url = {
         let model = model.read();
         model
@@ -82,7 +57,7 @@ async fn users(model: &UseSharedState<Model>) -> Result<HashMap<UserId, UserData
         }))
 }
 
-async fn tags(model: &UseSharedState<Model>) -> Result<HashMap<TagId, TagData>, anyhow::Error> {
+async fn tags(model: Signal<Model>) -> Result<HashMap<TagId, TagData>, anyhow::Error> {
     let url = {
         let model = model.read();
         model
@@ -108,7 +83,7 @@ async fn tags(model: &UseSharedState<Model>) -> Result<HashMap<TagId, TagData>, 
         }))
 }
 
-async fn tasks(model: &UseSharedState<Model>) -> Result<TasksResponse, anyhow::Error> {
+async fn tasks(model: Signal<Model>) -> Result<TasksResponse, anyhow::Error> {
     let url = {
         let model = model.read();
         model
@@ -147,7 +122,7 @@ async fn tasks(model: &UseSharedState<Model>) -> Result<TasksResponse, anyhow::E
 }
 
 async fn quick_add(
-    model: &UseSharedState<Model>,
+    model: Signal<Model>,
 ) -> Result<HashMap<QuickAddTaskId, QuickAddData>, anyhow::Error> {
     let url = {
         let model = model.read();
@@ -212,7 +187,7 @@ impl From<Vec<TaskEntry>> for TasksResponse {
 }
 
 pub async fn create_user(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     mut user_data: UserData,
 ) -> Result<(UserId, String), anyhow::Error> {
     user_data.name = user_data.name.trim().to_string();
@@ -235,7 +210,7 @@ pub async fn create_user(
 }
 
 pub async fn create_tag(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     mut tag_data: TagData,
 ) -> Result<(TagId, String), anyhow::Error> {
     tag_data.name = tag_data.name.trim().to_string();
@@ -258,7 +233,7 @@ pub async fn create_tag(
 }
 
 pub async fn create_task(
-    model: &UseSharedState<Model>,
+    model: Signal<Model>,
     task_data: &shared_models::TaskData,
 ) -> Result<TaskId, anyhow::Error> {
     let url = {

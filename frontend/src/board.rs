@@ -1,3 +1,5 @@
+use dioxus::prelude::*;
+
 use std::fmt::Display;
 
 use crate::filter_bar::{FilterBar, SizeFilter, TagFilter, UserFilter};
@@ -16,7 +18,6 @@ use shared_models::{TaskSize, UserId};
 use crate::model::Model;
 use crate::requests;
 use crate::{color_picker, styles};
-use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId};
 
 pub const COLUMN: &str = "
@@ -27,11 +28,10 @@ pub const COLUMN_TASK_LIST: &str = "grow flex flex-col gap-2 overflow-y-scroll";
 pub const DENSE_COLUMN_TASK_LIST: &str = "grow flex flex-col overflow-y-scroll";
 
 #[component]
-pub fn Board(cx: Scope, board_name: BoardName) -> Element {
+pub fn Board(board_name: BoardName) -> Element {
     let layout = ResponsiveLayout::from_window();
-    let eval = use_eval(cx);
-    eval(&format!(r#"document.title = "{board_name}";"#)).unwrap();
-    cx.render(rsx! {
+    eval(&format!(r#"document.title = "{board_name}";"#));
+    rsx! {
         match layout {
             ResponsiveLayout::Narrow => rsx! {
                 OneColumnBoard {
@@ -44,25 +44,31 @@ pub fn Board(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    if &model.read().board_name != board_name {
+fn OneColumnBoard(board_name: BoardName) -> Element {
+    let mut model = use_context::<Signal<Model>>();
+    if model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
-    let nav = use_navigator(cx);
-    let column = use_state(cx, || TaskStatus::ToDo);
-    let show_filters = use_state(cx, || false);
-    use_future(cx, (), |_| requests::board(model.clone()));
-    cx.render(rsx! {
+    let nav = use_navigator();
+
+    let mut column_signal = use_signal(|| TaskStatus::ToDo);
+    let column = column_signal();
+
+    let mut show_filters_signal = use_signal(|| false);
+    let show_filters = show_filters_signal();
+
+    use_future(move || requests::board(model));
+
+    rsx! {
         div {
             class: "flex flex-col bg-gray-900 h-dvh w-screen gap-1",
             div {
                 class: "grow grid grid-cols-1 p-1 overflow-y-auto",
-                match (**column, model.read().dense_view) {
+                match (column, model.read().dense_view) {
                     (TaskStatus::ToDo, false) => rsx! { ToDoColumn {} },
                     (TaskStatus::InProgress, false) => rsx! { InProgressColumn {} },
                     (TaskStatus::Done, false) => rsx! { DoneColumn {} },
@@ -73,28 +79,28 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
             }
             div {
                 class: "flex flex-col",
-                if **show_filters {rsx!{
+                if show_filters {
                    div {
                        class: "w-full bg-gray-800 flex flex-col gap-2 p-2",
                         TagFilter {}
                         UserFilter {}
                         SizeFilter {}
                    }
-                }}
+                }
                 div {
                     class: styles::BOTTOM_BAR,
                     button {
                         r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
-                        disabled: **column == TaskStatus::ToDo,
-                        onclick: |_| {
-                            match **column {
-                                TaskStatus::ToDo => column.set(TaskStatus::ToDo),
-                                TaskStatus::InProgress => column.set(TaskStatus::ToDo),
-                                TaskStatus::Done => column.set(TaskStatus::InProgress),
+                        disabled: column == TaskStatus::ToDo,
+                        onclick: move |_| {
+                            match column {
+                                TaskStatus::ToDo => column_signal.set(TaskStatus::ToDo),
+                                TaskStatus::InProgress => column_signal.set(TaskStatus::ToDo),
+                                TaskStatus::Done => column_signal.set(TaskStatus::InProgress),
                             }
                         },
-                        if **column != TaskStatus::ToDo {rsx!{
+                        if column != TaskStatus::ToDo {
                             svg {
                                 xmlns: "http://www.w3.org/2000/svg",
                                 fill: "none",
@@ -108,15 +114,18 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                                     d: "M15.75 19.5 8.25 12l7.5-7.5",
                                 }
                             }
-                        }}
+                        }
                     }
                     button {
                         r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
-                        onclick: |_| {
-                            nav.push(Route::TaskArchive {
-                                board_name: board_name.clone(),
-                            });
+                        onclick: {
+                            let board_name = board_name.clone();
+                            move |_| {
+                                nav.push(Route::TaskArchive {
+                                    board_name: board_name.clone(),
+                                });
+                            }
                         },
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
@@ -134,19 +143,19 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                     }
                     button {
                         r#type: "button",
-                        class: if **show_filters {
+                        class: if show_filters {
                             styles::BOTTOM_BAR_ACTIVE_BUTTON
                         } else {
                             styles::BOTTOM_BAR_BUTTON
                         },
-                        onclick: |_| show_filters.set(!**show_filters),
+                        onclick: move |_| show_filters_signal.set(!show_filters),
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
                             fill: "none",
                             "viewBox": "0 0 24 24",
                             "stroke-width": "1.5",
                             stroke: "currentColor",
-                            class: if **show_filters {
+                            class: if show_filters {
                                 "w-6 h-6 text-blue-500"
                             } else {
                                 "w-6 h-6 text-gray-400 group-active:text-blue-500"
@@ -161,10 +170,13 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                     button {
                         r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
-                        onclick: |_| {
-                            nav.push(Route::Tags {
-                                board_name: board_name.clone(),
-                            });
+                        onclick: {
+                            let board_name = board_name.clone();
+                            move |_| {
+                                nav.push(Route::Tags {
+                                    board_name: board_name.clone(),
+                                });
+                            }
                         },
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
@@ -188,7 +200,7 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                     button {
                         r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
-                        onclick: |_| {
+                        onclick: move |_| {
                             nav.push(Route::Users {
                                 board_name: board_name.clone(),
                             });
@@ -210,15 +222,15 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                     button {
                         r#type: "button",
                         class: styles::BOTTOM_BAR_BUTTON,
-                        disabled: **column == TaskStatus::Done,
-                        onclick: |_| {
-                            match **column {
-                                TaskStatus::ToDo => column.set(TaskStatus::InProgress),
-                                TaskStatus::InProgress => column.set(TaskStatus::Done),
-                                TaskStatus::Done => column.set(TaskStatus::Done),
+                        disabled: column == TaskStatus::Done,
+                        onclick: move |_| {
+                            match column {
+                                TaskStatus::ToDo => column_signal.set(TaskStatus::InProgress),
+                                TaskStatus::InProgress => column_signal.set(TaskStatus::Done),
+                                TaskStatus::Done => column_signal.set(TaskStatus::Done),
                             }
                         },
-                        if **column != TaskStatus::Done {rsx!{
+                        if column != TaskStatus::Done {
                             svg {
                                 xmlns: "http://www.w3.org/2000/svg",
                                 fill: "none",
@@ -232,22 +244,22 @@ fn OneColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                                     d: "m8.25 4.5 7.5 7.5-7.5 7.5",
                                 }
                             }
-                        }}
+                        }
                     }
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    if &model.read().board_name != board_name {
+fn ThreeColumnBoard(board_name: BoardName) -> Element {
+    let mut model = use_context::<Signal<Model>>();
+    if model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
-    use_future(cx, (), |_| requests::board(model.clone()));
-    cx.render(rsx! {
+    use_future(move || requests::board(model));
+    rsx! {
         div {
             class: "flex flex-col bg-gray-900 h-dvh w-screen",
             div {
@@ -256,15 +268,15 @@ fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                     class: "grow w-full h-full overflow-y-auto",
                     div {
                         class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
-                        if model.read().dense_view {rsx!{
+                        if model.read().dense_view {
                             DenseToDoColumn {}
                             DenseInProgressColumn {}
                             DenseDoneColumn {}
-                        }} else {rsx!{
+                        } else {
                             ToDoColumn {}
                             InProgressColumn {}
                             DoneColumn {}
-                        }}
+                        }
                     },
                 }
                 FilterBar {}
@@ -273,22 +285,25 @@ fn ThreeColumnBoard(cx: Scope, board_name: BoardName) -> Element {
                 board_name: board_name.clone(),
             }
         }
-    })
+    }
 }
 
 #[component]
-fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
-    let nav = use_navigator(cx);
-    cx.render(rsx! {
+fn BottomBar(board_name: BoardName) -> Element {
+    let nav = use_navigator();
+    rsx! {
         div {
             class: styles::BOTTOM_BAR,
             button {
                 r#type: "button",
                 class: styles::BOTTOM_BAR_BUTTON,
-                onclick: |_| {
-                    nav.push(Route::TaskArchive {
-                        board_name: board_name.clone(),
-                    });
+                onclick: {
+                    let board_name = board_name.clone();
+                    move |_| {
+                        nav.push(Route::TaskArchive {
+                            board_name: board_name.clone(),
+                        });
+                    }
                 },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
@@ -307,10 +322,13 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
             button {
                 r#type: "button",
                 class: styles::BOTTOM_BAR_BUTTON,
-                onclick: |_| {
-                    nav.push(Route::Tags {
-                        board_name: board_name.clone(),
-                    });
+                onclick: {
+                    let board_name = board_name.clone();
+                    move |_| {
+                        nav.push(Route::Tags {
+                            board_name: board_name.clone(),
+                        });
+                    }
                 },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
@@ -334,10 +352,13 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
             button {
                 r#type: "button",
                 class: styles::BOTTOM_BAR_BUTTON,
-                onclick: |_| {
-                    nav.push(Route::Users {
-                        board_name: board_name.clone(),
-                    });
+                onclick: {
+                    let board_name = board_name.clone();
+                    move |_| {
+                        nav.push(Route::Users {
+                            board_name: board_name.clone(),
+                        });
+                    }
                 },
                 svg {
                     xmlns: "http://www.w3.org/2000/svg",
@@ -354,16 +375,19 @@ fn BottomBar(cx: Scope, board_name: BoardName) -> Element {
                 }
             }
          }
-    })
+    }
 }
 
 #[component]
-fn ToDoColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
+fn ToDoColumn() -> Element {
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
-    let nav = use_navigator(cx);
-    let show_quick_add = use_state(cx, || false);
-    cx.render(rsx! {
+    let nav = use_navigator();
+
+    let mut show_quick_add_signal = use_signal(|| false);
+    let show_quick_add = show_quick_add_signal();
+
+    rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
@@ -397,7 +421,7 @@ fn ToDoColumn(cx: Scope) -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-white cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
                         },
@@ -424,17 +448,17 @@ fn ToDoColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            if **show_quick_add {rsx!{
+            if show_quick_add {
                 QuickAddTasks {
                     status: TaskStatus::ToDo,
                 }
-            }}
+            }
             div {
                 class: "grid grid-cols-2 divide-x border-gray-700",
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddToDoTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -459,7 +483,7 @@ fn ToDoColumn(cx: Scope) -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -479,16 +503,19 @@ fn ToDoColumn(cx: Scope) -> Element {
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn DenseToDoColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
+fn DenseToDoColumn() -> Element {
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
-    let nav = use_navigator(cx);
-    let show_quick_add = use_state(cx, || false);
-    cx.render(rsx! {
+    let nav = use_navigator();
+
+    let mut show_quick_add_signal = use_signal(|| false);
+    let show_quick_add = show_quick_add_signal();
+
+    rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
@@ -522,7 +549,7 @@ fn DenseToDoColumn(cx: Scope) -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500 cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
                         },
@@ -549,17 +576,17 @@ fn DenseToDoColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            if **show_quick_add {rsx!{
+            if show_quick_add {
                 QuickAddTasks {
                     status: TaskStatus::ToDo,
                 }
-            }}
+            }
             div {
                 class: "grid grid-cols-2 divide-x border-gray-700",
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddToDoTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -584,7 +611,7 @@ fn DenseToDoColumn(cx: Scope) -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -604,16 +631,19 @@ fn DenseToDoColumn(cx: Scope) -> Element {
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn InProgressColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
+fn InProgressColumn() -> Element {
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
-    let nav = use_navigator(cx);
-    let show_quick_add = use_state(cx, || false);
-    cx.render(rsx! {
+    let nav = use_navigator();
+
+    let mut show_quick_add_signal = use_signal(|| false);
+    let show_quick_add = show_quick_add_signal();
+
+    rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
@@ -647,7 +677,7 @@ fn InProgressColumn(cx: Scope) -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-white cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
                         },
@@ -674,17 +704,17 @@ fn InProgressColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            if **show_quick_add {rsx!{
+            if show_quick_add {
                 QuickAddTasks {
                     status: TaskStatus::InProgress,
                 }
-            }}
+            }
             div {
                 class: "grid grid-cols-2 divide-x border-gray-700",
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddInProgressTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -709,7 +739,7 @@ fn InProgressColumn(cx: Scope) -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -729,16 +759,19 @@ fn InProgressColumn(cx: Scope) -> Element {
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn DenseInProgressColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
+fn DenseInProgressColumn() -> Element {
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
-    let nav = use_navigator(cx);
-    let show_quick_add = use_state(cx, || false);
-    cx.render(rsx! {
+    let nav = use_navigator();
+
+    let mut show_quick_add_signal = use_signal(|| false);
+    let show_quick_add = show_quick_add_signal();
+
+    rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
@@ -772,7 +805,7 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500 cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
                         },
@@ -799,17 +832,17 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            if **show_quick_add {rsx!{
+            if show_quick_add {
                 QuickAddTasks {
                     status: TaskStatus::InProgress,
                 }
-            }}
+            }
             div {
                 class: "grid grid-cols-2 divide-x border-gray-700",
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddInProgressTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -834,7 +867,7 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -854,16 +887,19 @@ fn DenseInProgressColumn(cx: Scope) -> Element {
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn DoneColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
+fn DoneColumn() -> Element {
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
-    let nav = use_navigator(cx);
-    let show_quick_add = use_state(cx, || false);
-    cx.render(rsx! {
+    let nav = use_navigator();
+
+    let mut show_quick_add_signal = use_signal(|| false);
+    let show_quick_add = show_quick_add_signal();
+
+    rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
@@ -897,7 +933,7 @@ fn DoneColumn(cx: Scope) -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-white cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = true;
                         },
@@ -924,17 +960,17 @@ fn DoneColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            if **show_quick_add {rsx!{
+            if show_quick_add {
                 QuickAddTasks {
                     status: TaskStatus::Done,
                 }
-            }}
+            }
             div {
                 class: "grid grid-cols-2 divide-x border-gray-700",
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddDoneTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -959,7 +995,7 @@ fn DoneColumn(cx: Scope) -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -979,16 +1015,19 @@ fn DoneColumn(cx: Scope) -> Element {
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn DenseDoneColumn(cx: Scope) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
+fn DenseDoneColumn() -> Element {
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
-    let nav = use_navigator(cx);
-    let show_quick_add = use_state(cx, || false);
-    cx.render(rsx! {
+    let nav = use_navigator();
+
+    let mut show_quick_add_signal = use_signal(|| false);
+    let show_quick_add = show_quick_add_signal();
+
+    rsx! {
         div {
             class: "flex flex-col overflow-y-auto border border-gray-700",
             div {
@@ -1022,7 +1061,7 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                         "stroke-width": "1.5",
                         stroke: "currentColor",
                         class: "w-6 h-6 sm:w-8 sm:h-8 text-blue-500 cursor-pointer",
-                        onclick: |event| {
+                        onclick: move |event| {
                             event.stop_propagation();
                             model.write().dense_view = false;
                         },
@@ -1049,17 +1088,17 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                     }
                 },
             }
-            if **show_quick_add {rsx!{
+            if show_quick_add {
                 QuickAddTasks {
                     status: TaskStatus::Done,
                 }
-            }}
+            }
             div {
                 class: "grid grid-cols-2 divide-x border-gray-700",
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| {
+                    onclick: move |_| {
                         nav.push(Route::AddDoneTask {
                             board_name: model.read().board_name.clone(),
                         });
@@ -1084,7 +1123,7 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                 button {
                     r#type: "button",
                     class: " grid place-items-center group p-2 border-t border-gray-700",
-                    onclick: |_| show_quick_add.set(!**show_quick_add),
+                    onclick: move |_| show_quick_add_signal.set(!show_quick_add),
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -1104,42 +1143,46 @@ fn DenseDoneColumn(cx: Scope) -> Element {
                 }
             }
         }
-    })
+    }
 }
 
 #[component]
-fn QuickAddTasks(cx: Scope, status: TaskStatus) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    let read_model = model.read();
-    cx.render(rsx! {
+fn QuickAddTasks(status: TaskStatus) -> Element {
+    let model = use_context::<Signal<Model>>();
+    rsx! {
         ul {
             class: "
                 text-sm text-gray-200
                 border-t border-gray-700 divide-y divide-gray-700
                 shrink-0 h-1/4 overflow-y-scroll
             ",
-            read_model.quick_add.keys().sorted().map(|task_id| {
-                rsx!(QuickAddTask {
+            for &task_id in model
+                .read()
+                .quick_add
+                .keys()
+                .sorted()
+            {
+                QuickAddTask {
                     key: "{task_id}",
-                    task_id: *task_id,
-                    status: *status,
-                })
-            })
+                    task_id,
+                    status,
+                }
+            }
         }
-    })
+    }
 }
 
 #[component]
-fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId, status: TaskStatus) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
+fn QuickAddTask(task_id: QuickAddTaskId, status: TaskStatus) -> Element {
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
-    let data = &read_model.quick_add[task_id];
+    let data = &read_model.quick_add[&task_id];
     let users: Vec<_> = data
         .assignees
         .iter()
         .map(|user_id| (user_id, &read_model.users[user_id]))
         .collect();
-    cx.render(rsx! {
+    rsx! {
         li {
             key: "{task_id}",
             button {
@@ -1153,14 +1196,14 @@ fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId, status: TaskStatus) -> Eleme
                 onmousedown: |_| {},
                 onclick: move |event| {
                     let read_model = model.read();
-                    let data = &read_model.quick_add[task_id];
+                    let data = &read_model.quick_add[&task_id];
                     event.stop_propagation();
-                    create_task(model.clone(), TaskData {
+                    create_task(model, TaskData {
                         title: data.title.clone(),
                         description: data.description.clone(),
                         size: data.size,
                         assignees: data.assignees.clone(),
-                        status: *status,
+                        status: status,
                         tags: data.tags.clone(),
                         due: None,
                     })
@@ -1170,7 +1213,7 @@ fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId, status: TaskStatus) -> Eleme
                     "{data.title}"
                     div {
                         class: "flex flex-row gap-1",
-                        for (user_id, user) in users {rsx!{
+                        for (&user_id, user) in users {
                             div {
                                 class: "group relative",
                                 onclick: |event| event.stop_propagation(),
@@ -1178,19 +1221,16 @@ fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId, status: TaskStatus) -> Eleme
                                     class: "
                                         w-5 h-5 rounded cursor-pointer
                                         border-2 {color_picker::border_class(&user.color)}
-                                        {user_bg(&model, user_id, &user.color)}
+                                        {user_bg(model, &user_id, &user.color)}
                                         {color_picker::bg_hover_class(&user.color)}
                                     ",
-                                    onclick: {
-                                        let user_id = *user_id;
-                                        move |event| {
-                                            event.stop_propagation();
-                                            let mut model = model.write();
-                                            if model.user_filter.contains(&user_id) {
-                                                model.user_filter.remove(&user_id);
-                                            } else {
-                                                model.user_filter.insert(user_id);
-                                            }
+                                    onclick: move |event| {
+                                        event.stop_propagation();
+                                        let mut model = model.write();
+                                        if model.user_filter.contains(&user_id) {
+                                            model.user_filter.remove(&user_id);
+                                        } else {
+                                            model.user_filter.insert(user_id);
                                         }
                                     },
                                 },
@@ -1208,7 +1248,7 @@ fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId, status: TaskStatus) -> Eleme
                                     }
                                 }
                             }
-                        }}
+                        }
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
                             fill: "none",
@@ -1218,7 +1258,7 @@ fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId, status: TaskStatus) -> Eleme
                             class: "w-6 h-6 cursor-pointer text-red-600",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                delete_quick_add_task(model.clone(), *task_id)
+                                delete_quick_add_task(model, task_id)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1230,11 +1270,10 @@ fn QuickAddTask(cx: Scope, task_id: QuickAddTaskId, status: TaskStatus) -> Eleme
                 }
             }
         }
-
-    })
+    }
 }
 
-fn size_bg(model: &UseSharedState<Model>, size: &TaskSize) -> &'static str {
+fn size_bg(model: Signal<Model>, size: &TaskSize) -> &'static str {
     if model
         .read()
         .size_filter
@@ -1251,44 +1290,60 @@ fn size_bg(model: &UseSharedState<Model>, size: &TaskSize) -> &'static str {
 }
 
 #[component]
-fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
+fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
-    let data = &read_model.tasks[task_id];
+    let data = &read_model.tasks[&task_id];
     let users: Vec<_> = data
         .assignees
         .iter()
         .map(|user_id| (user_id, &read_model.users[user_id]))
         .collect();
-    let expanded = use_state(cx, || false);
-    let editing_title = use_state(cx, || false);
-    let new_title = use_state(cx, String::new);
-    let editing_description = use_state(cx, || false);
-    let new_description = use_state(cx, String::new);
-    let editing_size = use_state(cx, || false);
-    let show_assign_user = use_state(cx, || false);
-    let show_assign_tag = use_state(cx, || false);
-    let assignees = use_ref(cx, Vec::new);
-    cx.render(rsx! {
+
+    let mut expanded_signal = use_signal(|| false);
+    let expanded = expanded_signal();
+
+    let mut editing_title_signal = use_signal(|| false);
+    let editing_title = editing_title_signal();
+
+    let mut new_title_signal = use_signal(String::new);
+
+    let mut editing_description_signal = use_signal(|| false);
+    let editing_description = editing_description_signal();
+
+    let mut new_description_signal = use_signal(String::new);
+
+    let mut editing_size_signal = use_signal(|| false);
+    let editing_size = editing_size_signal();
+
+    let mut show_assign_user_signal = use_signal(|| false);
+    let show_assign_user = show_assign_user_signal();
+
+    let mut show_assign_tag_signal = use_signal(|| false);
+    let show_assign_tag = show_assign_tag_signal();
+
+    let mut assignees_signal = use_signal(Vec::new);
+
+    rsx! {
         div {
             class: "
                 first:border-t border-b border-gray-700 p-1
                 flex flex-col gap-1
             ",
-            onclick: |event| {
+            onclick: move |event| {
                 event.stop_propagation();
-                expanded.set(!**expanded);
+                expanded_signal.set(!expanded);
             },
             div {
                 class: "flex justify-between",
                 div {
                     class: "flex flex-row gap-1 items-center",
-                    if **editing_title {rsx!{
+                    if editing_title {
                         input {
                             class: styles::TEXT_INPUT,
                             r#type: "text",
-                            oninput: |event| new_title.set(event.value.clone()),
-                            value: "{new_title}",
+                            oninput: move |event| new_title_signal.set(event.value()),
+                            value: "{new_title_signal}",
                         }
                         button {
                             r#type: "button",
@@ -1299,10 +1354,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 sm:hover:bg-green-500 sm:hover:text-white
                             ",
                             prevent_default: "onclick",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
-                                editing_title.set(false);
-                                set_task_title(model.clone(), *task_id, (**new_title).clone())
+                                editing_title_signal.set(false);
+                                set_task_title(model, task_id, new_title_signal())
                             },
                             svg {
                                 xmlns: "http://www.w3.org/2000/svg",
@@ -1327,9 +1382,9 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 sm:hover:bg-red-500 sm:hover:text-white
                             ",
                             prevent_default: "onclick",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
-                                editing_title.set(false);
+                                editing_title_signal.set(false);
                             },
                             svg {
                                 class: "stroke-red-500",
@@ -1346,7 +1401,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 }
                             }
                         }
-                    }} else {rsx!{
+                    } else {
                         p {
                             class: "text-sm tracking-tight text-white",
                             "{data.title}"
@@ -1360,8 +1415,8 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             class: "w-4 h-4 text-white cursor-pointer",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                new_title.set(model.read().tasks[&task_id].title.clone());
-                                editing_title.set(true);
+                                new_title_signal.set(model.read().tasks[&task_id].title.clone());
+                                editing_title_signal.set(true);
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1369,11 +1424,11 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
                             }
                         }
-                    }}
+                    }
                 }
                 div {
                     class: "flex flex-row gap-1",
-                    for (user_id, user) in users {rsx!{
+                    for (&user_id, user) in users {
                         div {
                             class: "group relative",
                             onclick: |event| event.stop_propagation(),
@@ -1381,19 +1436,16 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 class: "
                                     w-5 h-5 rounded cursor-pointer
                                     border-2 {color_picker::border_class(&user.color)}
-                                    {user_bg(&model, user_id, &user.color)}
+                                    {user_bg(model, &user_id, &user.color)}
                                     {color_picker::bg_hover_class(&user.color)}
                                 ",
-                                onclick: {
-                                    let user_id = *user_id;
-                                    move |event| {
-                                        event.stop_propagation();
-                                        let mut model = model.write();
-                                        if model.user_filter.contains(&user_id) {
-                                            model.user_filter.remove(&user_id);
-                                        } else {
-                                            model.user_filter.insert(user_id);
-                                        }
+                                onclick:  move |event| {
+                                    event.stop_propagation();
+                                    let mut model = model.write();
+                                    if model.user_filter.contains(&user_id) {
+                                        model.user_filter.remove(&user_id);
+                                    } else {
+                                        model.user_filter.insert(user_id);
                                     }
                                 },
                             },
@@ -1411,7 +1463,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 }
                             }
                         }
-                    }}
+                    }
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
@@ -1423,10 +1475,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         onclick: move |event| {
                             event.stop_propagation();
                             if !show_assign_user {
-                                *assignees.write() = model.read().tasks[task_id].assignees.clone();
-                                show_assign_user.set(true);
+                                assignees_signal.set(model.read().tasks[&task_id].assignees.clone());
+                                show_assign_user_signal.set(true);
                             } else {
-                               show_assign_user.set(false);
+                               show_assign_user_signal.set(false);
                             }
                         },
                         path {
@@ -1437,26 +1489,26 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
             }
-            if **show_assign_user {rsx!{
+            if show_assign_user {
                 div {
                     class: "p-2 rounded-lg",
                     onclick: |event| event.stop_propagation(),
                     UserSearch {
-                        task_id: *task_id,
+                        task_id,
                         badge_style: "bg-inherit border border-gray-700",
                         ul_style: "border border-gray-700 divide-y divide-gray-700",
                         hover_style: "active:bg-gray-800 sm:hover:bg-gray-800",
                         text_input_style: "bg-gray-800",
                     }
                 }
-            }}
-            if **expanded {rsx!{
-                if **editing_description {rsx! {
+            }
+            if expanded {
+                if editing_description {
                     textarea {
                         class: "p-4 bg-gray-900 rounded border border-gray-700 text-white",
                         rows: 8.max(data.description.lines().count() as i64),
-                        oninput: |event| new_description.set(event.value.clone()),
-                        value: "{new_description}",
+                        oninput: move |event| new_description_signal.set(event.value()),
+                        value: "{new_description_signal}",
                     }
                     div {
                         class: "grid grid-rows-1 justify-items-end",
@@ -1471,10 +1523,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     sm:hover:bg-green-500 sm:hover:text-white
                                 ",
                                 prevent_default: "onclick",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
-                                    editing_description.set(false);
-                                    set_task_description(model.clone(), *task_id, (**new_description).clone())
+                                    editing_description_signal.set(false);
+                                    set_task_description(model, task_id, new_description_signal())
                                 },
                                 svg {
                                     xmlns: "http://www.w3.org/2000/svg",
@@ -1499,9 +1551,9 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     sm:hover:bg-red-500 sm:hover:text-white
                                 ",
                                 prevent_default: "onclick",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
-                                    editing_description.set(false);
+                                    editing_description_signal.set(false);
                                 },
                                 svg {
                                     class: "stroke-red-500",
@@ -1520,16 +1572,16 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             }
                         }
                     }
-                }} else {rsx! {
+                } else {
                     div {
                         class: "
                             text-sm text-gray-400 whitespace-pre-wrap break-words
                         ",
-                        if data.description.is_empty() {rsx!{
+                        if data.description.is_empty() {
                             "Description "
-                        }} else {rsx!{
+                        } else {
                             "{data.description} "
-                        }}
+                        }
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
                             fill: "none",
@@ -1539,8 +1591,8 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             class: "w-4 h-4 text-gray-400 cursor-pointer inline-block",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                new_description.set(model.read().tasks[&task_id].description.clone());
-                                editing_description.set(true);
+                                new_description_signal.set(model.read().tasks[&task_id].description.clone());
+                                editing_description_signal.set(true);
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1549,7 +1601,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             }
                         }
                     }
-                }}
+                }
                 div {
                     class: "grid grid-cols-4",
                     div {
@@ -1557,20 +1609,20 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             col-span-3
                             flex flex-row items-center
                         ",
-                        if let Some(due) = data.due {rsx! {
+                        if let Some(due) = data.due {
                             Due {
-                                task_id: *task_id,
-                                due: DueOptions {due, show_time_left: *status != TaskStatus::Done},
+                                task_id,
+                                due: DueOptions {due, show_time_left: status != TaskStatus::Done},
                                 svg_style: "w-4 h-4",
                                 p_style: "text-sm",
                             }
-                        }} else {rsx! {
+                        } else {
                             Due {
-                                task_id: *task_id,
+                                task_id,
                                 svg_style: "w-4 h-4",
                                 p_style: "text-sm",
                             }
-                        }}
+                        }
                     }
                     div {
                         class: "grid grid-rows-1 justify-items-end",
@@ -1583,9 +1635,9 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 "stroke-width": "1.5",
                                 stroke: "currentColor",
                                 class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
-                                    set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
+                                    set_task_status(model, task_id, TaskStatus::ToDo)
                                 },
                                 path {
                                     "stroke-linecap": "round",
@@ -1600,9 +1652,9 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 "stroke-width": "1.5",
                                 stroke: "currentColor",
                                 "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
-                                    set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
+                                    set_task_status(model, task_id, TaskStatus::InProgress)
                                 },
                                 path {
                                     "stroke-linecap": "round",
@@ -1617,9 +1669,9 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 "stroke-width": "1.5",
                                 stroke: "currentColor",
                                 class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
-                                    set_task_status(model.clone(), *task_id, TaskStatus::Done)
+                                    set_task_status(model, task_id, TaskStatus::Done)
                                 },
                                 path {
                                     "stroke-linecap": "round",
@@ -1634,17 +1686,17 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     class:"flex flex-row justify-between",
                     div {
                         class: "flex flex-row gap-2",
-                        if **editing_size {rsx! {
+                        if editing_size {
                             span {
                                 class: "
                                     text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
                                     border-2 border-emerald-700
                                     sm:hover:bg-emerald-700 bg-inherit text-green-300
                                 ",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
-                                    editing_size.set(false);
-                                    set_task_size(model.clone(), *task_id, TaskSize::Small)
+                                    editing_size_signal.set(false);
+                                    set_task_size(model, task_id, TaskSize::Small)
                                 },
                                 "Small",
                             }
@@ -1654,10 +1706,10 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     border-2 border-yellow-900
                                     sm:hover:bg-yellow-900 bg-inherit text-yellow-300
                                 ",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
-                                    editing_size.set(false);
-                                    set_task_size(model.clone(), *task_id, TaskSize::Medium)
+                                    editing_size_signal.set(false);
+                                    set_task_size(model, task_id, TaskSize::Medium)
                                 },
                                 "Medium",
                             }
@@ -1667,14 +1719,14 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     border-2 border-red-900
                                     sm:hover:bg-red-900 bg-inherit text-red-300
                                 ",
-                                onclick: |event| {
+                                onclick: move |event| {
                                     event.stop_propagation();
-                                    editing_size.set(false);
-                                    set_task_size(model.clone(), *task_id, TaskSize::Large)
+                                    editing_size_signal.set(false);
+                                    set_task_size(model, task_id, TaskSize::Large)
                                 },
                                 "Large",
                             }
-                        }} else {rsx! {
+                        } else {
                             match data.size {
                                 TaskSize::Small => {rsx!{
                                     span {
@@ -1686,7 +1738,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                             sm:hover:bg-emerald-700
                                             text-green-300
                                         ",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
                                             let mut model = model.write();
                                             if model.size_filter == Some(TaskSize::Small) {
@@ -1703,9 +1755,9 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                             "stroke-width": "1.5",
                                             stroke: "currentColor",
                                             class: "w-4 h-4",
-                                            onclick: |event| {
+                                            onclick: move |event| {
                                                 event.stop_propagation();
-                                                editing_size.set(true);
+                                                editing_size_signal.set(true);
                                             },
                                             path {
                                                 "stroke-linecap": "round",
@@ -1724,7 +1776,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                             sm:hover:bg-yellow-900
                                             {size_bg(model, &data.size)} text-yellow-300
                                         ",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
                                             let mut model = model.write();
                                             if model.size_filter == Some(TaskSize::Medium) {
@@ -1741,9 +1793,9 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                             "stroke-width": "1.5",
                                             stroke: "currentColor",
                                             class: "w-4 h-4",
-                                            onclick: |event| {
+                                            onclick: move |event| {
                                                 event.stop_propagation();
-                                                editing_size.set(true);
+                                                editing_size_signal.set(true);
                                             },
                                             path {
                                                 "stroke-linecap": "round",
@@ -1762,7 +1814,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                             sm:hover:bg-red-900
                                             {size_bg(model, &data.size)} text-red-300
                                         ",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
                                             let mut model = model.write();
                                             if model.size_filter == Some(TaskSize::Large) {
@@ -1779,9 +1831,9 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                             "stroke-width": "1.5",
                                             stroke: "currentColor",
                                             class: "w-4 h-4",
-                                            onclick: |event| {
+                                            onclick: move |event| {
                                                 event.stop_propagation();
-                                                editing_size.set(true);
+                                                editing_size_signal.set(true);
                                             },
                                             path {
                                                 "stroke-linecap": "round",
@@ -1792,7 +1844,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                     }
                                 }}
                             }
-                        }}
+                        }
                     }
                     div {
                         class: "flex flex-row gap-1",
@@ -1808,7 +1860,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             ",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                create_quick_add_task(model.clone(), *task_id)
+                                create_quick_add_task(model, task_id)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1828,7 +1880,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             ",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                clone_task(model.clone(), *task_id)
+                                clone_task(model, task_id)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1848,7 +1900,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             ",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                archive_task(model.clone(), *task_id)
+                                archive_task(model, task_id)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1863,22 +1915,22 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     div {
                         class: "col-span-7 flex flex-row flex-wrap gap-2",
                         Tags {
-                            task_id: *task_id,
+                            task_id,
                             on_click_assign_tag: move |event: Event<MouseData>| {
                                 event.stop_propagation();
-                                show_assign_tag.set(!**show_assign_tag);
+                                show_assign_tag_signal.set(!show_assign_tag);
                             },
                         }
                     }
                 }
-                if **show_assign_tag {rsx!{
+                if show_assign_tag {
                     TagSearch {
-                        task_id: *task_id,
+                        task_id,
                         ul_style: "border border-gray-700 divide-y divide-gray-700",
                         hover_style: "active:bg-gray-800 sm:hover:bg-gray-800",
                         text_input_style: "bg-gray-800"
                     }
-                }}
+                }
                 div {
                     class: "grid grid-rows-1 justify-items-end",
                     svg {
@@ -1890,7 +1942,7 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         class: "w-6 h-6 cursor-pointer text-red-600",
                         onclick: move |event| {
                             event.stop_propagation();
-                            delete_task(model.clone(), *task_id)
+                            delete_task(model, task_id)
                         },
                         path {
                             "stroke-linecap": "round",
@@ -1899,62 +1951,80 @@ fn DenseTask(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         }
                     }
                 }
-            }}
+            }
         }
-    })
+    }
 }
 
 #[component]
-fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    let expanded = use_state(cx, || false);
-    let editing_title = use_state(cx, || false);
-    let new_title = use_state(cx, String::new);
-    let editing_description = use_state(cx, || false);
-    let new_description = use_state(cx, String::new);
-    let editing_size = use_state(cx, || false);
+fn Task(task_id: TaskId, status: TaskStatus) -> Element {
+    let mut model = use_context::<Signal<Model>>();
+
+    let mut expanded_signal = use_signal(|| false);
+    let expanded = expanded_signal();
+
+    let mut editing_title_signal = use_signal(|| false);
+    let editing_title = editing_title_signal();
+
+    let mut new_title = use_signal(String::new);
+
+    let mut editing_description_signal = use_signal(|| false);
+    let editing_description = editing_description_signal();
+
+    let mut new_description = use_signal(String::new);
+
+    let mut editing_size_signal = use_signal(|| false);
+    let editing_size = editing_size_signal();
+
     let read_model = model.read();
-    let data = &read_model.tasks[task_id];
-    let draggable = use_state(cx, || true);
-    let show_assign_user = use_state(cx, || false);
-    let show_assign_tag = use_state(cx, || false);
-    cx.render(rsx! {
+    let data = &read_model.tasks[&task_id];
+
+    let mut draggable_signal = use_signal(|| true);
+    let draggable = draggable_signal();
+
+    let mut show_assign_user_signal = use_signal(|| false);
+    let show_assign_user = show_assign_user_signal();
+
+    let mut show_assign_tag_signal = use_signal(|| false);
+    let show_assign_tag = show_assign_tag_signal();
+
+    rsx! {
         div {
             prevent_default: "onclick",
-            draggable: **draggable,
-            onclick: |_| expanded.set(!**expanded),
+            draggable,
+            onclick: move |_| expanded_signal.set(!expanded),
             class: "
                 flex flex-col gap-2 p-3 border rounded-lg shadow
                 bg-gray-800 border-gray-700 sm:hover:bg-gray-700",
             div {
                 class: "grid grid-cols-2",
-                if **editing_title {rsx!{
+                if editing_title {
                     input {
                         class: styles::TEXT_INPUT,
                         r#type: "text",
-                        oninput: |event| new_title.set(event.value.clone()),
-                        onfocusout: |_| {
-                            editing_title.set(false);
-                            set_task_title(model.clone(), *task_id, (**new_title).clone())
+                        oninput: move |event| new_title.set(event.value()),
+                        onfocusout: move |_| {
+                            editing_title_signal.set(false);
+                            set_task_title(model, task_id, new_title())
                         },
-                        onmouseenter: |_| draggable.set(false),
-                        onmouseleave: |_| draggable.set(true),
+                        onmouseenter: move |_| draggable_signal.set(false),
+                        onmouseleave: move |_| draggable_signal.set(true),
                         value: "{new_title}",
                     }
-                }} else {rsx!{
+                } else {
                     div {
                         class: "grid grid-rows-1 justify-items-start",
                         h5 {
                             class: "text-lg sm:text-xl font-bold tracking-tight text-white underline underline-offset-8",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                editing_title.set(true);
+                                editing_title_signal.set(true);
                                 new_title.set(model.read().tasks[&task_id].title.clone());
                             },
                             "{data.title}",
                         },
                     }
-                }}
+                }
                 div {
                     class: "grid grid-rows-1 justify-items-end",
                     div {
@@ -1966,9 +2036,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
-                                set_task_status(model.clone(), *task_id, TaskStatus::ToDo)
+                                set_task_status(model, task_id, TaskStatus::ToDo)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1983,9 +2053,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
-                                set_task_status(model.clone(), *task_id, TaskStatus::InProgress)
+                                set_task_status(model, task_id, TaskStatus::InProgress)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -2000,9 +2070,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                             "stroke-width": "1.5",
                             stroke: "currentColor",
                             class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
-                                set_task_status(model.clone(), *task_id, TaskStatus::Done)
+                                set_task_status(model, task_id, TaskStatus::Done)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -2016,10 +2086,10 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
             div {
                 class: "flex flex-row justify-between",
                 Users {
-                    task_id: *task_id,
+                    task_id: task_id,
                     on_click_assign_user: move |event: Event<MouseData>| {
                         event.stop_propagation();
-                        show_assign_user.set(!**show_assign_user);
+                        show_assign_user_signal.set(!show_assign_user);
                     },
                 },
                 div {
@@ -2036,7 +2106,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
-                            create_quick_add_task(model.clone(), *task_id)
+                            create_quick_add_task(model, task_id)
                         },
                         path {
                             "stroke-linecap": "round",
@@ -2056,7 +2126,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
-                            clone_task(model.clone(), *task_id)
+                            clone_task(model, task_id)
                         },
                         path {
                             "stroke-linecap": "round",
@@ -2076,7 +2146,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
-                            archive_task(model.clone(), *task_id)
+                            archive_task(model, task_id)
                         },
                         path {
                             "stroke-linecap": "round",
@@ -2086,7 +2156,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
             }
-            if **show_assign_user {rsx!{
+            if show_assign_user {
                 div {
                     class: "
                         bg-gray-800 p-2
@@ -2094,7 +2164,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     ",
                     onclick: |event| event.stop_propagation(),
                     UserSearch {
-                        task_id: *task_id,
+                        task_id,
                         badge_style: "",
                         ul_style: "
                             bg-gray-800
@@ -2105,22 +2175,22 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         text_input_style: "",
                     }
                 }
-            }}
+            }
             div {
                 class: "grid grid-cols-2",
                 div {
                     class: "flex flex-row gap-2",
-                    if **editing_size {rsx!{
+                    if editing_size {
                         span {
                             class: "
                                 text-sm font-medium px-2.5 py-0.5 rounded cursor-pointer
                                 border-2 border-emerald-700
                                 sm:hover:bg-emerald-700 bg-inherit text-green-300
                             ",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
-                                editing_size.set(false);
-                                set_task_size(model.clone(), *task_id, TaskSize::Small)
+                                editing_size_signal.set(false);
+                                set_task_size(model, task_id, TaskSize::Small)
                             },
                             "Small",
                         }
@@ -2130,10 +2200,10 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 border-2 border-yellow-900
                                 sm:hover:bg-yellow-900 bg-inherit text-yellow-300
                             ",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
-                                editing_size.set(false);
-                                set_task_size(model.clone(), *task_id, TaskSize::Medium)
+                                editing_size_signal.set(false);
+                                set_task_size(model, task_id, TaskSize::Medium)
                             },
                             "Medium",
                         }
@@ -2143,14 +2213,14 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 border-2 border-red-900
                                 sm:hover:bg-red-900 bg-inherit text-red-300
                             ",
-                            onclick: |event| {
+                            onclick: move |event| {
                                 event.stop_propagation();
-                                editing_size.set(false);
-                                set_task_size(model.clone(), *task_id, TaskSize::Large)
+                                editing_size_signal.set(false);
+                                set_task_size(model, task_id, TaskSize::Large)
                             },
                             "Large",
                         }
-                    }} else {rsx!{
+                    } else {
                         match data.size {
                             TaskSize::Small => {rsx!{
                                 span {
@@ -2162,7 +2232,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                         sm:hover:bg-emerald-700
                                         text-green-300
                                     ",
-                                    onclick: |event| {
+                                    onclick: move |event| {
                                         event.stop_propagation();
                                         let mut model = model.write();
                                         if model.size_filter == Some(TaskSize::Small) {
@@ -2179,9 +2249,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                         "stroke-width": "1.5",
                                         stroke: "currentColor",
                                         class: "w-4 h-4",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
-                                            editing_size.set(true);
+                                            editing_size_signal.set(true);
                                         },
                                         path {
                                             "stroke-linecap": "round",
@@ -2200,7 +2270,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                         sm:hover:bg-yellow-900
                                         {size_bg(model, &data.size)} text-yellow-300
                                     ",
-                                    onclick: |event| {
+                                    onclick: move |event| {
                                         event.stop_propagation();
                                         let mut model = model.write();
                                         if model.size_filter == Some(TaskSize::Medium) {
@@ -2217,9 +2287,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                         "stroke-width": "1.5",
                                         stroke: "currentColor",
                                         class: "w-4 h-4",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
-                                            editing_size.set(true);
+                                            editing_size_signal.set(true);
                                         },
                                         path {
                                             "stroke-linecap": "round",
@@ -2238,7 +2308,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                         sm:hover:bg-red-900
                                         {size_bg(model, &data.size)} text-red-300
                                     ",
-                                    onclick: |event| {
+                                    onclick: move |event| {
                                         event.stop_propagation();
                                         let mut model = model.write();
                                         if model.size_filter == Some(TaskSize::Large) {
@@ -2255,9 +2325,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                         "stroke-width": "1.5",
                                         stroke: "currentColor",
                                         class: "w-4 h-4",
-                                        onclick: |event| {
+                                        onclick: move |event| {
                                             event.stop_propagation();
-                                            editing_size.set(true);
+                                            editing_size_signal.set(true);
                                         },
                                         path {
                                             "stroke-linecap": "round",
@@ -2268,12 +2338,12 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                                 }
                             }}
                         }
-                    }}
+                    }
                 }
             }
-            if let Some(due_value) = data.due {rsx!{
+            if let Some(due_value) = data.due {
                 Due {
-                    task_id: *task_id,
+                    task_id,
                     due: DueOptions{
                         due: due_value,
                         show_time_left: match status {
@@ -2284,30 +2354,30 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     svg_style: "w-6 h-6",
                     p_style: "",
                 }
-            }}
-            if **expanded && data.due.is_none() {rsx!{
+            }
+            if expanded && data.due.is_none() {
                 Due {
-                    task_id: *task_id,
+                    task_id,
                     svg_style: "w-6 h-6",
                     p_style: "",
                 }
-            }}
-            if **expanded {rsx!{
-                if **editing_description {rsx!{
+            }
+            if expanded {
+                if editing_description {
                     textarea {
                         class: "p-4 bg-gray-900 rounded border border-gray-700 text-white",
                         rows: 8.max(data.description.lines().count() as i64),
-                        oninput: |event| new_description.set(event.value.clone()),
-                        onfocusout: |_| {
-                            editing_description.set(false);
-                            set_task_description(model.clone(), *task_id, (**new_description).clone())
+                        oninput: move |event| new_description.set(event.value()),
+                        onfocusout: move |_| {
+                            editing_description_signal.set(false);
+                            set_task_description(model, task_id, new_description())
                         },
-                        onmouseenter: |_| draggable.set(false),
-                        onmouseleave: |_| draggable.set(true),
+                        onmouseenter: move |_| draggable_signal.set(false),
+                        onmouseleave: move |_| draggable_signal.set(true),
                         value: "{new_description}",
                     }
 
-                }} else {rsx!{
+                } else {
                     div {
                         class: "
                             p-4 bg-gray-900 rounded border border-gray-700 text-white
@@ -2315,28 +2385,28 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
-                            editing_description.set(true);
-                            new_description.set(model.read().tasks[task_id].description.clone());
+                            editing_description_signal.set(true);
+                            new_description.set(model.read().tasks[&task_id].description.clone());
                         },
                         "{data.description}"
                     }
-                }}
+                }
                 div {
                     class: "grid grid-cols-8",
                     div {
                         class: "col-span-7 flex flex-row flex-wrap gap-2",
                         Tags {
-                            task_id: *task_id,
+                            task_id,
                             on_click_assign_tag: move |event: Event<MouseData>| {
                                 event.stop_propagation();
-                                show_assign_tag.set(!**show_assign_tag);
+                                show_assign_tag_signal.set(!show_assign_tag);
                             },
                         }
                     }
                 }
-                if **show_assign_tag {rsx!{
+                if show_assign_tag {
                     TagSearch {
-                        task_id: *task_id,
+                        task_id,
                         ul_style: "
                             bg-gray-800
                             border border-gray-700
@@ -2345,7 +2415,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                         hover_style: "active:bg-gray-700 sm:hover:bg-gray-700",
                         text_input_style: "",
                     }
-                }}
+                }
             div {
                 class: "grid grid-rows-1 justify-items-end",
                 svg {
@@ -2357,7 +2427,7 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     class: "w-6 h-6 cursor-pointer text-red-600",
                     onclick: move |event| {
                         event.stop_propagation();
-                        delete_task(model.clone(), *task_id)
+                        delete_task(model, task_id)
                     },
                     path {
                         "stroke-linecap": "round",
@@ -2366,9 +2436,9 @@ fn Task(cx: Scope, task_id: TaskId, status: TaskStatus) -> Element {
                     }
                 }
             }
-            }}
+            }
         }
-    })
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -2379,19 +2449,25 @@ struct DueOptions {
 
 #[component]
 fn Due(
-    cx: Scope,
     task_id: TaskId,
     due: Option<DueOptions>,
     svg_style: &'static str,
     p_style: &'static str,
 ) -> Element {
-    let model = use_shared_state::<Model>(cx).unwrap();
-    let editing = use_state(cx, || false);
-    let new_date = use_state(cx, || None::<NaiveDate>);
-    let new_time = use_state(cx, || NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+    let model = use_context::<Signal<Model>>();
+
+    let mut editing_signal = use_signal(|| false);
+    let editing = editing_signal();
+
+    let mut new_date_signal = use_signal(|| None::<NaiveDate>);
+    let new_date = new_date_signal.read();
+
+    let mut new_time_signal = use_signal(|| NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+    let new_time = new_time_signal.read();
+
     let now = Utc::now();
-    cx.render(rsx! {
-        if **editing {rsx!{
+    rsx! {
+        if editing {
             div {
                 class: "flex flex-row gap-2 items-center",
                 svg {
@@ -2400,9 +2476,9 @@ fn Due(
                     "xmlns": "http://www.w3.org/2000/svg",
                     "fill": "none",
                     "viewBox": "0 0 20 20",
-                    onclick: |event| {
+                    onclick: move |event| {
                         event.stop_propagation();
-                        editing.set(false);
+                        editing_signal.set(false);
                     },
                     path {
                         fill: "currentColor",
@@ -2411,56 +2487,56 @@ fn Due(
                 }
                 div {
                     class: "grid grid-cols-2 gap-2 place-items-center",
-                    if let Some(new_date_value) = **new_date {rsx!{
+                    if let Some(new_date_value) = &*new_date {
                         input {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
                             value: "{new_date_value.format(\"%Y-%m-%d\")}",
-                            oninput: |event| {
-                                if event.value.is_empty() {
-                                    new_date.set(None);
-                                    new_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
-                                } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                    new_date.set(Some(date))
+                            oninput:  move |event| {
+                                let event_value = event.value();
+                                if event_value.is_empty() {
+                                    new_date_signal.set(None);
+                                    new_time_signal.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                                } else if let Ok(date) = NaiveDate::parse_from_str(&event_value, "%Y-%m-%d") {
+                                    new_date_signal.set(Some(date))
                                 }
                             },
-                        },
+                        }
                         select {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
-                            value: "{format_due_time(&**new_time)}",
-                            onchange: |event| {
-                                if let Ok(time) = NaiveTime::parse_from_str(&event.value, "%H:%M") {
-                                    new_time.set(time);
+                            value: "{format_due_time(&new_time)}",
+                            onchange: move |event| {
+                                if let Ok(time) = NaiveTime::parse_from_str(&event.value(), "%H:%M") {
+                                    new_time_signal.set(time);
                                 }
                             },
                             option {
-                                value: "{format_due_time(&**new_time)}",
-                                "{format_due_time(&**new_time)}"
+                                value: "{format_due_time(&new_time)}",
+                                "{format_due_time(&new_time)}"
                             },
                             for hour in 0..24 {
                                 for minute in [0, 15, 30, 45] {
-                                    rsx!{
-                                        option {
-                                            value: "{hour:02}:{minute:02}",
-                                            "{hour:02}:{minute:02}"
-                                        },
+                                    option {
+                                        value: "{hour:02}:{minute:02}",
+                                        "{hour:02}:{minute:02}"
                                     }
                                 }
                             }
-                        },
-                    }} else {rsx!{
+                        }
+                    } else {
                         input {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
-                            oninput: |event| {
-                                if event.value.is_empty() {
-                                    new_date.set(None)
-                                } else if let Ok(date) = NaiveDate::parse_from_str(&event.value, "%Y-%m-%d") {
-                                    new_date.set(Some(date))
+                            oninput:  move |event| {
+                                let event_value = event.value();
+                                if event_value.is_empty() {
+                                    new_date_signal.set(None)
+                                } else if let Ok(date) = NaiveDate::parse_from_str(&event_value, "%Y-%m-%d") {
+                                    new_date_signal.set(Some(date))
                                 }
-                            },
-                        },
-                    }}
+                            }
+                        }
+                    }
                 }
                 button {
                     r#type: "button",
@@ -2471,14 +2547,14 @@ fn Due(
                         sm:hover:bg-green-500 sm:hover:text-white
                     ",
                     prevent_default: "onclick",
-                    onclick: |event| {
+                    onclick:  move |event| {
                         event.stop_propagation();
-                        editing.set(false);
+                        editing_signal.set(false);
                         set_task_due(
-                            model.clone(),
-                            *task_id,
-                            new_date.map(|date| {
-                                Local.from_local_datetime(&date.and_time(**new_time))
+                            model,
+                            task_id,
+                            new_date_signal.read().map(|date| {
+                                Local.from_local_datetime(&date.and_time(new_time_signal()))
                                 .unwrap()
                                 .into()
                             })
@@ -2507,9 +2583,9 @@ fn Due(
                         sm:hover:bg-red-500 sm:hover:text-white
                     ",
                     prevent_default: "onclick",
-                    onclick: |event| {
+                    onclick: move |event| {
                         event.stop_propagation();
-                        editing.set(false);
+                        editing_signal.set(false);
                     },
                     svg {
                         class: "stroke-red-500",
@@ -2527,15 +2603,15 @@ fn Due(
                     }
                 }
             }
-        }} else {rsx!{
-            if let Some(DueOptions{due: due_value, show_time_left}) = due {rsx!{
+        } else {
+            if let Some(DueOptions{due: due_value, show_time_left}) = due {
                 div {
                     class: "flex flex-row gap-2",
                     onclick: move |_| {
-                        editing.set(true);
-                        let local = utc_to_local(due_value);
-                        new_date.set(Some(local.date_naive()));
-                        new_time.set(local.time());
+                        editing_signal.set(true);
+                        let local = utc_to_local(&due_value);
+                        new_date_signal.set(Some(local.date_naive()));
+                        new_time_signal.set(local.time());
                     },
                     svg {
                         class: "text-gray-400 cursor-pointer {svg_style}",
@@ -2550,22 +2626,22 @@ fn Due(
                     }
                     p {
                         class: "font-normal text-gray-400 {p_style}",
-                        if *show_time_left {rsx!{
+                        if show_time_left {
                             "{format_datetime(utc_to_local(&due_value))} ({time_delta(&now, &due_value)})"
-                        }} else {rsx!{
+                        } else {
                             "{format_datetime(utc_to_local(&due_value))}"
-                        }}
+                        }
                     }
                 }
-            }} else {rsx!{
+            } else {
                 div {
                     class: "flex flex-row gap-2",
                     svg {
                         class: "text-gray-400 cursor-pointer {svg_style}",
                         onclick: move |_| {
-                            editing.set(true);
-                            new_date.set(None);
-                            new_time.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                            editing_signal.set(true);
+                            new_date_signal.set(None);
+                            new_time_signal.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
                         },
                         "aria-hidden": "true",
                         "xmlns": "http://www.w3.org/2000/svg",
@@ -2576,13 +2652,13 @@ fn Due(
                             d: "M6 1a1 1 0 0 0-2 0h2ZM4 4a1 1 0 0 0 2 0H4Zm7-3a1 1 0 1 0-2 0h2ZM9 4a1 1 0 1 0 2 0H9Zm7-3a1 1 0 1 0-2 0h2Zm-2 3a1 1 0 1 0 2 0h-2ZM1 6a1 1 0 0 0 0 2V6Zm18 2a1 1 0 1 0 0-2v2ZM5 11v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 11v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM10 15v-1H9v1h1Zm0 .01H9v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 15v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM15 11v-1h-1v1h1Zm0 .01h-1v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM5 15v-1H4v1h1Zm0 .01H4v1h1v-1Zm.01 0v1h1v-1h-1Zm0-.01h1v-1h-1v1ZM2 4h16V2H2v2Zm16 0h2a2 2 0 0 0-2-2v2Zm0 0v14h2V4h-2Zm0 14v2a2 2 0 0 0 2-2h-2Zm0 0H2v2h16v-2ZM2 18H0a2 2 0 0 0 2 2v-2Zm0 0V4H0v14h2ZM2 4V2a2 2 0 0 0-2 2h2Zm2-3v3h2V1H4Zm5 0v3h2V1H9Zm5 0v3h2V1h-2ZM1 8h18V6H1v2Zm3 3v.01h2V11H4Zm1 1.01h.01v-2H5v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H5v2h.01v-2ZM9 11v.01h2V11H9Zm1 1.01h.01v-2H10v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM9 15v.01h2V15H9Zm1 1.01h.01v-2H10v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H10v2h.01v-2ZM14 15v.01h2V15h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM14 11v.01h2V11h-2Zm1 1.01h.01v-2H15v2Zm1.01-1V11h-2v.01h2Zm-1-1.01H15v2h.01v-2ZM4 15v.01h2V15H4Zm1 1.01h.01v-2H5v2Zm1.01-1V15h-2v.01h2Zm-1-1.01H5v2h.01v-2Z",
                         }
                     }
-                }}
+                }
             }
-        }}
-    })
+        }
+    }
 }
 
-fn user_bg(model: &UseSharedState<Model>, user_id: &UserId, user_color: &Color) -> String {
+fn user_bg(model: Signal<Model>, user_id: &UserId, user_color: &Color) -> String {
     if model.read().user_filter.contains(user_id) {
         format!("{} ring ring-blue-500", color_picker::bg_class(user_color))
     } else {
@@ -2591,25 +2667,21 @@ fn user_bg(model: &UseSharedState<Model>, user_id: &UserId, user_color: &Color) 
 }
 
 #[component]
-fn Users<'a>(
-    cx: Scope,
-    task_id: TaskId,
-    on_click_assign_user: EventHandler<'a, Event<MouseData>>,
-) -> Element<'a> {
-    let model = use_shared_state::<Model>(cx).unwrap();
+fn Users(task_id: TaskId, on_click_assign_user: EventHandler<MouseEvent>) -> Element {
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
-    let data = &read_model.tasks[task_id];
+    let data = &read_model.tasks[&task_id];
     let users: Vec<_> = data
         .assignees
         .iter()
         .map(|user_id| (user_id, &read_model.users[user_id]))
         .collect();
-    cx.render(rsx! {
+    rsx! {
         div {
             class: "flex flex-col gap-2",
             div {
                 class: "flex flex-row flex-wrap gap-2",
-                for (user_id, user) in users {rsx!{
+                for (&user_id, user) in users {
                     div {
                         class: "group relative",
                         onclick: |event| event.stop_propagation(),
@@ -2617,19 +2689,16 @@ fn Users<'a>(
                             class: "
                                 w-6 h-6 rounded cursor-pointer
                                 border-2 {color_picker::border_class(&user.color)}
-                                {user_bg(&model, user_id, &user.color)}
+                                {user_bg(model, &user_id, &user.color)}
                                 {color_picker::bg_hover_class(&user.color)}
                             ",
-                            onclick: {
-                                let user_id = *user_id;
-                                move |event| {
-                                    event.stop_propagation();
-                                    let mut model = model.write();
-                                    if model.user_filter.contains(&user_id) {
-                                        model.user_filter.remove(&user_id);
-                                    } else {
-                                        model.user_filter.insert(user_id);
-                                    }
+                            onclick:  move |event| {
+                                event.stop_propagation();
+                                let mut model = model.write();
+                                if model.user_filter.contains(&user_id) {
+                                    model.user_filter.remove(&user_id);
+                                } else {
+                                    model.user_filter.insert(user_id);
                                 }
                             },
                         },
@@ -2642,7 +2711,7 @@ fn Users<'a>(
                             }
                         }
                     }
-                }}
+                }
                 div {
                     class: "group relative",
                     svg {
@@ -2653,7 +2722,7 @@ fn Users<'a>(
                         stroke: "white",
                         class: "w-6 h-6 border border-white rounded cursor-pointer",
                         prevent_default: "onclick",
-                        onclick: |event| on_click_assign_user.call(event),
+                        onclick: move |event| on_click_assign_user.call(event),
                         path {
                             "stroke-linecap": "round",
                             "stroke-linejoin": "round",
@@ -2671,10 +2740,10 @@ fn Users<'a>(
                 }
             }
         }
-    })
+    }
 }
 
-fn tag_bg(model: &UseSharedState<Model>, tag_id: &TagId, tag_color: &Color) -> String {
+fn tag_bg(model: Signal<Model>, tag_id: &TagId, tag_color: &Color) -> String {
     if model.read().tag_filter.contains(tag_id) {
         format!("{} ring ring-blue-500", color_picker::bg_class(tag_color))
     } else {
@@ -2683,50 +2752,39 @@ fn tag_bg(model: &UseSharedState<Model>, tag_id: &TagId, tag_color: &Color) -> S
 }
 
 #[component]
-fn Tags<'a>(
-    cx: Scope,
-    task_id: TaskId,
-    on_click_assign_tag: EventHandler<'a, Event<MouseData>>,
-) -> Element<'a> {
-    let model = use_shared_state::<Model>(cx).unwrap();
+fn Tags(task_id: TaskId, on_click_assign_tag: EventHandler<MouseEvent>) -> Element {
+    let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
-    cx.render(rsx! {
-        for (tag_id, tag) in read_model
-            .tasks[task_id]
+    rsx! {
+        for (&tag_id, tag) in read_model
+            .tasks[&task_id]
             .tags
             .iter()
             .map(|tag_id| (tag_id, &read_model.tags[tag_id]))
-        {rsx!{
+        {
             span {
                 class: "
                     {styles::TAG_BADGE_SPAN}
-                    {tag_bg(model, tag_id, &tag.color)}
+                    {tag_bg(model, &tag_id, &tag.color)}
                     {color_picker::bg_hover_class(&tag.color)}
                     {color_picker::border_class(&tag.color)}
                 ",
-                onclick: {
-                    let tag_id = *tag_id;
-                    move |event| {
-                        event.stop_propagation();
-                        let mut model = model.write();
-                        if model.tag_filter.contains(&tag_id) {
-                            model.tag_filter.remove(&tag_id);
-                        } else {
-                            model.tag_filter.insert(tag_id);
-                        }
+                onclick:  move |event| {
+                    event.stop_propagation();
+                    let mut model = model.write();
+                    if model.tag_filter.contains(&tag_id) {
+                        model.tag_filter.remove(&tag_id);
+                    } else {
+                        model.tag_filter.insert(tag_id);
                     }
                 },
                 "# {tag.name}",
                 button {
                     r#type: "button",
                     class: "{styles::TAG_BADGE_BUTTON}",
-                    onclick: {
-                        let task_id = *task_id;
-                        let tag_id = *tag_id;
-                        move |event| {
-                            event.stop_propagation();
-                            delete_task_tag(model.clone(), task_id, tag_id)
-                        }
+                    onclick:  move |event| {
+                        event.stop_propagation();
+                        delete_task_tag(model, task_id, tag_id)
                     },
                     svg {
                         class: "w-2 h-2",
@@ -2744,7 +2802,7 @@ fn Tags<'a>(
                     }
                 }
             }
-        }}
+        }
         div {
             class: "group relative",
             svg {
@@ -2755,7 +2813,7 @@ fn Tags<'a>(
                 stroke: "white",
                 class: "w-6 h-6 border border-white rounded cursor-pointer",
                 prevent_default: "onclick",
-                onclick: |event| on_click_assign_tag.call(event),
+                onclick: move |event| on_click_assign_tag.call(event),
                 path {
                     "stroke-linecap": "round",
                     "stroke-linejoin": "round",
@@ -2771,7 +2829,7 @@ fn Tags<'a>(
                 }
             }
         }
-    })
+    }
 }
 
 struct TimeDelta {
@@ -2813,17 +2871,17 @@ fn format_due_time(time: &NaiveTime) -> String {
     format!("{}", time.format("%H:%M"))
 }
 
-async fn set_task_status(model: UseSharedState<Model>, task_id: TaskId, status: TaskStatus) {
-    if send_set_task_status_request(model.clone(), task_id, status)
+async fn set_task_status(model: Signal<Model>, task_id: TaskId, status: TaskStatus) {
+    if send_set_task_status_request(model, task_id, status)
         .await
         .is_ok()
     {
-        requests::board(model.clone()).await;
+        requests::board(model).await;
     }
 }
 
 async fn send_set_task_status_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
     status: TaskStatus,
 ) -> Result<(), anyhow::Error> {
@@ -2843,20 +2901,20 @@ async fn send_set_task_status_request(
         .await?)
 }
 
-async fn set_task_title(model: UseSharedState<Model>, task_id: TaskId, title: String) {
+async fn set_task_title(model: Signal<Model>, task_id: TaskId, title: String) {
     if title.is_empty() {
         return;
     }
-    if send_set_task_title_request(model.clone(), task_id, title)
+    if send_set_task_title_request(model, task_id, title)
         .await
         .is_ok()
     {
-        requests::board(model.clone()).await;
+        requests::board(model).await;
     }
 }
 
 async fn send_set_task_title_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
     title: String,
 ) -> Result<(), anyhow::Error> {
@@ -2876,17 +2934,17 @@ async fn send_set_task_title_request(
         .await?)
 }
 
-async fn set_task_description(model: UseSharedState<Model>, task_id: TaskId, description: String) {
-    if send_set_task_description_request(model.clone(), task_id, description)
+async fn set_task_description(model: Signal<Model>, task_id: TaskId, description: String) {
+    if send_set_task_description_request(model, task_id, description)
         .await
         .is_ok()
     {
-        requests::board(model.clone()).await;
+        requests::board(model).await;
     }
 }
 
 async fn send_set_task_description_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
     description: String,
 ) -> Result<(), anyhow::Error> {
@@ -2906,17 +2964,14 @@ async fn send_set_task_description_request(
         .await?)
 }
 
-async fn archive_task(model: UseSharedState<Model>, task_id: TaskId) {
-    if send_archive_task_request(model.clone(), task_id)
-        .await
-        .is_ok()
-    {
-        requests::board(model.clone()).await;
+async fn archive_task(model: Signal<Model>, task_id: TaskId) {
+    if send_archive_task_request(model, task_id).await.is_ok() {
+        requests::board(model).await;
     }
 }
 
 async fn send_archive_task_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
 ) -> Result<(), anyhow::Error> {
     let url = {
@@ -2935,17 +2990,17 @@ async fn send_archive_task_request(
         .await?)
 }
 
-async fn set_task_size(model: UseSharedState<Model>, task_id: TaskId, size: TaskSize) {
-    if send_set_task_size_request(model.clone(), task_id, size)
+async fn set_task_size(model: Signal<Model>, task_id: TaskId, size: TaskSize) {
+    if send_set_task_size_request(model, task_id, size)
         .await
         .is_ok()
     {
-        requests::board(model.clone()).await;
+        requests::board(model).await;
     }
 }
 
 async fn send_set_task_size_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
     size: TaskSize,
 ) -> Result<(), anyhow::Error> {
@@ -2965,17 +3020,14 @@ async fn send_set_task_size_request(
         .await?)
 }
 
-async fn set_task_due(model: UseSharedState<Model>, task_id: TaskId, due: Option<DateTime<Utc>>) {
-    if send_set_task_due_request(model.clone(), task_id, due)
-        .await
-        .is_ok()
-    {
-        requests::board(model.clone()).await;
+async fn set_task_due(model: Signal<Model>, task_id: TaskId, due: Option<DateTime<Utc>>) {
+    if send_set_task_due_request(model, task_id, due).await.is_ok() {
+        requests::board(model).await;
     }
 }
 
 async fn send_set_task_due_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
     due: Option<DateTime<Utc>>,
 ) -> Result<(), anyhow::Error> {
@@ -2995,17 +3047,14 @@ async fn send_set_task_due_request(
         .await?)
 }
 
-async fn delete_task(model: UseSharedState<Model>, task_id: TaskId) {
-    if send_delete_task_request(model.clone(), task_id)
-        .await
-        .is_ok()
-    {
+async fn delete_task(model: Signal<Model>, task_id: TaskId) {
+    if send_delete_task_request(model, task_id).await.is_ok() {
         requests::board(model).await;
     }
 }
 
 async fn send_delete_task_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
 ) -> Result<(), anyhow::Error> {
     let url = {
@@ -3023,8 +3072,8 @@ async fn send_delete_task_request(
         .await?)
 }
 
-async fn delete_task_tag(model: UseSharedState<Model>, task_id: TaskId, tag_id: TagId) {
-    if send_delete_task_tag_request(model.clone(), task_id, tag_id)
+async fn delete_task_tag(model: Signal<Model>, task_id: TaskId, tag_id: TagId) {
+    if send_delete_task_tag_request(model, task_id, tag_id)
         .await
         .is_ok()
     {
@@ -3033,7 +3082,7 @@ async fn delete_task_tag(model: UseSharedState<Model>, task_id: TaskId, tag_id: 
 }
 
 async fn send_delete_task_tag_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
     tag_id: TagId,
 ) -> Result<(), anyhow::Error> {
@@ -3052,17 +3101,14 @@ async fn send_delete_task_tag_request(
         .await?)
 }
 
-async fn clone_task(model: UseSharedState<Model>, task_id: TaskId) {
-    if send_clone_task_request(model.clone(), task_id)
-        .await
-        .is_ok()
-    {
+async fn clone_task(model: Signal<Model>, task_id: TaskId) {
+    if send_clone_task_request(model, task_id).await.is_ok() {
         requests::board(model).await;
     }
 }
 
 async fn send_clone_task_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
 ) -> Result<TaskId, anyhow::Error> {
     let url = {
@@ -3080,8 +3126,8 @@ async fn send_clone_task_request(
         .await?)
 }
 
-async fn create_quick_add_task(model: UseSharedState<Model>, task_id: TaskId) {
-    if send_create_quick_add_task_request(model.clone(), task_id)
+async fn create_quick_add_task(model: Signal<Model>, task_id: TaskId) {
+    if send_create_quick_add_task_request(model, task_id)
         .await
         .is_ok()
     {
@@ -3090,7 +3136,7 @@ async fn create_quick_add_task(model: UseSharedState<Model>, task_id: TaskId) {
 }
 
 async fn send_create_quick_add_task_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: TaskId,
 ) -> Result<TaskId, anyhow::Error> {
     let (url, task_data) = {
@@ -3119,8 +3165,8 @@ async fn send_create_quick_add_task_request(
         .await?)
 }
 
-async fn delete_quick_add_task(model: UseSharedState<Model>, task_id: QuickAddTaskId) {
-    if send_delete_quick_add_task_request(model.clone(), task_id)
+async fn delete_quick_add_task(model: Signal<Model>, task_id: QuickAddTaskId) {
+    if send_delete_quick_add_task_request(model, task_id)
         .await
         .is_ok()
     {
@@ -3129,7 +3175,7 @@ async fn delete_quick_add_task(model: UseSharedState<Model>, task_id: QuickAddTa
 }
 
 async fn send_delete_quick_add_task_request(
-    model: UseSharedState<Model>,
+    model: Signal<Model>,
     task_id: QuickAddTaskId,
 ) -> Result<(), anyhow::Error> {
     let url = {
@@ -3147,12 +3193,12 @@ async fn send_delete_quick_add_task_request(
         .await?)
 }
 
-async fn create_task(model: UseSharedState<Model>, task_data: TaskData) {
+async fn create_task(model: Signal<Model>, task_data: TaskData) {
     if task_data.title.is_empty() {
         log::info!("empty task title, doing nothing");
         return;
     }
-    if let Ok(task_id) = requests::create_task(&model, &task_data).await {
+    if let Ok(task_id) = requests::create_task(model, &task_data).await {
         log::info!("created task: {task_id}");
     }
     requests::board(model).await;
