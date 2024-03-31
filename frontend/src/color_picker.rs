@@ -83,27 +83,6 @@ pub fn border_class(color: &Color) -> &'static str {
     }
 }
 
-pub fn text_class(color: &Color) -> &'static str {
-    match color {
-        Color::Black => "text-orange-500",
-        Color::White => "text-teal-600",
-        Color::Gray => "text-gray-400",
-        Color::Silver => "text-slate-500",
-        Color::Maroon => "text-rose-400",
-        Color::Red => "text-red-600",
-        Color::Purple => "text-purple-600",
-        Color::Fushsia => "text-fuchsia-400",
-        Color::Green => "text-emerald-500",
-        Color::Lime => "text-lime-500",
-        Color::Olive => "text-indigo-400",
-        Color::Yellow => "text-yellow-400",
-        Color::Navy => "text-amber-200",
-        Color::Blue => "text-blue-400",
-        Color::Teal => "text-teal-300",
-        Color::Aqua => "text-cyan-500",
-    }
-}
-
 #[component]
 pub fn SelectingColorPicker(
     default_color: Option<Color>,
