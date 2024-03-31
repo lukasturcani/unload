@@ -29,7 +29,7 @@ pub fn TaskArchive(board_name: BoardName) -> Element {
     let archive = use_signal(TaskArchive::default);
 
     let nav = use_navigator();
-    use_resource(move || async move {
+    use_future(move || async move {
         let url = &url.read().0;
         get_archive(archive, url).await
     });

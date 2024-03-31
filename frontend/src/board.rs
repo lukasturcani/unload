@@ -61,7 +61,7 @@ fn OneColumnBoard(board_name: BoardName) -> Element {
     let mut show_filters_signal = use_signal(|| false);
     let show_filters = show_filters_signal();
 
-    use_resource(move || requests::board(model));
+    use_future(move || requests::board(model));
 
     rsx! {
         div {
@@ -258,7 +258,7 @@ fn ThreeColumnBoard(board_name: BoardName) -> Element {
     if model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
-    use_resource(move || requests::board(model));
+    use_future(move || requests::board(model));
     rsx! {
         div {
             class: "flex flex-col bg-gray-900 h-dvh w-screen",
@@ -2487,12 +2487,12 @@ fn Due(
                 }
                 div {
                     class: "grid grid-cols-2 gap-2 place-items-center",
-                    if let Some(new_date_value) = new_date {
+                    if let Some(new_date_value) = &*new_date {
                         input {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
                             value: "{new_date_value.format(\"%Y-%m-%d\")}",
-                            oninput: move |event| {
+                            oninput:  move |event| {
                                 let event_value = event.value();
                                 if event_value.is_empty() {
                                     new_date_signal.set(None);
@@ -2527,7 +2527,7 @@ fn Due(
                         input {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
-                            oninput: move |event| {
+                            oninput:  move |event| {
                                 let event_value = event.value();
                                 if event_value.is_empty() {
                                     new_date_signal.set(None)
@@ -2547,14 +2547,14 @@ fn Due(
                         sm:hover:bg-green-500 sm:hover:text-white
                     ",
                     prevent_default: "onclick",
-                    onclick: move |event| {
+                    onclick:  move |event| {
                         event.stop_propagation();
                         editing_signal.set(false);
                         set_task_due(
                             model,
                             task_id,
-                            new_date.map(|date| {
-                                Local.from_local_datetime(&date.and_time(new_time.clone()))
+                            new_date_signal.read().map(|date| {
+                                Local.from_local_datetime(&date.and_time(new_time_signal()))
                                 .unwrap()
                                 .into()
                             })

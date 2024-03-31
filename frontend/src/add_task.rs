@@ -65,33 +65,33 @@ const RADIO_LABEL: &str = "
 fn AddTaskImpl(board_name: BoardName, default_status: TaskStatus) -> Element {
     let mut model = use_context::<Signal<Model>>();
     let nav = use_navigator();
-    let title = use_signal(String::new);
-    let tags = use_signal(Vec::new);
-    let description = use_signal(String::new);
+    let mut title = use_signal(String::new);
+    let mut tags = use_signal(Vec::new);
+    let mut description = use_signal(String::new);
 
-    let size_signal = use_signal(|| TaskSize::Small);
+    let mut size_signal = use_signal(|| TaskSize::Small);
     let size = size_signal();
 
-    let status_signal = use_signal(|| default_status);
+    let mut status_signal = use_signal(|| default_status);
     let status = status_signal();
 
-    let assigned_to = use_signal(Vec::new);
+    let mut assigned_to = use_signal(Vec::new);
 
-    let due_date_signal = use_signal(|| None::<NaiveDate>);
+    let mut due_date_signal = use_signal(|| None::<NaiveDate>);
     let due_date = due_date_signal();
 
-    let due_time_signal = use_signal(|| NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+    let mut due_time_signal = use_signal(|| NaiveTime::from_hms_opt(0, 0, 0).unwrap());
     let due_time = due_time_signal();
 
     let layout = ResponsiveLayout::from_window();
 
-    let has_focus_signal = use_signal(|| false);
+    let mut has_focus_signal = use_signal(|| false);
     let has_focus = has_focus_signal();
 
     if model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
-    use_resource(|| requests::board(model));
+    use_future(move || requests::board(model));
     rsx! {
         div {
             class: "
@@ -357,7 +357,7 @@ fn AddTaskImpl(board_name: BoardName, default_status: TaskStatus) -> Element {
                     button {
                         r#type: "button" ,
                         class: styles::BOTTOM_BAR_BUTTON,
-                        onclick: |_| {
+                        onclick: move |_| {
                             nav.go_back();
                         },
                         svg {
@@ -397,10 +397,10 @@ fn TagSearch(on_select_tag: EventHandler<TagId>, on_remove_tag: EventHandler<Tag
     let read_model = model.read();
     let read_selected = selected.read();
 
-    let show_add_tag_button_signal = use_signal(|| true);
+    let mut show_add_tag_button_signal = use_signal(|| true);
     let show_add_tag_button = show_add_tag_button_signal();
 
-    let new_tag = use_signal(String::new);
+    let mut new_tag = use_signal(String::new);
     rsx! {
         div {
             class: "flex flex-col gap-1",
@@ -554,10 +554,10 @@ fn UserSearch(
     let read_model = model.read();
     let read_selected = selected.read();
 
-    let show_add_user_button_signal = use_signal(|| true);
+    let mut show_add_user_button_signal = use_signal(|| true);
     let show_add_user_button = show_add_user_button_signal();
 
-    let new_user = use_signal(String::new);
+    let mut new_user = use_signal(String::new);
     rsx! {
         div {
             class: "flex flex-col gap-1",

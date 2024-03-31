@@ -9,15 +9,15 @@ use shared_models::{BoardName, Color, UserData};
 pub fn AddUser(board_name: BoardName) -> Element {
     let mut model = use_context::<Signal<Model>>();
     let nav = use_navigator();
-    let name = use_signal(String::new);
+    let mut name = use_signal(String::new);
     let default_color = Color::Black;
 
-    let color_signal = use_signal(|| default_color);
+    let mut color_signal = use_signal(|| default_color);
     let color = color_signal();
 
     let layout = ResponsiveLayout::from_window();
 
-    let has_focus_signal = use_signal(|| false);
+    let mut has_focus_signal = use_signal(|| false);
     let has_focus = has_focus_signal();
 
     if model.read().board_name != board_name {
@@ -94,7 +94,7 @@ pub fn AddUser(board_name: BoardName) -> Element {
                     button {
                         r#type: "button" ,
                         class: styles::BOTTOM_BAR_BUTTON,
-                        onclick: |_| {
+                        onclick: move |_| {
                             nav.go_back();
                         },
                         svg {

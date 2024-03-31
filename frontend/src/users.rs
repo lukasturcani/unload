@@ -23,7 +23,7 @@ pub fn Users(board_name: BoardName) -> Element {
     });
     let users = use_signal(|| UserEntries(Vec::new()));
     let nav = use_navigator();
-    use_resource(move || async move {
+    use_future(move || async move {
         let url = &url.read().0;
         get_users(users, url).await;
     });
