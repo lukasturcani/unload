@@ -122,7 +122,7 @@ frontend:
 
 # watch the frontend
 watch-frontend:
-  watchexec -e rs "\
+  watchexec -e rs -w frontend -w shared_models "\
   cd frontend && \
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
   dx build"
@@ -142,7 +142,7 @@ backend database: frontend
 watch-backend database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
   UNLOAD_SERVE_DIR="frontend/dist" \
-  cargo watch -x 'run -- --bin unload'
+  cargo watch -w backend -w shared_models -x 'run -- --bin unload'
 
 # connect to fly.io volume
 fly-volume:
