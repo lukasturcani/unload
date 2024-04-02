@@ -8,7 +8,8 @@ use tokio::net::TcpListener;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::{debug_span, Instrument};
 use tracing_log::LogTracer;
-use tracing_subscriber::{prelude::*, Registry};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::Registry;
 use unload::{
     add_task_assignee, add_task_tag, clone_task, create_board, create_quick_add_task, create_tag,
     create_task, create_user, delete_quick_add_task, delete_tag, delete_task, delete_task_assignee,
@@ -159,7 +160,15 @@ fn router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
 #[tokio::main]
 async fn main() -> Result<()> {
     LogTracer::init()?;
-    let subscriber = Registry::default().with(tracing_subscriber::fmt::layer());
+    let otlp_exporter = opentelemetry_otlp::new_exporter().tonic();
+    let tracer = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(otlp_exporter)
+        .install_simple()?;
+    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+    let subscriber = Registry::default()
+        .with(tracing_subscriber::fmt::layer())
+        .with(telemetry);
     tracing::subscriber::set_global_default(subscriber).unwrap();
 
     let database_url = std::env::var("UNLOAD_DATABASE_URL")?;
