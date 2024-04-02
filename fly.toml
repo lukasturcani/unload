@@ -25,6 +25,7 @@ primary_region = "lhr"
   UNLOAD_DATABASE_URL = "sqlite:/mnt/unload_data/unload.db"
   UNLOAD_SERVER_ADDRESS = "0.0.0.0:8080"
   UNLOAD_SERVE_DIR = "/var/www"
+  UNLOAD_LOG = "unload=trace,[request{}]=trace"
 
 [mounts]
   source="unload_data"
