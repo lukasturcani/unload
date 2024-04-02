@@ -27,6 +27,8 @@ opentelemetry-stdout = { version = "0.3.0", features = ["trace"] }
 opentelemetry = "0.22.0"
 opentelemetry_sdk = "0.22.1"
 opentelemetry-otlp = "0.15.0"
+confique = "0.2.5"
+serde = "1.0.197"
 
 [dev-dependencies]
 axum-test = "14.0.0"

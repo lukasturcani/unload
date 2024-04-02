@@ -3,6 +3,7 @@ use axum::{
     routing::{delete, get, post, put},
     Router,
 };
+use confique::Config as _;
 use opentelemetry::KeyValue;
 use opentelemetry_sdk::{trace, Resource};
 use sqlx::SqlitePool;
@@ -14,8 +15,8 @@ use tokio::net::TcpListener;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::{debug_span, Instrument};
 use tracing_log::LogTracer;
-use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;
+use tracing_subscriber::{layer::SubscriberExt, EnvFilter};
 use unload::{
     add_task_assignee, add_task_tag, clone_task, create_board, create_quick_add_task, create_tag,
     create_task, create_user, delete_quick_add_task, delete_tag, delete_task, delete_task_assignee,
@@ -25,6 +26,25 @@ use unload::{
     update_task_description, update_task_due, update_task_size, update_task_status,
     update_task_tags, update_task_title, update_user_color, update_user_name, Result,
 };
+
+#[derive(confique::Config)]
+struct Config {
+    #[config(
+        env = "UNLOAD_DATABASE_URL",
+        default = "sqlite:/mnt/unload_data/unload.db"
+    )]
+    database_url: String,
+
+    #[config(env = "UNLOAD_SERVE_DIR", default = "/var/www")]
+    serve_dir: PathBuf,
+
+    #[config(env = "UNLOAD_SERVER_ADDRESS", default = "0.0.0.0:8080")]
+    server_address: SocketAddr,
+
+    #[config(env = "UNLOAD_LOG", default = "unload=trace,[request{}]=trace")]
+    log: String,
+}
+
 fn router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
     Router::new()
         .route("/api/boards", post(create_board))
@@ -165,6 +185,8 @@ fn router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let config = Config::builder().env().load()?;
+
     LogTracer::init()?;
     let otlp_exporter = opentelemetry_otlp::new_exporter().tonic();
     let tracer = opentelemetry_otlp::new_pipeline()
@@ -178,39 +200,29 @@ async fn main() -> Result<()> {
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
     let subscriber = Registry::default()
         .with(tracing_subscriber::fmt::layer())
-        .with(
-            tracing_subscriber::EnvFilter::try_from_env("UNLOAD_LOG")
-                .unwrap_or_else(|_| "unload=trace,[request{}]=trace".into()),
-        )
+        .with(EnvFilter::from(config.log))
         .with(telemetry);
     tracing::subscriber::set_global_default(subscriber)?;
 
-    let database_url = std::env::var("UNLOAD_DATABASE_URL")?;
-    let server_address = {
-        if let Ok(address) = std::env::var("UNLOAD_SERVER_ADDRESS") {
-            address.parse()?
-        } else {
-            SocketAddr::from(([0, 0, 0, 0], 8080))
-        }
-    };
-    let pool = SqlitePool::connect(&database_url).await?;
+    let pool = SqlitePool::connect(&config.database_url).await?;
     sqlx::migrate!("../migrations")
         .run(&pool)
         .instrument(debug_span!("migrations"))
         .await?;
-    let app = router(std::env::var("UNLOAD_SERVE_DIR")?.parse::<PathBuf>()?)
-        .with_state(pool)
-        .layer(
-            TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
-                debug_span!(
-                    "request",
-                    method = %request.method(),
-                    uri = %request.uri(),
-                    otel.name = format!("{} {}", request.method(), request.uri()),
-                )
-            }),
-        );
-    let listener = TcpListener::bind(server_address).await?;
+    let app =
+        router(config.serve_dir)
+            .with_state(pool)
+            .layer(
+                TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
+                    debug_span!(
+                        "request",
+                        method = %request.method(),
+                        uri = %request.uri(),
+                        otel.name = format!("{} {}", request.method(), request.uri()),
+                    )
+                }),
+            );
+    let listener = TcpListener::bind(config.server_address).await?;
     tracing::debug!("Listening on: {}", listener.local_addr()?);
     axum::serve(listener, app).await?;
     Ok(())
