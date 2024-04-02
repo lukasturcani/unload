@@ -3,7 +3,10 @@ use axum::{
     Router,
 };
 use sqlx::SqlitePool;
-use std::{net::SocketAddr, path::Path, path::PathBuf};
+use std::{
+    net::SocketAddr,
+    path::{Path, PathBuf},
+};
 use tokio::net::TcpListener;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::{debug_span, Instrument};
@@ -168,8 +171,14 @@ async fn main() -> Result<()> {
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
     let subscriber = Registry::default()
         .with(tracing_subscriber::fmt::layer())
+        .with(
+            tracing_subscriber::EnvFilter::builder()
+                .with_default_directive("[request{}]=trace".parse()?)
+                .with_env_var("UNLOAD_LOG")
+                .from_env()?,
+        )
         .with(telemetry);
-    tracing::subscriber::set_global_default(subscriber).unwrap();
+    tracing::subscriber::set_global_default(subscriber)?;
 
     let database_url = std::env::var("UNLOAD_DATABASE_URL")?;
     let server_address = {
