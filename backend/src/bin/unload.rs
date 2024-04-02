@@ -172,10 +172,8 @@ async fn main() -> Result<()> {
     let subscriber = Registry::default()
         .with(tracing_subscriber::fmt::layer())
         .with(
-            tracing_subscriber::EnvFilter::builder()
-                .with_default_directive("[request{}]=trace".parse()?)
-                .with_env_var("UNLOAD_LOG")
-                .from_env()?,
+            tracing_subscriber::EnvFilter::try_from_env("UNLOAD_LOG")
+                .unwrap_or_else(|_| "unload=trace,[request{}]=trace".into()),
         )
         .with(telemetry);
     tracing::subscriber::set_global_default(subscriber)?;
