@@ -1,7 +1,10 @@
 use axum::{
+    http::Request,
     routing::{delete, get, post, put},
     Router,
 };
+use opentelemetry::KeyValue;
+use opentelemetry_sdk::{trace, Resource};
 use sqlx::SqlitePool;
 use std::{
     net::SocketAddr,
@@ -167,6 +170,10 @@ async fn main() -> Result<()> {
     let tracer = opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(otlp_exporter)
+        .with_trace_config(
+            trace::config()
+                .with_resource(Resource::new(vec![KeyValue::new("service.name", "unload")])),
+        )
         .install_simple()?;
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
     let subscriber = Registry::default()
@@ -193,7 +200,16 @@ async fn main() -> Result<()> {
         .await?;
     let app = router(std::env::var("UNLOAD_SERVE_DIR")?.parse::<PathBuf>()?)
         .with_state(pool)
-        .layer(TraceLayer::new_for_http());
+        .layer(
+            TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
+                debug_span!(
+                    "request",
+                    method = %request.method(),
+                    uri = %request.uri(),
+                    otel.name = format!("{} {}", request.method(), request.uri()),
+                )
+            }),
+        );
     let listener = TcpListener::bind(server_address).await?;
     tracing::debug!("Listening on: {}", listener.local_addr()?);
     axum::serve(listener, app).await?;
