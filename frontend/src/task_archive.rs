@@ -20,10 +20,7 @@ struct TasksUrl(Url);
 #[component]
 pub fn TaskArchive(board_name: BoardName) -> Element {
     let url = use_signal(|| {
-        #[cfg(debug_assertions)]
-        let url = Url::from_str("http://localhost:8080").unwrap();
-        #[cfg(not(debug_assertions))]
-        let url = Url::from_str("https://unload.fly.dev").unwrap();
+        let url = Url::from_str(&web_sys::window().unwrap().origin()).unwrap();
         TasksUrl(url.join(&format!("/api/boards/{}/", board_name)).unwrap())
     });
     let archive = use_signal(TaskArchive::default);

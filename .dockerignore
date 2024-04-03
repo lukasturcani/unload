@@ -2,5 +2,5 @@
 /target
 /frontend/dist
 /frontend/node_modules
-/frontend/assets
+/frontend/assets/tailwind.css
 /otel-collector
