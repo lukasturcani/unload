@@ -16,7 +16,7 @@ COPY .sqlx ./.sqlx/
 RUN cd frontend && npm install
 RUN cargo install --bin unload --path backend
 RUN upx --best --lzma /usr/local/cargo/bin/unload
-RUN cd frontend && npx tailwindcss -i ./input.css -o ./public/tailwind.css
+RUN cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
 RUN cd frontend && dx build --release
 
 FROM gcr.io/distroless/cc-debian12:debug

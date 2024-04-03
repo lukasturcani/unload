@@ -14,7 +14,7 @@ fly-deploy-image:
 # run docker image
 docker-run mount:
   docker run --rm --detach \
-  -p 8080:8080 \
+  --net=host \
   --mount type=bind,source={{mount}},target=/mnt/unload_data \
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
   -e UNLOAD_SERVE_DIR="/var/www" \
@@ -26,8 +26,14 @@ docker-kill:
   docker container kill unload
 
 # enter image
-enter-image:
-  docker run --rm -it --entrypoint sh registry.fly.io/unload
+enter-image mount:
+  docker run --rm -it \
+  --entrypoint sh \
+  --net=host \
+  --mount type=bind,source={{mount}},target=/mnt/unload_data \
+  -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
+  -e UNLOAD_SERVE_DIR="/var/www" \
+  registry.fly.io/unload
 
 # create the database
 create-db database:

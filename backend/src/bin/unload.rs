@@ -5,6 +5,7 @@ use axum::{
 };
 use confique::Config as _;
 use opentelemetry::KeyValue;
+use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{trace, Resource};
 use sqlx::SqlitePool;
 use std::{
@@ -40,6 +41,9 @@ struct Config {
 
     #[config(env = "UNLOAD_SERVER_ADDRESS", default = "0.0.0.0:8080")]
     server_address: SocketAddr,
+
+    #[config(env = "UNLOAD_OTLP_ENDPOINT", default = "http://localhost:4317")]
+    otlp_endpoint: String,
 
     #[config(env = "UNLOAD_LOG", default = "unload=trace,[request{}]=trace")]
     log: String,
@@ -188,7 +192,9 @@ async fn main() -> Result<()> {
     let config = Config::builder().env().load()?;
 
     LogTracer::init()?;
-    let otlp_exporter = opentelemetry_otlp::new_exporter().tonic();
+    let otlp_exporter = opentelemetry_otlp::new_exporter()
+        .tonic()
+        .with_endpoint(&config.otlp_endpoint);
     let tracer = opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(otlp_exporter)

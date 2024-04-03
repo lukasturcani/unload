@@ -2,4 +2,5 @@
 /target
 /frontend/dist
 /frontend/node_modules
-/frontend/public
+/frontend/assets
+/otel-collector
