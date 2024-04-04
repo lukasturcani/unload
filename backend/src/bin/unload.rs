@@ -1,5 +1,6 @@
 use axum::{
-    http::Request,
+    http::{Request, StatusCode},
+    response::Response,
     routing::{delete, get, post, put},
     Router,
 };
@@ -13,8 +14,8 @@ use std::{
     path::{Path, PathBuf},
 };
 use tokio::net::TcpListener;
-use tower_http::{services::ServeDir, trace::TraceLayer};
-use tracing::{debug_span, Instrument};
+use tower_http::{classify::ServerErrorsFailureClass, services::ServeDir, trace::TraceLayer};
+use tracing::{debug_span, Instrument, Span};
 use tracing_log::LogTracer;
 use tracing_subscriber::Registry;
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter};
@@ -215,19 +216,30 @@ async fn main() -> Result<()> {
         .run(&pool)
         .instrument(debug_span!("migrations"))
         .await?;
-    let app =
-        router(config.serve_dir)
-            .with_state(pool)
-            .layer(
-                TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
-                    debug_span!(
-                        "request",
-                        method = %request.method(),
-                        uri = %request.uri(),
-                        otel.name = format!("{} {}", request.method(), request.uri()),
-                    )
-                }),
-            );
+    let app = router(config.serve_dir).with_state(pool).layer(
+        TraceLayer::new_for_http()
+            .make_span_with(|request: &Request<_>| {
+                debug_span!(
+                    "request",
+                    method = %request.method(),
+                    uri = %request.uri(),
+                    otel.name = format!("{} {}", request.method(), request.uri()),
+                    otel.status_code = tracing::field::Empty,
+                )
+            })
+            .on_failure(|error: ServerErrorsFailureClass, _, span: &Span| {
+                let code = match error {
+                    ServerErrorsFailureClass::StatusCode(code) => code.as_u16(),
+                    ServerErrorsFailureClass::Error(_) => {
+                        StatusCode::INTERNAL_SERVER_ERROR.as_u16()
+                    }
+                };
+                span.record("otel.status_code", code);
+            })
+            .on_response(|response: &Response, _, span: &Span| {
+                span.record("otel.status_code", response.status().as_u16());
+            }),
+    );
     let listener = TcpListener::bind(config.server_address).await?;
     tracing::debug!("Listening on: {}", listener.local_addr()?);
     axum::serve(listener, app).await?;
