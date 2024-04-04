@@ -225,6 +225,7 @@ async fn main() -> Result<()> {
                     uri = %request.uri(),
                     otel.name = format!("{} {}", request.method(), request.uri()),
                     otel.status_code = tracing::field::Empty,
+                    otel.status_message = tracing::field::Empty,
                 )
             })
             .on_failure(|error: ServerErrorsFailureClass, _, span: &Span| {
@@ -234,10 +235,11 @@ async fn main() -> Result<()> {
                         StatusCode::INTERNAL_SERVER_ERROR.as_u16()
                     }
                 };
-                span.record("otel.status_code", code);
+                span.record("otel.status_code", "ERROR");
+                span.record("otel.status_message", format!("{}", code));
             })
-            .on_response(|response: &Response, _, span: &Span| {
-                span.record("otel.status_code", response.status().as_u16());
+            .on_response(|_: &_, _, span: &Span| {
+                span.record("otel.status_code", "OK");
             }),
     );
     let listener = TcpListener::bind(config.server_address).await?;
