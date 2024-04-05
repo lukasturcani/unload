@@ -2367,6 +2367,8 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                     textarea {
                         class: "p-4 bg-gray-900 rounded border border-gray-700 text-white",
                         rows: 8.max(data.description.lines().count() as i64),
+                        prevent_default: "onclick",
+                        onclick: move |event| event.stop_propagation(),
                         oninput: move |event| new_description.set(event.value()),
                         onfocusout: move |_| {
                             editing_description_signal.set(false);
