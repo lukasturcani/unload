@@ -1342,6 +1342,8 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                         input {
                             class: styles::TEXT_INPUT,
                             r#type: "text",
+                            prevent_default: "onclick",
+                            onclick: |event| event.stop_propagation(),
                             oninput: move |event| new_title_signal.set(event.value()),
                             value: "{new_title_signal}",
                         }
@@ -2002,6 +2004,8 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                     input {
                         class: styles::TEXT_INPUT,
                         r#type: "text",
+                        prevent_default: "onclick",
+                        onclick: |event| event.stop_propagation(),
                         oninput: move |event| new_title.set(event.value()),
                         onfocusout: move |_| {
                             editing_title_signal.set(false);
