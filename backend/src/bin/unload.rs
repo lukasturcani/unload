@@ -1,6 +1,5 @@
 use axum::{
     http::{Request, StatusCode},
-    response::Response,
     routing::{delete, get, post, put},
     Router,
 };
@@ -199,10 +198,10 @@ async fn main() -> Result<()> {
     let tracer = opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(otlp_exporter)
-        .with_trace_config(
-            trace::config()
-                .with_resource(Resource::new(vec![KeyValue::new("service.name", "unload")])),
-        )
+        .with_trace_config(trace::config().with_resource(Resource::new(vec![
+            KeyValue::new("service.name", "unload"),
+            KeyValue::new("service.version", env!("CARGO_PKG_VERSION")),
+        ])))
         .install_simple()?;
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
     let subscriber = Registry::default()
