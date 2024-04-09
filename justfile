@@ -2,19 +2,23 @@
 default:
   @just --list
 
-# build a docker image
-build-image:
+# build a production docker image
+build-prod-image:
   docker buildx build -t registry.fly.io/unload .
 
-# deploy image to fly.io
-fly-deploy-image:
-  docker push registry.fly.io/unload
-  fly deploy --image registry.fly.io/unload
+# build a development docker image
+build-dev-image:
+  docker buildx build -t registry.fly.io/unload-dev .
 
-# deploy test image to fly.io
-fly-deploy-test-image:
+# deploy production image to fly.io
+deploy-prod-image:
   docker push registry.fly.io/unload
-  fly deploy --app unload-test --image registry.fly.io/unload
+  fly deploy --config fly.prod.toml --image registry.fly.io/unload
+
+# deploy development image to fly.io
+deploy-dev-image:
+  docker push registry.fly.io/unload-dev
+  fly deploy --config fly.dev.toml --image registry.fly.io/unload-dev
 
 # run docker image
 docker-run mount:
@@ -155,10 +159,10 @@ watch-backend database: frontend
   UNLOAD_SERVE_DIR="frontend/dist" \
   cargo watch -w backend -w shared_models -x 'run -- --bin unload'
 
-# connect to fly.io volume
-fly-volume:
+# connect to fly.io production volume
+fly-prod-volume:
   fly machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
 
-# connect to fly.io test volume
-fly-test-volume:
-  fly machine run "debian:bookworm" --volume "unload_data_test:/mnt/unload_data" --shell
+# connect to fly.io development volume
+fly-dev-volume:
+  fly machine run "debian:bookworm" --volume "unload_data_dev:/mnt/unload_data" --shell
