@@ -11,6 +11,11 @@ fly-deploy-image:
   docker push registry.fly.io/unload
   fly deploy --image registry.fly.io/unload
 
+# deploy test image to fly.io
+fly-deploy-test-image:
+  docker push registry.fly.io/unload
+  fly deploy --app unload-test --image registry.fly.io/unload
+
 # run docker image
 docker-run mount:
   docker run --rm --detach \
