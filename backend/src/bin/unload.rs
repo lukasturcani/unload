@@ -219,7 +219,7 @@ async fn main() -> Result<()> {
         .run(&pool)
         .instrument(debug_span!("migrations"))
         .await?;
-    let app = router(config.serve_dir).with_state(pool).layer(
+    let app = router(config.serve_dir).with_state(pool.clone()).layer(
         TraceLayer::new_for_http()
             .make_span_with(|request: &Request<_>| {
                 debug_span!(
@@ -247,8 +247,17 @@ async fn main() -> Result<()> {
     );
     let listener = TcpListener::bind(config.server_address).await?;
     tracing::debug!("Listening on: {}", listener.local_addr()?);
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal(pool))
+        .await?;
     Ok(())
+}
+
+async fn shutdown_signal(pool: SqlitePool) {
+    tokio::signal::ctrl_c()
+        .await
+        .expect("failed to install CTRL+C signal handler");
+    pool.close().await;
 }
 
 #[cfg(test)]
