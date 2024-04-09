@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "unload"
+app = "unload-dev"
 primary_region = "lhr"
 
 [build]
@@ -25,6 +25,9 @@ primary_region = "lhr"
   UNLOAD_DATABASE_URL = "sqlite:/mnt/unload_data/unload.db"
   UNLOAD_SERVER_ADDRESS = "0.0.0.0:8080"
   UNLOAD_SERVE_DIR = "/var/www"
+  UNLOAD_LOG = "unload=trace,[request{}]=trace,sqlx::query=trace"
+  UNLOAD_OTLP_ENDPOINT = "http://lt-otel-collector.internal:4317"
+  UNLOAD_ENVIRONMENT = "development"
 
 [mounts]
   source="unload_data"

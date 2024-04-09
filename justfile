@@ -2,19 +2,28 @@
 default:
   @just --list
 
-# build a docker image
-build-image:
+# build a production docker image
+build-prod-image:
   docker buildx build -t registry.fly.io/unload .
 
-# deploy image to fly.io
-fly-deploy-image:
+# build a development docker image
+build-dev-image:
+  docker buildx build -t registry.fly.io/unload-dev .
+
+# deploy production image to fly.io
+deploy-prod-image:
   docker push registry.fly.io/unload
-  fly deploy --image registry.fly.io/unload
+  fly deploy --config fly.prod.toml --image registry.fly.io/unload
+
+# deploy development image to fly.io
+deploy-dev-image:
+  docker push registry.fly.io/unload-dev
+  fly deploy --config fly.dev.toml --image registry.fly.io/unload-dev
 
 # run docker image
 docker-run mount:
   docker run --rm --detach \
-  -p 8080:8080 \
+  --net=host \
   --mount type=bind,source={{mount}},target=/mnt/unload_data \
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
   -e UNLOAD_SERVE_DIR="/var/www" \
@@ -26,8 +35,14 @@ docker-kill:
   docker container kill unload
 
 # enter image
-enter-image:
-  docker run --rm -it --entrypoint sh registry.fly.io/unload
+enter-image mount:
+  docker run --rm -it \
+  --entrypoint sh \
+  --net=host \
+  --mount type=bind,source={{mount}},target=/mnt/unload_data \
+  -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
+  -e UNLOAD_SERVE_DIR="/var/www" \
+  registry.fly.io/unload
 
 # create the database
 create-db database:
@@ -132,11 +147,17 @@ frontend-release:
   cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
   cd frontend && dx build --release
 
+# run the optimized backend
+backend-release database: frontend
+  UNLOAD_DATABASE_URL="sqlite:{{database}}" \
+  UNLOAD_SERVE_DIR="frontend/dist" \
+  cargo run --release --bin unload
+
 # run the backend
 backend database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
   UNLOAD_SERVE_DIR="frontend/dist" \
-  cargo run --release --bin unload
+  cargo run --bin unload
 
 # watch the backend
 watch-backend database: frontend
@@ -144,6 +165,10 @@ watch-backend database: frontend
   UNLOAD_SERVE_DIR="frontend/dist" \
   cargo watch -w backend -w shared_models -x 'run -- --bin unload'
 
-# connect to fly.io volume
-fly-volume:
-  fly machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
+# connect to fly.io production volume
+fly-prod-volume:
+  fly --app unload machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
+
+# connect to fly.io development volume
+fly-dev-volume:
+  fly --app unload-dev machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell

@@ -1,14 +1,23 @@
 use axum::{
+    http::{Request, StatusCode},
     routing::{delete, get, post, put},
     Router,
 };
+use confique::Config as _;
+use opentelemetry::KeyValue;
+use opentelemetry_otlp::WithExportConfig;
+use opentelemetry_sdk::{trace, Resource};
 use sqlx::SqlitePool;
-use std::{net::SocketAddr, path::Path, path::PathBuf};
+use std::{
+    net::SocketAddr,
+    path::{Path, PathBuf},
+};
 use tokio::net::TcpListener;
-use tower_http::{services::ServeDir, trace::TraceLayer};
-use tracing::{debug_span, Instrument};
+use tower_http::{classify::ServerErrorsFailureClass, services::ServeDir, trace::TraceLayer};
+use tracing::{debug_span, Instrument, Span};
 use tracing_log::LogTracer;
-use tracing_subscriber::{prelude::*, Registry};
+use tracing_subscriber::Registry;
+use tracing_subscriber::{layer::SubscriberExt, EnvFilter};
 use unload::{
     add_task_assignee, add_task_tag, clone_task, create_board, create_quick_add_task, create_tag,
     create_task, create_user, delete_quick_add_task, delete_tag, delete_task, delete_task_assignee,
@@ -18,6 +27,34 @@ use unload::{
     update_task_description, update_task_due, update_task_size, update_task_status,
     update_task_tags, update_task_title, update_user_color, update_user_name, Result,
 };
+
+#[derive(confique::Config)]
+struct Config {
+    #[config(
+        env = "UNLOAD_DATABASE_URL",
+        default = "sqlite:/mnt/unload_data/unload.db"
+    )]
+    database_url: String,
+
+    #[config(env = "UNLOAD_SERVE_DIR", default = "/var/www")]
+    serve_dir: PathBuf,
+
+    #[config(env = "UNLOAD_SERVER_ADDRESS", default = "0.0.0.0:8080")]
+    server_address: SocketAddr,
+
+    #[config(env = "UNLOAD_OTLP_ENDPOINT", default = "http://localhost:4317")]
+    otlp_endpoint: String,
+
+    #[config(
+        env = "UNLOAD_LOG",
+        default = "unload=trace,[request{}]=trace,sqlx::query=trace"
+    )]
+    log: String,
+
+    #[config(env = "UNLOAD_ENVIRONMENT", default = "development")]
+    environment: String,
+}
+
 fn router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
     Router::new()
         .route("/api/boards", post(create_board))
@@ -158,30 +195,72 @@ fn router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    LogTracer::init()?;
-    let subscriber = Registry::default().with(tracing_subscriber::fmt::layer());
-    tracing::subscriber::set_global_default(subscriber).unwrap();
+    let config = Config::builder().env().load()?;
 
-    let database_url = std::env::var("UNLOAD_DATABASE_URL")?;
-    let server_address = {
-        if let Ok(address) = std::env::var("UNLOAD_SERVER_ADDRESS") {
-            address.parse()?
-        } else {
-            SocketAddr::from(([0, 0, 0, 0], 8080))
-        }
-    };
-    let pool = SqlitePool::connect(&database_url).await?;
+    LogTracer::init()?;
+    let otlp_exporter = opentelemetry_otlp::new_exporter()
+        .tonic()
+        .with_endpoint(&config.otlp_endpoint);
+    let tracer = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(otlp_exporter)
+        .with_trace_config(trace::config().with_resource(Resource::new(vec![
+            KeyValue::new("service.name", "unload"),
+            KeyValue::new("service.version", env!("CARGO_PKG_VERSION")),
+            KeyValue::new("deployment.environment", config.environment),
+        ])))
+        .install_simple()?;
+    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+    let subscriber = Registry::default()
+        .with(tracing_subscriber::fmt::layer())
+        .with(EnvFilter::from(config.log))
+        .with(telemetry);
+    tracing::subscriber::set_global_default(subscriber)?;
+
+    let pool = SqlitePool::connect(&config.database_url).await?;
     sqlx::migrate!("../migrations")
         .run(&pool)
         .instrument(debug_span!("migrations"))
         .await?;
-    let app = router(std::env::var("UNLOAD_SERVE_DIR")?.parse::<PathBuf>()?)
-        .with_state(pool)
-        .layer(TraceLayer::new_for_http());
-    let listener = TcpListener::bind(server_address).await?;
+    let app = router(config.serve_dir).with_state(pool.clone()).layer(
+        TraceLayer::new_for_http()
+            .make_span_with(|request: &Request<_>| {
+                debug_span!(
+                    "request",
+                    method = %request.method(),
+                    uri = %request.uri(),
+                    otel.name = format!("{} {}", request.method(), request.uri()),
+                    otel.status_code = tracing::field::Empty,
+                    otel.status_message = tracing::field::Empty,
+                )
+            })
+            .on_failure(|error: ServerErrorsFailureClass, _, span: &Span| {
+                let code = match error {
+                    ServerErrorsFailureClass::StatusCode(code) => code.as_u16(),
+                    ServerErrorsFailureClass::Error(_) => {
+                        StatusCode::INTERNAL_SERVER_ERROR.as_u16()
+                    }
+                };
+                span.record("otel.status_code", "ERROR");
+                span.record("otel.status_message", format!("{}", code));
+            })
+            .on_response(|_: &_, _, span: &Span| {
+                span.record("otel.status_code", "OK");
+            }),
+    );
+    let listener = TcpListener::bind(config.server_address).await?;
     tracing::debug!("Listening on: {}", listener.local_addr()?);
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal(pool))
+        .await?;
     Ok(())
+}
+
+async fn shutdown_signal(pool: SqlitePool) {
+    tokio::signal::ctrl_c()
+        .await
+        .expect("failed to install CTRL+C signal handler");
+    pool.close().await;
 }
 
 #[cfg(test)]

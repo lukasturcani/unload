@@ -1,0 +1,20 @@
+# fly.toml app configuration file generated for lt-otel-collector on 2024-04-09T11:42:11+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'lt-otel-collector'
+primary_region = 'lhr'
+
+[http_service]
+  internal_port = 0
+  force_https = false
+  auto_stop_machines = false
+  auto_start_machines = false
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
