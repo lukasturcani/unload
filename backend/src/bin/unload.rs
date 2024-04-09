@@ -47,6 +47,9 @@ struct Config {
 
     #[config(env = "UNLOAD_LOG", default = "unload=trace,[request{}]=trace")]
     log: String,
+
+    #[config(env = "UNLOAD_ENVIRONMENT", default = "development")]
+    environment: String,
 }
 
 fn router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
@@ -201,6 +204,7 @@ async fn main() -> Result<()> {
         .with_trace_config(trace::config().with_resource(Resource::new(vec![
             KeyValue::new("service.name", "unload"),
             KeyValue::new("service.version", env!("CARGO_PKG_VERSION")),
+            KeyValue::new("deployment.environment", config.environment),
         ])))
         .install_simple()?;
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
