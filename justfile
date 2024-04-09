@@ -161,8 +161,8 @@ watch-backend database: frontend
 
 # connect to fly.io production volume
 fly-prod-volume:
-  fly machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
+  fly --app unload machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
 
 # connect to fly.io development volume
 fly-dev-volume:
-  fly machine run "debian:bookworm" --volume "unload_data_dev:/mnt/unload_data" --shell
+  fly --app unload-dev machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell

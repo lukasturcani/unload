@@ -29,5 +29,5 @@ primary_region = "lhr"
   UNLOAD_OTLP_ENDPOINT = "http://lt-otel-collector.internal:4317"
 
 [mounts]
-  source="unload_data_dev"
+  source="unload_data"
   destination="/mnt/unload_data"
