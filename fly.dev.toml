@@ -27,6 +27,7 @@ primary_region = "lhr"
   UNLOAD_SERVE_DIR = "/var/www"
   UNLOAD_LOG = "unload=trace,[request{}]=trace"
   UNLOAD_OTLP_ENDPOINT = "http://lt-otel-collector.internal:4317"
+  OTEL_RESOURCE_ATTRIBUTES = "deployment.environment=development"
 
 [mounts]
   source="unload_data"
