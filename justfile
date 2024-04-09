@@ -147,11 +147,17 @@ frontend-release:
   cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
   cd frontend && dx build --release
 
+# run the optimized backend
+backend-release database: frontend
+  UNLOAD_DATABASE_URL="sqlite:{{database}}" \
+  UNLOAD_SERVE_DIR="frontend/dist" \
+  cargo run --release --bin unload
+
 # run the backend
 backend database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
   UNLOAD_SERVE_DIR="frontend/dist" \
-  cargo run --release --bin unload
+  cargo run --bin unload
 
 # watch the backend
 watch-backend database: frontend

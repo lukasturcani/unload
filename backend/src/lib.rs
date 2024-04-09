@@ -15,6 +15,8 @@ use shared_models::{
 };
 use sqlx::SqlitePool;
 use std::collections::HashMap;
+use tracing::debug_span;
+use tracing::Instrument;
 
 struct TaskRow {
     id: TaskId,
@@ -229,6 +231,10 @@ WHERE
         board_name
     )
     .fetch_all(&mut *tx)
+    .instrument(debug_span!(
+        "select tasks",
+        board_name = %board_name,
+    ))
     .await?;
 
     struct TaskAssignmentRow {
@@ -247,16 +253,23 @@ WHERE
         board_name,
     )
     .fetch_all(&mut *tx)
+    .instrument(debug_span!(
+        "select task_assignments",
+        board_name = %board_name,
+    ))
     .await?;
-    let mut task_assignments = assignments
-        .into_iter()
-        .fold(HashMap::new(), |mut map, row| {
-            #[allow(clippy::unwrap_or_default)]
-            map.entry(row.task_id)
-                .or_insert_with(Vec::new)
-                .push(row.user_id);
-            map
-        });
+
+    let mut task_assignments = debug_span!("match task assignments").in_scope(|| {
+        assignments
+            .into_iter()
+            .fold(HashMap::new(), |mut map, row| {
+                #[allow(clippy::unwrap_or_default)]
+                map.entry(row.task_id)
+                    .or_insert_with(Vec::new)
+                    .push(row.user_id);
+                map
+            })
+    });
 
     struct TagRow {
         task_id: TaskId,
@@ -273,28 +286,37 @@ FROM
 WHERE
     board_name = ?",
         board_name,
-    );
-    let mut tag_assignments = tag_assignments.fetch_all(&mut *tx).await?.into_iter().fold(
-        HashMap::new(),
-        |mut map, row| {
-            #[allow(clippy::unwrap_or_default)]
-            map.entry(row.task_id)
-                .or_insert_with(Vec::new)
-                .push(row.tag_id);
-            map
-        },
-    );
+    )
+    .fetch_all(&mut *tx)
+    .instrument(debug_span!(
+        "select task_tags",
+        board_name = %board_name,
+    ))
+    .await?;
+    let mut tag_assignments = debug_span!("match task tags").in_scope(|| {
+        tag_assignments
+            .into_iter()
+            .fold(HashMap::new(), |mut map, row| {
+                #[allow(clippy::unwrap_or_default)]
+                map.entry(row.task_id)
+                    .or_insert_with(Vec::new)
+                    .push(row.tag_id);
+                map
+            })
+    });
 
-    let task_entries: Vec<TaskEntry> = tasks
-        .into_iter()
-        .map(|task_row| {
-            let task_id = task_row.id;
-            task_row.into_entry(
-                task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
-                tag_assignments.remove(&task_id).unwrap_or_else(Vec::new),
-            )
-        })
-        .collect();
+    let task_entries: Vec<TaskEntry> = debug_span!("create task entries").in_scope(|| {
+        tasks
+            .into_iter()
+            .map(|task_row| {
+                let task_id = task_row.id;
+                task_row.into_entry(
+                    task_assignments.remove(&task_id).unwrap_or_else(Vec::new),
+                    tag_assignments.remove(&task_id).unwrap_or_else(Vec::new),
+                )
+            })
+            .collect()
+    });
     tx.commit().await?;
     Ok(Json(task_entries))
 }
