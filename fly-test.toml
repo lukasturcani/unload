@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "unload"
+app = "unload-test"
 primary_region = "lhr"
 
 [build]
@@ -29,5 +29,5 @@ primary_region = "lhr"
   UNLOAD_OTLP_ENDPOINT = "http://lt-otel-collector.internal:4317"
 
 [mounts]
-  source="unload_data"
+  source="unload_data_test"
   destination="/mnt/unload_data"
