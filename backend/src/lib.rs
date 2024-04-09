@@ -233,10 +233,7 @@ WHERE
             board_name
         )
         .fetch_all(&mut *tx)
-        .instrument(debug_span!(
-            "select tasks",
-            board_name = %board_name,
-        ))
+        .instrument(debug_span!("select tasks"))
         .await?;
 
         struct TaskAssignmentRow {
@@ -255,24 +252,20 @@ WHERE
             board_name,
         )
         .fetch_all(&mut *tx)
-        .instrument(debug_span!(
-            "select task_assignments",
-            board_name = %board_name,
-        ))
+        .instrument(debug_span!("select task_assignments"))
         .await?;
 
-        let mut task_assignments = debug_span!("match task assignments", board_name = %board_name)
-            .in_scope(|| {
-                assignments
-                    .into_iter()
-                    .fold(HashMap::new(), |mut map, row| {
-                        #[allow(clippy::unwrap_or_default)]
-                        map.entry(row.task_id)
-                            .or_insert_with(Vec::new)
-                            .push(row.user_id);
-                        map
-                    })
-            });
+        let mut task_assignments = debug_span!("match task assignments").in_scope(|| {
+            assignments
+                .into_iter()
+                .fold(HashMap::new(), |mut map, row| {
+                    #[allow(clippy::unwrap_or_default)]
+                    map.entry(row.task_id)
+                        .or_insert_with(Vec::new)
+                        .push(row.user_id);
+                    map
+                })
+        });
 
         struct TagRow {
             task_id: TaskId,
@@ -291,10 +284,7 @@ WHERE
             board_name,
         )
         .fetch_all(&mut *tx)
-        .instrument(debug_span!(
-            "select task_tags",
-            board_name = %board_name,
-        ))
+        .instrument(debug_span!("select task_tags"))
         .await?;
         let mut tag_assignments = debug_span!("match task tags").in_scope(|| {
             tag_assignments
