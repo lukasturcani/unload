@@ -45,7 +45,10 @@ struct Config {
     #[config(env = "UNLOAD_OTLP_ENDPOINT", default = "http://localhost:4317")]
     otlp_endpoint: String,
 
-    #[config(env = "UNLOAD_LOG", default = "unload=trace,[request{}]=trace")]
+    #[config(
+        env = "UNLOAD_LOG",
+        default = "unload=trace,[request{}]=trace,sqlx::query=trace"
+    )]
     log: String,
 
     #[config(env = "UNLOAD_ENVIRONMENT", default = "development")]
