@@ -6,13 +6,18 @@
 app = 'lt-otel-collector'
 primary_region = 'lhr'
 
-[http_service]
-  internal_port = 0
-  force_https = false
-  auto_stop_machines = false
-  auto_start_machines = false
+[[services]]
+  internal_port = 4317
+  protocol = "tcp"
+  auto_stop_machines = true
+  auto_start_machines = true
   min_machines_running = 0
   processes = ["app"]
+
+[[services.ports]]
+  handlers = []
+  port = 80
+  force_https = false
 
 [[vm]]
   memory = '1gb'

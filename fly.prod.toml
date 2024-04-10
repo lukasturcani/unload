@@ -26,7 +26,7 @@ primary_region = "lhr"
   UNLOAD_SERVER_ADDRESS = "0.0.0.0:8080"
   UNLOAD_SERVE_DIR = "/var/www"
   UNLOAD_LOG = "unload=trace,[request{}]=trace,sqlx::query=trace"
-  UNLOAD_OTLP_ENDPOINT = "http://lt-otel-collector.internal:4317"
+  UNLOAD_OTLP_ENDPOINT = "http://lt-otel-collector.flycast"
   UNLOAD_ENVIRONMENT = "production"
 
 [mounts]
