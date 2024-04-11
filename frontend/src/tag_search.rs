@@ -117,11 +117,11 @@ async fn create_tag(mut model: Signal<Model>, tag_data: TagData) {
 }
 
 async fn add_task_tag(model: Signal<Model>, task_id: TaskId, tag_id: TagId) {
-    if send_add_task_tag_request(model.clone(), task_id, tag_id)
+    if send_add_task_tag_request(model, task_id, tag_id)
         .await
         .is_ok()
     {
-        requests::board(model.clone()).await;
+        requests::board(model).await;
     }
 }
 

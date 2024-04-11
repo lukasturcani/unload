@@ -344,7 +344,7 @@ fn AddTaskImpl(board_name: BoardName, default_status: TaskStatus) -> Element {
                                     assignees: assigned_to.write().drain(..).collect(),
                                     tags: tags.write().drain(..).collect(),
                                 },
-                                nav.clone(),
+                                nav,
                             )
                         },
                         "Submit"

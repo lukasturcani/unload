@@ -1,5 +1,3 @@
-use web_sys;
-
 #[derive(Eq, PartialEq)]
 pub enum ResponsiveLayout {
     Narrow,

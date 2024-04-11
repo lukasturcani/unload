@@ -1203,7 +1203,7 @@ fn QuickAddTask(task_id: QuickAddTaskId, status: TaskStatus) -> Element {
                         description: data.description.clone(),
                         size: data.size,
                         assignees: data.assignees.clone(),
-                        status: status,
+                        status,
                         tags: data.tags.clone(),
                         due: None,
                     })
@@ -3156,7 +3156,7 @@ async fn send_create_quick_add_task_request(
             QuickAddData {
                 title: task.title.clone(),
                 description: task.description.clone(),
-                size: task.size.clone(),
+                size: task.size,
                 tags: task.tags.clone(),
                 assignees: task.assignees.clone(),
             },

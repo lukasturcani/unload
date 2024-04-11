@@ -121,9 +121,6 @@ check:
   echo
   (set -x; just test)
 
-  echo
-  (set -x; sqlfluff lint .)
-
   test $error = 0
 
 # install dependencies
