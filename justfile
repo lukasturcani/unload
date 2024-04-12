@@ -47,13 +47,13 @@ enter-image mount:
 # create the database
 create-db database:
   sqlx db create --database-url "sqlite:{{database}}"
-  sqlx migrate run --database-url "sqlite:{{database}}"
+  sqlx migrate run --source ./backend/migrations --database-url "sqlite:{{database}}"
   cargo sqlx prepare --workspace --database-url "sqlite:{{database}}"
   cargo run --release --bin create_initial_db -- "sqlite:{{database}}" data/nouns.txt data/adjectives.txt
 
 # migrate the database
 migrate-db database:
-  sqlx migrate run --database-url "sqlite:{{database}}"
+  sqlx migrate run --source ./backend/migrations --database-url "sqlite:{{database}}"
 
 # prepare the database
 prepare-db database:
@@ -116,7 +116,7 @@ check:
   (set -x; cargo check)
 
   echo
-  (set -x; cargo clippy -- -D warnings)
+  (set -x; cargo clippy --tests -- -D warnings)
 
   echo
   (set -x; just test)

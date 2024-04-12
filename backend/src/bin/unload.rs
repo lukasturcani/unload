@@ -218,7 +218,7 @@ async fn main() -> Result<()> {
     tracing::subscriber::set_global_default(subscriber)?;
 
     let pool = SqlitePool::connect(&config.database_url).await?;
-    sqlx::migrate!("../migrations")
+    sqlx::migrate!("./migrations")
         .run(&pool)
         .instrument(debug_span!("migrations"))
         .await?;
@@ -230,6 +230,7 @@ async fn main() -> Result<()> {
                     method = %request.method(),
                     uri = %request.uri(),
                     otel.name = format!("{} {}", request.method(), request.uri()),
+                    otel.kind = "SERVER",
                     otel.status_code = tracing::field::Empty,
                     otel.status_message = tracing::field::Empty,
                 )
@@ -319,7 +320,7 @@ mod tests {
             let expected = UserEntry {
                 id: *user_id,
                 name: user_data.name.clone(),
-                color: user_data.color.clone(),
+                color: user_data.color,
             };
             assert_eq!(user_entry, expected);
             expected_users.push(expected);
@@ -370,7 +371,7 @@ mod tests {
             let expected = TagEntry {
                 id: *tag_id,
                 name: tag_data.name.clone(),
-                color: tag_data.color.clone(),
+                color: tag_data.color,
             };
             assert_eq!(tag_entry, expected);
             expected_tags.push(expected);
@@ -454,8 +455,8 @@ mod tests {
                 created: task_entry.created,
                 updated: task_entry.updated,
                 due: task_data.due,
-                size: task_data.size.clone(),
-                status: task_data.status.clone(),
+                size: task_data.size,
+                status: task_data.status,
                 assignees: task_data.assignees.clone(),
                 tags: task_data.tags.clone(),
             };
@@ -476,6 +477,8 @@ mod tests {
         // Check task deletion
 
         let removed_task = expected_tasks.pop().unwrap();
+
+        #[allow(clippy::let_unit_value)]
         let _ = server
             .delete(&format!(
                 "/api/boards/{board_name}/tasks/{}",
@@ -493,6 +496,8 @@ mod tests {
         // Check user deletion
 
         let removed_user = expected_users.pop().unwrap();
+
+        #[allow(clippy::let_unit_value)]
         let _ = server
             .delete(&format!(
                 "/api/boards/{board_name}/users/{}",
@@ -510,6 +515,8 @@ mod tests {
         // Check tag deletion
 
         let removed_tag = expected_tags.pop().unwrap();
+
+        #[allow(clippy::let_unit_value)]
         let _ = server
             .delete(&format!("/api/boards/{board_name}/tags/{}", removed_tag.id))
             .await
