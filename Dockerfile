@@ -8,7 +8,6 @@ RUN \
 RUN cargo install dioxus-cli
 WORKDIR /usr/src/unload
 COPY Cargo.lock Cargo.toml ./
-COPY migrations ./migrations/
 COPY frontend ./frontend/
 COPY shared_models ./shared_models/
 COPY backend ./backend/

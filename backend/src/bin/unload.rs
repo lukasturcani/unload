@@ -218,7 +218,7 @@ async fn main() -> Result<()> {
     tracing::subscriber::set_global_default(subscriber)?;
 
     let pool = SqlitePool::connect(&config.database_url).await?;
-    sqlx::migrate!("../migrations")
+    sqlx::migrate!("./migrations")
         .run(&pool)
         .instrument(debug_span!("migrations"))
         .await?;
