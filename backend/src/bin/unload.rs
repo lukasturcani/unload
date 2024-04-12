@@ -371,7 +371,7 @@ mod tests {
             let expected = TagEntry {
                 id: *tag_id,
                 name: tag_data.name.clone(),
-                color: tag_data.color.clone(),
+                color: tag_data.color,
             };
             assert_eq!(tag_entry, expected);
             expected_tags.push(expected);
@@ -455,8 +455,8 @@ mod tests {
                 created: task_entry.created,
                 updated: task_entry.updated,
                 due: task_data.due,
-                size: task_data.size.clone(),
-                status: task_data.status.clone(),
+                size: task_data.size,
+                status: task_data.status,
                 assignees: task_data.assignees.clone(),
                 tags: task_data.tags.clone(),
             };

@@ -116,7 +116,7 @@ check:
   (set -x; cargo check)
 
   echo
-  (set -x; cargo clippy -- -D warnings)
+  (set -x; cargo clippy --tests -- -D warnings)
 
   echo
   (set -x; just test)
