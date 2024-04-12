@@ -230,6 +230,7 @@ async fn main() -> Result<()> {
                     method = %request.method(),
                     uri = %request.uri(),
                     otel.name = format!("{} {}", request.method(), request.uri()),
+                    otel.kind = "SERVER",
                     otel.status_code = tracing::field::Empty,
                     otel.status_message = tracing::field::Empty,
                 )
@@ -319,7 +320,7 @@ mod tests {
             let expected = UserEntry {
                 id: *user_id,
                 name: user_data.name.clone(),
-                color: user_data.color.clone(),
+                color: user_data.color,
             };
             assert_eq!(user_entry, expected);
             expected_users.push(expected);
