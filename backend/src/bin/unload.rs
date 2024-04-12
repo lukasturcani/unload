@@ -477,6 +477,8 @@ mod tests {
         // Check task deletion
 
         let removed_task = expected_tasks.pop().unwrap();
+
+        #[allow(clippy::let_unit_value)]
         let _ = server
             .delete(&format!(
                 "/api/boards/{board_name}/tasks/{}",
@@ -494,6 +496,8 @@ mod tests {
         // Check user deletion
 
         let removed_user = expected_users.pop().unwrap();
+
+        #[allow(clippy::let_unit_value)]
         let _ = server
             .delete(&format!(
                 "/api/boards/{board_name}/users/{}",
@@ -511,6 +515,8 @@ mod tests {
         // Check tag deletion
 
         let removed_tag = expected_tags.pop().unwrap();
+
+        #[allow(clippy::let_unit_value)]
         let _ = server
             .delete(&format!("/api/boards/{board_name}/tags/{}", removed_tag.id))
             .await
