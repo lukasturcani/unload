@@ -95,9 +95,11 @@ test:
   trap error=1 ERR
 
   set -x
-  database=$(mktemp) &&
-  just create-db $database &&
-  TEST_DATABASE_URL="sqlite:$database" cargo test --all-features
+  database=$(mktemp)
+  (
+    just create-db $database &&
+    TEST_DATABASE_URL="sqlite:$database" cargo test --all-features
+  )
   rm $database
 
   test $error = 0
