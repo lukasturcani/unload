@@ -97,7 +97,7 @@ test:
   set -x
   database=$(mktemp) &&
   just create-db $database &&
-  TEST_DATABASE_URL="sqlite:$database" cargo test
+  TEST_DATABASE_URL="sqlite:$database" cargo test --all-features
   rm $database
 
   test $error = 0
@@ -113,7 +113,7 @@ check:
   (set -x; cargo fmt --check)
 
   echo
-  (set -x; cargo check)
+  (set -x; cargo check --all-features)
 
   echo
   (set -x; cargo clippy --tests -- -D warnings)
