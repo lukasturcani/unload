@@ -288,7 +288,7 @@ mod tests {
 
         // Create users
 
-        let users = vec![
+        let users = [
             UserData {
                 name: "Rufus".to_string(),
                 color: Color::Teal,
@@ -338,7 +338,7 @@ mod tests {
 
         // Create tags
 
-        let tags = vec![
+        let tags = [
             TagData {
                 name: "tag1".to_string(),
                 color: Color::Teal,
