@@ -11,6 +11,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: extractions/setup-just@v2
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install sqlx-cli --no-default-features --features sqlite
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: cargo install sqlx-cli --no-default-features --features sqlite
       - run: just test
