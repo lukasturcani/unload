@@ -128,6 +128,7 @@ check:
 # install dependencies
 install-deps:
   cd frontend && npm install
+  cd landing_page && npm install
 
 # build the frontend
 frontend:
@@ -141,10 +142,14 @@ watch-frontend:
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
   dx build"
 
-# build the frontend
+# build the optimized frontend
 frontend-release:
   cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
   cd frontend && dx build --release
+
+landing-page:
+  cd landing_page && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
+  cd landing_page && cargo run
 
 # run the optimized backend
 backend-release database: frontend
