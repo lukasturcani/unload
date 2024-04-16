@@ -6,7 +6,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     if Path::new("./dist").exists() {
         fs::remove_dir_all("./dist")?;
     }
-    fs::create_dir("./dist")?;
     let copy_options = CopyOptions::new().copy_inside(true);
     fs_extra::copy_items(&["./assets"], "./dist", &copy_options)?;
     fs::write("./dist/index.html", index_page())?;
@@ -38,7 +37,7 @@ fn App() -> Element {
             }
             link {
                 rel: "stylesheet",
-                href: "assets/tailwind.css",
+                href: "/tailwind.css",
             }
         }
         body {
