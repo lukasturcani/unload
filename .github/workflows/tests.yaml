@@ -22,7 +22,7 @@ jobs:
             target/
           # key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           key: test
-      - run: ls -al target/; echo one
+      - run: "[[ -d target ]] && ls -al target/"
       - run: ls -al ~/.cargo/bin
       - uses: dtolnay/rust-toolchain@stable
       - if: steps.cache.outputs.cache-hit != 'true'
