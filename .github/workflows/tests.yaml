@@ -27,6 +27,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - if: steps.cache.outputs.cache-hit != 'true'
         run: cargo install sqlx-cli --no-default-features --features sqlite
+      - run: ls -al target/
+      - run: ls -al ~/.cargo/bin
       - run: just test
   cargo-fmt:
     runs-on: ubuntu-latest
