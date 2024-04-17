@@ -49,9 +49,12 @@ fn App() -> Element {
                         class: "text-pink-600 text-4xl font-bold",
                         "Welcome to Unload.Life"
                     }
-                    button {
-                        class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded",
-                        "Go to app"
+                    a {
+                        href: "/app",
+                        button {
+                            class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded",
+                            "Go to app"
+                        }
                     }
                 }
             }

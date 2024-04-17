@@ -2,7 +2,7 @@ use axum::{
     extract::{self, Host, State},
     http::{Request, StatusCode},
     middleware::{self, Next},
-    response::Response,
+    response::{Redirect, Response},
     routing::{delete, get, post, put},
     Router,
 };
@@ -63,7 +63,13 @@ struct Config {
 }
 
 fn website_router(serve_dir: impl AsRef<Path>) -> Router {
-    Router::new().nest_service("/", ServeDir::new(&serve_dir))
+    Router::new()
+        .route("/app", get(redirect_to_app))
+        .nest_service("/", ServeDir::new(&serve_dir))
+}
+
+async fn redirect_to_app(Host(host): Host) -> Redirect {
+    Redirect::to(&format!("http://app.{}", host))
 }
 
 fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
