@@ -137,7 +137,7 @@ frontend:
 
 # watch the frontend
 watch-frontend:
-  watchexec -e rs -w frontend -w shared_models "\
+  watchexec -w frontend -w shared_models "\
   cd frontend && \
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
   dx build"
@@ -152,7 +152,10 @@ website:
   cd website && cargo run
 
 watch-website:
-  echo one
+  watchexec -w website "\
+  cd website && \
+  npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
+  cargo run"
 
 # run the optimized backend
 backend-release database: frontend
