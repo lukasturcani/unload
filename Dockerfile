@@ -19,6 +19,7 @@ RUN cargo install --bin unload --path backend
 RUN upx --best --lzma /usr/local/cargo/bin/unload
 RUN cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
 RUN cd frontend && dx build --release
+RUN cd website && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
 RUN cd website &&  cargo run
 
 FROM gcr.io/distroless/cc-debian12:debug

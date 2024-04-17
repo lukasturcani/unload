@@ -21,7 +21,7 @@ deploy-dev-image:
   fly deploy --config fly.dev.toml --image registry.fly.io/unload-dev
 
 # run docker image
-docker-run mount:
+docker-run-prod mount:
   docker run --rm --detach \
   --net=host \
   --mount type=bind,source={{mount}},target=/mnt/unload_data \
@@ -43,7 +43,7 @@ docker-run-dev mount:
   registry.fly.io/unload-dev
 
 # kill docker container
-docker-kill:
+docker-kill-prod:
   docker container kill unload
 
 # kill docker development container
@@ -51,7 +51,7 @@ docker-kill-dev:
   docker container kill unload-dev
 
 # enter image
-enter-image mount:
+enter-prod-image mount:
   docker run --rm -it \
   --entrypoint sh \
   --net=host \
@@ -60,6 +60,17 @@ enter-image mount:
   -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
   -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
   registry.fly.io/unload
+
+# enter development image
+enter-dev-image mount:
+  docker run --rm -it \
+  --entrypoint sh \
+  --net=host \
+  --mount type=bind,source={{mount}},target=/mnt/unload_data \
+  -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
+  -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
+  -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
+  registry.fly.io/unload-dev
 
 # create the database
 create-db database:
