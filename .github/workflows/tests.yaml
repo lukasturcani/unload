@@ -20,8 +20,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          # key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          key: test
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - run: ls -al ~/.cargo/bin
       - uses: dtolnay/rust-toolchain@stable
       - if: steps.cache.outputs.cache-hit != 'true'
