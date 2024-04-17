@@ -4,7 +4,7 @@ members = [
   "shared_models",
   "backend",
   "frontend",
-  "landing_page",
+  "website",
 ]
 
 [profile.release]

@@ -3,7 +3,7 @@ frontend/assets/tailwind.css
 frontend/static
 frontend/.dioxus
 frontend/node_modules
-landing_page/assets/tailwind.css
-landing_page/dist
-landing_page/node_modules
+website/assets/tailwind.css
+website/dist
+website/node_modules
 /target

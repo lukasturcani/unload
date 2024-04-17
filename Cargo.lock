@@ -2368,15 +2368,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "landing_page"
-version = "0.1.0"
-dependencies = [
- "dioxus",
- "dioxus-ssr",
- "fs_extra",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4640,6 +4631,15 @@ checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "website"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "dioxus-ssr",
+ "fs_extra",
 ]
 
 [[package]]
