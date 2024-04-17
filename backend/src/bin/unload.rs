@@ -1,11 +1,9 @@
-use anyhow::anyhow;
 use axum::{
-    body::Body,
     extract::{self, Host, State},
     http::{Request, StatusCode},
-    middleware::Next,
+    middleware::{self, Next},
     response::Response,
-    routing::{any, delete, get, post, put},
+    routing::{delete, get, post, put},
     Router,
 };
 use confique::Config as _;
@@ -18,7 +16,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tokio::net::TcpListener;
-use tower::{Service, ServiceExt};
+use tower::ServiceExt;
 use tower_http::{classify::ServerErrorsFailureClass, services::ServeDir, trace::TraceLayer};
 use tracing::{debug_span, Instrument, Span};
 use tracing_log::LogTracer;
@@ -259,6 +257,25 @@ fn add_trace_layer(router: Router) -> Router {
     )
 }
 
+#[derive(Clone)]
+struct Routers {
+    app: Router,
+    website: Router,
+}
+
+async fn delegate_request(
+    State(routers): State<Routers>,
+    Host(host): Host,
+    request: extract::Request,
+    _: Next,
+) -> std::result::Result<Response, std::convert::Infallible> {
+    if host.to_lowercase().starts_with("app.") {
+        routers.app.oneshot(request).await
+    } else {
+        routers.website.oneshot(request).await
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let config = Config::builder().env().load()?;
@@ -268,9 +285,13 @@ async fn main() -> Result<()> {
         .run(&pool)
         .instrument(debug_span!("migrations"))
         .await?;
-    let router = Router::new()
-        .nest("/app", app_router(config.app_dir).with_state(pool.clone()))
-        .nest("/", website_router(config.website_dir));
+    let router = Router::new().layer(middleware::from_fn_with_state(
+        Routers {
+            app: app_router(config.app_dir).with_state(pool.clone()),
+            website: website_router(config.website_dir),
+        },
+        delegate_request,
+    ));
     let router = add_trace_layer(router);
     let listener = TcpListener::bind(config.server_address).await?;
     tracing::debug!("Listening on: {}", listener.local_addr()?);
