@@ -69,7 +69,7 @@ fn website_router(serve_dir: impl AsRef<Path>) -> Router {
 }
 
 async fn redirect_to_app(Host(host): Host) -> Redirect {
-    Redirect::to(&format!("http://app.{}", host))
+    Redirect::to(&format!("//app.{}", host))
 }
 
 fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
