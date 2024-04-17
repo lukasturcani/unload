@@ -8,17 +8,21 @@ RUN \
 RUN cargo install dioxus-cli
 WORKDIR /usr/src/unload
 COPY Cargo.lock Cargo.toml ./
+COPY website  ./website/
 COPY frontend ./frontend/
 COPY shared_models ./shared_models/
 COPY backend ./backend/
 COPY .sqlx ./.sqlx/
 RUN cd frontend && npm install
+RUN cd website && npm install
 RUN cargo install --bin unload --path backend
 RUN upx --best --lzma /usr/local/cargo/bin/unload
 RUN cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
 RUN cd frontend && dx build --release
+RUN cd website &&  cargo run
 
 FROM gcr.io/distroless/cc-debian12:debug
 COPY --from=builder /usr/local/cargo/bin/unload /usr/local/bin/unload
-COPY --from=builder /usr/src/unload/frontend/dist /var/www
+COPY --from=builder /usr/src/unload/frontend/dist /var/www/app
+COPY --from=builder /usr/src/unload/website/dist /var/www/website
 ENTRYPOINT ["unload"]

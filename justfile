@@ -31,9 +31,24 @@ docker-run mount:
   --name unload \
   registry.fly.io/unload
 
+# run development docker image
+docker-run-dev mount:
+  docker run --rm --detach \
+  --net=host \
+  --mount type=bind,source={{mount}},target=/mnt/unload_data \
+  -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
+  -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
+  -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
+  --name unload-dev \
+  registry.fly.io/unload-dev
+
 # kill docker container
 docker-kill:
   docker container kill unload
+
+# kill docker development container
+docker-kill-dev:
+  docker container kill unload-dev
 
 # enter image
 enter-image mount:
