@@ -1,5 +1,8 @@
 use axum::{
+    extract::{self, Host, State},
     http::{Request, StatusCode},
+    middleware::{self, Next},
+    response::{Redirect, Response},
     routing::{delete, get, post, put},
     Router,
 };
@@ -13,6 +16,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tokio::net::TcpListener;
+use tower::ServiceExt;
 use tower_http::{classify::ServerErrorsFailureClass, services::ServeDir, trace::TraceLayer};
 use tracing::{debug_span, Instrument, Span};
 use tracing_log::LogTracer;
@@ -36,8 +40,11 @@ struct Config {
     )]
     database_url: String,
 
-    #[config(env = "UNLOAD_SERVE_DIR", default = "/var/www")]
-    serve_dir: PathBuf,
+    #[config(env = "UNLOAD_APP_SERVE_DIR", default = "/var/www/app")]
+    app_dir: PathBuf,
+
+    #[config(env = "UNLOAD_WEBSITE_SERVE_DIR", default = "/var/www/website")]
+    website_dir: PathBuf,
 
     #[config(env = "UNLOAD_SERVER_ADDRESS", default = "0.0.0.0:8080")]
     server_address: SocketAddr,
@@ -55,7 +62,17 @@ struct Config {
     environment: String,
 }
 
-fn router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
+fn website_router(serve_dir: impl AsRef<Path>) -> Router {
+    Router::new()
+        .route("/app", get(redirect_to_app))
+        .nest_service("/", ServeDir::new(&serve_dir))
+}
+
+async fn redirect_to_app(Host(host): Host) -> Redirect {
+    Redirect::to(&format!("//app.{}", host))
+}
+
+fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
     Router::new()
         .route("/api/boards", post(create_board))
         .route("/api/boards/:board_name/tasks/:task_id", get(show_task))
@@ -193,36 +210,31 @@ fn router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
         .nest_service("/boards/:board_name/archive/tags", ServeDir::new(serve_dir))
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    let config = Config::builder().env().load()?;
-
+fn init_tracing(otlp_endpoint: &str, environment: String, log: String) -> Result<()> {
     LogTracer::init()?;
     let otlp_exporter = opentelemetry_otlp::new_exporter()
         .tonic()
-        .with_endpoint(&config.otlp_endpoint);
+        .with_endpoint(otlp_endpoint);
     let tracer = opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(otlp_exporter)
         .with_trace_config(trace::config().with_resource(Resource::new(vec![
             KeyValue::new("service.name", "unload"),
             KeyValue::new("service.version", env!("CARGO_PKG_VERSION")),
-            KeyValue::new("deployment.environment", config.environment),
+            KeyValue::new("deployment.environment", environment),
         ])))
         .install_simple()?;
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
     let subscriber = Registry::default()
         .with(tracing_subscriber::fmt::layer())
-        .with(EnvFilter::from(config.log))
+        .with(EnvFilter::from(log))
         .with(telemetry);
     tracing::subscriber::set_global_default(subscriber)?;
+    Ok(())
+}
 
-    let pool = SqlitePool::connect(&config.database_url).await?;
-    sqlx::migrate!("./migrations")
-        .run(&pool)
-        .instrument(debug_span!("migrations"))
-        .await?;
-    let app = router(config.serve_dir).with_state(pool.clone()).layer(
+fn add_trace_layer(router: Router) -> Router {
+    router.layer(
         TraceLayer::new_for_http()
             .make_span_with(|request: &Request<_>| {
                 debug_span!(
@@ -248,10 +260,48 @@ async fn main() -> Result<()> {
             .on_response(|_: &_, _, span: &Span| {
                 span.record("otel.status_code", "OK");
             }),
-    );
+    )
+}
+
+#[derive(Clone)]
+struct Routers {
+    app: Router,
+    website: Router,
+}
+
+async fn delegate_request(
+    State(routers): State<Routers>,
+    Host(host): Host,
+    request: extract::Request,
+    _: Next,
+) -> std::result::Result<Response, std::convert::Infallible> {
+    if host.to_lowercase().starts_with("app.") {
+        routers.app.oneshot(request).await
+    } else {
+        routers.website.oneshot(request).await
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let config = Config::builder().env().load()?;
+    init_tracing(&config.otlp_endpoint, config.environment, config.log)?;
+    let pool = SqlitePool::connect(&config.database_url).await?;
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .instrument(debug_span!("migrations"))
+        .await?;
+    let router = Router::new().layer(middleware::from_fn_with_state(
+        Routers {
+            app: app_router(config.app_dir).with_state(pool.clone()),
+            website: website_router(config.website_dir),
+        },
+        delegate_request,
+    ));
+    let router = add_trace_layer(router);
     let listener = TcpListener::bind(config.server_address).await?;
     tracing::debug!("Listening on: {}", listener.local_addr()?);
-    axum::serve(listener, app)
+    axum::serve(listener, router)
         .with_graceful_shutdown(shutdown_signal(pool))
         .await?;
     Ok(())
@@ -279,7 +329,7 @@ mod tests {
         let pool = SqlitePool::connect(&std::env::var("TEST_DATABASE_URL").unwrap())
             .await
             .unwrap();
-        let app = router(PathBuf::from("does_not_matter")).with_state(pool);
+        let app = app_router(PathBuf::from("does_not_matter")).with_state(pool);
         let server = TestServer::new(app).unwrap();
 
         // Create board

@@ -20,7 +20,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: test-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - uses: dtolnay/rust-toolchain@stable
       - if: steps.cache.outputs.cache-hit != 'true'
         run: cargo install sqlx-cli --no-default-features --features sqlite

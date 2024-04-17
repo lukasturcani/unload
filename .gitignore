@@ -3,4 +3,7 @@ frontend/assets/tailwind.css
 frontend/static
 frontend/.dioxus
 frontend/node_modules
+website/assets/tailwind.css
+website/dist
+website/node_modules
 /target

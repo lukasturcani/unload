@@ -26,13 +26,29 @@ docker-run mount:
   --net=host \
   --mount type=bind,source={{mount}},target=/mnt/unload_data \
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
-  -e UNLOAD_SERVE_DIR="/var/www" \
+  -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
+  -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
   --name unload \
   registry.fly.io/unload
+
+# run development docker image
+docker-run-dev mount:
+  docker run --rm --detach \
+  --net=host \
+  --mount type=bind,source={{mount}},target=/mnt/unload_data \
+  -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
+  -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
+  -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
+  --name unload-dev \
+  registry.fly.io/unload-dev
 
 # kill docker container
 docker-kill:
   docker container kill unload
+
+# kill docker development container
+docker-kill-dev:
+  docker container kill unload-dev
 
 # enter image
 enter-image mount:
@@ -41,7 +57,8 @@ enter-image mount:
   --net=host \
   --mount type=bind,source={{mount}},target=/mnt/unload_data \
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
-  -e UNLOAD_SERVE_DIR="/var/www" \
+  -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
+  -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
   registry.fly.io/unload
 
 # create the database
@@ -128,6 +145,7 @@ check:
 # install dependencies
 install-deps:
   cd frontend && npm install
+  cd website && npm install
 
 # build the frontend
 frontend:
@@ -136,32 +154,45 @@ frontend:
 
 # watch the frontend
 watch-frontend:
-  watchexec -e rs -w frontend -w shared_models "\
+  watchexec -w frontend -w shared_models "\
   cd frontend && \
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
   dx build"
 
-# build the frontend
+# build the optimized frontend
 frontend-release:
   cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
   cd frontend && dx build --release
 
+website:
+  cd website && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
+  cd website && cargo run
+
+watch-website:
+  watchexec -w website "\
+  cd website && \
+  npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
+  cargo run"
+
 # run the optimized backend
 backend-release database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
-  UNLOAD_SERVE_DIR="frontend/dist" \
+  UNLOAD_APP_SERVE_DIR="frontend/dist" \
+  UNLOAD_WEBSITE_SERVE_DIR="website/dist" \
   cargo run --release --bin unload
 
 # run the backend
 backend database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
-  UNLOAD_SERVE_DIR="frontend/dist" \
+  UNLOAD_APP_SERVE_DIR="frontend/dist" \
+  UNLOAD_WEBSITE_SERVE_DIR="website/dist" \
   cargo run --bin unload
 
 # watch the backend
 watch-backend database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
-  UNLOAD_SERVE_DIR="frontend/dist" \
+  UNLOAD_APP_SERVE_DIR="frontend/dist" \
+  UNLOAD_WEBSITE_SERVE_DIR="website/dist" \
   cargo watch -w backend -w shared_models -x 'run -- --bin unload'
 
 # connect to fly.io production volume
