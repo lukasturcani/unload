@@ -42,7 +42,7 @@ fn App() -> Element {
         }
         body {
             div {
-                class: "bg-teal-300 h-screen w-screen flex justify-center items-center",
+                class: "font-mono bg-emerald-950 h-screen w-screen flex justify-center items-center",
                 div {
                     class: "flex flex-col items-center gap-4",
                     h1 {
@@ -52,7 +52,7 @@ fn App() -> Element {
                     a {
                         href: "/app",
                         button {
-                            class: "animate-bounce bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded",
+                            class: "font-mono transition-colors ease-in-out duration-200 animate-bounce hover:bg-pink-600 bg-emerald-950 text-white font-bold py-2 px-4 rounded",
                             "Go to app"
                         }
                     }
