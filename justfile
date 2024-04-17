@@ -26,7 +26,8 @@ docker-run mount:
   --net=host \
   --mount type=bind,source={{mount}},target=/mnt/unload_data \
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
-  -e UNLOAD_SERVE_DIR="/var/www" \
+  -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
+  -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
   --name unload \
   registry.fly.io/unload
 
@@ -41,7 +42,8 @@ enter-image mount:
   --net=host \
   --mount type=bind,source={{mount}},target=/mnt/unload_data \
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
-  -e UNLOAD_SERVE_DIR="/var/www" \
+  -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
+  -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
   registry.fly.io/unload
 
 # create the database
@@ -160,19 +162,22 @@ watch-website:
 # run the optimized backend
 backend-release database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
-  UNLOAD_SERVE_DIR="frontend/dist" \
+  UNLOAD_APP_SERVE_DIR="frontend/dist" \
+  UNLOAD_WEBSITE_SERVE_DIR="website/dist" \
   cargo run --release --bin unload
 
 # run the backend
 backend database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
-  UNLOAD_SERVE_DIR="frontend/dist" \
+  UNLOAD_APP_SERVE_DIR="frontend/dist" \
+  UNLOAD_WEBSITE_SERVE_DIR="website/dist" \
   cargo run --bin unload
 
 # watch the backend
 watch-backend database: frontend
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
-  UNLOAD_SERVE_DIR="frontend/dist" \
+  UNLOAD_APP_SERVE_DIR="frontend/dist" \
+  UNLOAD_WEBSITE_SERVE_DIR="website/dist" \
   cargo watch -w backend -w shared_models -x 'run -- --bin unload'
 
 # connect to fly.io production volume

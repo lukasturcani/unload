@@ -4449,6 +4449,7 @@ dependencies = [
  "shared_models",
  "sqlx",
  "tokio",
+ "tower",
  "tower-http",
  "tracing",
  "tracing-log",
