@@ -193,14 +193,14 @@ backend-release database: frontend
   cargo run --release --bin unload
 
 # run the backend
-backend database: frontend
+backend database:
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
   UNLOAD_APP_SERVE_DIR="frontend/dist" \
   UNLOAD_WEBSITE_SERVE_DIR="website/dist" \
   cargo run --bin unload
 
 # watch the backend
-watch-backend database: frontend
+watch-backend database:
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
   UNLOAD_APP_SERVE_DIR="frontend/dist" \
   UNLOAD_WEBSITE_SERVE_DIR="website/dist" \
