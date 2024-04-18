@@ -44,9 +44,9 @@ fn App() -> Element {
             div {
                 class: "font-mono bg-emerald-950 h-screen w-screen flex justify-center items-center",
                 div {
-                    class: "flex flex-col items-center gap-4",
+                    class: "grid grid-cols-1 place-items-center gap-4",
                     h1 {
-                        class: "text-pink-600 text-4xl font-bold",
+                        class: "text-center text-pink-600 text-4xl font-bold",
                         "Welcome to Unload.Life"
                     }
                     a {
