@@ -65,7 +65,7 @@ struct Config {
 fn website_router(serve_dir: impl AsRef<Path>) -> Router {
     Router::new()
         .route("/app", get(redirect_to_app))
-        .nest_service("/", ServeDir::new(&serve_dir))
+        .nest_service("/", compressed_dir(&serve_dir))
 }
 
 async fn redirect_to_app(Host(host): Host) -> Redirect {
@@ -185,29 +185,32 @@ fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
             "/api/boards/:board_name/archive/tags",
             get(show_archived_tags),
         )
-        .nest_service("/", ServeDir::new(&serve_dir))
-        .nest_service("/boards/:board_name", ServeDir::new(&serve_dir))
-        .nest_service("/boards/:board_name/add-user", ServeDir::new(&serve_dir))
-        .nest_service("/boards/:board_name/users", ServeDir::new(&serve_dir))
-        .nest_service("/boards/:board_name/tags", ServeDir::new(&serve_dir))
-        .nest_service("/boards/:board_name/add-task", ServeDir::new(&serve_dir))
+        .nest_service("/", compressed_dir(&serve_dir))
+        .nest_service("/boards/:board_name", compressed_dir(&serve_dir))
+        .nest_service("/boards/:board_name/add-user", compressed_dir(&serve_dir))
+        .nest_service("/boards/:board_name/users", compressed_dir(&serve_dir))
+        .nest_service("/boards/:board_name/tags", compressed_dir(&serve_dir))
+        .nest_service("/boards/:board_name/add-task", compressed_dir(&serve_dir))
         .nest_service(
             "/boards/:board_name/add-to-do-task",
-            ServeDir::new(&serve_dir),
+            compressed_dir(&serve_dir),
         )
         .nest_service(
             "/boards/:board_name/add-in-progress-task",
-            ServeDir::new(&serve_dir),
+            compressed_dir(&serve_dir),
         )
         .nest_service(
             "/boards/:board_name/add-done-task",
-            ServeDir::new(&serve_dir),
+            compressed_dir(&serve_dir),
         )
         .nest_service(
             "/boards/:board_name/archive/tasks",
-            ServeDir::new(&serve_dir),
+            compressed_dir(&serve_dir),
         )
-        .nest_service("/boards/:board_name/archive/tags", ServeDir::new(serve_dir))
+        .nest_service(
+            "/boards/:board_name/archive/tags",
+            compressed_dir(serve_dir),
+        )
 }
 
 fn init_tracing(otlp_endpoint: &str, environment: String, log: String) -> Result<()> {
@@ -261,6 +264,10 @@ fn add_trace_layer(router: Router) -> Router {
                 span.record("otel.status_code", "OK");
             }),
     )
+}
+
+fn compressed_dir(serve_dir: impl AsRef<Path>) -> ServeDir {
+    ServeDir::new(serve_dir).precompressed_gzip()
 }
 
 #[derive(Clone)]
