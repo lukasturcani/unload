@@ -160,6 +160,7 @@ install-deps:
 
 # build the frontend
 frontend:
+  rm -rf frontend/dist
   cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
   cd frontend && dx build
 
@@ -167,23 +168,34 @@ frontend:
 watch-frontend:
   watchexec -w frontend -w shared_models "\
   cd frontend && \
+  rm -rf dist && \
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
   dx build"
 
 # build the optimized frontend
 frontend-release:
+  rm -rf frontend/dist
   cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
   cd frontend && dx build --release
+  fd . 'frontend/dist' --type file --exec gzip -f -k
 
+# build the website
 website:
+  rm -rf website/dist
   cd website && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
   cd website && cargo run
 
+# watch the website
 watch-website:
   watchexec -w website "\
   cd website && \
+  rm -rf dist && \
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
   cargo run"
+
+# build the optimized website
+website-release: website
+  fd . 'website/dist' --type file --exec gzip -f -k
 
 # run the optimized backend
 backend-release database: frontend
