@@ -24,10 +24,6 @@ jobs:
           key: publish-release-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - run: cargo install toml-cli
       - run: test "$(toml get -r Cargo.toml workspace.package.version)" = "${TAG#v}"
-      - run: docker buildx build -t "registry.fly.io/unload:${TAG#v}" -t registry.fly.io/unload:latest
-      - run: docker push --all-tags "registry.fly.io/unload:${TAG#v}"
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-      - run: fly deploy --config fly.prod.toml --image "registry.fly.io/unload:${TAG#v}"
+      - run: fly deploy --local-only --config fly.prod.toml --image-label "${TAG#v}"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

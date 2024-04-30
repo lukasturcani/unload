@@ -5,7 +5,7 @@ default:
 # build a production docker image
 build-prod-image:
   # make sure to run: cargo install toml-cli
-  docker buildx build -t registry.fly.io/unload:$(toml get -r Cargo.toml workspace.package.version) -t registry.fly.io/unload:latest .
+  docker buildx build -t registry.fly.io/unload:$(toml get -r Cargo.toml workspace.package.version) .
 
 # build a development docker image
 build-dev-image:
