@@ -25,7 +25,7 @@ jobs:
             target/
           key: publish-release-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - if: steps.cache.outputs.cache-hit != 'true'
-        run: cargo install sqlx-cli --no-default-features --features sqlite
+        run: cargo install toml-cli
       - run: test "$(toml get -r Cargo.toml workspace.package.version)" = "${TAG#v}"
       - run: fly deploy --local-only --config fly.prod.toml --image-label "${TAG#v}"
         env:
