@@ -10,6 +10,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - uses: docker/setup-buildx-action@v3
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: publish-release-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - run: cargo install toml-cli
+      - run: test "v$(toml get -r Cargo.toml workspace.package.version)" = ${{ github.ref_name }}
       - run: docker buildx build -t registry.fly.io/unload:${{ github.ref_name }}
       - run: fly deploy --config fly.prod.toml --image registry.fly.io/unload:${{ github.ref_name }}
         env:
