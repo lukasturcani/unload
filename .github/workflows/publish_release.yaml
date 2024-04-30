@@ -13,7 +13,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - uses: docker/setup-buildx-action@v3
+      - uses: dtolnay/rust-toolchain@stable
       - uses: actions/cache@v4
+        id: cache
         with:
           path: |
             ~/.cargo/bin/
@@ -22,7 +24,8 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: publish-release-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - run: cargo install toml-cli
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: cargo install sqlx-cli --no-default-features --features sqlite
       - run: test "$(toml get -r Cargo.toml workspace.package.version)" = "${TAG#v}"
       - run: fly deploy --local-only --config fly.prod.toml --image-label "${TAG#v}"
         env:
