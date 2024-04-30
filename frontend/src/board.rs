@@ -2498,6 +2498,7 @@ fn Due(
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
                             value: "{new_date_value.format(\"%Y-%m-%d\")}",
+                            onclick: move |event| event.stop_propagation(),
                             oninput:  move |event| {
                                 let event_value = event.value();
                                 if event_value.is_empty() {
@@ -2511,6 +2512,7 @@ fn Due(
                         select {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             value: "{format_due_time(&new_time)}",
+                            onclick: move |event| event.stop_propagation(),
                             onchange: move |event| {
                                 if let Ok(time) = NaiveTime::parse_from_str(&event.value(), "%H:%M") {
                                     new_time_signal.set(time);
@@ -2533,6 +2535,7 @@ fn Due(
                         input {
                             class: "bg-inherit border text-sm rounded-lg block w-full p-2.5 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500",
                             r#type: "date",
+                            onclick: move |event| event.stop_propagation(),
                             oninput:  move |event| {
                                 let event_value = event.value();
                                 if event_value.is_empty() {
@@ -2613,7 +2616,8 @@ fn Due(
             if let Some(DueOptions{due: due_value, show_time_left}) = due {
                 div {
                     class: "flex flex-row gap-2",
-                    onclick: move |_| {
+                    onclick: move |event| {
+                        event.stop_propagation();
                         editing_signal.set(true);
                         let local = utc_to_local(&due_value);
                         new_date_signal.set(Some(local.date_naive()));
@@ -2644,7 +2648,8 @@ fn Due(
                     class: "flex flex-row gap-2",
                     svg {
                         class: "text-gray-400 cursor-pointer {svg_style}",
-                        onclick: move |_| {
+                        onclick: move |event| {
+                            event.stop_propagation();
                             editing_signal.set(true);
                             new_date_signal.set(None);
                             new_time_signal.set(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
