@@ -4,7 +4,7 @@ default:
 
 # build a production docker image
 build-prod-image:
-  docker buildx build -t registry.fly.io/unload .
+  docker buildx build -t registry.fly.io/unload:$(cargo pkgid | cut -d "#" -f2) -t registry.fly.io/unload:latest .
 
 # build a development docker image
 build-dev-image:
@@ -12,7 +12,7 @@ build-dev-image:
 
 # deploy production image to fly.io
 deploy-prod-image:
-  docker push registry.fly.io/unload
+  docker push registry.fly.io/unload:$(cargo pkgid | cut -d "#" -f2)
   fly deploy --config fly.prod.toml --image registry.fly.io/unload
 
 # deploy development image to fly.io
