@@ -7,6 +7,10 @@ members = [
   "website",
 ]
 
+[workspace.package]
+version = "0.5.0-alpha.1"
+edition = "2021"
+
 [profile.release]
 lto = true
 codegen-units = 1
