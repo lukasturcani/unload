@@ -3,6 +3,7 @@ mod add_user;
 pub mod app;
 mod board;
 mod color_picker;
+mod components;
 mod filter_bar;
 mod join_board;
 mod model;
