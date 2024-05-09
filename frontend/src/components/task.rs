@@ -2,15 +2,10 @@ use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use shared_models::{TagId, TaskId, UserId};
 
+use crate::model::TaskData;
+
 #[component]
-pub fn Task(
-    task_id: TaskId,
-    title: String,
-    description: String,
-    assignees: Vec<UserId>,
-    tags: Vec<TagId>,
-    due: Option<DateTime<Utc>>,
-) -> Element {
+pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     let style = "
         border border-gray-700
         rounded-lg
@@ -22,24 +17,24 @@ pub fn Task(
         div {
             class: "flex flex-col gap-2 p-3 {style}",
             div {
-                class: "",
-                Title { task_id, title }
-                StatusButtons { task_id }
+                class: "flex justify-between",
+                Title { task_id, title: task.title }
+                // StatusButtons { task_id }
             }
-            div {
-                class: "",
-                Users { task_id, users: assignees }
-                TaskActions { task_id }
-            }
-            Tags { task_id, tags }
-            if expanded() {
-                Due { task_id, due }
-                Description { task_id, description }
-                SpecialActions { task_id }
-            }
-            ToggleExpanded {
-                expanded
-            }
+            // div {
+            //     class: "",
+            //     Users { task_id, users: task.assignees }
+            //     TaskActions { task_id }
+            // }
+            // Tags { task_id, tags: task.tags }
+            // if expanded() {
+            //     Due { task_id, due: task.due }
+            //     Description { task_id, description: task.description }
+            //     SpecialActions { task_id }
+            // }
+            // ToggleExpanded {
+            //     expanded
+            // }
         }
     }
 }
@@ -49,7 +44,7 @@ fn Title(task_id: TaskId, title: String) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
-            TitleInput { task_id, editing }
+            TitleInput { task_id, editing, title }
         } else {
             TitleShow { editing, title }
         }
@@ -57,28 +52,70 @@ fn Title(task_id: TaskId, title: String) -> Element {
 }
 
 #[component]
-fn TitleInput(task_id: TaskId, editing: Signal<bool>) -> Element {
-    let input_style = "";
-    let confirm_button_style = "";
-    let cancel_button_style = "";
+fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
+    let style = "
+        text-base
+        rounded-lg
+        border border-gray-600
+        bg-gray-700
+        focus:ring-blue-500 focus:border-blue-500
+    ";
+    let mut title = use_signal(|| title);
     rsx! {
         div {
-            input {
-                class: input_style,
+            form {
+                class: "flex gap-2 items-center",
+                onsubmit: move |_| {
+                    if !title.read().is_empty() {
+                        editing.set(false);
+                    }
+                },
+                input {
+                    class: "p-2.5 {style}",
+                    oninput: move |event| title.set(event.value()),
+                    value: title
+                }
+                ConfirmButton {}
+                CancelButton { editing }
+            }
+        }
+    }
+}
 
-            }
-            button {
-                class: confirm_button_style,
-                onclick: move |_| {
-                    editing.set(false);
-                }
-            }
-            button {
-                class: cancel_button_style,
-                onclick: move |_| {
-                    editing.set(false);
-                }
-            }
+#[component]
+fn ConfirmButton() -> Element {
+    let style = "
+        rounded-md
+        border border-green-500
+        stroke-green-500
+        active:bg-green-500
+        sm:hover:bg-green-500 sm:hover:stroke-white
+    ";
+    rsx! {
+        button {
+            class: style,
+            r#type: "submit",
+            ConfirmIcon {}
+        }
+    }
+}
+
+#[component]
+fn CancelButton(editing: Signal<bool>) -> Element {
+    let style = "
+        rounded-md
+        border border-red-500
+        stroke-red-500
+        active:bg-red-500
+        sm:hover:bg-red-500 sm:hover:stroke-white
+    ";
+    rsx! {
+        button {
+            class: style,
+            onclick: move |_| {
+                editing.set(false);
+            },
+            CancelIcon {}
         }
     }
 }
@@ -87,12 +124,21 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>) -> Element {
 fn TitleShow(editing: Signal<bool>, title: String) -> Element {
     rsx! {
         div {
-            class: "flex items-center gap-2",
-            {title}
+            class: "flex gap-2 items-center",
+            h3 {
+                class: "
+                    text-lg sm:text-xl
+                    font-bold tracking-tight
+                    underline underline-offset-8
+                ",
+                {title}
+            }
             button {
-                class: "",
                 onclick: move |_| {
                     editing.set(true);
+                },
+                EditIcon {
+                    style: "size-4",
                 }
             }
         }
@@ -117,18 +163,33 @@ fn StatusButtons(task_id: TaskId) -> Element {
             class: "",
             button {
                 class: style,
-                BoltIcon {}
+                ToDoIcon {}
             }
             button {
                 class: style,
-                CopyIcon {}
+                InProgressIcon {}
             }
             button {
                 class: style,
-                ArchiveIcon {}
+                DoneIcon {}
             }
         }
     }
+}
+
+#[component]
+fn ToDoIcon() -> Element {
+    todo!()
+}
+
+#[component]
+fn InProgressIcon() -> Element {
+    todo!()
+}
+
+#[component]
+fn DoneIcon() -> Element {
+    todo!()
 }
 
 #[component]
@@ -169,4 +230,52 @@ fn Due(task_id: TaskId, due: Option<DateTime<Utc>>) -> Element {
 #[component]
 fn ToggleExpanded(expanded: Signal<bool>) -> Element {
     todo!()
+}
+
+#[component]
+fn EditIcon(style: &'static str) -> Element {
+    rsx! {
+        Icon {
+            style,
+            d: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
+        }
+    }
+}
+
+#[component]
+fn ConfirmIcon() -> Element {
+    rsx! {
+        Icon {
+            style: "size-6",
+            d: "m4.5 12.75 6 6 9-13.5",
+        }
+    }
+}
+
+#[component]
+fn CancelIcon() -> Element {
+    rsx! {
+        Icon {
+            style: "size-6",
+            d: "M6 18 18 6M6 6l12 12",
+        }
+    }
+}
+
+#[component]
+fn Icon(style: &'static str, d: &'static str) -> Element {
+    rsx! {
+        svg {
+            xmlns: "http://www.w3.org/2000/svg",
+            fill: "none",
+            "viewBox": "0 0 24 24",
+            "stroke-width": "1.5",
+            class: style,
+            path {
+                "stroke-linecap": "round",
+                "stroke-linejoin": "round",
+                d,
+            }
+        }
+    }
 }

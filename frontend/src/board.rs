@@ -254,6 +254,9 @@ fn OneColumnBoard(board_name: BoardName) -> Element {
 
 #[component]
 fn ThreeColumnBoard(board_name: BoardName) -> Element {
+    let style = "
+        text-white stroke-white
+    ";
     let mut model = use_context::<Signal<Model>>();
     if model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
@@ -261,7 +264,7 @@ fn ThreeColumnBoard(board_name: BoardName) -> Element {
     use_future(move || requests::board(model));
     rsx! {
         div {
-            class: "flex flex-col bg-gray-900 h-dvh w-screen",
+            class: "flex flex-col bg-gray-900 h-dvh w-screen {style}",
             div {
                 class: "grow flex flex-col gap-2 overflow-y-auto p-4 pb-2",
                 div {
@@ -440,10 +443,10 @@ fn ToDoColumn() -> Element {
                         .iter()
                         .filter(|task_id| read_model.show_task(**task_id))
                     {
-                        Task {
+                        crate::components::task::Task {
                             key: "{task_id}",
                             task_id: *task_id,
-                            status: TaskStatus::ToDo,
+                            task: read_model.tasks[&task_id].clone(),
                         }
                     }
                 },

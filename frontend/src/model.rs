@@ -74,7 +74,7 @@ impl Default for Model {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TaskData {
     pub title: String,
     pub description: String,
