@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
+use reqwest::Client;
 use shared_models::{TagId, TaskId, UserId};
 
 use crate::model::TaskData;
@@ -17,7 +18,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
         div {
             class: "flex flex-col gap-2 p-3 {style}",
             div {
-                class: "flex justify-between",
+                class: "flex flex-row justify-between",
                 Title { task_id, title: task.title }
                 // StatusButtons { task_id }
             }
@@ -60,6 +61,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
         bg-gray-700
         focus:ring-blue-500 focus:border-blue-500
     ";
+    let url = use_context::<Signal<Url>>();
     let mut title = use_signal(|| title);
     rsx! {
         div {
@@ -68,6 +70,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
                 onsubmit: move |_| {
                     if !title.read().is_empty() {
                         editing.set(false);
+                        set_task_title(url, task_id, title())
                     }
                 },
                 input {
@@ -278,4 +281,34 @@ fn Icon(style: &'static str, d: &'static str) -> Element {
             }
         }
     }
+}
+
+async fn set_task_title(url: Signal<Url>, task_id: TaskId, title: String) {
+    if send_set_task_title_request(url, task_id, title)
+        .await
+        .is_ok()
+    {
+        requests::board(model).await;
+    }
+}
+
+async fn send_set_task_title_request(
+    model: Signal<Url>,
+    task_id: TaskId,
+    title: String,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/title",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&title)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
 }
