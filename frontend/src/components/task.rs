@@ -3,7 +3,10 @@ use dioxus::prelude::*;
 use reqwest::Client;
 use shared_models::{TagId, TaskId, UserId};
 
-use crate::model::TaskData;
+use crate::{
+    model::{Model, TaskData},
+    requests,
+};
 
 #[component]
 pub fn Task(task_id: TaskId, task: TaskData) -> Element {
@@ -61,19 +64,18 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
         bg-gray-700
         focus:ring-blue-500 focus:border-blue-500
     ";
-    let url = use_context::<Signal<Url>>();
     let mut title = use_signal(|| title);
+    let model = use_context::<Signal<Model>>();
     rsx! {
         div {
             form {
                 class: "flex gap-2 items-center",
                 onsubmit: move |_| {
-                    if !title.read().is_empty() {
-                        editing.set(false);
-                        set_task_title(url, task_id, title())
-                    }
+                    spawn_forever(set_task_title(model, task_id, title()));
+                    editing.set(false);
                 },
                 input {
+                    required: true,
                     class: "p-2.5 {style}",
                     oninput: move |event| title.set(event.value()),
                     value: title
@@ -283,8 +285,8 @@ fn Icon(style: &'static str, d: &'static str) -> Element {
     }
 }
 
-async fn set_task_title(url: Signal<Url>, task_id: TaskId, title: String) {
-    if send_set_task_title_request(url, task_id, title)
+async fn set_task_title(model: Signal<Model>, task_id: TaskId, title: String) {
+    if send_set_task_title_request(model, task_id, title)
         .await
         .is_ok()
     {
@@ -293,7 +295,7 @@ async fn set_task_title(url: Signal<Url>, task_id: TaskId, title: String) {
 }
 
 async fn send_set_task_title_request(
-    model: Signal<Url>,
+    model: Signal<Model>,
     task_id: TaskId,
     title: String,
 ) -> Result<(), anyhow::Error> {
