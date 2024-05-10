@@ -143,7 +143,7 @@ fn TitleShow(editing: Signal<bool>, title: String) -> Element {
                 {title}
             }
             button {
-                style: "size-6",
+                class: "size-5",
                 onclick: move |_| {
                     editing.set(true);
                 },
