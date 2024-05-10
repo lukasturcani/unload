@@ -340,13 +340,14 @@ fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
 }
 
 #[component]
-fn Tooltip(content: String) -> Element {
+fn Tooltip(content: String, position: Option<String>) -> Element {
     let style = "bg-gray-800 rounded-lg shadow-sm";
+    let position = position.unwrap_or("-top-10 -left-2".to_string());
     rsx! {
         div {
             class: "
                 pointer-events-none
-                absolute -top-10 -left-2 z-10
+                absolute {position} z-10
                 w-max px-3 py-2 text-sm
                 opacity-0 transition-opacity group-hover:opacity-100
                 {style}
@@ -363,25 +364,40 @@ fn Tags(task_id: TaskId, tags: Vec<TagId>) -> Element {
 }
 
 #[component]
-fn TaskActions(task_id: TaskId) -> Element {
+fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent>) -> Element {
     let style = "sm:hover:stroke-blue-500 active:stroke-blue-500";
     rsx! {
         div {
+            class: "group relative",
+            button {
+                class: style,
+                onclick: move |event| onclick.call(event),
+                {body}
+            }
+            Tooltip { position: "-top-10 -left-20", content: tooltip }
+        }
+    }
+}
+
+#[component]
+fn TaskActions(task_id: TaskId) -> Element {
+    rsx! {
+        div {
             class: "flex flex-row",
-            button {
-                class: style,
+            ActionButton {
                 onclick: |_| {},
-                BoltIcon {}
+                tooltip: "Add to Quick Tasks",
+                body: rsx!(BoltIcon {}),
             }
-            button {
-                class: style,
+            ActionButton {
                 onclick: |_| {},
-                CopyIcon {}
+                tooltip: "Duplicate Task",
+                body: rsx!(CopyIcon {})
             }
-            button {
-                class: style,
+            ActionButton {
                 onclick: |_| {},
-                ArchiveIcon {}
+                tooltip: "Archive Task",
+                body: rsx!(ArchiveIcon {})
             }
         }
     }
