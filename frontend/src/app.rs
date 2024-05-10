@@ -1,4 +1,4 @@
-use crate::model::{Board, Model, QuickAddTasks, Tags, Tasks, Users};
+use crate::model::{Board, Model, QuickAddTasks, Tags, Tasks, UserFilter, Users};
 use crate::route::Route;
 use dioxus::prelude::*;
 
@@ -10,6 +10,7 @@ pub fn App() -> Element {
     use_context_provider(|| Signal::new(Users::default()));
     use_context_provider(|| Signal::new(Tags::default()));
     use_context_provider(|| Signal::new(QuickAddTasks::default()));
+    use_context_provider(|| Signal::new(UserFilter::default()));
     rsx! {
         Router::<Route>{}
     }

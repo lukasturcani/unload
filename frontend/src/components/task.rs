@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use reqwest::Client;
-use shared_models::{TagId, TaskId, TaskStatus, UserId};
+use shared_models::{Color, TagId, TaskId, TaskStatus, UserData, UserId};
 
 use crate::{
-    model::TaskData,
+    model::{TaskData, UserFilter, Users},
     requests::{self, BoardSignals},
 };
 
@@ -27,7 +27,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
             }
             div {
                 class: "",
-                Users { task_id, users: task.assignees }
+                Assignees { task_id, assignees: task.assignees }
                 // TaskActions { task_id }
             }
             // Tags { task_id, tags: task.tags }
@@ -236,10 +236,59 @@ fn ArchiveIcon() -> Element {
 }
 
 #[component]
-fn Users(task_id: TaskId, users: Vec<UserId>) -> Element {
+fn Assignees(task_id: TaskId, assignees: Vec<UserId>) -> Element {
+    let users = use_context::<Signal<Users>>();
+    let users = &users.read().0;
     rsx! {
         div {
             class: "flex flex-row flex-wrap gap-2",
+            for user_id in assignees {
+                UserBadge { user_id, user_data: users[&user_id].clone() }
+            }
+        }
+    }
+}
+
+#[component]
+fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
+    let mut user_filter = use_context::<Signal<UserFilter>>();
+    let color = match user_data.color {
+        Color::Black => "border-black aria-pressed:bg-black sm:hover:bg-black",
+        Color::White => "border-white aria-pressed:bg-white sm:hover:bg-white",
+        Color::Gray => "border-gray-400 aria-pressed:bg-gray-400 sm:hover:bg-gray-400",
+        Color::Silver => "border-slate-500 aria-pressed:bg-slate-500 sm:hover:bg-slate-500",
+        Color::Maroon => "border-rose-400 aria-pressed:bg-rose-400 sm:hover:bg-rose-400",
+        Color::Red => "border-red-600 aria-pressed:bg-red-600 sm:hover:bg-red-600",
+        Color::Purple => "border-purple-600 aria-pressed:bg-purple-600 sm:hover:bg-purple-600",
+        Color::Fushsia => "border-fuchsia-400 aria-pressed:bg-fuchsia-400 sm:hover:bg-fuchsia-400",
+        Color::Green => "border-emerald-500 aria-pressed:bg-emerald-500 sm:hover:bg-emerald-500",
+        Color::Lime => "border-lime-500 aria-pressed:bg-lime-500 sm:hover:bg-lime-500",
+        Color::Olive => "border-indigo-400 aria-pressed:bg-indigo-400 sm:hover:bg-indigo-400",
+        Color::Yellow => "border-yellow-400 aria-pressed:bg-yellow-400 sm:hover:bg-yellow-400",
+        Color::Navy => "border-amber-200 aria-pressed:bg-amber-200 sm:hover:bg-amber-200",
+        Color::Blue => "border-blue-400 aria-pressed:bg-blue-400 sm:hover:bg-blue-400",
+        Color::Teal => "border-teal-300 aria-pressed:bg-teal-300 sm:hover:bg-teal-300",
+        Color::Aqua => "border-cyan-500 aria-pressed:bg-cyan-500 sm:hover:bg-cyan-500",
+    };
+    let style = "
+        rounded border-2
+        aria-pressed:ring aria-pressed:ring-blue-500
+    ";
+    rsx! {
+        div {
+            class: "group relative",
+            button {
+                class: "size-6 {style} {color}",
+                "aria-pressed": user_filter.read().0.contains(&user_id),
+                onclick: move |_| {
+                    let mut user_filter = user_filter.write();
+                    if user_filter.0.contains(&user_id) {
+                        user_filter.0.remove(&user_id);
+                    } else {
+                        user_filter.0.insert(user_id);
+                    }
+                }
+            }
         }
     }
 }
