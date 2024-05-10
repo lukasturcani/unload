@@ -29,7 +29,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
             div {
                 class: "flex flex row justify-between",
                 Assignees { task_id, assignees: task.assignees, user_search }
-                // TaskActions { task_id }
+                TaskActions { task_id }
             }
             // if user_search {
             //     UserSearch { task_id }
@@ -169,6 +169,7 @@ fn StatusButtons(task_id: TaskId) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
         div {
+            class: "flex flex-row",
             button {
                 class: "active:stroke-red-600 sm:hover:stroke-red-600",
                 onclick: move |_| {
@@ -226,17 +227,32 @@ fn DoneIcon() -> Element {
 
 #[component]
 fn BoltIcon() -> Element {
-    todo!()
+    rsx! {
+        Icon {
+            style: "size-6",
+            d: "m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z",
+        }
+    }
 }
 
 #[component]
 fn CopyIcon() -> Element {
-    todo!()
+    rsx! {
+        Icon {
+            style: "size-6",
+            d: "M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75",
+        }
+    }
 }
 
 #[component]
 fn ArchiveIcon() -> Element {
-    todo!()
+    rsx! {
+        Icon {
+            style: "size-6",
+            d: "m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z",
+        }
+    }
 }
 
 #[component]
@@ -348,7 +364,27 @@ fn Tags(task_id: TaskId, tags: Vec<TagId>) -> Element {
 
 #[component]
 fn TaskActions(task_id: TaskId) -> Element {
-    todo!()
+    let style = "sm:hover:stroke-blue-500 active:stroke-blue-500";
+    rsx! {
+        div {
+            class: "flex flex-row",
+            button {
+                class: style,
+                onclick: |_| {},
+                BoltIcon {}
+            }
+            button {
+                class: style,
+                onclick: |_| {},
+                CopyIcon {}
+            }
+            button {
+                class: style,
+                onclick: |_| {},
+                ArchiveIcon {}
+            }
+        }
+    }
 }
 
 #[component]
