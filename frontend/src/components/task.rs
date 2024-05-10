@@ -142,13 +142,22 @@ fn TitleShow(editing: Signal<bool>, title: String) -> Element {
                 ",
                 {title}
             }
+            EditButton { editing }
+        }
+    }
+}
+
+#[component]
+fn EditButton(editing: Signal<bool>) -> Element {
+    rsx! {
+        div {
+            class: "relative",
             button {
-                class: "size-5",
-                onclick: move |_| {
-                    editing.set(true);
-                },
+                class: "peer size-5",
+                onclick: move |_| editing.set(true),
                 EditIcon {}
             }
+            Tooltip { content: "Edit Title", position: "" }
         }
     }
 }
