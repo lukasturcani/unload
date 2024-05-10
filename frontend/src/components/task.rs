@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use reqwest::Client;
-use shared_models::{TagId, TaskId, UserId};
+use shared_models::{TagId, TaskId, TaskStatus, UserId};
 
 use crate::{
     model::{Model, TaskData},
@@ -23,7 +23,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
             div {
                 class: "flex flex-row justify-between",
                 Title { task_id, title: task.title }
-                // StatusButtons { task_id }
+                StatusButtons { task_id }
             }
             // div {
             //     class: "",
@@ -162,20 +162,28 @@ fn SpecialActions(task_id: TaskId) -> Element {
 
 #[component]
 fn StatusButtons(task_id: TaskId) -> Element {
-    let style = "";
+    let model = use_context::<Signal<Model>>();
     rsx! {
         div {
-            class: "",
             button {
-                class: style,
+                class: "active:stroke-red-600 sm:hover:stroke-red-600",
+                onclick: move |_| {
+                    spawn_forever(set_task_status(model, task_id, TaskStatus::ToDo));
+                },
                 ToDoIcon {}
             }
             button {
-                class: style,
+                class: "active:stroke-yellow-300 sm:hover:stroke-yellow-300",
+                onclick: move |_| {
+                    spawn_forever(set_task_status(model, task_id, TaskStatus::InProgress));
+                },
                 InProgressIcon {}
             }
             button {
-                class: style,
+                class: "active:stroke-green-500 sm:hover:stroke-green-500",
+                onclick: move |_| {
+                    spawn_forever(set_task_status(model, task_id, TaskStatus::Done));
+                },
                 DoneIcon {}
             }
         }
@@ -184,17 +192,32 @@ fn StatusButtons(task_id: TaskId) -> Element {
 
 #[component]
 fn ToDoIcon() -> Element {
-    todo!()
+    rsx! {
+        Icon {
+            style: "size-8",
+            d: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+        }
+    }
 }
 
 #[component]
 fn InProgressIcon() -> Element {
-    todo!()
+    rsx! {
+        Icon {
+            style: "size-8",
+            d: "M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+        }
+    }
 }
 
 #[component]
 fn DoneIcon() -> Element {
-    todo!()
+    rsx! {
+        Icon {
+            style: "size-8",
+            d: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+        }
+    }
 }
 
 #[component]
@@ -309,6 +332,36 @@ async fn send_set_task_title_request(
     Ok(Client::new()
         .put(url)
         .json(&title)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn set_task_status(model: Signal<Model>, task_id: TaskId, status: TaskStatus) {
+    if send_set_task_status_request(model, task_id, status)
+        .await
+        .is_ok()
+    {
+        requests::board(model).await;
+    }
+}
+
+async fn send_set_task_status_request(
+    model: Signal<Model>,
+    task_id: TaskId,
+    status: TaskStatus,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let model = model.read();
+        model.url.join(&format!(
+            "/api/boards/{}/tasks/{}/status",
+            model.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&status)
         .send()
         .await?
         .json::<()>()

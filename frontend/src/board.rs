@@ -65,7 +65,7 @@ fn OneColumnBoard(board_name: BoardName) -> Element {
 
     rsx! {
         div {
-            class: "flex flex-col bg-gray-900 h-dvh w-screen gap-1",
+            class: "flex flex-col bg-gray-900 h-dvh w-screen gap-1 text-white stroke-white",
             div {
                 class: "grow grid grid-cols-1 p-1 overflow-y-auto",
                 match (column, model.read().dense_view) {
