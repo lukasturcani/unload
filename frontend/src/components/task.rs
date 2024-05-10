@@ -416,7 +416,12 @@ fn UserBadges(task_id: TaskId, assignees: Vec<UserId>) -> Element {
 
 #[component]
 fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
-    let style = "border-2 rounded-md py-1 px-2";
+    let style = "border-2 rounded";
+    let button_style = "
+        rounded-md
+        stroke-white
+        sm:hover:border sm:hover:border-white
+    ";
     let color = match user_data.color {
         Color::Black => "border-black text-black",
         Color::White => "border-white text-white",
@@ -437,10 +442,13 @@ fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
     };
     rsx! {
         div {
-            class: "text-sm {style} {color}",
+            class: "
+                flex flex-row items-center gap-2
+                text-sm py-1 px-2 {style} {color}
+            ",
             {user_data.name}
             button {
-                class: "size-4",
+                class: "size-5 p-0.5 {button_style}",
                 CancelIcon {}
             }
         }
