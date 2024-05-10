@@ -279,9 +279,9 @@ fn ToggleUserSearchButton(user_search: Signal<bool>) -> Element {
     ";
     rsx! {
         div {
-            class: "group relative",
+            class: "relative",
             button {
-                class: "size-6 {style}",
+                class: "peer size-6 {style}",
                 "aria-pressed": user_search(),
                 onclick: move |_| {
                     user_search.set(!user_search());
@@ -320,9 +320,9 @@ fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
     ";
     rsx! {
         div {
-            class: "group relative",
+            class: "relative",
             button {
-                class: "size-6 {style} {color}",
+                class: "peer size-6 {style} {color}",
                 "aria-pressed": user_filter.read().0.contains(&user_id),
                 onclick: move |_| {
                     let mut user_filter = user_filter.write();
@@ -349,7 +349,7 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
                 pointer-events-none
                 absolute {position} z-10
                 w-max px-3 py-2 text-sm
-                opacity-0 transition-opacity group-hover:opacity-100
+                opacity-0 transition-opacity peer-hover:opacity-100
                 {style}
             ",
             {content}
@@ -368,9 +368,9 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
     let style = "sm:hover:stroke-blue-500 active:stroke-blue-500";
     rsx! {
         div {
-            class: "group relative",
+            class: "relative",
             button {
-                class: style,
+                class: "peer {style}",
                 onclick: move |event| onclick.call(event),
                 {body}
             }
