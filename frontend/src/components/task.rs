@@ -120,7 +120,7 @@ fn CancelButton(editing: Signal<bool>) -> Element {
     ";
     rsx! {
         button {
-            class: style,
+            class: "size-7 {style}",
             onclick: move |_| {
                 editing.set(false);
             },
@@ -301,7 +301,7 @@ fn Assignees(task_id: TaskId, assignees: Vec<UserId>, user_search: Signal<bool>)
         div {
             class: "flex flex-row flex-wrap gap-2",
             for user_id in assignees {
-                UserBadge { user_id, user_data: users[&user_id].clone() }
+                UserIcon { user_id, user_data: users[&user_id].clone() }
             }
             ToggleUserSearchButton { user_search }
         }
@@ -332,7 +332,7 @@ fn ToggleUserSearchButton(user_search: Signal<bool>) -> Element {
 }
 
 #[component]
-fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
+fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
     let mut user_filter = use_context::<Signal<UserFilter>>();
     let color = match user_data.color {
         Color::Black => "border-black aria-pressed:bg-black sm:hover:bg-black",
@@ -416,6 +416,39 @@ fn UserBadges(task_id: TaskId, assignees: Vec<UserId>) -> Element {
             class: "flex flex-row gap-2 flex-wrap",
             for user_id in assignees {
                 UserBadge { user_id, user_data: users[&user_id].clone() }
+            }
+        }
+    }
+}
+
+#[component]
+fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
+    let style = "border-2 rounded-md py-1 px-2";
+    let color = match user_data.color {
+        Color::Black => "border-black text-black",
+        Color::White => "border-white text-white",
+        Color::Gray => "border-gray-400 text-gray-400",
+        Color::Silver => "border-slate-500 text-slate-500",
+        Color::Maroon => "border-rose-400 text-rose-400",
+        Color::Red => "border-red-600 text-red-600",
+        Color::Purple => "border-purple-600 text-purple-600",
+        Color::Fushsia => "border-fuchsia-400 text-fuchsia-400",
+        Color::Green => "border-emerald-500 text-emerald-500",
+        Color::Lime => "border-lime-500 text-lime-500",
+        Color::Olive => "border-indigo-400 text-indigo-400",
+        Color::Yellow => "border-yellow-400 text-yellow-400",
+        Color::Navy => "border-amber-200 text-amber-200",
+        Color::Blue => "border-blue-400 text-blue-400",
+        Color::Teal => "border-teal-300 text-teal-300",
+        Color::Aqua => "border-cyan-500 text-cyan-500",
+    };
+    rsx! {
+        div {
+            class: "text-sm {style} {color}",
+            {user_data.name}
+            button {
+                class: "size-4",
+                CancelIcon {}
             }
         }
     }
@@ -512,7 +545,7 @@ fn ConfirmIcon() -> Element {
 fn CancelIcon() -> Element {
     rsx! {
         Icon {
-            style: "size-6",
+            style: "",
             d: "M6 18 18 6M6 6l12 12",
         }
     }
