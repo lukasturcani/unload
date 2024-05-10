@@ -391,24 +391,35 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
 
 #[component]
 fn UserSearch(task_id: TaskId, assignees: Vec<UserId>) -> Element {
+    let style = "rounded-lg bg-gray-800 border border-gray-700";
+    let users = use_context::<Signal<Users>>();
+    let users = &users.read().0;
+    let mut assignee_data = Vec::with_capacity(assignees.len());
+    let mut unassigned = Vec::with_capacity(users.len() - assignees.len());
+    for (user_id, user) in users.iter() {
+        if assignees.contains(user_id) {
+            assignee_data.push((*user_id, user.clone()));
+        } else {
+            unassigned.push((*user_id, user.clone()));
+        }
+    }
+    unassigned.sort_by_key(|(_, user)| user.name.to_lowercase());
     rsx! {
         div {
-            class: "flex flex-col gap-2",
-            UserBadges { task_id, assignees }
-            UserList { task_id }
+            class: "flex flex-col gap-2 p-2 {style}",
+            UserBadges { task_id, assignees: assignee_data }
+            UserList { task_id, unassigned }
         }
     }
 }
 
 #[component]
-fn UserBadges(task_id: TaskId, assignees: Vec<UserId>) -> Element {
-    let users = use_context::<Signal<Users>>();
-    let users = &users.read().0;
+fn UserBadges(task_id: TaskId, assignees: Vec<(UserId, UserData)>) -> Element {
     rsx! {
        div {
             class: "flex flex-row gap-2 flex-wrap",
-            for user_id in assignees {
-                UserBadge { task_id, user_id, user_data: users[&user_id].clone() }
+            for (user_id, user_data) in assignees {
+                UserBadge { task_id, user_id, user_data }
             }
         }
     }
@@ -451,7 +462,7 @@ fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
             button {
                 class: "size-5 p-0.5 {button_style}",
                 onclick: move |_| {
-                    spawn(delete_task_assignee(board_signals, task_id, user_id));
+                    spawn_forever(delete_task_assignee(board_signals, task_id, user_id));
                 },
                 CancelIcon {}
             }
@@ -460,8 +471,56 @@ fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
 }
 
 #[component]
-fn UserList(task_id: TaskId) -> Element {
-    rsx! {}
+fn UserList(task_id: TaskId, unassigned: Vec<(UserId, UserData)>) -> Element {
+    let style = "
+        rounded-lg shadow
+        bg-gray-800
+        border border-gray-700
+        divide-y divide-gray-700
+    ";
+    rsx! {
+        ul {
+            class: "text-sm {style}",
+            for (user_id, user) in unassigned {
+                UserListItem { key: "{user_id}", task_id, user_id, user }
+            }
+        }
+    }
+}
+
+#[component]
+fn UserListItem(task_id: TaskId, user_id: UserId, user: UserData) -> Element {
+    let style = "active:bg-gray-700 sm:hover:bg-gray-700";
+    let color = match user.color {
+        Color::Black => "text-black",
+        Color::White => "text-white",
+        Color::Gray => "text-gray-400",
+        Color::Silver => "text-slate-500",
+        Color::Maroon => "text-rose-400",
+        Color::Red => "text-red-600",
+        Color::Purple => "text-purple-600",
+        Color::Fushsia => "text-fuchsia-400",
+        Color::Green => "text-emerald-500",
+        Color::Lime => "text-lime-500",
+        Color::Olive => "text-indigo-400",
+        Color::Yellow => "text-yellow-400",
+        Color::Navy => "text-amber-200",
+        Color::Blue => "text-blue-400",
+        Color::Teal => "text-teal-300",
+        Color::Aqua => "text-cyan-500",
+    };
+    let board_signals = BoardSignals::default();
+    rsx! {
+        li {
+            button {
+                class: "px-4 py-2 w-full text-left {style} {color}",
+                onclick: move |_| {
+                    spawn_forever(add_task_assignee(board_signals, task_id, user_id));
+                },
+                {user.name}
+            }
+        }
+    }
 }
 
 #[component]
@@ -753,4 +812,34 @@ async fn send_delete_task_assignee_request(
         ))?
     };
     Ok(Client::new().delete(url).send().await?.json::<()>().await?)
+}
+
+async fn add_task_assignee(signals: BoardSignals, task_id: TaskId, assignee: UserId) {
+    if send_add_task_assignee_request(signals, task_id, assignee)
+        .await
+        .is_ok()
+    {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_add_task_assignee_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+    assignee: UserId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let board = signals.board.read();
+        board.url.join(&format!(
+            "/api/boards/{}/tasks/{}/assignees",
+            board.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .post(url)
+        .json(&assignee)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
 }
