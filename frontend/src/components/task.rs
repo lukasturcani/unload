@@ -17,6 +17,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
         bg-gray-800 sm:hover:bg-gray-700
     ";
     let expanded = use_signal(|| false);
+    let user_search = use_signal(|| false);
     rsx! {
         div {
             class: "flex flex-col gap-2 p-3 {style}",
@@ -26,10 +27,13 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
                 StatusButtons { task_id }
             }
             div {
-                class: "",
-                Assignees { task_id, assignees: task.assignees }
+                class: "flex flex row justify-between",
+                Assignees { task_id, assignees: task.assignees, user_search }
                 // TaskActions { task_id }
             }
+            // if user_search {
+            //     UserSearch { task_id }
+            // }
             // Tags { task_id, tags: task.tags }
             // if expanded() {
             //     Due { task_id, due: task.due }
@@ -69,7 +73,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
     rsx! {
         div {
             form {
-                class: "flex gap-2 items-center",
+                class: "flex flex-row gap-2 items-center",
                 onsubmit: move |_| {
                     spawn_forever(set_task_title(board_signals, task_id, title()));
                     editing.set(false);
@@ -129,7 +133,7 @@ fn CancelButton(editing: Signal<bool>) -> Element {
 fn TitleShow(editing: Signal<bool>, title: String) -> Element {
     rsx! {
         div {
-            class: "flex gap-2 items-center",
+            class: "flex flex-row gap-2 items-center",
             h3 {
                 class: "
                     text-lg sm:text-xl
@@ -236,7 +240,7 @@ fn ArchiveIcon() -> Element {
 }
 
 #[component]
-fn Assignees(task_id: TaskId, assignees: Vec<UserId>) -> Element {
+fn Assignees(task_id: TaskId, assignees: Vec<UserId>, user_search: Signal<bool>) -> Element {
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     rsx! {
@@ -245,6 +249,30 @@ fn Assignees(task_id: TaskId, assignees: Vec<UserId>) -> Element {
             for user_id in assignees {
                 UserBadge { user_id, user_data: users[&user_id].clone() }
             }
+            ToggleUserSearchButton { user_search }
+        }
+    }
+}
+
+#[component]
+fn ToggleUserSearchButton(user_search: Signal<bool>) -> Element {
+    let style = "
+        rounded border-2 border-white
+        sm:hover:bg-white sm:hover:stroke-black
+        aria-pressed:bg-white aria-pressed:stroke-black
+    ";
+    rsx! {
+        div {
+            class: "group relative",
+            button {
+                class: "size-6 {style}",
+                "aria-pressed": user_search(),
+                onclick: move |_| {
+                    user_search.set(!user_search());
+                },
+                PlusIcon {}
+            }
+            Tooltip { content: "Assign User" }
         }
     }
 }
@@ -357,6 +385,16 @@ fn CancelIcon() -> Element {
         Icon {
             style: "size-6",
             d: "M6 18 18 6M6 6l12 12",
+        }
+    }
+}
+
+#[component]
+fn PlusIcon() -> Element {
+    rsx! {
+        Icon {
+            style: "",
+            d: "M12 4.5v15m7.5-7.5h-15",
         }
     }
 }
