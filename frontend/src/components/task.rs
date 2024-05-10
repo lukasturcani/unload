@@ -328,8 +328,9 @@ fn Tooltip(content: String) -> Element {
     rsx! {
         div {
             class: "
+                pointer-events-none
                 absolute -top-10 -left-2 z-10
-                px-3 py-2 text-sm
+                w-max px-3 py-2 text-sm
                 opacity-0 transition-opacity group-hover:opacity-100
                 {style}
             ",
