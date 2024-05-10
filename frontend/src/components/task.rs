@@ -408,14 +408,15 @@ fn UserBadges(task_id: TaskId, assignees: Vec<UserId>) -> Element {
        div {
             class: "flex flex-row gap-2 flex-wrap",
             for user_id in assignees {
-                UserBadge { user_id, user_data: users[&user_id].clone() }
+                UserBadge { task_id, user_id, user_data: users[&user_id].clone() }
             }
         }
     }
 }
 
 #[component]
-fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
+fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
+    let board_signals = BoardSignals::default();
     let style = "border-2 rounded";
     let button_style = "
         rounded-md
@@ -449,6 +450,9 @@ fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
             {user_data.name}
             button {
                 class: "size-5 p-0.5 {button_style}",
+                onclick: move |_| {
+                    spawn(delete_task_assignee(board_signals, task_id, user_id));
+                },
                 CancelIcon {}
             }
         }
@@ -725,4 +729,28 @@ async fn send_archive_task_request(
         .await?
         .json::<()>()
         .await?)
+}
+
+async fn delete_task_assignee(signals: BoardSignals, task_id: TaskId, assignee: UserId) {
+    if send_delete_task_assignee_request(signals, task_id, assignee)
+        .await
+        .is_ok()
+    {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_delete_task_assignee_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+    assignee: UserId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let board = signals.board.read();
+        board.url.join(&format!(
+            "/api/boards/{}/tasks/{}/assignees/{}",
+            board.board_name, task_id, assignee
+        ))?
+    };
+    Ok(Client::new().delete(url).send().await?.json::<()>().await?)
 }
