@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use reqwest::Client;
-use shared_models::{Color, TagId, TaskId, TaskStatus, UserData, UserId};
+use shared_models::{Color, QuickAddData, TagId, TaskId, TaskStatus, UserData, UserId};
 
 use crate::{
     model::{TaskData, UserFilter, Users},
@@ -419,21 +419,28 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
 
 #[component]
 fn TaskActions(task_id: TaskId) -> Element {
+    let board_signals = BoardSignals::default();
     rsx! {
         div {
             class: "flex flex-row",
             ActionButton {
-                onclick: |_| {},
+                onclick: move |_| {
+                    spawn_forever(create_quick_add_task(board_signals, task_id));
+                },
                 tooltip: "Add to Quick Tasks",
                 body: rsx!(BoltIcon {}),
             }
             ActionButton {
-                onclick: |_| {},
+                onclick: move |_| {
+                    spawn_forever(clone_task(board_signals, task_id)) ;
+                },
                 tooltip: "Duplicate Task",
                 body: rsx!(CopyIcon {})
             }
             ActionButton {
-                onclick: |_| {},
+                onclick: move |_| {
+                    spawn_forever(archive_task(board_signals, task_id));
+                },
                 tooltip: "Archive Task",
                 body: rsx!(ArchiveIcon {})
             }
@@ -563,6 +570,96 @@ async fn send_set_task_status_request(
     Ok(Client::new()
         .put(url)
         .json(&status)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn create_quick_add_task(signals: BoardSignals, task_id: TaskId) {
+    if send_create_quick_add_task_request(signals, task_id)
+        .await
+        .is_ok()
+    {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_create_quick_add_task_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+) -> Result<TaskId, anyhow::Error> {
+    let (url, task_data) = {
+        let board = signals.board.read();
+        let task = &signals.tasks.read().0[&task_id];
+        let url = board
+            .url
+            .join(&format!("/api/boards/{}/quick-add", board.board_name))?;
+        (
+            url,
+            QuickAddData {
+                title: task.title.clone(),
+                description: task.description.clone(),
+                size: task.size,
+                tags: task.tags.clone(),
+                assignees: task.assignees.clone(),
+            },
+        )
+    };
+    Ok(reqwest::Client::new()
+        .post(url)
+        .json(&task_data)
+        .send()
+        .await?
+        .json::<TaskId>()
+        .await?)
+}
+
+async fn clone_task(signals: BoardSignals, task_id: TaskId) {
+    if send_clone_task_request(signals, task_id).await.is_ok() {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_clone_task_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+) -> Result<TaskId, anyhow::Error> {
+    let url = {
+        let board = signals.board.read();
+        board.url.join(&format!(
+            "/api/boards/{}/tasks/{}/clone",
+            board.board_name, task_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .post(url)
+        .send()
+        .await?
+        .json::<TaskId>()
+        .await?)
+}
+
+async fn archive_task(signals: BoardSignals, task_id: TaskId) {
+    if send_archive_task_request(signals, task_id).await.is_ok() {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_archive_task_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let board = signals.board.read();
+        board.url.join(&format!(
+            "/api/boards/{}/tasks/{}/archived",
+            board.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&true)
         .send()
         .await?
         .json::<()>()
