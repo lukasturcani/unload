@@ -289,7 +289,25 @@ fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
                     }
                 }
             }
+            Tooltip { content: user_data.name }
         }
+    }
+}
+
+#[component]
+fn Tooltip(content: String) -> Element {
+    let style = "bg-gray-800 rounded-lg shadow-sm";
+    rsx! {
+        div {
+            class: "
+                absolute -top-10 -left-2 z-10
+                px-3 py-2 text-sm
+                opacity-0 transition-opacity group-hover:opacity-100
+                {style}
+            ",
+            {content}
+        }
+
     }
 }
 
