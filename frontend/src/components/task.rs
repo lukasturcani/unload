@@ -166,31 +166,66 @@ fn SpecialActions(task_id: TaskId) -> Element {
 
 #[component]
 fn StatusButtons(task_id: TaskId) -> Element {
-    let board_signals = BoardSignals::default();
     rsx! {
         div {
             class: "flex flex-row",
+            ToDoButton { task_id }
+            InProgressButton { task_id }
+            DoneButton { task_id }
+        }
+    }
+}
+
+#[component]
+fn ToDoButton(task_id: TaskId) -> Element {
+    let board_signals = BoardSignals::default();
+    rsx! {
+        div {
+            class: "relative",
             button {
-                class: "active:stroke-red-600 sm:hover:stroke-red-600",
+                class: "peer active:stroke-red-600 sm:hover:stroke-red-600",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::ToDo));
                 },
                 ToDoIcon {}
             }
+            Tooltip { content: "To Do", position: "" }
+        }
+    }
+}
+
+#[component]
+fn InProgressButton(task_id: TaskId) -> Element {
+    let board_signals = BoardSignals::default();
+    rsx! {
+        div {
+            class: "relative",
             button {
-                class: "active:stroke-yellow-300 sm:hover:stroke-yellow-300",
+                class: "peer active:stroke-yellow-300 sm:hover:stroke-yellow-300",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::InProgress));
                 },
                 InProgressIcon {}
             }
+            Tooltip { content: "In Progress", position: "-left-10" }
+        }
+    }
+}
+
+#[component]
+fn DoneButton(task_id: TaskId) -> Element {
+    let board_signals = BoardSignals::default();
+    rsx! {
+        div {
+            class: "relative",
             button {
-                class: "active:stroke-green-500 sm:hover:stroke-green-500",
+                class: "peer active:stroke-green-500 sm:hover:stroke-green-500",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::Done));
                 },
                 DoneIcon {}
             }
+            Tooltip { content: "Done", position: "-left-4" }
         }
     }
 }
