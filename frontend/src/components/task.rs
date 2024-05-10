@@ -315,7 +315,8 @@ fn UserBadge(user_id: UserId, user_data: UserData) -> Element {
                     } else {
                         user_filter.0.insert(user_id);
                     }
-                }
+                },
+                div { class: "size-full" }
             }
             Tooltip { content: user_data.name }
         }
