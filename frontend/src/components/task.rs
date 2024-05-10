@@ -178,12 +178,13 @@ fn StatusButtons(task_id: TaskId) -> Element {
 
 #[component]
 fn ToDoButton(task_id: TaskId) -> Element {
+    let style = "active:stroke-red-600 sm:hover:stroke-red-600";
     let board_signals = BoardSignals::default();
     rsx! {
         div {
             class: "relative",
             button {
-                class: "peer active:stroke-red-600 sm:hover:stroke-red-600",
+                class: "peer {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::ToDo));
                 },
@@ -196,12 +197,13 @@ fn ToDoButton(task_id: TaskId) -> Element {
 
 #[component]
 fn InProgressButton(task_id: TaskId) -> Element {
+    let style = "active:stroke-yellow-300 sm:hover:stroke-yellow-300";
     let board_signals = BoardSignals::default();
     rsx! {
         div {
             class: "relative",
             button {
-                class: "peer active:stroke-yellow-300 sm:hover:stroke-yellow-300",
+                class: "peer {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::InProgress));
                 },
@@ -214,12 +216,13 @@ fn InProgressButton(task_id: TaskId) -> Element {
 
 #[component]
 fn DoneButton(task_id: TaskId) -> Element {
+    let style = "active:stroke-green-500 sm:hover:stroke-green-500";
     let board_signals = BoardSignals::default();
     rsx! {
         div {
             class: "relative",
             button {
-                class: "peer active:stroke-green-500 sm:hover:stroke-green-500",
+                class: "peer {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::Done));
                 },
