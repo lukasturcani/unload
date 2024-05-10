@@ -31,9 +31,9 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
                 Assignees { task_id, assignees: task.assignees, user_search }
                 TaskActions { task_id }
             }
-            // if user_search {
-            //     UserSearch { task_id }
-            // }
+            if user_search() {
+                UserSearch { task_id }
+            }
             // Tags { task_id, tags: task.tags }
             // if expanded() {
             //     Due { task_id, due: task.due }
@@ -397,6 +397,11 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
 }
 
 #[component]
+fn UserSearch(task_id: TaskId) -> Element {
+    rsx! {}
+}
+
+#[component]
 fn Tags(task_id: TaskId, tags: Vec<TagId>) -> Element {
     todo!()
 }
@@ -494,18 +499,20 @@ fn PlusIcon() -> Element {
         Icon {
             style: "",
             d: "M12 4.5v15m7.5-7.5h-15",
+            stroke_width: "2",
         }
     }
 }
 
 #[component]
-fn Icon(style: &'static str, d: &'static str) -> Element {
+fn Icon(style: &'static str, d: &'static str, stroke_width: Option<&'static str>) -> Element {
+    let stroke_width = stroke_width.unwrap_or("1.5");
     rsx! {
         svg {
             xmlns: "http://www.w3.org/2000/svg",
             fill: "none",
             "viewBox": "0 0 24 24",
-            "stroke-width": "1.5",
+            "stroke-width": stroke_width,
             class: style,
             path {
                 "stroke-linecap": "round",
