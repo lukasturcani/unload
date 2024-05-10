@@ -4,8 +4,8 @@ use reqwest::Client;
 use shared_models::{TagId, TaskId, TaskStatus, UserId};
 
 use crate::{
-    model::{Model, TaskData},
-    requests,
+    model::TaskData,
+    requests::{self, BoardSignals},
 };
 
 #[component]
@@ -25,11 +25,11 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
                 Title { task_id, title: task.title }
                 StatusButtons { task_id }
             }
-            // div {
-            //     class: "",
-            //     Users { task_id, users: task.assignees }
-            //     TaskActions { task_id }
-            // }
+            div {
+                class: "",
+                Users { task_id, users: task.assignees }
+                // TaskActions { task_id }
+            }
             // Tags { task_id, tags: task.tags }
             // if expanded() {
             //     Due { task_id, due: task.due }
@@ -65,13 +65,13 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
         focus:ring-blue-500 focus:border-blue-500
     ";
     let mut title = use_signal(|| title);
-    let model = use_context::<Signal<Model>>();
+    let board_signals = BoardSignals::default();
     rsx! {
         div {
             form {
                 class: "flex gap-2 items-center",
                 onsubmit: move |_| {
-                    spawn_forever(set_task_title(model, task_id, title()));
+                    spawn_forever(set_task_title(board_signals, task_id, title()));
                     editing.set(false);
                 },
                 input {
@@ -162,27 +162,27 @@ fn SpecialActions(task_id: TaskId) -> Element {
 
 #[component]
 fn StatusButtons(task_id: TaskId) -> Element {
-    let model = use_context::<Signal<Model>>();
+    let board_signals = BoardSignals::default();
     rsx! {
         div {
             button {
                 class: "active:stroke-red-600 sm:hover:stroke-red-600",
                 onclick: move |_| {
-                    spawn_forever(set_task_status(model, task_id, TaskStatus::ToDo));
+                    spawn_forever(set_task_status(board_signals, task_id, TaskStatus::ToDo));
                 },
                 ToDoIcon {}
             }
             button {
                 class: "active:stroke-yellow-300 sm:hover:stroke-yellow-300",
                 onclick: move |_| {
-                    spawn_forever(set_task_status(model, task_id, TaskStatus::InProgress));
+                    spawn_forever(set_task_status(board_signals, task_id, TaskStatus::InProgress));
                 },
                 InProgressIcon {}
             }
             button {
                 class: "active:stroke-green-500 sm:hover:stroke-green-500",
                 onclick: move |_| {
-                    spawn_forever(set_task_status(model, task_id, TaskStatus::Done));
+                    spawn_forever(set_task_status(board_signals, task_id, TaskStatus::Done));
                 },
                 DoneIcon {}
             }
@@ -237,7 +237,11 @@ fn ArchiveIcon() -> Element {
 
 #[component]
 fn Users(task_id: TaskId, users: Vec<UserId>) -> Element {
-    todo!()
+    rsx! {
+        div {
+            class: "flex flex-row flex-wrap gap-2",
+        }
+    }
 }
 
 #[component]
@@ -308,25 +312,25 @@ fn Icon(style: &'static str, d: &'static str) -> Element {
     }
 }
 
-async fn set_task_title(model: Signal<Model>, task_id: TaskId, title: String) {
-    if send_set_task_title_request(model, task_id, title)
+async fn set_task_title(signals: BoardSignals, task_id: TaskId, title: String) {
+    if send_set_task_title_request(signals, task_id, title)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_set_task_title_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
     title: String,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/title",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(Client::new()
@@ -338,25 +342,25 @@ async fn send_set_task_title_request(
         .await?)
 }
 
-async fn set_task_status(model: Signal<Model>, task_id: TaskId, status: TaskStatus) {
-    if send_set_task_status_request(model, task_id, status)
+async fn set_task_status(signals: BoardSignals, task_id: TaskId, status: TaskStatus) {
+    if send_set_task_status_request(signals, task_id, status)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_set_task_status_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
     status: TaskStatus,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/status",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(Client::new()

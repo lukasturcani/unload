@@ -10,6 +10,45 @@ use shared_models::{
     UserId,
 };
 
+#[derive(Debug)]
+pub struct Board {
+    pub url: Url,
+    pub board_name: BoardName,
+    pub to_do: Vec<TaskId>,
+    pub in_progress: Vec<TaskId>,
+    pub done: Vec<TaskId>,
+    pub tag_filter: HashSet<TagId>,
+    pub size_filter: Option<TaskSize>,
+    pub user_filter: HashSet<UserId>,
+    pub dense_view: bool,
+}
+
+impl Default for Board {
+    fn default() -> Self {
+        Self {
+            url: Url::from_str(&web_sys::window().unwrap().origin()).unwrap(),
+            board_name: BoardName::from(""),
+            to_do: Vec::default(),
+            in_progress: Vec::default(),
+            done: Vec::default(),
+            tag_filter: HashSet::default(),
+            size_filter: None,
+            user_filter: HashSet::default(),
+            dense_view: false,
+        }
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct Tasks(pub HashMap<TaskId, TaskData>);
+#[derive(Debug, Default)]
+pub struct Users(pub HashMap<UserId, UserData>);
+#[derive(Debug, Default)]
+pub struct Tags(pub HashMap<TagId, TagData>);
+#[derive(Debug, Default)]
+pub struct QuickAddTasks(pub HashMap<QuickAddTaskId, QuickAddData>);
+
+#[derive(Debug)]
 pub struct Model {
     pub url: Url,
     pub board_name: BoardName,

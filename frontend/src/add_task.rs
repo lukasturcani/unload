@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::color_picker;
 use crate::color_picker::ColorPicker;
-use crate::requests;
+use crate::requests::{self, BoardSignals};
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
 use crate::{model::Model, styles};
@@ -63,6 +63,7 @@ const RADIO_LABEL: &str = "
 
 #[component]
 fn AddTaskImpl(board_name: BoardName, default_status: TaskStatus) -> Element {
+    let board_signals = BoardSignals::default();
     let mut model = use_context::<Signal<Model>>();
     let nav = use_navigator();
     let mut title = use_signal(String::new);
@@ -91,7 +92,7 @@ fn AddTaskImpl(board_name: BoardName, default_status: TaskStatus) -> Element {
     if model.read().board_name != board_name {
         model.write().board_name = board_name.clone()
     }
-    use_future(move || requests::board(model));
+    use_future(move || requests::board(board_signals));
     rsx! {
         div {
             class: "
@@ -324,7 +325,7 @@ fn AddTaskImpl(board_name: BoardName, default_status: TaskStatus) -> Element {
                             // TODO: once future issue is fixed change page
                             // as first thing
                             create_task(
-                                model,
+                                board_signals,
                                 shared_models::TaskData {
                                     title:
                                         title
@@ -386,6 +387,7 @@ fn AddTaskImpl(board_name: BoardName, default_status: TaskStatus) -> Element {
 
 #[component]
 fn TagSearch(on_select_tag: EventHandler<TagId>, on_remove_tag: EventHandler<TagId>) -> Element {
+    let board_signals = BoardSignals::default();
     let mut model = use_context::<Signal<Model>>();
     let mut selected = use_signal(HashSet::new);
     if model.read().tag_search_created_tag.is_some() {
@@ -520,7 +522,7 @@ fn TagSearch(on_select_tag: EventHandler<TagId>, on_remove_tag: EventHandler<Tag
                                             return;
                                         }
                                         spawn(create_tag(
-                                            model,
+                                            board_signals,
                                             TagData {
                                                 name: new_tag.drain(..).collect(),
                                                 color
@@ -543,6 +545,7 @@ fn UserSearch(
     on_select_user: EventHandler<UserId>,
     on_remove_user: EventHandler<UserId>,
 ) -> Element {
+    let board_signals = BoardSignals::default();
     let mut model = use_context::<Signal<Model>>();
     let mut selected = use_signal(HashSet::new);
     if model.read().user_search_created_user.is_some() {
@@ -687,7 +690,7 @@ fn UserSearch(
                                             return;
                                         }
                                         spawn(create_user(
-                                            model,
+                                            board_signals,
                                             UserData {
                                                 name: new_user.drain(..).collect(),
                                                 color
@@ -704,29 +707,29 @@ fn UserSearch(
     }
 }
 
-async fn create_task(model: Signal<Model>, task_data: shared_models::TaskData, nav: Navigator) {
+async fn create_task(signals: BoardSignals, task_data: shared_models::TaskData, nav: Navigator) {
     if task_data.title.is_empty() {
         log::info!("empty task title, doing nothing");
         return;
     }
-    if let Ok(task_id) = requests::create_task(model, &task_data).await {
+    if let Ok(task_id) = requests::create_task(signals.board, &task_data).await {
         log::info!("created task: {task_id}");
     }
     nav.push(Route::Board {
-        board_name: model.read().board_name.clone(),
+        board_name: signals.board.read().board_name.clone(),
     });
 }
 
-async fn create_tag(mut model: Signal<Model>, tag_data: TagData) {
-    if let Ok(tag_data) = requests::create_tag(model, tag_data).await {
-        requests::board(model).await;
-        model.write().tag_search_created_tag = Some(tag_data);
+async fn create_tag(mut signals: BoardSignals, tag_data: TagData) {
+    if let Ok(tag_data) = requests::create_tag(signals.board, tag_data).await {
+        requests::board(signals).await;
+        signals.model.write().tag_search_created_tag = Some(tag_data);
     }
 }
 
-async fn create_user(mut model: Signal<Model>, user_data: UserData) {
-    if let Ok(user_data) = requests::create_user(model, user_data).await {
-        requests::board(model).await;
-        model.write().user_search_created_user = Some(user_data);
+async fn create_user(mut signals: BoardSignals, user_data: UserData) {
+    if let Ok(user_data) = requests::create_user(signals.board, user_data).await {
+        requests::board(signals).await;
+        signals.model.write().user_search_created_user = Some(user_data);
     }
 }

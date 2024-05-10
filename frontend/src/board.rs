@@ -16,7 +16,7 @@ use shared_models::{Color, QuickAddData, QuickAddTaskId, TagId, TaskData, TaskSt
 use shared_models::{TaskSize, UserId};
 
 use crate::model::Model;
-use crate::requests;
+use crate::requests::{self, BoardSignals};
 use crate::{color_picker, styles};
 use shared_models::{BoardName, TaskId};
 
@@ -49,9 +49,10 @@ pub fn Board(board_name: BoardName) -> Element {
 
 #[component]
 fn OneColumnBoard(board_name: BoardName) -> Element {
-    let mut model = use_context::<Signal<Model>>();
-    if model.read().board_name != board_name {
-        model.write().board_name = board_name.clone()
+    let mut board_signals = BoardSignals::default();
+    if board_signals.model.read().board_name != board_name {
+        board_signals.model.write().board_name = board_name.clone();
+        board_signals.board.write().board_name = board_name.clone();
     }
     let nav = use_navigator();
 
@@ -61,14 +62,14 @@ fn OneColumnBoard(board_name: BoardName) -> Element {
     let mut show_filters_signal = use_signal(|| false);
     let show_filters = show_filters_signal();
 
-    use_future(move || requests::board(model));
+    use_future(move || requests::board(board_signals));
 
     rsx! {
         div {
             class: "flex flex-col bg-gray-900 h-dvh w-screen gap-1 text-white stroke-white",
             div {
                 class: "grow grid grid-cols-1 p-1 overflow-y-auto",
-                match (column, model.read().dense_view) {
+                match (column, board_signals.model.read().dense_view) {
                     (TaskStatus::ToDo, false) => rsx! { ToDoColumn {} },
                     (TaskStatus::InProgress, false) => rsx! { InProgressColumn {} },
                     (TaskStatus::Done, false) => rsx! { DoneColumn {} },
@@ -257,11 +258,12 @@ fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let style = "
         text-white stroke-white
     ";
-    let mut model = use_context::<Signal<Model>>();
-    if model.read().board_name != board_name {
-        model.write().board_name = board_name.clone()
+    let mut board_signals = BoardSignals::default();
+    if board_signals.model.read().board_name != board_name {
+        board_signals.model.write().board_name = board_name.clone();
+        board_signals.board.write().board_name = board_name.clone();
     }
-    use_future(move || requests::board(model));
+    use_future(move || requests::board(board_signals));
     rsx! {
         div {
             class: "flex flex-col bg-gray-900 h-dvh w-screen {style}",
@@ -271,7 +273,7 @@ fn ThreeColumnBoard(board_name: BoardName) -> Element {
                     class: "grow w-full h-full overflow-y-auto",
                     div {
                         class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
-                        if model.read().dense_view {
+                        if board_signals.model.read().dense_view {
                             DenseToDoColumn {}
                             DenseInProgressColumn {}
                             DenseDoneColumn {}
@@ -1177,6 +1179,7 @@ fn QuickAddTasks(status: TaskStatus) -> Element {
 
 #[component]
 fn QuickAddTask(task_id: QuickAddTaskId, status: TaskStatus) -> Element {
+    let board_signals = BoardSignals::default();
     let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let data = &read_model.quick_add[&task_id];
@@ -1201,7 +1204,7 @@ fn QuickAddTask(task_id: QuickAddTaskId, status: TaskStatus) -> Element {
                     let read_model = model.read();
                     let data = &read_model.quick_add[&task_id];
                     event.stop_propagation();
-                    create_task(model, TaskData {
+                    create_task(board_signals, TaskData {
                         title: data.title.clone(),
                         description: data.description.clone(),
                         size: data.size,
@@ -1261,7 +1264,7 @@ fn QuickAddTask(task_id: QuickAddTaskId, status: TaskStatus) -> Element {
                             class: "w-6 h-6 cursor-pointer text-red-600",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                delete_quick_add_task(model, task_id)
+                                delete_quick_add_task(board_signals, task_id)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1294,6 +1297,7 @@ fn size_bg(model: Signal<Model>, size: &TaskSize) -> &'static str {
 
 #[component]
 fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
+    let board_signals = BoardSignals::default();
     let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     let data = &read_model.tasks[&task_id];
@@ -1362,7 +1366,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                             onclick: move |event| {
                                 event.stop_propagation();
                                 editing_title_signal.set(false);
-                                set_task_title(model, task_id, new_title_signal())
+                                set_task_title(board_signals, task_id, new_title_signal())
                             },
                             svg {
                                 xmlns: "http://www.w3.org/2000/svg",
@@ -1531,7 +1535,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 onclick: move |event| {
                                     event.stop_propagation();
                                     editing_description_signal.set(false);
-                                    set_task_description(model, task_id, new_description_signal())
+                                    set_task_description(board_signals, task_id, new_description_signal())
                                 },
                                 svg {
                                     xmlns: "http://www.w3.org/2000/svg",
@@ -1642,7 +1646,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
                                 onclick: move |event| {
                                     event.stop_propagation();
-                                    set_task_status(model, task_id, TaskStatus::ToDo)
+                                    set_task_status(board_signals, task_id, TaskStatus::ToDo)
                                 },
                                 path {
                                     "stroke-linecap": "round",
@@ -1659,7 +1663,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
                                 onclick: move |event| {
                                     event.stop_propagation();
-                                    set_task_status(model, task_id, TaskStatus::InProgress)
+                                    set_task_status(board_signals, task_id, TaskStatus::InProgress)
                                 },
                                 path {
                                     "stroke-linecap": "round",
@@ -1676,7 +1680,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
                                 onclick: move |event| {
                                     event.stop_propagation();
-                                    set_task_status(model, task_id, TaskStatus::Done)
+                                    set_task_status(board_signals, task_id, TaskStatus::Done)
                                 },
                                 path {
                                     "stroke-linecap": "round",
@@ -1701,7 +1705,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 onclick: move |event| {
                                     event.stop_propagation();
                                     editing_size_signal.set(false);
-                                    set_task_size(model, task_id, TaskSize::Small)
+                                    set_task_size(board_signals, task_id, TaskSize::Small)
                                 },
                                 "Small",
                             }
@@ -1714,7 +1718,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 onclick: move |event| {
                                     event.stop_propagation();
                                     editing_size_signal.set(false);
-                                    set_task_size(model, task_id, TaskSize::Medium)
+                                    set_task_size(board_signals, task_id, TaskSize::Medium)
                                 },
                                 "Medium",
                             }
@@ -1727,7 +1731,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                                 onclick: move |event| {
                                     event.stop_propagation();
                                     editing_size_signal.set(false);
-                                    set_task_size(model, task_id, TaskSize::Large)
+                                    set_task_size(board_signals, task_id, TaskSize::Large)
                                 },
                                 "Large",
                             }
@@ -1865,7 +1869,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                             ",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                create_quick_add_task(model, task_id)
+                                create_quick_add_task(board_signals, task_id)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1885,7 +1889,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                             ",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                clone_task(model, task_id)
+                                clone_task(board_signals, task_id)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1905,7 +1909,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                             ",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                archive_task(model, task_id)
+                                archive_task(board_signals, task_id)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -1947,7 +1951,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
                         class: "w-6 h-6 cursor-pointer text-red-600",
                         onclick: move |event| {
                             event.stop_propagation();
-                            delete_task(model, task_id)
+                            delete_task(board_signals, task_id)
                         },
                         path {
                             "stroke-linecap": "round",
@@ -1963,6 +1967,7 @@ fn DenseTask(task_id: TaskId, status: TaskStatus) -> Element {
 
 #[component]
 fn Task(task_id: TaskId, status: TaskStatus) -> Element {
+    let board_signals = BoardSignals::default();
     let mut model = use_context::<Signal<Model>>();
 
     let mut expanded_signal = use_signal(|| false);
@@ -2012,7 +2017,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                         oninput: move |event| new_title.set(event.value()),
                         onfocusout: move |_| {
                             editing_title_signal.set(false);
-                            set_task_title(model, task_id, new_title())
+                            set_task_title(board_signals, task_id, new_title())
                         },
                         onmouseenter: move |_| draggable_signal.set(false),
                         onmouseleave: move |_| draggable_signal.set(true),
@@ -2045,7 +2050,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                             class: "cursor-pointer w-8 h-8 text-white active:text-red-600 sm:hover:text-red-600",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                set_task_status(model, task_id, TaskStatus::ToDo)
+                                set_task_status(board_signals, task_id, TaskStatus::ToDo)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -2062,7 +2067,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                             "class": "cursor-pointer w-8 h-8 text-white active:text-yellow-300 sm:hover:text-yellow-300",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                set_task_status(model, task_id, TaskStatus::InProgress)
+                                set_task_status(board_signals, task_id, TaskStatus::InProgress)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -2079,7 +2084,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                             class: "cursor-pointer w-8 h-8 text-white active:text-green-500 sm:hover:text-green-500",
                             onclick: move |event| {
                                 event.stop_propagation();
-                                set_task_status(model, task_id, TaskStatus::Done)
+                                set_task_status(board_signals, task_id, TaskStatus::Done)
                             },
                             path {
                                 "stroke-linecap": "round",
@@ -2113,7 +2118,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
-                            create_quick_add_task(model, task_id)
+                            create_quick_add_task(board_signals, task_id)
                         },
                         path {
                             "stroke-linecap": "round",
@@ -2133,7 +2138,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
-                            clone_task(model, task_id)
+                            clone_task(board_signals, task_id)
                         },
                         path {
                             "stroke-linecap": "round",
@@ -2153,7 +2158,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                         ",
                         onclick: move |event| {
                             event.stop_propagation();
-                            archive_task(model, task_id)
+                            archive_task(board_signals, task_id)
                         },
                         path {
                             "stroke-linecap": "round",
@@ -2197,7 +2202,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                             onclick: move |event| {
                                 event.stop_propagation();
                                 editing_size_signal.set(false);
-                                set_task_size(model, task_id, TaskSize::Small)
+                                set_task_size(board_signals, task_id, TaskSize::Small)
                             },
                             "Small",
                         }
@@ -2210,7 +2215,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                             onclick: move |event| {
                                 event.stop_propagation();
                                 editing_size_signal.set(false);
-                                set_task_size(model, task_id, TaskSize::Medium)
+                                set_task_size(board_signals, task_id, TaskSize::Medium)
                             },
                             "Medium",
                         }
@@ -2223,7 +2228,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                             onclick: move |event| {
                                 event.stop_propagation();
                                 editing_size_signal.set(false);
-                                set_task_size(model, task_id, TaskSize::Large)
+                                set_task_size(board_signals, task_id, TaskSize::Large)
                             },
                             "Large",
                         }
@@ -2379,7 +2384,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                         oninput: move |event| new_description.set(event.value()),
                         onfocusout: move |_| {
                             editing_description_signal.set(false);
-                            set_task_description(model, task_id, new_description())
+                            set_task_description(board_signals, task_id, new_description())
                         },
                         onmouseenter: move |_| draggable_signal.set(false),
                         onmouseleave: move |_| draggable_signal.set(true),
@@ -2436,7 +2441,7 @@ fn Task(task_id: TaskId, status: TaskStatus) -> Element {
                     class: "w-6 h-6 cursor-pointer text-red-600",
                     onclick: move |event| {
                         event.stop_propagation();
-                        delete_task(model, task_id)
+                        delete_task(board_signals, task_id)
                     },
                     path {
                         "stroke-linecap": "round",
@@ -2463,6 +2468,7 @@ fn Due(
     svg_style: &'static str,
     p_style: &'static str,
 ) -> Element {
+    let board_signals = BoardSignals::default();
     let model = use_context::<Signal<Model>>();
 
     let mut editing_signal = use_signal(|| false);
@@ -2563,7 +2569,7 @@ fn Due(
                         event.stop_propagation();
                         editing_signal.set(false);
                         set_task_due(
-                            model,
+                            board_signals,
                             task_id,
                             new_date_signal.read().map(|date| {
                                 Local.from_local_datetime(&date.and_time(new_time_signal()))
@@ -2767,6 +2773,7 @@ fn tag_bg(model: Signal<Model>, tag_id: &TagId, tag_color: &Color) -> String {
 
 #[component]
 fn Tags(task_id: TaskId, on_click_assign_tag: EventHandler<MouseEvent>) -> Element {
+    let board_signals = BoardSignals::default();
     let mut model = use_context::<Signal<Model>>();
     let read_model = model.read();
     rsx! {
@@ -2798,7 +2805,7 @@ fn Tags(task_id: TaskId, on_click_assign_tag: EventHandler<MouseEvent>) -> Eleme
                     class: "{styles::TAG_BADGE_BUTTON}",
                     onclick:  move |event| {
                         event.stop_propagation();
-                        delete_task_tag(model, task_id, tag_id)
+                        delete_task_tag(board_signals, task_id, tag_id)
                     },
                     svg {
                         class: "w-2 h-2",
@@ -2885,25 +2892,25 @@ fn format_due_time(time: &NaiveTime) -> String {
     format!("{}", time.format("%H:%M"))
 }
 
-async fn set_task_status(model: Signal<Model>, task_id: TaskId, status: TaskStatus) {
-    if send_set_task_status_request(model, task_id, status)
+async fn set_task_status(signals: BoardSignals, task_id: TaskId, status: TaskStatus) {
+    if send_set_task_status_request(signals, task_id, status)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_set_task_status_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
     status: TaskStatus,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/status",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(Client::new()
@@ -2915,28 +2922,28 @@ async fn send_set_task_status_request(
         .await?)
 }
 
-async fn set_task_title(model: Signal<Model>, task_id: TaskId, title: String) {
+async fn set_task_title(signals: BoardSignals, task_id: TaskId, title: String) {
     if title.is_empty() {
         return;
     }
-    if send_set_task_title_request(model, task_id, title)
+    if send_set_task_title_request(signals, task_id, title)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_set_task_title_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
     title: String,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/title",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(Client::new()
@@ -2948,25 +2955,25 @@ async fn send_set_task_title_request(
         .await?)
 }
 
-async fn set_task_description(model: Signal<Model>, task_id: TaskId, description: String) {
-    if send_set_task_description_request(model, task_id, description)
+async fn set_task_description(signals: BoardSignals, task_id: TaskId, description: String) {
+    if send_set_task_description_request(signals, task_id, description)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_set_task_description_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
     description: String,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/description",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(Client::new()
@@ -2978,21 +2985,21 @@ async fn send_set_task_description_request(
         .await?)
 }
 
-async fn archive_task(model: Signal<Model>, task_id: TaskId) {
-    if send_archive_task_request(model, task_id).await.is_ok() {
-        requests::board(model).await;
+async fn archive_task(signals: BoardSignals, task_id: TaskId) {
+    if send_archive_task_request(signals, task_id).await.is_ok() {
+        requests::board(signals).await;
     }
 }
 
 async fn send_archive_task_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/archived",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(Client::new()
@@ -3004,25 +3011,25 @@ async fn send_archive_task_request(
         .await?)
 }
 
-async fn set_task_size(model: Signal<Model>, task_id: TaskId, size: TaskSize) {
-    if send_set_task_size_request(model, task_id, size)
+async fn set_task_size(signals: BoardSignals, task_id: TaskId, size: TaskSize) {
+    if send_set_task_size_request(signals, task_id, size)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_set_task_size_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
     size: TaskSize,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/size",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(Client::new()
@@ -3034,22 +3041,25 @@ async fn send_set_task_size_request(
         .await?)
 }
 
-async fn set_task_due(model: Signal<Model>, task_id: TaskId, due: Option<DateTime<Utc>>) {
-    if send_set_task_due_request(model, task_id, due).await.is_ok() {
-        requests::board(model).await;
+async fn set_task_due(signals: BoardSignals, task_id: TaskId, due: Option<DateTime<Utc>>) {
+    if send_set_task_due_request(signals, task_id, due)
+        .await
+        .is_ok()
+    {
+        requests::board(signals).await;
     }
 }
 
 async fn send_set_task_due_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
     due: Option<DateTime<Utc>>,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/due",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(Client::new()
@@ -3061,21 +3071,21 @@ async fn send_set_task_due_request(
         .await?)
 }
 
-async fn delete_task(model: Signal<Model>, task_id: TaskId) {
-    if send_delete_task_request(model, task_id).await.is_ok() {
-        requests::board(model).await;
+async fn delete_task(signals: BoardSignals, task_id: TaskId) {
+    if send_delete_task_request(signals, task_id).await.is_ok() {
+        requests::board(signals).await;
     }
 }
 
 async fn send_delete_task_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(reqwest::Client::new()
@@ -3086,25 +3096,25 @@ async fn send_delete_task_request(
         .await?)
 }
 
-async fn delete_task_tag(model: Signal<Model>, task_id: TaskId, tag_id: TagId) {
-    if send_delete_task_tag_request(model, task_id, tag_id)
+async fn delete_task_tag(signals: BoardSignals, task_id: TaskId, tag_id: TagId) {
+    if send_delete_task_tag_request(signals, task_id, tag_id)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_delete_task_tag_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
     tag_id: TagId,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/tags/{}",
-            model.board_name, task_id, tag_id
+            board.board_name, task_id, tag_id
         ))?
     };
     Ok(reqwest::Client::new()
@@ -3115,21 +3125,21 @@ async fn send_delete_task_tag_request(
         .await?)
 }
 
-async fn clone_task(model: Signal<Model>, task_id: TaskId) {
-    if send_clone_task_request(model, task_id).await.is_ok() {
-        requests::board(model).await;
+async fn clone_task(signals: BoardSignals, task_id: TaskId) {
+    if send_clone_task_request(signals, task_id).await.is_ok() {
+        requests::board(signals).await;
     }
 }
 
 async fn send_clone_task_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
 ) -> Result<TaskId, anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/clone",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(reqwest::Client::new()
@@ -3140,25 +3150,25 @@ async fn send_clone_task_request(
         .await?)
 }
 
-async fn create_quick_add_task(model: Signal<Model>, task_id: TaskId) {
-    if send_create_quick_add_task_request(model, task_id)
+async fn create_quick_add_task(signals: BoardSignals, task_id: TaskId) {
+    if send_create_quick_add_task_request(signals, task_id)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_create_quick_add_task_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
 ) -> Result<TaskId, anyhow::Error> {
     let (url, task_data) = {
-        let model = model.read();
-        let url = model
+        let board = signals.board.read();
+        let task = &signals.tasks.read().0[&task_id];
+        let url = board
             .url
-            .join(&format!("/api/boards/{}/quick-add", model.board_name))?;
-        let task = &model.tasks[&task_id];
+            .join(&format!("/api/boards/{}/quick-add", board.board_name))?;
         (
             url,
             QuickAddData {
@@ -3179,24 +3189,24 @@ async fn send_create_quick_add_task_request(
         .await?)
 }
 
-async fn delete_quick_add_task(model: Signal<Model>, task_id: QuickAddTaskId) {
-    if send_delete_quick_add_task_request(model, task_id)
+async fn delete_quick_add_task(signals: BoardSignals, task_id: QuickAddTaskId) {
+    if send_delete_quick_add_task_request(signals, task_id)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_delete_quick_add_task_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: QuickAddTaskId,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/quick-add/{}",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(reqwest::Client::new()
@@ -3207,13 +3217,13 @@ async fn send_delete_quick_add_task_request(
         .await?)
 }
 
-async fn create_task(model: Signal<Model>, task_data: TaskData) {
+async fn create_task(signals: BoardSignals, task_data: TaskData) {
     if task_data.title.is_empty() {
         log::info!("empty task title, doing nothing");
         return;
     }
-    if let Ok(task_id) = requests::create_task(model, &task_data).await {
+    if let Ok(task_id) = requests::create_task(signals.board, &task_data).await {
         log::info!("created task: {task_id}");
     }
-    requests::board(model).await;
+    requests::board(signals).await;
 }

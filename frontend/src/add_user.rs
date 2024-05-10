@@ -1,12 +1,17 @@
 use crate::{
-    color_picker::SelectingColorPicker, model::Model, requests,
-    responsive_layout::ResponsiveLayout, route::Route, styles,
+    color_picker::SelectingColorPicker,
+    model::Model,
+    requests::{self, BoardSignals},
+    responsive_layout::ResponsiveLayout,
+    route::Route,
+    styles,
 };
 use dioxus::prelude::*;
 use shared_models::{BoardName, Color, UserData};
 
 #[component]
 pub fn AddUser(board_name: BoardName) -> Element {
+    let board_signals = BoardSignals::default();
     let mut model = use_context::<Signal<Model>>();
     let nav = use_navigator();
     let mut name = use_signal(String::new);
@@ -71,7 +76,7 @@ pub fn AddUser(board_name: BoardName) -> Element {
                                 // as first thing
                                 color_signal.set(default_color);
                                 create_user(
-                                    model,
+                                    board_signals,
                                     UserData{
                                         name:
                                             name
@@ -121,13 +126,13 @@ pub fn AddUser(board_name: BoardName) -> Element {
     }
 }
 
-async fn create_user(model: Signal<Model>, user_data: UserData, nav: Navigator) {
+async fn create_user(signals: BoardSignals, user_data: UserData, nav: Navigator) {
     if user_data.name.is_empty() {
         log::info!("empty user name, doing nothing");
         return;
     }
     log::info!("sending create user request");
-    match requests::create_user(model, user_data).await {
+    match requests::create_user(signals.board, user_data).await {
         Ok((user_id, _)) => {
             log::info!("created user: {user_id}");
         }
@@ -136,6 +141,6 @@ async fn create_user(model: Signal<Model>, user_data: UserData, nav: Navigator) 
         }
     }
     nav.push(Route::Board {
-        board_name: model.read().board_name.clone(),
+        board_name: signals.board.read().board_name.clone(),
     });
 }

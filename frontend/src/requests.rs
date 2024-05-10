@@ -1,5 +1,10 @@
+use crate::model::Board;
 use crate::model::Model;
+use crate::model::QuickAddTasks;
+use crate::model::Tags;
 use crate::model::TaskData;
+use crate::model::Tasks;
+use crate::model::Users;
 use dioxus::prelude::*;
 use reqwest::Client;
 use shared_models::QuickAddData;
@@ -12,28 +17,68 @@ use shared_models::{TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId};
 use std::collections::HashMap;
 use tokio::join;
 
-pub async fn board(mut model: Signal<Model>) {
+#[derive(Copy, Clone)]
+pub struct BoardSignals {
+    pub model: Signal<Model>,
+    pub board: Signal<Board>,
+    pub tasks: Signal<Tasks>,
+    pub users: Signal<Users>,
+    pub tags: Signal<Tags>,
+    pub quick_add: Signal<QuickAddTasks>,
+}
+
+impl Default for BoardSignals {
+    fn default() -> Self {
+        Self {
+            model: use_context::<Signal<Model>>(),
+            board: use_context::<Signal<Board>>(),
+            tasks: use_context::<Signal<Tasks>>(),
+            users: use_context::<Signal<Users>>(),
+            tags: use_context::<Signal<Tags>>(),
+            quick_add: use_context::<Signal<QuickAddTasks>>(),
+        }
+    }
+}
+
+pub async fn board(mut signals: BoardSignals) {
     log::info!("sending board data request");
-    if let (Ok(users), Ok(tasks), Ok(tags), Ok(quick_add)) =
-        join!(users(model), tasks(model), tags(model), quick_add(model))
-    {
+    if let (Ok(new_users), Ok(new_tasks), Ok(new_tags), Ok(new_quick_add)) = join!(
+        get_users(signals.board),
+        get_tasks(signals.board),
+        get_tags(signals.board),
+        get_quick_add(signals.board)
+    ) {
         log::info!("got board data");
-        let mut model = model.write();
-        model.users = users;
-        model.tasks = tasks.tasks;
-        model.tags = tags;
-        model.to_do = tasks.to_do;
-        model.in_progress = tasks.in_progress;
-        model.done = tasks.done;
-        model.quick_add = quick_add;
+        let mut model = signals.model.write();
+        model.users = new_users.clone();
+        model.tasks = new_tasks.tasks.clone();
+        model.tags = new_tags.clone();
+        model.to_do = new_tasks.to_do.clone();
+        model.in_progress = new_tasks.in_progress.clone();
+        model.done = new_tasks.done.clone();
+        model.quick_add = new_quick_add.clone();
+
+        let mut board = signals.board.write();
+        let mut tasks = signals.tasks.write();
+        let mut users = signals.users.write();
+        let mut tags = signals.tags.write();
+        let mut quick_add = signals.quick_add.write();
+
+        board.to_do = new_tasks.to_do;
+        board.in_progress = new_tasks.in_progress;
+        board.done = new_tasks.done;
+        users.0 = new_users;
+        tasks.0 = new_tasks.tasks;
+        tags.0 = new_tags;
+        quick_add.0 = new_quick_add;
     } else {
         log::info!("failed to get board data")
     }
 }
 
-async fn users(model: Signal<Model>) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
+async fn get_users(board: Signal<Board>) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
     let url = {
-        let model = model.read();
+        let model = board.read();
         model
             .url
             .join(&format!("/api/boards/{}/users", model.board_name))?
@@ -57,9 +102,9 @@ async fn users(model: Signal<Model>) -> Result<HashMap<UserId, UserData>, anyhow
         }))
 }
 
-async fn tags(model: Signal<Model>) -> Result<HashMap<TagId, TagData>, anyhow::Error> {
+async fn get_tags(board: Signal<Board>) -> Result<HashMap<TagId, TagData>, anyhow::Error> {
     let url = {
-        let model = model.read();
+        let model = board.read();
         model
             .url
             .join(&format!("/api/boards/{}/tags", model.board_name))?
@@ -83,12 +128,12 @@ async fn tags(model: Signal<Model>) -> Result<HashMap<TagId, TagData>, anyhow::E
         }))
 }
 
-async fn tasks(model: Signal<Model>) -> Result<TasksResponse, anyhow::Error> {
+async fn get_tasks(board: Signal<Board>) -> Result<TasksResponse, anyhow::Error> {
     let url = {
-        let model = model.read();
-        model
+        let board = board.read();
+        board
             .url
-            .join(&format!("/api/boards/{}/tasks", model.board_name))?
+            .join(&format!("/api/boards/{}/tasks", board.board_name))?
     };
     let client = Client::new();
     Ok(client
@@ -121,11 +166,11 @@ async fn tasks(model: Signal<Model>) -> Result<TasksResponse, anyhow::Error> {
         }))
 }
 
-async fn quick_add(
-    model: Signal<Model>,
+async fn get_quick_add(
+    board: Signal<Board>,
 ) -> Result<HashMap<QuickAddTaskId, QuickAddData>, anyhow::Error> {
     let url = {
-        let model = model.read();
+        let model = board.read();
         model
             .url
             .join(&format!("/api/boards/{}/quick-add", model.board_name))?
@@ -187,15 +232,15 @@ impl From<Vec<TaskEntry>> for TasksResponse {
 }
 
 pub async fn create_user(
-    model: Signal<Model>,
+    board: Signal<Board>,
     mut user_data: UserData,
 ) -> Result<(UserId, String), anyhow::Error> {
     user_data.name = user_data.name.trim().to_string();
     let url = {
-        let model = model.read();
-        model
+        let board = board.read();
+        board
             .url
-            .join(&format!("/api/boards/{}/users", model.board_name))?
+            .join(&format!("/api/boards/{}/users", board.board_name))?
     };
     Ok((
         Client::new()
@@ -210,15 +255,15 @@ pub async fn create_user(
 }
 
 pub async fn create_tag(
-    model: Signal<Model>,
+    board: Signal<Board>,
     mut tag_data: TagData,
 ) -> Result<(TagId, String), anyhow::Error> {
     tag_data.name = tag_data.name.trim().to_string();
     let url = {
-        let model = model.read();
-        model
+        let board = board.read();
+        board
             .url
-            .join(&format!("/api/boards/{}/tags", model.board_name))?
+            .join(&format!("/api/boards/{}/tags", board.board_name))?
     };
     Ok((
         Client::new()
@@ -233,14 +278,14 @@ pub async fn create_tag(
 }
 
 pub async fn create_task(
-    model: Signal<Model>,
+    board: Signal<Board>,
     task_data: &shared_models::TaskData,
 ) -> Result<TaskId, anyhow::Error> {
     let url = {
-        let model = model.read();
-        model
+        let board = board.read();
+        board
             .url
-            .join(&format!("/api/boards/{}/tasks", model.board_name))?
+            .join(&format!("/api/boards/{}/tasks", board.board_name))?
     };
     Ok(Client::new()
         .post(url)

@@ -5,7 +5,12 @@ use itertools::Itertools;
 use reqwest::Client;
 use shared_models::{TagData, TagId, TaskId};
 
-use crate::{color_picker::ColorPicker, model::Model, requests, styles};
+use crate::{
+    color_picker::ColorPicker,
+    model::{Board, Model},
+    requests::{self, BoardSignals},
+    styles,
+};
 
 #[component]
 pub fn TagSearch(
@@ -14,11 +19,12 @@ pub fn TagSearch(
     hover_style: &'static str,
     text_input_style: &'static str,
 ) -> Element {
+    let board_signals = BoardSignals::default();
     let mut model = use_context::<Signal<Model>>();
     if model.read().tag_search_created_tag.is_some() {
         let maybe_tag = model.write().tag_search_created_tag.take();
         if let Some((tag_id, _)) = maybe_tag {
-            spawn(add_task_tag(model, task_id, tag_id));
+            spawn(add_task_tag(board_signals, task_id, tag_id));
         }
     }
     let read_model = model.read();
@@ -49,7 +55,7 @@ pub fn TagSearch(
                         onmousedown: |_| {},
                         onclick: move |event| {
                             event.stop_propagation();
-                            add_task_tag(model, task_id, tag_id)
+                            add_task_tag(board_signals, task_id, tag_id)
                         },
                         "{tag.name}"
                     }
@@ -93,7 +99,7 @@ pub fn TagSearch(
                                         return;
                                     }
                                     spawn(create_tag(
-                                        model,
+                                        board_signals,
                                         TagData {
                                             name: new_tag.write().drain(..).collect(),
                                             color
@@ -109,32 +115,32 @@ pub fn TagSearch(
     }
 }
 
-async fn create_tag(mut model: Signal<Model>, tag_data: TagData) {
-    if let Ok(tag_data) = requests::create_tag(model, tag_data).await {
-        requests::board(model).await;
-        model.write().tag_search_created_tag = Some(tag_data);
+async fn create_tag(mut signals: BoardSignals, tag_data: TagData) {
+    if let Ok(tag_data) = requests::create_tag(signals.board, tag_data).await {
+        requests::board(signals).await;
+        signals.model.write().tag_search_created_tag = Some(tag_data);
     }
 }
 
-async fn add_task_tag(model: Signal<Model>, task_id: TaskId, tag_id: TagId) {
-    if send_add_task_tag_request(model, task_id, tag_id)
+async fn add_task_tag(signals: BoardSignals, task_id: TaskId, tag_id: TagId) {
+    if send_add_task_tag_request(signals.board, task_id, tag_id)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_add_task_tag_request(
-    model: Signal<Model>,
+    board: Signal<Board>,
     task_id: TaskId,
     tag_id: TagId,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/tags",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(Client::new()

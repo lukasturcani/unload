@@ -5,7 +5,12 @@ use itertools::Itertools;
 use reqwest::Client;
 use shared_models::{TaskId, UserData, UserId};
 
-use crate::{color_picker::ColorPicker, model::Model, requests, styles};
+use crate::{
+    color_picker::ColorPicker,
+    model::Model,
+    requests::{self, BoardSignals},
+    styles,
+};
 
 #[component]
 pub fn UserSearch(
@@ -15,11 +20,12 @@ pub fn UserSearch(
     hover_style: &'static str,
     text_input_style: &'static str,
 ) -> Element {
+    let board_signals = BoardSignals::default();
     let mut model = use_context::<Signal<Model>>();
     if model.read().user_search_created_user.is_some() {
         let maybe_user = model.write().user_search_created_user.take();
         if let Some(user) = maybe_user {
-            spawn(add_task_assignee(model, task_id, user.0));
+            spawn(add_task_assignee(board_signals, task_id, user.0));
         }
     }
     let read_model = model.read();
@@ -66,7 +72,7 @@ pub fn UserSearch(
                                 let user_id = *user_id;
                                 move |event| {
                                     event.stop_propagation();
-                                    delete_task_assignee(model, task_id, user_id)
+                                    delete_task_assignee(board_signals, task_id, user_id)
                                 }
                             },
                             svg {
@@ -111,7 +117,7 @@ pub fn UserSearch(
                                 let user_id = *user_id;
                                 move |event| {
                                     event.stop_propagation();
-                                    add_task_assignee(model, task_id, user_id)
+                                    add_task_assignee(board_signals, task_id, user_id)
                                 }
                             },
                             "{user.name}",
@@ -158,7 +164,7 @@ pub fn UserSearch(
                                             return;
                                         }
                                         spawn(create_user(
-                                            model,
+                                            board_signals,
                                             UserData {
                                                 name: new_user.write().drain(..).collect(),
                                                 color
@@ -175,56 +181,56 @@ pub fn UserSearch(
     }
 }
 
-async fn create_user(mut model: Signal<Model>, user_data: UserData) {
-    if let Ok(user_data) = requests::create_user(model, user_data).await {
-        requests::board(model).await;
-        model.write().user_search_created_user = Some(user_data);
+async fn create_user(mut signals: BoardSignals, user_data: UserData) {
+    if let Ok(user_data) = requests::create_user(signals.board, user_data).await {
+        requests::board(signals).await;
+        signals.model.write().user_search_created_user = Some(user_data);
     }
 }
 
-async fn delete_task_assignee(model: Signal<Model>, task_id: TaskId, assignee: UserId) {
-    if send_delete_task_assignee_request(model, task_id, assignee)
+async fn delete_task_assignee(signals: BoardSignals, task_id: TaskId, assignee: UserId) {
+    if send_delete_task_assignee_request(signals, task_id, assignee)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_delete_task_assignee_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
     assignee: UserId,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/assignees/{}",
-            model.board_name, task_id, assignee
+            board.board_name, task_id, assignee
         ))?
     };
     Ok(Client::new().delete(url).send().await?.json::<()>().await?)
 }
 
-async fn add_task_assignee(model: Signal<Model>, task_id: TaskId, assignee: UserId) {
-    if send_add_task_assignee_request(model, task_id, assignee)
+async fn add_task_assignee(signals: BoardSignals, task_id: TaskId, assignee: UserId) {
+    if send_add_task_assignee_request(signals, task_id, assignee)
         .await
         .is_ok()
     {
-        requests::board(model).await;
+        requests::board(signals).await;
     }
 }
 
 async fn send_add_task_assignee_request(
-    model: Signal<Model>,
+    signals: BoardSignals,
     task_id: TaskId,
     assignee: UserId,
 ) -> Result<(), anyhow::Error> {
     let url = {
-        let model = model.read();
-        model.url.join(&format!(
+        let board = signals.board.read();
+        board.url.join(&format!(
             "/api/boards/{}/tasks/{}/assignees",
-            model.board_name, task_id
+            board.board_name, task_id
         ))?
     };
     Ok(Client::new()
