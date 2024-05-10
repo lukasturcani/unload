@@ -28,11 +28,11 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
             }
             div {
                 class: "flex flex row justify-between",
-                Assignees { task_id, assignees: task.assignees, user_search }
+                Assignees { task_id, assignees: task.assignees.clone(), user_search }
                 TaskActions { task_id }
             }
             if user_search() {
-                UserSearch { task_id }
+                UserSearch { task_id, assignees: task.assignees }
             }
             // Tags { task_id, tags: task.tags }
             // if expanded() {
@@ -397,7 +397,32 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
 }
 
 #[component]
-fn UserSearch(task_id: TaskId) -> Element {
+fn UserSearch(task_id: TaskId, assignees: Vec<UserId>) -> Element {
+    rsx! {
+        div {
+            class: "flex flex-col gap-2",
+            UserBadges { task_id, assignees }
+            UserList { task_id }
+        }
+    }
+}
+
+#[component]
+fn UserBadges(task_id: TaskId, assignees: Vec<UserId>) -> Element {
+    let users = use_context::<Signal<Users>>();
+    let users = &users.read().0;
+    rsx! {
+       div {
+            class: "flex flex-row gap-2 flex-wrap",
+            for user_id in assignees {
+                UserBadge { user_id, user_data: users[&user_id].clone() }
+            }
+        }
+    }
+}
+
+#[component]
+fn UserList(task_id: TaskId) -> Element {
     rsx! {}
 }
 
