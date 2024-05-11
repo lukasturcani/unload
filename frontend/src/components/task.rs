@@ -213,6 +213,7 @@ fn ToDoButton(task_id: TaskId) -> Element {
         div {
             class: "relative",
             button {
+                "aria-label": "To Do",
                 class: "peer size-9 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::ToDo));
@@ -232,6 +233,7 @@ fn InProgressButton(task_id: TaskId) -> Element {
         div {
             class: "relative",
             button {
+                "aria-label": "In Progress",
                 class: "peer size-9 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::InProgress));
@@ -251,6 +253,7 @@ fn DoneButton(task_id: TaskId) -> Element {
         div {
             class: "relative",
             button {
+                "aria-label": "Done",
                 class: "peer size-9 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::Done));
@@ -599,10 +602,12 @@ fn Tags(task_id: TaskId, tags: Vec<TagId>) -> Element {
 #[component]
 fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent>) -> Element {
     let style = "sm:hover:stroke-blue-500 active:stroke-blue-500";
+    let label = tooltip.clone();
     rsx! {
         div {
             class: "relative",
             button {
+                "aria-label": label,
                 class: "peer size-7 {style}",
                 onclick: move |event| onclick.call(event),
                 {body}
