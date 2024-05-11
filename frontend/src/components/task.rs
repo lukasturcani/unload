@@ -174,7 +174,6 @@ fn EditButton(editing: Signal<bool>) -> Element {
         div {
             class: "relative",
             button {
-                "aria-label": "edit title",
                 class: "peer size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
@@ -609,12 +608,10 @@ fn Tags(task_id: TaskId, tags: Vec<TagId>) -> Element {
 #[component]
 fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent>) -> Element {
     let style = "sm:hover:stroke-blue-500 active:stroke-blue-500";
-    let label = tooltip.clone();
     rsx! {
         div {
             class: "relative",
             button {
-                "aria-label": label,
                 class: "peer size-7 {style}",
                 onclick: move |event| onclick.call(event),
                 {body}
