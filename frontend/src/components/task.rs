@@ -64,7 +64,12 @@ fn Title(task_id: TaskId, title: String) -> Element {
 }
 
 #[component]
-fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
+fn TextInput(
+    required: Option<bool>,
+    placeholder: Option<String>,
+    value: Option<Signal<String>>,
+    oninput: EventHandler<FormEvent>,
+) -> Element {
     let style = "
         text-base
         rounded-lg
@@ -72,6 +77,19 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
         bg-gray-700
         focus:ring-blue-500 focus:border-blue-500
     ";
+    rsx! {
+        input {
+            class: "p-2.5 {style}",
+            required,
+            placeholder,
+            value,
+            oninput: move |event| oninput.call(event),
+        }
+    }
+}
+
+#[component]
+fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
     let mut title = use_signal(|| title);
     let board_signals = BoardSignals::default();
     rsx! {
@@ -82,11 +100,10 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
                     spawn_forever(set_task_title(board_signals, task_id, title()));
                     editing.set(false);
                 },
-                input {
+                TextInput {
                     required: true,
-                    class: "p-2.5 {style}",
-                    oninput: move |event| title.set(event.value()),
-                    value: title
+                    value: title,
+                    oninput: move |event: FormEvent| title.set(event.value()),
                 }
                 ConfirmButton {}
                 CancelButton { editing }
@@ -443,6 +460,7 @@ fn UserList(task_id: TaskId, unassigned: Vec<(UserId, UserData)>) -> Element {
             for (user_id, user) in unassigned {
                 UserListItem { key: "{user_id}", task_id, user_id, user }
             }
+            AddUserListItem { key: "{\"add-user\"}" }
         }
     }
 }
@@ -478,6 +496,93 @@ fn UserListItem(task_id: TaskId, user_id: UserId, user: UserData) -> Element {
                 },
                 {user.name}
             }
+        }
+    }
+}
+
+#[component]
+fn AddUserListItem() -> Element {
+    let adding_user = use_signal(|| false);
+    rsx! {
+        li {
+            if adding_user() {
+                AddUserListForm { adding_user }
+            } else {
+                AddUserListButtom { adding_user }
+            }
+        }
+    }
+}
+
+#[component]
+fn AddUserListButtom(adding_user: Signal<bool>) -> Element {
+    let style = "text-blue-500 sm:hover:underline active:underline";
+    rsx! {
+        button {
+            class: "px-4 py-2 w-full text-left {style}",
+            onclick: move |_| adding_user.set(true),
+            "Add User"
+        }
+    }
+}
+
+#[component]
+fn AddUserListForm(adding_user: Signal<bool>) -> Element {
+    let mut name = use_signal(String::new);
+    let mut color = use_signal(|| None::<Color>);
+    rsx! {
+        li {
+            form {
+                class: "flex flex-col gap-2 p-2",
+                onsubmit: move |_| {
+                    adding_user.set(false);
+                },
+                TextInput {
+                    placeholder: "Name",
+                    value: name,
+                    required: true,
+                    oninput: move |event: FormEvent| name.set(event.value()),
+                }
+                ColorPicker { color }
+            }
+        }
+    }
+}
+
+#[component]
+fn ColorPicker(color: Signal<Option<Color>>) -> Element {
+    let fieldset_style = "rounded-lg border border-gray-700";
+    let legend_style = "text-gray-400";
+    let button_style = "text-blue-500 sm:hover:underline active:underline";
+    rsx! {
+        fieldset {
+            class: fieldset_style,
+            legend {
+                class: legend_style,
+                "Color"
+            }
+            input {
+                "aria-label": "color1",
+                required: true,
+                r#type: "radio",
+                name: "color-picker",
+                div {
+                    class: "size-6 bg-rose-400",
+                }
+            }
+            input {
+                "aria-label": "color2",
+                r#type: "radio",
+                name: "color-picker",
+                div {
+                    class: "size-6 bg-emerald-500",
+                }
+            }
+        }
+        button {
+            class: "px-4 py-2 w-full {button_style}",
+            r#type: "submit",
+            "Add"
         }
     }
 }
