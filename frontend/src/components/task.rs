@@ -329,11 +329,13 @@ fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
         rounded border-2
         sm:hover:border-4 active:border-4 sm:hover:scale-110 active:scale-110
     ";
+    let label = format!("add {} filter", user_data.name);
     rsx! {
         div {
             class: "relative",
             button {
                 class: "peer size-6 {style} {color}",
+                "aria-label": label,
                 "aria-pressed": user_filter.read().0.contains(&user_id),
                 onclick: move |_| {
                     let mut user_filter = user_filter.write();
@@ -360,7 +362,7 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
                 pointer-events-none
                 absolute {position} z-10
                 w-max px-3 py-2 text-sm
-                opacity-0 transition-opacity peer-hover:opacity-100 peer-focus:opacity-100
+                opacity-0 transition-opacity peer-hover:opacity-100
                 {style}
             ",
             {content}
