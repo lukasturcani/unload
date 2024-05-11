@@ -361,7 +361,7 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
                 pointer-events-none
                 absolute {position} z-10
                 w-max px-3 py-2 text-sm
-                opacity-0 transition-opacity peer-hover:opacity-100
+                invisible peer-hover:visible
                 {style}
             ",
             {content}
