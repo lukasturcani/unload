@@ -352,7 +352,7 @@ fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
 
 #[component]
 fn Tooltip(content: String, position: Option<String>) -> Element {
-    let style = "bg-gray-800 rounded-lg shadow-sm";
+    let style = "border border-gray-700 bg-gray-800 rounded-lg shadow-sm";
     let position = position.unwrap_or("-top-10 -left-2".to_string());
     rsx! {
         div {
@@ -360,7 +360,7 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
                 pointer-events-none
                 absolute {position} z-10
                 w-max px-3 py-2 text-sm
-                opacity-0 transition-opacity peer-hover:opacity-100
+                opacity-0 transition-opacity peer-hover:opacity-100 peer-focus:opacity-100
                 {style}
             ",
             {content}
@@ -432,6 +432,7 @@ fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
         Color::Teal => "border-teal-300 text-teal-300",
         Color::Aqua => "border-cyan-500 text-cyan-500",
     };
+    let unassign_label = format!("unassign {} from task", user_data.name);
     rsx! {
         div {
             class: "
@@ -440,6 +441,7 @@ fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
             ",
             {user_data.name}
             button {
+                "aria-label": unassign_label,
                 class: "size-5 p-0.5 {button_style}",
                 onclick: move |_| {
                     spawn_forever(delete_task_assignee(board_signals, task_id, user_id));
@@ -491,9 +493,11 @@ fn UserListItem(task_id: TaskId, user_id: UserId, user: UserData) -> Element {
         Color::Aqua => "text-cyan-500",
     };
     let board_signals = BoardSignals::default();
+    let label = format!("assign {} to task", user.name);
     rsx! {
         li {
             button {
+                "aria-label": label,
                 class: "px-4 py-2 w-full text-left {style} {color}",
                 onclick: move |_| {
                     spawn_forever(add_task_assignee(board_signals, task_id, user_id));
