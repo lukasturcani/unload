@@ -174,6 +174,7 @@ fn EditButton(editing: Signal<bool>) -> Element {
         div {
             class: "relative",
             button {
+                "aria-label": "edit title",
                 class: "peer size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
@@ -213,7 +214,7 @@ fn ToDoButton(task_id: TaskId) -> Element {
         div {
             class: "relative",
             button {
-                "aria-label": "To Do",
+                "aria-label": "set task status to to do",
                 class: "peer size-9 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::ToDo));
@@ -233,7 +234,7 @@ fn InProgressButton(task_id: TaskId) -> Element {
         div {
             class: "relative",
             button {
-                "aria-label": "In Progress",
+                "aria-label": "set task status to in progress",
                 class: "peer size-9 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::InProgress));
@@ -253,7 +254,7 @@ fn DoneButton(task_id: TaskId) -> Element {
         div {
             class: "relative",
             button {
-                "aria-label": "Done",
+                "aria-label": "set task status to done",
                 class: "peer size-9 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::Done));
