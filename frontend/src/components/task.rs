@@ -553,7 +553,11 @@ fn AddUserListForm(adding_user: Signal<bool>) -> Element {
 fn ColorPicker(color: Signal<Option<Color>>) -> Element {
     let fieldset_style = "rounded-lg border border-gray-700";
     let legend_style = "text-gray-400";
-    let button_style = "text-blue-500 sm:hover:underline active:underline";
+    let button_style = "
+        border-2 border-blue-500 rounded-lg
+        text-blue-500
+        sm:hover:underline active:underline
+    ";
     rsx! {
         fieldset {
             class: fieldset_style,
