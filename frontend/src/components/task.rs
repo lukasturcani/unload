@@ -23,7 +23,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     let expanded = use_signal(|| false);
     let user_search = use_signal(|| false);
     rsx! {
-        div {
+        article {
             class: "flex flex-col gap-2 p-3 {style}",
             div {
                 class: "flex flex-row justify-between",
@@ -357,6 +357,7 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
     let position = position.unwrap_or("-top-10 -left-2".to_string());
     rsx! {
         div {
+            role: "tooltip",
             class: "
                 pointer-events-none
                 absolute {position} z-10
@@ -364,7 +365,7 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
                 invisible peer-hover:visible
                 {style}
             ",
-            {content}
+            p { {content} }
         }
 
     }
