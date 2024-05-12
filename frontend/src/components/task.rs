@@ -24,6 +24,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     let select_assignees = use_signal(|| false);
     rsx! {
         article {
+            "aria-labelledby": "task-{task_id}-title",
             class: "flex flex-col gap-2 p-3 {style}",
             div {
                 class: "flex flex-row justify-between",
@@ -58,7 +59,7 @@ fn Title(task_id: TaskId, title: String) -> Element {
         if editing() {
             TitleInput { task_id, editing, title }
         } else {
-            TitleShow { editing, title }
+            TitleShow { task_id, editing, title }
         }
     }
 }
@@ -151,11 +152,12 @@ fn CancelButton(editing: Signal<bool>) -> Element {
 }
 
 #[component]
-fn TitleShow(editing: Signal<bool>, title: String) -> Element {
+fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
     rsx! {
         div {
             class: "flex flex-row gap-2 items-center",
             h3 {
+                id: "task-{task_id}-title",
                 class: "
                     text-lg sm:text-xl
                     font-bold tracking-tight
