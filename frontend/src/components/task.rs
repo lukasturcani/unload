@@ -197,6 +197,7 @@ fn SpecialActions(task_id: TaskId) -> Element {
 fn StatusButtons(task_id: TaskId) -> Element {
     rsx! {
         section {
+            "aria-label": "set task status",
             class: "flex flex-row",
             ToDoButton { task_id }
             InProgressButton { task_id }
@@ -271,6 +272,7 @@ fn Assignees(task_id: TaskId, assignees: Vec<UserId>, user_search: Signal<bool>)
     let users = &users.read().0;
     rsx! {
         section {
+            "aria-label": "assignees",
             class: "flex flex-row flex-wrap gap-2",
             for user_id in assignees {
                 UserIcon { user_id, user_data: users[&user_id].clone() }
@@ -328,7 +330,7 @@ fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
         rounded border-2
         sm:hover:border-4 active:border-4 sm:hover:scale-110 active:scale-110
     ";
-    let label = format!("add {} filter", user_data.name);
+    let label = format!("toggle {} filter", user_data.name);
     rsx! {
         div {
             class: "relative",
@@ -539,7 +541,7 @@ fn AddUserListButtom(adding_user: Signal<bool>) -> Element {
 #[component]
 fn AddUserListForm(adding_user: Signal<bool>) -> Element {
     let mut name = use_signal(String::new);
-    let mut color = use_signal(|| None::<Color>);
+    let color = use_signal(|| None::<Color>);
     rsx! {
         li {
             form {
@@ -627,6 +629,7 @@ fn TaskActions(task_id: TaskId) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
         section {
+            "aria-label": "task actions",
             class: "flex flex-row",
             ActionButton {
                 onclick: move |_| {
