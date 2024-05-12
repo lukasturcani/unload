@@ -196,7 +196,7 @@ fn SpecialActions(task_id: TaskId) -> Element {
 #[component]
 fn StatusButtons(task_id: TaskId) -> Element {
     rsx! {
-        div {
+        section {
             class: "flex flex-row",
             ToDoButton { task_id }
             InProgressButton { task_id }
@@ -270,7 +270,7 @@ fn Assignees(task_id: TaskId, assignees: Vec<UserId>, user_search: Signal<bool>)
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     rsx! {
-        div {
+        section {
             class: "flex flex-row flex-wrap gap-2",
             for user_id in assignees {
                 UserIcon { user_id, user_data: users[&user_id].clone() }
@@ -626,7 +626,7 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
 fn TaskActions(task_id: TaskId) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
-        div {
+        section {
             class: "flex flex-row",
             ActionButton {
                 onclick: move |_| {
