@@ -81,7 +81,7 @@ fn TextInput(
     ";
     rsx! {
         label {
-            class: "flex flex-row gap-2 text-sm items-center",
+            class: "text-sm",
             r#for: "{id}",
             {label}
         }
@@ -306,6 +306,7 @@ fn ToggleAssigneeSelection(select_assignees: Signal<bool>) -> Element {
         div {
             class: "relative",
             button {
+                "aria-label": "toggle assignee selection",
                 class: "peer size-6 {style}",
                 "aria-pressed": select_assignees(),
                 onclick: move |_| {
@@ -559,6 +560,7 @@ fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
     rsx! {
         li {
             form {
+                "aria-label": "add user",
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |_| {
                     adding_user.set(false);
@@ -578,7 +580,7 @@ fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
 #[component]
 fn ColorPicker(color: Signal<Option<Color>>) -> Element {
     let fieldset_style = "rounded-lg border border-gray-700";
-    let legend_style = "text-gray-400";
+    let legend_style = "text-sm";
     let button_style = "
         border-2 border-blue-500 rounded-lg
         text-blue-500
@@ -612,7 +614,7 @@ fn ColorPicker(color: Signal<Option<Color>>) -> Element {
         button {
             class: "px-4 py-2 w-full {button_style}",
             r#type: "submit",
-            "Add"
+            "Add User"
         }
     }
 }
