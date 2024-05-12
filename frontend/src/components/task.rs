@@ -12,6 +12,10 @@ use crate::{
     requests::{self, BoardSignals},
 };
 
+fn task_title_id(task_id: TaskId) -> String {
+    format!("task-{}-title", task_id)
+}
+
 #[component]
 pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     let style = "
@@ -24,7 +28,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     let select_assignees = use_signal(|| false);
     rsx! {
         article {
-            "aria-labelledby": "task-{task_id}-title",
+            "aria-labelledby": task_title_id(task_id),
             class: "flex flex-col gap-2 p-3 {style}",
             div {
                 class: "flex flex-row justify-between",
@@ -66,8 +70,7 @@ fn Title(task_id: TaskId, title: String) -> Element {
 
 #[component]
 fn TextInput(
-    required: Option<bool>,
-    placeholder: Option<String>,
+    label: String,
     value: Option<Signal<String>>,
     oninput: EventHandler<FormEvent>,
 ) -> Element {
@@ -79,12 +82,15 @@ fn TextInput(
         focus:ring-blue-500 focus:border-blue-500
     ";
     rsx! {
-        input {
-            class: "p-2.5 {style}",
-            required,
-            placeholder,
-            value,
-            oninput: move |event| oninput.call(event),
+        label {
+            class: "flex flex-row gap-2 text-sm items-center",
+            {label}
+            input {
+                class: "p-2.5 {style}",
+                required: true,
+                value,
+                oninput: move |event| oninput.call(event),
+            }
         }
     }
 }
@@ -101,9 +107,8 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
                 editing.set(false);
             },
             TextInput {
-                required: true,
+                label: "Title",
                 value: title,
-                placeholder: "Title",
                 oninput: move |event: FormEvent| title.set(event.value()),
             }
             ConfirmButton {}
@@ -123,6 +128,7 @@ fn ConfirmButton() -> Element {
     ";
     rsx! {
         button {
+            "aria-label": "set title",
             class: "size-7 {style}",
             r#type: "submit",
             ConfirmIcon {}
@@ -157,7 +163,7 @@ fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
         div {
             class: "flex flex-row gap-2 items-center",
             h3 {
-                id: "task-{task_id}-title",
+                id: task_title_id(task_id),
                 class: "
                     text-lg sm:text-xl
                     font-bold tracking-tight
@@ -553,9 +559,8 @@ fn AddUserListForm(adding_user: Signal<bool>) -> Element {
                     adding_user.set(false);
                 },
                 TextInput {
-                    placeholder: "Name",
+                    label: "Name",
                     value: name,
-                    required: true,
                     oninput: move |event: FormEvent| name.set(event.value()),
                 }
                 ColorPicker { color }
