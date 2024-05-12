@@ -12,10 +12,6 @@ use crate::{
     requests::{self, BoardSignals},
 };
 
-fn task_title_id(task_id: TaskId) -> String {
-    format!("task-{}-title", task_id)
-}
-
 #[component]
 pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     let style = "
@@ -26,9 +22,10 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     ";
     let expanded = use_signal(|| false);
     let select_assignees = use_signal(|| false);
+    let label = task.title.clone();
     rsx! {
         article {
-            "aria-labelledby": task_title_id(task_id),
+            "aria-label": label,
             class: "flex flex-col gap-2 p-3 {style}",
             div {
                 class: "flex flex-row justify-between",
@@ -97,6 +94,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
     let board_signals = BoardSignals::default();
     rsx! {
         form {
+            "aria-label": "update title",
             class: "flex flex-row gap-2 items-center",
             onsubmit: move |_| {
                 spawn_forever(set_task_title(board_signals, task_id, title()));
@@ -159,7 +157,6 @@ fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
         div {
             class: "flex flex-row gap-2 items-center",
             h3 {
-                id: task_title_id(task_id),
                 class: "
                     text-lg sm:text-xl
                     font-bold tracking-tight
