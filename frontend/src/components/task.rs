@@ -102,6 +102,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
             TextInput {
                 required: true,
                 value: title,
+                placeholder: "Title",
                 oninput: move |event: FormEvent| title.set(event.value()),
             }
             ConfirmButton {}
@@ -139,6 +140,7 @@ fn CancelButton(editing: Signal<bool>) -> Element {
     ";
     rsx! {
         button {
+            "aria-label": "cancel editing",
             class: "size-7 {style}",
             onclick: move |_| {
                 editing.set(false);
