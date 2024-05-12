@@ -66,7 +66,12 @@ fn Title(task_id: TaskId, title: String) -> Element {
 }
 
 #[component]
-fn TextInput(label: String, value: Signal<String>, oninput: EventHandler<FormEvent>) -> Element {
+fn TextInput(
+    id: String,
+    label: String,
+    value: Signal<String>,
+    oninput: EventHandler<FormEvent>,
+) -> Element {
     let style = "
         text-base
         rounded-lg
@@ -77,13 +82,15 @@ fn TextInput(label: String, value: Signal<String>, oninput: EventHandler<FormEve
     rsx! {
         label {
             class: "flex flex-row gap-2 text-sm items-center",
+            r#for: "{id}",
             {label}
-            input {
-                class: "p-2.5 {style}",
-                required: true,
-                value,
-                oninput: move |event| oninput.call(event),
-            }
+        }
+        input {
+            id,
+            class: "p-2.5 {style}",
+            required: true,
+            value,
+            oninput: move |event| oninput.call(event),
         }
     }
 }
@@ -101,6 +108,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
                 editing.set(false);
             },
             TextInput {
+                id: "task-{task_id}-title-input",
                 label: "Title",
                 value: title,
                 oninput: move |event: FormEvent| title.set(event.value()),
@@ -141,7 +149,7 @@ fn CancelButton(editing: Signal<bool>) -> Element {
     ";
     rsx! {
         button {
-            "aria-label": "cancel editing",
+            "aria-label": "cancel update",
             class: "size-7 {style}",
             onclick: move |_| {
                 editing.set(false);
@@ -164,22 +172,26 @@ fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
                 ",
                 {title}
             }
-            EditButton { editing }
+            EditButton { task_id, editing }
         }
     }
 }
 
 #[component]
-fn EditButton(editing: Signal<bool>) -> Element {
+fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
     rsx! {
         div {
             class: "relative",
             button {
+                "aria-label": "edit title",
                 class: "peer size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }
-            Tooltip { content: "Edit Title", position: "" }
+            Tooltip {
+                content: "Edit Title",
+                position: ""
+            }
         }
     }
 }
@@ -472,7 +484,7 @@ fn UserList(task_id: TaskId, unassigned: Vec<(UserId, UserData)>) -> Element {
             for (user_id, user) in unassigned {
                 UserListItem { key: "{user_id}", task_id, user_id, user }
             }
-            AddUserListItem { key: "{\"add-user\"}" }
+            AddUserListItem { key: "{\"add-user\"}", task_id, }
         }
     }
 }
@@ -515,12 +527,12 @@ fn UserListItem(task_id: TaskId, user_id: UserId, user: UserData) -> Element {
 }
 
 #[component]
-fn AddUserListItem() -> Element {
+fn AddUserListItem(task_id: TaskId) -> Element {
     let adding_user = use_signal(|| false);
     rsx! {
         li {
             if adding_user() {
-                AddUserListForm { adding_user }
+                AddUserListForm { task_id, adding_user }
             } else {
                 AddUserListButtom { adding_user }
             }
@@ -541,7 +553,7 @@ fn AddUserListButtom(adding_user: Signal<bool>) -> Element {
 }
 
 #[component]
-fn AddUserListForm(adding_user: Signal<bool>) -> Element {
+fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
     let mut name = use_signal(String::new);
     let color = use_signal(|| None::<Color>);
     rsx! {
@@ -552,6 +564,7 @@ fn AddUserListForm(adding_user: Signal<bool>) -> Element {
                     adding_user.set(false);
                 },
                 TextInput {
+                    id: "task-{task_id}-new-user-name-input",
                     label: "Name",
                     value: name,
                     oninput: move |event: FormEvent| name.set(event.value()),
@@ -612,10 +625,12 @@ fn Tags(task_id: TaskId, tags: Vec<TagId>) -> Element {
 #[component]
 fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent>) -> Element {
     let style = "sm:hover:stroke-blue-500 active:stroke-blue-500";
+    let aria_label = tooltip.clone();
     rsx! {
         div {
             class: "relative",
             button {
+                "aria-label": aria_label,
                 class: "peer size-7 {style}",
                 onclick: move |event| onclick.call(event),
                 {body}
