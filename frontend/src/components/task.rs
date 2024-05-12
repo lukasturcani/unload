@@ -93,21 +93,19 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
     let mut title = use_signal(|| title);
     let board_signals = BoardSignals::default();
     rsx! {
-        div {
-            form {
-                class: "flex flex-row gap-2 items-center",
-                onsubmit: move |_| {
-                    spawn_forever(set_task_title(board_signals, task_id, title()));
-                    editing.set(false);
-                },
-                TextInput {
-                    required: true,
-                    value: title,
-                    oninput: move |event: FormEvent| title.set(event.value()),
-                }
-                ConfirmButton {}
-                CancelButton { editing }
+        form {
+            class: "flex flex-row gap-2 items-center",
+            onsubmit: move |_| {
+                spawn_forever(set_task_title(board_signals, task_id, title()));
+                editing.set(false);
+            },
+            TextInput {
+                required: true,
+                value: title,
+                oninput: move |event: FormEvent| title.set(event.value()),
             }
+            ConfirmButton {}
+            CancelButton { editing }
         }
     }
 }
