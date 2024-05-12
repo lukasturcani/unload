@@ -21,7 +21,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
         bg-gray-800 sm:hover:bg-gray-700
     ";
     let expanded = use_signal(|| false);
-    let user_search = use_signal(|| false);
+    let select_assignees = use_signal(|| false);
     rsx! {
         article {
             class: "flex flex-col gap-2 p-3 {style}",
@@ -32,11 +32,11 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
             }
             div {
                 class: "flex flex row justify-between",
-                Assignees { task_id, assignees: task.assignees.clone(), user_search }
+                Assignees { task_id, assignees: task.assignees.clone(), select_assignees }
                 TaskActions { task_id }
             }
-            if user_search() {
-                UserSearch { task_id, assignees: task.assignees }
+            if select_assignees() {
+                AssigneeSelection { task_id, assignees: task.assignees }
             }
             // Tags { task_id, tags: task.tags }
             // if expanded() {
@@ -267,7 +267,7 @@ fn DoneButton(task_id: TaskId) -> Element {
 }
 
 #[component]
-fn Assignees(task_id: TaskId, assignees: Vec<UserId>, user_search: Signal<bool>) -> Element {
+fn Assignees(task_id: TaskId, assignees: Vec<UserId>, select_assignees: Signal<bool>) -> Element {
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     rsx! {
@@ -277,13 +277,13 @@ fn Assignees(task_id: TaskId, assignees: Vec<UserId>, user_search: Signal<bool>)
             for user_id in assignees {
                 UserIcon { user_id, user_data: users[&user_id].clone() }
             }
-            ToggleUserSearchButton { user_search }
+            ToggleAssigneeSelection { select_assignees }
         }
     }
 }
 
 #[component]
-fn ToggleUserSearchButton(user_search: Signal<bool>) -> Element {
+fn ToggleAssigneeSelection(select_assignees: Signal<bool>) -> Element {
     let style = "
         rounded border-2 border-white
         sm:hover:bg-white sm:hover:stroke-black
@@ -294,9 +294,9 @@ fn ToggleUserSearchButton(user_search: Signal<bool>) -> Element {
             class: "relative",
             button {
                 class: "peer size-6 {style}",
-                "aria-pressed": user_search(),
+                "aria-pressed": select_assignees(),
                 onclick: move |_| {
-                    user_search.set(!user_search());
+                    select_assignees.set(!select_assignees());
                 },
                 PlusIcon {}
             }
@@ -374,7 +374,7 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
 }
 
 #[component]
-fn UserSearch(task_id: TaskId, assignees: Vec<UserId>) -> Element {
+fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
     let style = "rounded-lg bg-gray-800 border border-gray-700";
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
@@ -389,7 +389,8 @@ fn UserSearch(task_id: TaskId, assignees: Vec<UserId>) -> Element {
     }
     unassigned.sort_by_key(|(_, user)| user.name.to_lowercase());
     rsx! {
-        div {
+        section {
+            "aria-label": "assignee selection",
             class: "flex flex-col gap-2 p-2 {style}",
             UserBadges { task_id, assignees: assignee_data }
             UserList { task_id, unassigned }
