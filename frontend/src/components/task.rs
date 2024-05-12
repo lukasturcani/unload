@@ -69,11 +69,7 @@ fn Title(task_id: TaskId, title: String) -> Element {
 }
 
 #[component]
-fn TextInput(
-    label: String,
-    value: Option<Signal<String>>,
-    oninput: EventHandler<FormEvent>,
-) -> Element {
+fn TextInput(label: String, value: Signal<String>, oninput: EventHandler<FormEvent>) -> Element {
     let style = "
         text-base
         rounded-lg
