@@ -96,6 +96,7 @@ fn Icon(d: &'static str, stroke_width: Option<&'static str>) -> Element {
     let stroke_width = stroke_width.unwrap_or("1.5");
     rsx! {
         svg {
+            "aria-hidden": true,
             xmlns: "http://www.w3.org/2000/svg",
             fill: "none",
             "viewBox": "0 0 24 24",
