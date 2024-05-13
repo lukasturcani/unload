@@ -17,7 +17,6 @@ pub struct Board {
     pub to_do: Vec<TaskId>,
     pub in_progress: Vec<TaskId>,
     pub done: Vec<TaskId>,
-    pub tag_filter: HashSet<TagId>,
     pub size_filter: Option<TaskSize>,
     pub dense_view: bool,
 }
@@ -30,7 +29,6 @@ impl Default for Board {
             to_do: Vec::default(),
             in_progress: Vec::default(),
             done: Vec::default(),
-            tag_filter: HashSet::default(),
             size_filter: None,
             dense_view: false,
         }
@@ -47,6 +45,8 @@ pub struct Tags(pub HashMap<TagId, TagData>);
 pub struct QuickAddTasks(pub HashMap<QuickAddTaskId, QuickAddData>);
 #[derive(Debug, Default)]
 pub struct UserFilter(pub HashSet<UserId>);
+#[derive(Debug, Default)]
+pub struct TagFilter(pub HashSet<TagId>);
 
 #[derive(Debug)]
 pub struct Model {

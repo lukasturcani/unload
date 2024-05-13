@@ -1,14 +1,14 @@
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use reqwest::Client;
-use shared_models::{Color, QuickAddData, TagId, TaskId, TaskStatus, UserData, UserId};
+use shared_models::{Color, QuickAddData, TagData, TagId, TaskId, TaskStatus, UserData, UserId};
 
 use crate::{
     components::icons::{
         ArchiveIcon, BoltIcon, CancelIcon, ConfirmIcon, CopyIcon, DoneIcon, EditIcon,
         InProgressIcon, PlusIcon, ToDoIcon,
     },
-    model::{TaskData, UserFilter, Users},
+    model::{TagFilter, Tags, TaskData, UserFilter, Users},
     requests::{self, BoardSignals},
 };
 
@@ -22,6 +22,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     ";
     let expanded = use_signal(|| false);
     let select_assignees = use_signal(|| false);
+    let select_tags = use_signal(|| false);
     let label = task.title.clone();
     rsx! {
         article {
@@ -40,7 +41,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
             if select_assignees() {
                 AssigneeSelection { task_id, assignees: task.assignees }
             }
-            // Tags { task_id, tags: task.tags }
+            TaskTags { task_id, tags: task.tags, select_tags }
             // if expanded() {
             //     Due { task_id, due: task.due }
             //     Description { task_id, description: task.description }
@@ -285,13 +286,17 @@ fn Assignees(task_id: TaskId, assignees: Vec<UserId>, select_assignees: Signal<b
             for user_id in assignees {
                 UserIcon { user_id, user_data: users[&user_id].clone() }
             }
-            ToggleAssigneeSelection { select_assignees }
+            ToggleSelector {
+                show_selector: select_assignees,
+                aria_label: "toggle assignee selection",
+                tooltip: "Assign User"
+            }
         }
     }
 }
 
 #[component]
-fn ToggleAssigneeSelection(select_assignees: Signal<bool>) -> Element {
+fn ToggleSelector(show_selector: Signal<bool>, aria_label: String, tooltip: String) -> Element {
     let style = "
         rounded border-2 border-white
         sm:hover:bg-white sm:hover:stroke-black
@@ -301,15 +306,15 @@ fn ToggleAssigneeSelection(select_assignees: Signal<bool>) -> Element {
         div {
             class: "relative",
             button {
-                "aria-label": "toggle assignee selection",
+                "aria-label": aria_label,
                 class: "peer size-6 {style}",
-                "aria-pressed": select_assignees(),
+                "aria-pressed": show_selector(),
                 onclick: move |_| {
-                    select_assignees.set(!select_assignees());
+                    show_selector.set(!show_selector());
                 },
                 PlusIcon {}
             }
-            Tooltip { content: "Assign User" }
+            Tooltip { content: tooltip }
         }
     }
 }
@@ -699,8 +704,70 @@ fn ColorPicker() -> Element {
 }
 
 #[component]
-fn Tags(task_id: TaskId, tags: Vec<TagId>) -> Element {
-    todo!()
+fn TaskTags(task_id: TaskId, tags: Vec<TagId>, select_tags: Signal<bool>) -> Element {
+    let tag_data = use_context::<Signal<Tags>>();
+    let tag_data = &tag_data.read().0;
+    rsx! {
+        section {
+            "aria-label": "tags",
+            class: "flex flex-row flex-wrap gap-2 items-center",
+            for tag_id in tags {
+                TagChip { tag_id, tag_data: tag_data[&tag_id].clone() }
+            }
+            ToggleSelector {
+                show_selector: select_tags,
+                aria_label: "toggle tag selection",
+                tooltip: "Add Tag"
+            }
+        }
+    }
+}
+
+#[component]
+fn TagChip(tag_id: TagId, tag_data: TagData) -> Element {
+    let mut tag_filter = use_context::<Signal<TagFilter>>();
+    let color = match tag_data.color {
+        Color::Black => "border-black aria-pressed:bg-black",
+        Color::White => "border-white aria-pressed:bg-white",
+        Color::Gray => "border-gray-400 aria-pressed:bg-gray-400",
+        Color::Silver => "border-slate-500 aria-pressed:bg-slate-500",
+        Color::Maroon => "border-rose-400 aria-pressed:bg-rose-400",
+        Color::Red => "border-red-600 aria-pressed:bg-red-600",
+        Color::Purple => "border-purple-600 aria-pressed:bg-purple-600",
+        Color::Fushsia => "border-fuchsia-400 aria-pressed:bg-fuchsia-400",
+        Color::Green => "border-emerald-500 aria-pressed:bg-emerald-500",
+        Color::Lime => "border-lime-500 aria-pressed:bg-lime-500",
+        Color::Olive => "border-indigo-400 aria-pressed:bg-indigo-400",
+        Color::Yellow => "border-yellow-400 aria-pressed:bg-yellow-400",
+        Color::Navy => "border-amber-200 aria-pressed:bg-amber-200",
+        Color::Blue => "border-blue-400 aria-pressed:bg-blue-400",
+        Color::Teal => "border-teal-300 aria-pressed:bg-teal-300",
+        Color::Aqua => "border-cyan-500 aria-pressed:bg-cyan-500",
+    };
+    let style = "
+        rounded border-2
+        sm:hover:border-4 active:border-4 sm:hover:scale-110 active:scale-110
+    ";
+    let label = format!("toggle {} filter", tag_data.name);
+    rsx! {
+        div {
+            class: "relative",
+            button {
+                class: "text-sm px-2.5 py-0.5 {style} {color}",
+                "aria-label": label,
+                "aria-pressed": tag_filter.read().0.contains(&tag_id),
+                onclick: move |_| {
+                    let mut tag_filter = tag_filter.write();
+                    if tag_filter.0.contains(&tag_id) {
+                        tag_filter.0.remove(&tag_id);
+                    } else {
+                        tag_filter.0.insert(tag_id);
+                    }
+                },
+                "# {tag_data.name}"
+            }
+        }
+    }
 }
 
 #[component]
