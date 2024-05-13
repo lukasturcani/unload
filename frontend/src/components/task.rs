@@ -108,14 +108,14 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
                 label: "Title",
                 value: title,
             }
-            ConfirmButton {}
+            ConfirmButton { label: "set title" }
             CancelButton { label: "cancel title update", editing }
         }
     }
 }
 
 #[component]
-fn ConfirmButton() -> Element {
+fn ConfirmButton(label: String) -> Element {
     let style = "
         rounded-md
         border border-green-500
@@ -125,7 +125,7 @@ fn ConfirmButton() -> Element {
     ";
     rsx! {
         button {
-            "aria-label": "set title",
+            "aria-label": label,
             class: "size-7 {style}",
             r#type: "submit",
             ConfirmIcon {}
@@ -563,6 +563,14 @@ fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
                     label: "Name",
                 }
                 ColorPicker { }
+                div {
+                    class: "flex flex-row gap-2 items-center justify-center",
+                    ConfirmButton { label: "add user" }
+                    CancelButton {
+                        label: "cancel adding user",
+                        editing: adding_user,
+                    }
+                }
             }
         }
     }
@@ -636,11 +644,6 @@ fn color_to_bg(color: Color) -> &'static str {
 fn ColorPicker() -> Element {
     let fieldset_style = "rounded-lg border border-gray-700";
     let legend_style = "text-sm";
-    let button_style = "
-        border-2 border-blue-500 rounded-lg
-        text-blue-500
-        sm:hover:underline active:underline
-    ";
     let radio_style = "
         rounded-md
         ease-in-out duration-150
@@ -648,7 +651,7 @@ fn ColorPicker() -> Element {
     ";
     rsx! {
         fieldset {
-            class: "flex flex-row items-center justify-center {fieldset_style}",
+            class: "flex flex-row items-center justify-center py-2 {fieldset_style}",
             legend {
                 class: legend_style,
                 "Color"
@@ -687,11 +690,6 @@ fn ColorPicker() -> Element {
                     }
                 }
             }
-        }
-        button {
-            class: "px-4 py-2 w-full {button_style}",
-            r#type: "submit",
-            "Add User"
         }
     }
 }
