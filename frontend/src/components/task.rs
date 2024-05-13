@@ -66,12 +66,7 @@ fn Title(task_id: TaskId, title: String) -> Element {
 }
 
 #[component]
-fn TextInput(
-    id: String,
-    label: String,
-    value: Signal<String>,
-    oninput: EventHandler<FormEvent>,
-) -> Element {
+fn TextInput(id: String, label: String, value: Option<String>) -> Element {
     let style = "
         text-base
         rounded-lg
@@ -79,6 +74,7 @@ fn TextInput(
         bg-gray-700
         focus:ring-blue-500 focus:border-blue-500
     ";
+    let name = label.clone();
     rsx! {
         label {
             class: "text-sm",
@@ -88,30 +84,29 @@ fn TextInput(
         input {
             id,
             class: "p-2.5 {style}",
+            name,
             required: true,
             value,
-            oninput: move |event| oninput.call(event),
         }
     }
 }
 
 #[component]
 fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
-    let mut title = use_signal(|| title);
     let board_signals = BoardSignals::default();
     rsx! {
         form {
             "aria-label": "update title",
             class: "flex flex-row gap-2 items-center",
-            onsubmit: move |_| {
-                spawn_forever(set_task_title(board_signals, task_id, title()));
+            onsubmit: move |event| {
+                let title = event.values()["Title"].as_value();
+                spawn_forever( set_task_title(board_signals, task_id, title));
                 editing.set(false);
             },
             TextInput {
                 id: "task-{task_id}-title-input",
                 label: "Title",
                 value: title,
-                oninput: move |event: FormEvent| title.set(event.value()),
             }
             ConfirmButton {}
             CancelButton { label: "cancel title update", editing }
@@ -555,8 +550,6 @@ fn AddUserListButtom(adding_user: Signal<bool>) -> Element {
 
 #[component]
 fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
-    let mut name = use_signal(String::new);
-    let color = use_signal(|| None::<Color>);
     rsx! {
         li {
             form {
@@ -568,10 +561,8 @@ fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
                 TextInput {
                     id: "task-{task_id}-new-user-name-input",
                     label: "Name",
-                    value: name,
-                    oninput: move |event: FormEvent| name.set(event.value()),
                 }
-                ColorPicker { color }
+                ColorPicker { }
             }
         }
     }
@@ -642,7 +633,7 @@ fn color_to_bg(color: Color) -> &'static str {
 }
 
 #[component]
-fn ColorPicker(color: Signal<Option<Color>>) -> Element {
+fn ColorPicker() -> Element {
     let fieldset_style = "rounded-lg border border-gray-700";
     let legend_style = "text-sm";
     let button_style = "
@@ -653,7 +644,7 @@ fn ColorPicker(color: Signal<Option<Color>>) -> Element {
     let radio_style = "
         rounded-md
         ease-in-out duration-150
-        hover:scale-125 peer-checked:scale-125 peer-checked:ring peer-checked:ring-blue-500
+        hover:scale-125 peer-checked:scale-125
     ";
     rsx! {
         fieldset {
@@ -663,7 +654,7 @@ fn ColorPicker(color: Signal<Option<Color>>) -> Element {
                 "Color"
             }
             div {
-                class: "grid grid-cols-4 gap-2",
+                class: "grid grid-cols-4 gap-4",
                 for color in [
                     Color::Black,
                     Color::White,
@@ -683,15 +674,16 @@ fn ColorPicker(color: Signal<Option<Color>>) -> Element {
                     Color::Aqua,
                 ] {
                     label {
+                        class: "flex flex-row items-center gap-2",
                         input {
                             value: color_to_string(color),
-                            class: "hidden peer",
+                            class: "peer",
                             "aria-label": "color1",
                             required: true,
                             r#type: "radio",
                             name: "color-picker",
                         }
-                        div { class: "size-6 {radio_style} {color_to_bg(color)}" }
+                        div { class: "inline-block size-6 {radio_style} {color_to_bg(color)}" }
                     }
                 }
             }
