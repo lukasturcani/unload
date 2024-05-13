@@ -550,12 +550,16 @@ fn AddUserListButtom(adding_user: Signal<bool>) -> Element {
 
 #[component]
 fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
+    let board_signals = BoardSignals::default();
     rsx! {
         li {
             form {
                 "aria-label": "add user",
                 class: "flex flex-col gap-2 p-2",
-                onsubmit: move |_| {
+                onsubmit: move |event| {
+                    let name = event.values()["Name"].as_value();
+                    let color = color_from_string(&event.values()["color-picker"].as_value());
+                    spawn_forever(create_user(board_signals, task_id, UserData{ name, color }));
                     adding_user.set(false);
                 },
                 TextInput {
@@ -961,4 +965,15 @@ async fn send_add_task_assignee_request(
         .await?
         .json::<()>()
         .await?)
+}
+
+async fn create_user(signals: BoardSignals, task_id: TaskId, user_data: UserData) {
+    match requests::create_user(signals.board, user_data).await {
+        Ok((user_id, _)) => {
+            add_task_assignee(signals, task_id, user_id).await;
+        }
+        Err(e) => {
+            log::info!("Error creating user: {:?}", e);
+        }
+    }
 }
