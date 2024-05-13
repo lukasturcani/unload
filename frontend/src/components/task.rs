@@ -577,6 +577,70 @@ fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
     }
 }
 
+fn color_to_string(color: Color) -> &'static str {
+    match color {
+        Color::Black => "black",
+        Color::White => "white",
+        Color::Gray => "gray",
+        Color::Silver => "silver",
+        Color::Maroon => "maroon",
+        Color::Red => "red",
+        Color::Purple => "purple",
+        Color::Fushsia => "fushsia",
+        Color::Green => "green",
+        Color::Lime => "lime",
+        Color::Olive => "olive",
+        Color::Yellow => "yellow",
+        Color::Navy => "navy",
+        Color::Blue => "blue",
+        Color::Teal => "teal",
+        Color::Aqua => "aqua",
+    }
+}
+
+fn color_from_string(color: &str) -> Color {
+    match color {
+        "black" => Color::Black,
+        "white" => Color::White,
+        "gray" => Color::Gray,
+        "silver" => Color::Silver,
+        "maroon" => Color::Maroon,
+        "red" => Color::Red,
+        "purple" => Color::Purple,
+        "fushsia" => Color::Fushsia,
+        "green" => Color::Green,
+        "lime" => Color::Lime,
+        "olive" => Color::Olive,
+        "yellow" => Color::Yellow,
+        "navy" => Color::Navy,
+        "blue" => Color::Blue,
+        "teal" => Color::Teal,
+        "aqua" => Color::Aqua,
+        _ => panic!("invalid color"),
+    }
+}
+
+fn color_to_bg(color: Color) -> &'static str {
+    match color {
+        Color::Black => "bg-black",
+        Color::White => "bg-white",
+        Color::Gray => "bg-gray-400",
+        Color::Silver => "bg-slate-500",
+        Color::Maroon => "bg-rose-400",
+        Color::Red => "bg-red-600",
+        Color::Purple => "bg-purple-600",
+        Color::Fushsia => "bg-fuchsia-400",
+        Color::Green => "bg-emerald-500",
+        Color::Lime => "bg-lime-500",
+        Color::Olive => "bg-indigo-400",
+        Color::Yellow => "bg-yellow-400",
+        Color::Navy => "bg-amber-200",
+        Color::Blue => "bg-blue-400",
+        Color::Teal => "bg-teal-300",
+        Color::Aqua => "bg-cyan-500",
+    }
+}
+
 #[component]
 fn ColorPicker(color: Signal<Option<Color>>) -> Element {
     let fieldset_style = "rounded-lg border border-gray-700";
@@ -586,6 +650,11 @@ fn ColorPicker(color: Signal<Option<Color>>) -> Element {
         text-blue-500
         sm:hover:underline active:underline
     ";
+    let radio_style = "
+        rounded-md
+        ease-in-out duration-150
+        hover:scale-125 peer-checked:scale-125 peer-checked:ring peer-checked:ring-blue-500
+    ";
     rsx! {
         fieldset {
             class: fieldset_style,
@@ -593,21 +662,37 @@ fn ColorPicker(color: Signal<Option<Color>>) -> Element {
                 class: legend_style,
                 "Color"
             }
-            input {
-                "aria-label": "color1",
-                required: true,
-                r#type: "radio",
-                name: "color-picker",
-                div {
-                    class: "size-6 bg-rose-400",
-                }
-            }
-            input {
-                "aria-label": "color2",
-                r#type: "radio",
-                name: "color-picker",
-                div {
-                    class: "size-6 bg-emerald-500",
+            div {
+                class: "grid grid-cols-4 gap-2",
+                for color in [
+                    Color::Black,
+                    Color::White,
+                    Color::Gray,
+                    Color::Silver,
+                    Color::Maroon,
+                    Color::Red,
+                    Color::Purple,
+                    Color::Fushsia,
+                    Color::Green,
+                    Color::Lime,
+                    Color::Olive,
+                    Color::Yellow,
+                    Color::Navy,
+                    Color::Blue,
+                    Color::Teal,
+                    Color::Aqua,
+                ] {
+                    label {
+                        input {
+                            value: color_to_string(color),
+                            class: "hidden peer",
+                            "aria-label": "color1",
+                            required: true,
+                            r#type: "radio",
+                            name: "color-picker",
+                        }
+                        div { class: "size-6 {radio_style} {color_to_bg(color)}" }
+                    }
                 }
             }
         }
