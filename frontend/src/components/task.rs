@@ -657,7 +657,7 @@ fn ColorPicker(color: Signal<Option<Color>>) -> Element {
     ";
     rsx! {
         fieldset {
-            class: fieldset_style,
+            class: "flex flex-row items-center justify-center {fieldset_style}",
             legend {
                 class: legend_style,
                 "Color"
