@@ -114,7 +114,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
                 oninput: move |event: FormEvent| title.set(event.value()),
             }
             ConfirmButton {}
-            CancelButton { editing }
+            CancelButton { label: "cancel title update", editing }
         }
     }
 }
@@ -139,7 +139,7 @@ fn ConfirmButton() -> Element {
 }
 
 #[component]
-fn CancelButton(editing: Signal<bool>) -> Element {
+fn CancelButton(label: String, editing: Signal<bool>) -> Element {
     let style = "
         rounded-md
         border border-red-500
@@ -149,7 +149,7 @@ fn CancelButton(editing: Signal<bool>) -> Element {
     ";
     rsx! {
         button {
-            "aria-label": "cancel update",
+            "aria-label": label,
             class: "size-7 {style}",
             onclick: move |_| {
                 editing.set(false);
