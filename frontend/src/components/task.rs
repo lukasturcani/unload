@@ -434,7 +434,7 @@ fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
                     for (tag_id, tag) in unassigned {
                         TagListItem { key: "{tag_id}", task_id, tag_id, tag }
                     }
-                    AddUserListItem { key: "{\"add-tag\"}", task_id, }
+                    AddTagListItem { key: "{\"add-tag\"}", task_id, }
                 }
             }
         }
@@ -614,6 +614,20 @@ fn AddUserListItem(task_id: TaskId) -> Element {
 }
 
 #[component]
+fn AddTagListItem(task_id: TaskId) -> Element {
+    let show_form = use_signal(|| false);
+    rsx! {
+        li {
+            if show_form() {
+                AddTagListForm { task_id, show_form }
+            } else {
+                ShowSelectionListFormButton { content: "Add Tag", show_form }
+            }
+        }
+    }
+}
+
+#[component]
 fn ShowSelectionListFormButton(content: String, show_form: Signal<bool>) -> Element {
     let style = "text-blue-500 sm:hover:underline active:underline";
     rsx! {
@@ -649,6 +663,38 @@ fn AddUserListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
                     ConfirmButton { label: "add user" }
                     CancelButton {
                         label: "cancel adding user",
+                        editing: show_form,
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn AddTagListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
+    let board_signals = BoardSignals::default();
+    rsx! {
+        li {
+            form {
+                "aria-label": "add tag",
+                class: "flex flex-col gap-2 p-2",
+                onsubmit: move |event| {
+                    let name = event.values()["Name"].as_value();
+                    let color = color_from_string(&event.values()["color-picker"].as_value());
+                    spawn_forever(create_tag(board_signals, task_id, TagData{ name, color }));
+                    show_form.set(false);
+                },
+                TextInput {
+                    id: "task-{task_id}-new-tag-name-input",
+                    label: "Name",
+                }
+                ColorPicker { }
+                div {
+                    class: "flex flex-row gap-2 items-center justify-center",
+                    ConfirmButton { label: "add tag" }
+                    CancelButton {
+                        label: "cancel adding tag",
                         editing: show_form,
                     }
                 }
@@ -1126,6 +1172,17 @@ async fn create_user(signals: BoardSignals, task_id: TaskId, user_data: UserData
         }
         Err(e) => {
             log::info!("Error creating user: {:?}", e);
+        }
+    }
+}
+
+async fn create_tag(signals: BoardSignals, task_id: TaskId, tag_data: TagData) {
+    match requests::create_tag(signals.board, tag_data).await {
+        Ok((tag_id, _)) => {
+            add_task_tag(signals, task_id, tag_id).await;
+        }
+        Err(e) => {
+            log::info!("Error creating tag: {:?}", e);
         }
     }
 }
