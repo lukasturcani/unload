@@ -892,7 +892,7 @@ fn TagChip(task_id: TaskId, tag_id: TagId, tag_data: TagData) -> Element {
                 "# {tag_data.name}"
             }
             button {
-                "aria-label": "remove {tag_data.name} tag",
+                "aria-label": "remove tag {tag_data.name} from task",
                 class: "size-5 p-0.5 {delete_tag_button_style}",
                 onclick: move |_| {
                     spawn_forever(delete_task_tag(board_signals, task_id, tag_id));
