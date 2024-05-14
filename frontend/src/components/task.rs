@@ -712,7 +712,7 @@ fn TaskTags(task_id: TaskId, tags: Vec<TagId>, select_tags: Signal<bool>) -> Ele
             "aria-label": "tags",
             class: "flex flex-row flex-wrap gap-2 items-center",
             for tag_id in tags {
-                TagChip { tag_id, tag_data: tag_data[&tag_id].clone() }
+                TagChip { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
             }
             ToggleSelector {
                 show_selector: select_tags,
@@ -724,7 +724,8 @@ fn TaskTags(task_id: TaskId, tags: Vec<TagId>, select_tags: Signal<bool>) -> Ele
 }
 
 #[component]
-fn TagChip(tag_id: TagId, tag_data: TagData) -> Element {
+fn TagChip(task_id: TaskId, tag_id: TagId, tag_data: TagData) -> Element {
+    let board_signals = BoardSignals::default();
     let mut tag_filter = use_context::<Signal<TagFilter>>();
     let color = match tag_data.color {
         Color::Black => "border-black aria-pressed:bg-black",
@@ -744,18 +745,22 @@ fn TagChip(tag_id: TagId, tag_data: TagData) -> Element {
         Color::Teal => "border-teal-300 aria-pressed:bg-teal-300",
         Color::Aqua => "border-cyan-500 aria-pressed:bg-cyan-500",
     };
-    let style = "
-        rounded border-2
-        sm:hover:border-4 active:border-4 sm:hover:scale-110 active:scale-110
-    ";
-    let label = format!("toggle {} filter", tag_data.name);
+    let style = "rounded border-2";
+    let delete_tag_button_style = "rounded active:border sm:hover:border";
+    let pressed = tag_filter.read().0.contains(&tag_id);
     rsx! {
         div {
-            class: "relative",
+            class: "
+                group
+                flex flex-row items-center
+                px-2.5 py-0.5
+                {style} {color}
+            ",
+            "aria-pressed": pressed,
             button {
-                class: "text-sm px-2.5 py-0.5 {style} {color}",
-                "aria-label": label,
-                "aria-pressed": tag_filter.read().0.contains(&tag_id),
+                class: "text-sm pr-1",
+                "aria-label": "toggle {tag_data.name} filter",
+                "aria-pressed": pressed,
                 onclick: move |_| {
                     let mut tag_filter = tag_filter.write();
                     if tag_filter.0.contains(&tag_id) {
@@ -765,6 +770,14 @@ fn TagChip(tag_id: TagId, tag_data: TagData) -> Element {
                     }
                 },
                 "# {tag_data.name}"
+            }
+            button {
+                "aria-label": "remove {tag_data.name} tag",
+                class: "size-5 p-0.5 {delete_tag_button_style}",
+                onclick: move |_| {
+                    spawn_forever(delete_task_tag(board_signals, task_id, tag_id));
+                },
+                CancelIcon {}
             }
         }
     }
@@ -1043,4 +1056,33 @@ async fn create_user(signals: BoardSignals, task_id: TaskId, user_data: UserData
             log::info!("Error creating user: {:?}", e);
         }
     }
+}
+
+async fn delete_task_tag(signals: BoardSignals, task_id: TaskId, tag_id: TagId) {
+    if send_delete_task_tag_request(signals, task_id, tag_id)
+        .await
+        .is_ok()
+    {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_delete_task_tag_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+    tag_id: TagId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let board = signals.board.read();
+        board.url.join(&format!(
+            "/api/boards/{}/tasks/{}/tags/{}",
+            board.board_name, task_id, tag_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .delete(url)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
 }
