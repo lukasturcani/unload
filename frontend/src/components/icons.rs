@@ -92,6 +92,24 @@ pub fn ArchiveIcon() -> Element {
 }
 
 #[component]
+pub fn UpIcon() -> Element {
+    rsx! {
+        Icon {
+          d: "m4.5 15.75 7.5-7.5 7.5 7.5",
+        }
+    }
+}
+
+#[component]
+pub fn DownIcon() -> Element {
+    rsx! {
+        Icon {
+            d: "m19.5 8.25-7.5 7.5-7.5-7.5"
+        }
+    }
+}
+
+#[component]
 fn Icon(d: &'static str, stroke_width: Option<&'static str>) -> Element {
     let stroke_width = stroke_width.unwrap_or("1.5");
     rsx! {

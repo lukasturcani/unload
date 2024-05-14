@@ -5,8 +5,8 @@ use shared_models::{Color, QuickAddData, TagData, TagId, TaskId, TaskStatus, Use
 
 use crate::{
     components::icons::{
-        ArchiveIcon, BoltIcon, CancelIcon, ConfirmIcon, CopyIcon, DoneIcon, EditIcon,
-        InProgressIcon, PlusIcon, ToDoIcon,
+        ArchiveIcon, BoltIcon, CancelIcon, ConfirmIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
+        InProgressIcon, PlusIcon, ToDoIcon, UpIcon,
     },
     model::{Board, TagFilter, Tags, TaskData, UserFilter, Users},
     requests::{self, BoardSignals},
@@ -27,14 +27,14 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     rsx! {
         article {
             "aria-label": label,
-            class: "flex flex-col gap-2 p-3 {style}",
+            class: "flex flex-col gap-0.5 p-3 {style}",
             div {
                 class: "flex flex-row justify-between",
                 Title { task_id, title: task.title }
                 StatusButtons { task_id }
             }
             div {
-                class: "flex flex row justify-between",
+                class: "flex flex row justify-between items-center",
                 Assignees { task_id, assignees: task.assignees.clone(), select_assignees }
                 TaskActions { task_id }
             }
@@ -50,9 +50,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
             //     Description { task_id, description: task.description }
             //     SpecialActions { task_id }
             // }
-            // ToggleExpanded {
-            //     expanded
-            // }
+            ToggleExpanded { expanded }
         }
     }
 }
@@ -210,7 +208,7 @@ fn StatusButtons(task_id: TaskId) -> Element {
     rsx! {
         section {
             "aria-label": "set task status",
-            class: "flex flex-row",
+            class: "flex flex-row items-center",
             ToDoButton { task_id }
             InProgressButton { task_id }
             DoneButton { task_id }
@@ -285,7 +283,7 @@ fn Assignees(task_id: TaskId, assignees: Vec<UserId>, select_assignees: Signal<b
     rsx! {
         section {
             "aria-label": "assignees",
-            class: "flex flex-row flex-wrap gap-2",
+            class: "flex flex-row flex-wrap items-center gap-2",
             for user_id in assignees {
                 UserIcon { user_id, user_data: users[&user_id].clone() }
             }
@@ -960,7 +958,28 @@ fn Due(task_id: TaskId, due: Option<DateTime<Utc>>) -> Element {
 
 #[component]
 fn ToggleExpanded(expanded: Signal<bool>) -> Element {
-    todo!()
+    let style = "rounded sm:hover:bg-gray-800 active:bg-gray-800";
+    let expanded_ = expanded();
+    rsx! {
+        button {
+            "aria-label": "toggle expand task",
+            "aria-pressed": expanded_,
+            class: "
+                w-full
+                flex flex-row items-center justify-center
+                {style}
+            ",
+            onclick: move |_| expanded.set(!expanded()),
+            div {
+                class: "size-6",
+                if expanded_ {
+                    UpIcon {}
+                } else {
+                    DownIcon {}
+                }
+            }
+        }
+    }
 }
 
 async fn set_task_title(signals: BoardSignals, task_id: TaskId, title: String) {
