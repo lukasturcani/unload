@@ -8,7 +8,7 @@ use crate::{
         ArchiveIcon, BoltIcon, CancelIcon, ConfirmIcon, CopyIcon, DoneIcon, EditIcon,
         InProgressIcon, PlusIcon, ToDoIcon,
     },
-    model::{TagFilter, Tags, TaskData, UserFilter, Users},
+    model::{Board, TagFilter, Tags, TaskData, UserFilter, Users},
     requests::{self, BoardSignals},
 };
 
@@ -41,7 +41,10 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
             if select_assignees() {
                 AssigneeSelection { task_id, assignees: task.assignees }
             }
-            TaskTags { task_id, tags: task.tags, select_tags }
+            TaskTags { task_id, tags: task.tags.clone(), select_tags }
+            if select_tags() {
+                TagSelection { task_id, tags: task.tags }
+            }
             // if expanded() {
             //     Due { task_id, due: task.due }
             //     Description { task_id, description: task.description }
@@ -413,6 +416,32 @@ fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
 }
 
 #[component]
+fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
+    let tag_data = use_context::<Signal<Tags>>();
+    let tag_data = &tag_data.read().0;
+    let mut unassigned = Vec::with_capacity(tag_data.len() - tags.len());
+    for (user_id, user) in tag_data.iter() {
+        if !tags.contains(user_id) {
+            unassigned.push((*user_id, user.clone()));
+        }
+    }
+    unassigned.sort_by_key(|(_, tag)| tag.name.to_lowercase());
+    rsx! {
+        section {
+            "aria-label": "tag selection",
+            AssignmentList {
+                body: rsx! {
+                    for (tag_id, tag) in unassigned {
+                        TagListItem { key: "{tag_id}", task_id, tag_id, tag }
+                    }
+                    AddUserListItem { key: "{\"add-tag\"}", task_id, }
+                }
+            }
+        }
+    }
+}
+
+#[component]
 fn UserBadges(task_id: TaskId, assignees: Vec<(UserId, UserData)>) -> Element {
     rsx! {
        div {
@@ -472,7 +501,7 @@ fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
 }
 
 #[component]
-fn UserList(task_id: TaskId, unassigned: Vec<(UserId, UserData)>) -> Element {
+fn AssignmentList(body: Element) -> Element {
     let style = "
         rounded-lg shadow
         bg-gray-800
@@ -482,18 +511,20 @@ fn UserList(task_id: TaskId, unassigned: Vec<(UserId, UserData)>) -> Element {
     rsx! {
         ul {
             class: "text-sm {style}",
-            for (user_id, user) in unassigned {
-                UserListItem { key: "{user_id}", task_id, user_id, user }
-            }
-            AddUserListItem { key: "{\"add-user\"}", task_id, }
+            {body}
         }
     }
 }
 
 #[component]
-fn UserListItem(task_id: TaskId, user_id: UserId, user: UserData) -> Element {
+fn AssignmentListItem(
+    content: String,
+    color: Color,
+    aria_label: String,
+    onclick: EventHandler<MouseEvent>,
+) -> Element {
     let style = "active:bg-gray-700 sm:hover:bg-gray-700";
-    let color = match user.color {
+    let color = match color {
         Color::Black => "text-black",
         Color::White => "text-white",
         Color::Gray => "text-gray-400",
@@ -511,50 +542,91 @@ fn UserListItem(task_id: TaskId, user_id: UserId, user: UserData) -> Element {
         Color::Teal => "text-teal-300",
         Color::Aqua => "text-cyan-500",
     };
-    let board_signals = BoardSignals::default();
-    let label = format!("assign {} to task", user.name);
     rsx! {
         li {
             button {
-                "aria-label": label,
                 class: "px-4 py-2 w-full text-left {style} {color}",
-                onclick: move |_| {
-                    spawn_forever(add_task_assignee(board_signals, task_id, user_id));
-                },
-                {user.name}
+                onclick: move |event| onclick.call(event),
+                {content}
             }
+        }
+    }
+}
+
+#[component]
+fn UserList(task_id: TaskId, unassigned: Vec<(UserId, UserData)>) -> Element {
+    rsx! {
+        AssignmentList {
+            body: rsx! {
+                for (user_id, user) in unassigned {
+                    UserListItem { key: "{user_id}", task_id, user_id, user }
+                }
+                AddUserListItem { key: "{\"add-user\"}", task_id, }
+            }
+        }
+    }
+}
+
+#[component]
+fn UserListItem(task_id: TaskId, user_id: UserId, user: UserData) -> Element {
+    let board_signals = BoardSignals::default();
+    let label = format!("assign {} to task", user.name);
+    rsx! {
+        AssignmentListItem {
+            content: user.name,
+            color: user.color,
+            aria_label: label,
+            onclick: move |_| {
+                spawn_forever(add_task_assignee(board_signals, task_id, user_id));
+            },
+        }
+    }
+}
+
+#[component]
+fn TagListItem(task_id: TaskId, tag_id: TagId, tag: TagData) -> Element {
+    let board_signals = BoardSignals::default();
+    let label = format!("assign {} to task", tag.name);
+    rsx! {
+        AssignmentListItem {
+            content: tag.name,
+            color: tag.color,
+            aria_label: label,
+            onclick: move |_| {
+                spawn_forever(add_task_tag(board_signals, task_id, tag_id));
+            },
         }
     }
 }
 
 #[component]
 fn AddUserListItem(task_id: TaskId) -> Element {
-    let adding_user = use_signal(|| false);
+    let show_form = use_signal(|| false);
     rsx! {
         li {
-            if adding_user() {
-                AddUserListForm { task_id, adding_user }
+            if show_form() {
+                AddUserListForm { task_id, show_form }
             } else {
-                AddUserListButtom { adding_user }
+                ShowSelectionListFormButton { content: "Add User", show_form }
             }
         }
     }
 }
 
 #[component]
-fn AddUserListButtom(adding_user: Signal<bool>) -> Element {
+fn ShowSelectionListFormButton(content: String, show_form: Signal<bool>) -> Element {
     let style = "text-blue-500 sm:hover:underline active:underline";
     rsx! {
         button {
             class: "px-4 py-2 w-full text-left {style}",
-            onclick: move |_| adding_user.set(true),
-            "Add User"
+            onclick: move |_| show_form.set(true),
+            {content}
         }
     }
 }
 
 #[component]
-fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
+fn AddUserListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
         li {
@@ -565,7 +637,7 @@ fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
                     let name = event.values()["Name"].as_value();
                     let color = color_from_string(&event.values()["color-picker"].as_value());
                     spawn_forever(create_user(board_signals, task_id, UserData{ name, color }));
-                    adding_user.set(false);
+                    show_form.set(false);
                 },
                 TextInput {
                     id: "task-{task_id}-new-user-name-input",
@@ -577,7 +649,7 @@ fn AddUserListForm(task_id: TaskId, adding_user: Signal<bool>) -> Element {
                     ConfirmButton { label: "add user" }
                     CancelButton {
                         label: "cancel adding user",
-                        editing: adding_user,
+                        editing: show_form,
                     }
                 }
             }
@@ -1081,6 +1153,36 @@ async fn send_delete_task_tag_request(
     };
     Ok(reqwest::Client::new()
         .delete(url)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn add_task_tag(signals: BoardSignals, task_id: TaskId, tag_id: TagId) {
+    if send_add_task_tag_request(signals.board, task_id, tag_id)
+        .await
+        .is_ok()
+    {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_add_task_tag_request(
+    board: Signal<Board>,
+    task_id: TaskId,
+    tag_id: TagId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let board = board.read();
+        board.url.join(&format!(
+            "/api/boards/{}/tasks/{}/tags",
+            board.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .post(url)
+        .json(&tag_id)
         .send()
         .await?
         .json::<()>()
