@@ -390,9 +390,10 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
     }
 }
 
+const ASSIGNMENT_LIST_STYLE: &str = "rounded-lg bg-gray-800 border border-gray-700";
+
 #[component]
 fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
-    let style = "rounded-lg bg-gray-800 border border-gray-700";
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     let mut assignee_data = Vec::with_capacity(assignees.len());
@@ -408,7 +409,7 @@ fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
     rsx! {
         section {
             "aria-label": "assignee selection",
-            class: "flex flex-col gap-2 p-2 {style}",
+            class: "flex flex-col gap-2 p-2 {ASSIGNMENT_LIST_STYLE}",
             UserBadges { task_id, assignees: assignee_data }
             UserList { task_id, unassigned }
         }
@@ -429,6 +430,7 @@ fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
     rsx! {
         section {
             "aria-label": "tag selection",
+            class: "p-2 {ASSIGNMENT_LIST_STYLE}",
             AssignmentList {
                 body: rsx! {
                     for (tag_id, tag) in unassigned {
