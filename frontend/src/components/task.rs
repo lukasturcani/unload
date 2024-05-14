@@ -753,7 +753,7 @@ fn TagChip(task_id: TaskId, tag_id: TagId, tag_data: TagData) -> Element {
             class: "
                 group
                 flex flex-row items-center
-                px-2.5 py-0.5
+                px-1.5 py-0.5
                 {style} {color}
             ",
             "aria-pressed": pressed,
