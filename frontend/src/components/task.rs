@@ -27,7 +27,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     rsx! {
         article {
             "aria-label": label,
-            class: "flex flex-col gap-0.5 p-3 {style}",
+            class: "flex flex-col gap-0.5 px-3 pt-3 {style}",
             div {
                 class: "flex flex-row justify-between",
                 Title { task_id, title: task.title }
@@ -965,7 +965,7 @@ fn ToggleExpanded(expanded: Signal<bool>) -> Element {
             "aria-label": "toggle expand task",
             "aria-pressed": expanded_,
             class: "
-                w-full
+                h-8 w-full
                 flex flex-row items-center justify-center
                 {style}
             ",
