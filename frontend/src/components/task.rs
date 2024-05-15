@@ -10,16 +10,22 @@ use crate::{
     },
     model::{Board, TagFilter, Tags, TaskData, UserFilter, Users},
     requests::{self, BoardSignals},
+    themes::Theme,
 };
 
 #[component]
 pub fn Task(task_id: TaskId, task: TaskData) -> Element {
-    let style = "
-        border border-gray-700
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
+        border
         rounded-lg
         shadow
-        bg-gray-800 sm:hover:bg-gray-700
-    ";
+        {} {} {}
+        ",
+        theme.border_color, theme.bg_color_2, theme.sm_hover_bg_color_3
+    );
     let expanded = use_signal(|| false);
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
@@ -69,13 +75,18 @@ fn Title(task_id: TaskId, title: String) -> Element {
 
 #[component]
 fn TextInput(id: String, label: String, value: Option<String>) -> Element {
-    let style = "
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
         text-base
         rounded-lg
-        border border-gray-600
-        bg-gray-700
+        border
         focus:ring-blue-500 focus:border-blue-500
-    ";
+        {} {}
+    ",
+        theme.border_color, theme.bg_color_2
+    );
     let name = label.clone();
     rsx! {
         label {
@@ -370,7 +381,12 @@ fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
 
 #[component]
 fn Tooltip(content: String, position: Option<String>) -> Element {
-    let style = "border border-gray-700 bg-gray-800 rounded-lg shadow-sm";
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "border rounded-lg shadow-sm {} {}",
+        theme.border_color, theme.bg_color_2
+    );
     let position = position.unwrap_or("-top-10 -left-2".to_string());
     rsx! {
         div {
@@ -388,10 +404,16 @@ fn Tooltip(content: String, position: Option<String>) -> Element {
     }
 }
 
-const ASSIGNMENT_LIST_STYLE: &str = "rounded-lg bg-gray-800 border border-gray-700";
+const ASSIGNMENT_LIST_STYLE: &str = "rounded-lg border";
 
 #[component]
 fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "{} {} {}",
+        ASSIGNMENT_LIST_STYLE, theme.bg_color_2, theme.border_color
+    );
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     let mut assignee_data = Vec::with_capacity(assignees.len());
@@ -407,7 +429,7 @@ fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
     rsx! {
         section {
             "aria-label": "assignee selection",
-            class: "flex flex-col gap-2 p-2 {ASSIGNMENT_LIST_STYLE}",
+            class: "flex flex-col gap-2 p-2 {style}",
             UserBadges { task_id, assignees: assignee_data }
             UserList { task_id, unassigned }
         }
@@ -416,6 +438,12 @@ fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
 
 #[component]
 fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "{} {} {}",
+        ASSIGNMENT_LIST_STYLE, theme.bg_color_2, theme.border_color
+    );
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
     let mut unassigned = Vec::with_capacity(tag_data.len() - tags.len());
@@ -428,7 +456,7 @@ fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
     rsx! {
         section {
             "aria-label": "tag selection",
-            class: "p-2 {ASSIGNMENT_LIST_STYLE}",
+            class: "p-2 {style}",
             AssignmentList {
                 body: rsx! {
                     for (tag_id, tag) in unassigned {
@@ -502,12 +530,17 @@ fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
 
 #[component]
 fn AssignmentList(body: Element) -> Element {
-    let style = "
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
         rounded-lg shadow
-        bg-gray-800
-        border border-gray-700
-        divide-y divide-gray-700
-    ";
+        border
+        divide-y
+        {} {} {}
+    ",
+        theme.border_color, theme.bg_color_2, theme.divide_color
+    );
     rsx! {
         ul {
             class: "text-sm {style}",
@@ -523,7 +556,9 @@ fn AssignmentListItem(
     aria_label: String,
     onclick: EventHandler<MouseEvent>,
 ) -> Element {
-    let style = "active:bg-gray-700 sm:hover:bg-gray-700";
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("{} {}", theme.sm_hover_bg_color_3, theme.active_bg_color_3);
     let color = match color {
         Color::Black => "text-black",
         Color::White => "text-white",
@@ -769,7 +804,9 @@ fn color_to_bg(color: Color) -> &'static str {
 
 #[component]
 fn ColorPicker() -> Element {
-    let fieldset_style = "rounded-lg border border-gray-700";
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let fieldset_style = format!("rounded-lg border {}", theme.border_color);
     let legend_style = "text-sm";
     let radio_style = "
         rounded-md
@@ -958,7 +995,12 @@ fn Due(task_id: TaskId, due: Option<DateTime<Utc>>) -> Element {
 
 #[component]
 fn ToggleExpanded(expanded: Signal<bool>) -> Element {
-    let style = "rounded sm:hover:bg-gray-800 active:bg-gray-800";
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "rounded {} {}",
+        theme.active_bg_color_2, theme.sm_hover_bg_color_2
+    );
     let expanded_ = expanded();
     rsx! {
         button {

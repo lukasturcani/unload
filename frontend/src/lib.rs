@@ -15,5 +15,6 @@ mod tag_archive;
 mod tag_search;
 mod tags;
 mod task_archive;
+mod themes;
 mod user_search;
 mod users;
