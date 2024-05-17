@@ -1,12 +1,14 @@
-use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use reqwest::Client;
 use shared_models::{Color, QuickAddData, TagData, TagId, TaskId, TaskStatus, UserData, UserId};
 
 use crate::{
-    components::icons::{
-        ArchiveIcon, BoltIcon, CancelIcon, ConfirmIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
-        InProgressIcon, PlusIcon, ToDoIcon, UpIcon,
+    components::{
+        due::Due,
+        icons::{
+            ArchiveIcon, BoltIcon, CancelIcon, ConfirmIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
+            InProgressIcon, PlusIcon, ToDoIcon, UpIcon,
+        },
     },
     model::{Board, TagFilter, Tags, TaskData, UserFilter, Users},
     requests::{self, BoardSignals},
@@ -52,7 +54,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
                 TagSelection { task_id, tags: task.tags }
             }
             if expanded() {
-            //     Due { task_id, due: task.due }
+                Due { task_id, due: task.due }
                 Description { task_id, description: task.description }
             //     SpecialActions { task_id }
             }
@@ -883,7 +885,7 @@ fn ColorPicker() -> Element {
     let legend_style = "text-sm";
     let radio_style = "
         rounded-md
-        ease-in-out duration-150
+        ease-in-out duration-100
         hover:scale-125 peer-checked:scale-125
     ";
     rsx! {
@@ -973,7 +975,7 @@ fn TagChip(task_id: TaskId, tag_id: TagId, tag_data: TagData) -> Element {
         Color::Teal => "border-teal-300 aria-pressed:bg-teal-300",
         Color::Aqua => "border-cyan-500 aria-pressed:bg-cyan-500",
     };
-    let style = "rounded border-2";
+    let style = "rounded border-2 ease-in-out duration-100 sm:hover:scale-110";
     let delete_tag_button_style = "rounded active:border sm:hover:border";
     let pressed = tag_filter.read().0.contains(&tag_id);
     rsx! {
@@ -1059,11 +1061,6 @@ fn TaskActions(task_id: TaskId) -> Element {
             }
         }
     }
-}
-
-#[component]
-fn Due(task_id: TaskId, due: Option<DateTime<Utc>>) -> Element {
-    todo!()
 }
 
 #[component]

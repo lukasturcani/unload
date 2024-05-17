@@ -2469,7 +2469,6 @@ fn Due(
     p_style: &'static str,
 ) -> Element {
     let board_signals = BoardSignals::default();
-    let model = use_context::<Signal<Model>>();
 
     let mut editing_signal = use_signal(|| false);
     let editing = editing_signal();
