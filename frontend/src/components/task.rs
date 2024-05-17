@@ -33,7 +33,7 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
     rsx! {
         article {
             "aria-label": label,
-            class: "flex flex-col gap-0.5 px-3 pt-3 {style}",
+            class: "flex flex-col gap-2 px-3 pt-3 {style}",
             div {
                 class: "flex flex-row justify-between",
                 Title { task_id, title: task.title }
@@ -51,11 +51,11 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
             if select_tags() {
                 TagSelection { task_id, tags: task.tags }
             }
-            // if expanded() {
+            if expanded() {
             //     Due { task_id, due: task.due }
-            //     Description { task_id, description: task.description }
+                Description { task_id, description: task.description }
             //     SpecialActions { task_id }
-            // }
+            }
             ToggleExpanded { expanded }
         }
     }
@@ -206,7 +206,79 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
 
 #[component]
 fn Description(task_id: TaskId, description: String) -> Element {
-    todo!()
+    let editing = use_signal(|| false);
+    rsx! {
+        if editing() {
+            DescriptionInput { task_id, editing, description }
+        } else {
+            DescriptionShow { task_id, editing, description }
+        }
+    }
+}
+
+#[component]
+fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String) -> Element {
+    let board_signals = BoardSignals::default();
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "rounded-lg border {} {}",
+        theme.bg_color_2, theme.border_color
+    );
+    rsx! {
+        form {
+            "aria-label": "update description",
+            class: "flex flex-col gap-2",
+            onsubmit: move |event| {
+                let description = event.values()["Description"].as_value();
+                spawn_forever(set_task_description(board_signals, task_id, description));
+                editing.set(false);
+            },
+            textarea {
+                id: "task-{task_id}-description-input",
+                rows: 8.max(description.lines().count() as i64),
+                class: "p-2.5 {style}",
+                name: "Description",
+                required: false,
+                value: description,
+            }
+            div {
+                class: "flex flex-row gap-2 items-center justify-center",
+                ConfirmButton { label: "set description" }
+                CancelButton { label: "cancel description update", editing }
+            }
+        }
+    }
+}
+
+#[component]
+fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "p-4 rounded border whitespace-pre-wrap break-words {} {}",
+        theme.bg_color_1, theme.border_color
+    );
+    let edit_button_style = format!(
+        "rounded border {} {}",
+        theme.border_color, theme.sm_hover_bg_color_2
+    );
+    rsx! {
+        section {
+            "aria-label": "description",
+            class: "flex flex-col gap-1 {style}",
+            p { {description} }
+            div {
+                class: "relative",
+                button {
+                    class: "w-full flex flex-row justify-center items-center peer {edit_button_style}",
+                    onclick: move |_| editing.set(true),
+                    div { class: "size-5", EditIcon {} }
+                }
+                Tooltip { content: "Edit Description", position: "-top-10 left-48" }
+            }
+        }
+    }
 }
 
 #[component]
@@ -1303,6 +1375,36 @@ async fn send_add_task_tag_request(
     Ok(Client::new()
         .post(url)
         .json(&tag_id)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn set_task_description(signals: BoardSignals, task_id: TaskId, description: String) {
+    if send_set_task_description_request(signals, task_id, description)
+        .await
+        .is_ok()
+    {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_set_task_description_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+    description: String,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let board = signals.board.read();
+        board.url.join(&format!(
+            "/api/boards/{}/tasks/{}/description",
+            board.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&description)
         .send()
         .await?
         .json::<()>()
