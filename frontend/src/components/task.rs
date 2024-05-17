@@ -271,6 +271,7 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
             div {
                 class: "relative",
                 button {
+                    "aria-label": "edit description",
                     class: "w-full flex flex-row justify-center items-center peer {edit_button_style}",
                     onclick: move |_| editing.set(true),
                     div { class: "size-5", EditIcon {} }
