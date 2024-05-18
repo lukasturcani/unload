@@ -5,8 +5,9 @@ use shared_models::{Color, QuickAddData, TagData, TagId, TaskId, TaskStatus, Use
 use crate::{
     components::{
         due::{Due, DueOptions},
+        form::{CancelButton, ConfirmButton},
         icons::{
-            ArchiveIcon, BoltIcon, CancelIcon, ConfirmIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
+            ArchiveIcon, BoltIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
             InProgressIcon, PlusIcon, ToDoIcon, UpIcon,
         },
         tooltip::Tooltip,
@@ -132,46 +133,6 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
             }
             ConfirmButton { label: "set title" }
             CancelButton { label: "cancel title update", editing }
-        }
-    }
-}
-
-#[component]
-fn ConfirmButton(label: String) -> Element {
-    let style = "
-        rounded-md
-        border border-green-500
-        stroke-green-500
-        active:bg-green-500
-        sm:hover:bg-green-500 sm:hover:stroke-white
-    ";
-    rsx! {
-        button {
-            "aria-label": label,
-            class: "size-7 {style}",
-            r#type: "submit",
-            ConfirmIcon {}
-        }
-    }
-}
-
-#[component]
-fn CancelButton(label: String, editing: Signal<bool>) -> Element {
-    let style = "
-        rounded-md
-        border border-red-500
-        stroke-red-500
-        active:bg-red-500
-        sm:hover:bg-red-500 sm:hover:stroke-white
-    ";
-    rsx! {
-        button {
-            "aria-label": label,
-            class: "size-7 {style}",
-            onclick: move |_| {
-                editing.set(false);
-            },
-            CancelIcon {}
         }
     }
 }
