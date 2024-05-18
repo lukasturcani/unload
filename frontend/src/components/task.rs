@@ -4,11 +4,12 @@ use shared_models::{Color, QuickAddData, TagData, TagId, TaskId, TaskStatus, Use
 
 use crate::{
     components::{
-        due::Due,
+        due::{Due, DueOptions},
         icons::{
             ArchiveIcon, BoltIcon, CancelIcon, ConfirmIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
             InProgressIcon, PlusIcon, ToDoIcon, UpIcon,
         },
+        tooltip::Tooltip,
     },
     model::{Board, TagFilter, Tags, TaskData, UserFilter, Users},
     requests::{self, BoardSignals},
@@ -16,7 +17,7 @@ use crate::{
 };
 
 #[component]
-pub fn Task(task_id: TaskId, task: TaskData) -> Element {
+pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -54,7 +55,13 @@ pub fn Task(task_id: TaskId, task: TaskData) -> Element {
                 TagSelection { task_id, tags: task.tags }
             }
             if expanded() {
-                Due { task_id, due: task.due }
+                Due {
+                    task_id,
+                    due: task.due.map(|due| DueOptions {
+                        due,
+                        show_time_left: status != TaskStatus::Done
+                    })
+                }
                 Description { task_id, description: task.description }
             //     SpecialActions { task_id }
             }
@@ -451,31 +458,6 @@ fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
             }
             Tooltip { content: user_data.name }
         }
-    }
-}
-
-#[component]
-fn Tooltip(content: String, position: Option<String>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!(
-        "border rounded-lg shadow-sm {} {}",
-        theme.border_color, theme.bg_color_2
-    );
-    let position = position.unwrap_or("-top-10 -left-2".to_string());
-    rsx! {
-        div {
-            role: "tooltip",
-            class: "
-                pointer-events-none
-                absolute {position} z-10
-                w-max px-3 py-2 text-sm
-                invisible peer-hover:visible
-                {style}
-            ",
-            p { {content} }
-        }
-
     }
 }
 

@@ -449,6 +449,7 @@ fn ToDoColumn() -> Element {
                             key: "{task_id}",
                             task_id: *task_id,
                             task: read_model.tasks[&task_id].clone(),
+                            status: TaskStatus::ToDo,
                         }
                     }
                 },
