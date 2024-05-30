@@ -18,7 +18,7 @@ pub fn Tooltip(content: String, position: Option<String>) -> Element {
                 pointer-events-none
                 absolute {position} z-10
                 w-max px-3 py-2 text-sm
-                invisible peer-hover:visible
+                invisible peer-hover:visible group-hover:visible
                 {style}
             ",
             p { {content} }

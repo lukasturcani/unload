@@ -208,15 +208,15 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
             "aria-label": "description",
             class: "flex flex-col gap-1 {style}",
             p { {description} }
-            div {
-                class: "relative",
-                button {
-                    "aria-label": "edit description",
-                    class: "w-full flex flex-row justify-center items-center peer {edit_button_style}",
-                    onclick: move |_| editing.set(true),
+            button {
+                "aria-label": "edit description",
+                class: "group w-full flex flex-row justify-center items-center {edit_button_style}",
+                onclick: move |_| editing.set(true),
+                div {
+                    class: "relative",
                     div { class: "size-5", EditIcon {} }
+                    Tooltip { content: "Edit Description" }
                 }
-                Tooltip { content: "Edit Description", position: "-top-10 left-48" }
             }
         }
     }
