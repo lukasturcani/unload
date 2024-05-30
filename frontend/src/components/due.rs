@@ -5,7 +5,9 @@ use dioxus::prelude::*;
 use shared_models::TaskId;
 
 use crate::components::{
+    form::{CancelButton, ConfirmButton},
     icons::{CalendarIcon, EditIcon},
+    input::DateInput,
     tooltip::Tooltip,
 };
 
@@ -33,8 +35,14 @@ fn EditingDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -
         form {
             "aria-label": "set due date",
             class: "flex flex-row gap-2 items-center",
-            CalendarIcon {}
-
+            div { class: "size-8", CalendarIcon {} }
+            DateInput {
+                id: "task-{task_id}-due-input",
+                label: "Due",
+                value: "",
+            }
+            ConfirmButton { label: "set due" }
+            CancelButton { label: "cancel due update", editing }
         }
     }
 }
