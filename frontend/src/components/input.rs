@@ -34,7 +34,12 @@ pub fn TextInput(id: String, label: String, value: Option<String>) -> Element {
 }
 
 #[component]
-pub fn DateInput(id: String, label: String, value: Option<String>) -> Element {
+pub fn DateInput(
+    id: String,
+    label: String,
+    value: Option<String>,
+    oninput: EventHandler<FormEvent>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -55,6 +60,7 @@ pub fn DateInput(id: String, label: String, value: Option<String>) -> Element {
             {label}
         }
         input {
+            oninput: move |event| oninput.call(event),
             id,
             class: "p-2.5 {style}",
             r#type: "date",

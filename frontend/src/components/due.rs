@@ -4,11 +4,14 @@ use chrono::{DateTime, Local, Utc};
 use dioxus::prelude::*;
 use shared_models::TaskId;
 
-use crate::components::{
-    form::{CancelButton, ConfirmButton},
-    icons::{CalendarIcon, EditIcon},
-    input::DateInput,
-    tooltip::Tooltip,
+use crate::{
+    components::{
+        form::{CancelButton, ConfirmButton},
+        icons::{CalendarIcon, EditIcon},
+        input::DateInput,
+        tooltip::Tooltip,
+    },
+    themes::Theme,
 };
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -22,7 +25,11 @@ pub fn Due(task_id: TaskId, due: Option<DueOptions>) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
-            EditingDue { task_id, due, editing }
+            EditingDue {
+                task_id,
+                due: due.map(|d| d.due),
+                editing
+            }
         } else {
             ShowDue { task_id, due, editing }
         }
@@ -30,19 +37,54 @@ pub fn Due(task_id: TaskId, due: Option<DueOptions>) -> Element {
 }
 
 #[component]
-fn EditingDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> Element {
+fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>) -> Element {
+    let mut has_due = use_signal(|| due.is_some());
     rsx! {
         form {
             "aria-label": "set due date",
-            class: "flex flex-row gap-2 items-center",
+            class: "flex flex-row gap-1 items-center",
             div { class: "size-8", CalendarIcon {} }
             DateInput {
                 id: "task-{task_id}-due-input",
                 label: "Due",
-                value: "",
+                value: due.map(|d| d.format("%Y-%m-%d").to_string()),
+                oninput: move |event: FormEvent| has_due.set(!event.value().is_empty()),
+            }
+            if has_due() {
+                TimeSelect {}
             }
             ConfirmButton { label: "set due" }
             CancelButton { label: "cancel due update", editing }
+        }
+    }
+}
+
+#[component]
+fn TimeSelect() -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded-lg {}", theme.bg_color_2);
+    rsx! {
+        div {
+            class: "flex flex-row items-center gap-0.5",
+            select {
+                class: "text-base p-2.5 {style}",
+                for hour in 1..=12 {
+                    option { value: hour, "{hour:02}" }
+                }
+            }
+            p { ":" }
+            select {
+                class: "text-base p-2.5 {style}",
+                for minute in [0, 15, 30, 45] {
+                    option { value: minute, "{minute:02}" }
+                }
+            }
+            select {
+                class: "text-base p-2.5 {style}",
+                option { value: "AM", "AM" }
+                option { value: "PM", "PM" }
+            }
         }
     }
 }
