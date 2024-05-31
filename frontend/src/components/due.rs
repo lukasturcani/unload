@@ -63,7 +63,10 @@ fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>
 fn TimeSelect() -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!("rounded-lg {}", theme.bg_color_2);
+    let style = format!(
+        "border rounded-lg {} {}",
+        theme.bg_color_2, theme.border_color
+    );
     rsx! {
         div {
             class: "flex flex-row items-center gap-0.5",
