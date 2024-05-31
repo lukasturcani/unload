@@ -8,7 +8,7 @@ use crate::{
         form::{CancelButton, ConfirmButton},
         icons::{
             ArchiveIcon, BoltIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
-            InProgressIcon, PlusIcon, ToDoIcon, UpIcon,
+            InProgressIcon, PlusIcon, ToDoIcon, TrashIcon, UpIcon,
         },
         input::TextInput,
         tooltip::Tooltip,
@@ -80,7 +80,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             }
             if expanded() {
                 Description { task_id, description: task.description }
-            //     SpecialActions { task_id }
+                SpecialActions { task_id }
             }
             ToggleExpanded { expanded }
         }
@@ -239,7 +239,33 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
 
 #[component]
 fn SpecialActions(task_id: TaskId) -> Element {
-    todo!()
+    rsx! {
+        section {
+            "aria-label": "special actions",
+            class: "grid grid-rows-1 justify-items-end",
+            DeleteTaskButton { task_id }
+        }
+    }
+}
+
+#[component]
+fn DeleteTaskButton(task_id: TaskId) -> Element {
+    let style = "stroke-red-600";
+    let board_signals = BoardSignals::default();
+    rsx! {
+        div {
+            class: "relative",
+            button {
+                "aria-label": "delete task",
+                class: "peer size-6 {style}",
+                onclick: move |_| {
+                    spawn_forever(delete_task(board_signals, task_id));
+                },
+                TrashIcon {}
+            }
+            Tooltip { content: "Delete Task", position: "-top-10 -left-20" }
+        }
+    }
 }
 
 #[component]
@@ -1331,6 +1357,31 @@ async fn send_set_task_description_request(
     Ok(Client::new()
         .put(url)
         .json(&description)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn delete_task(signals: BoardSignals, task_id: TaskId) {
+    if send_delete_task_request(signals, task_id).await.is_ok() {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_delete_task_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let board = signals.board.read();
+        board.url.join(&format!(
+            "/api/boards/{}/tasks/{}",
+            board.board_name, task_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .delete(url)
         .send()
         .await?
         .json::<()>()
