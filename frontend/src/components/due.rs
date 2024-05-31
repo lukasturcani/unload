@@ -20,6 +20,7 @@ use crate::{
 pub struct DueOptions {
     pub due: DateTime<Utc>,
     pub show_time_left: bool,
+    pub is_late: bool,
 }
 
 #[component]
@@ -129,9 +130,9 @@ fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> E
             "aria-label": "due date",
             class: "flex flex-row gap-2 items-center",
             div { class: "size-8", CalendarIcon {} }
-            if let Some(DueOptions { due: due_value, show_time_left }) = due {
+            if let Some(DueOptions { due: due_value, show_time_left, is_late }) = due {
                 p {
-                    class: theme.late_text_color,
+                    class: if is_late { theme.late_text_color },
                     if show_time_left {
                         "{format_datetime(utc_to_local(&due_value))} ({time_delta(&now, &due_value)})"
                     } else {

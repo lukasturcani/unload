@@ -73,7 +73,8 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                     task_id,
                     due: task.due.map(|due| DueOptions {
                         due,
-                        show_time_left: status != TaskStatus::Done
+                        show_time_left: status != TaskStatus::Done,
+                        is_late,
                     })
                 }
             }
