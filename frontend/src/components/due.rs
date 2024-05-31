@@ -94,6 +94,8 @@ fn TimeSelect() -> Element {
 
 #[component]
 fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
     let now = Utc::now();
     rsx! {
         section {
@@ -102,6 +104,7 @@ fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> E
             div { class: "size-8", CalendarIcon {} }
             if let Some(DueOptions { due: due_value, show_time_left }) = due {
                 p {
+                    class: theme.late_text_color,
                     if show_time_left {
                         "{format_datetime(utc_to_local(&due_value))} ({time_delta(&now, &due_value)})"
                     } else {

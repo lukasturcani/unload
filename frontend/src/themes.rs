@@ -1,7 +1,9 @@
 #[derive(Clone, Copy, Debug)]
 pub struct Theme {
     pub text_color: &'static str,
+    pub late_text_color: &'static str,
     pub border_color: &'static str,
+    pub late_border_color: &'static str,
     pub bg_color_1: &'static str,
     pub bg_color_2: &'static str,
     pub active_bg_color_2: &'static str,
@@ -13,7 +15,9 @@ pub struct Theme {
 
 pub const THEMES: &[Theme] = &[Theme {
     text_color: "text-white stroke-white",
+    late_text_color: "text-red-500",
     border_color: "border-gray-700",
+    late_border_color: "border-red-500",
     bg_color_1: "bg-gray-900",
     bg_color_2: "bg-gray-800",
     active_bg_color_2: "active:bg-gray-800",

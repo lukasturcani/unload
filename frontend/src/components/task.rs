@@ -18,10 +18,15 @@ use crate::{
     themes::Theme,
 };
 
+fn is_late(task: &TaskData) -> bool {
+    task.due.map_or(false, |due| due < chrono::Utc::now())
+}
+
 #[component]
 pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
+    let is_late = is_late(&task);
     let style = format!(
         "
         border
@@ -29,9 +34,16 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
         shadow
         {} {} {}
         ",
-        theme.border_color, theme.bg_color_2, theme.sm_hover_bg_color_3
+        if is_late {
+            theme.late_border_color
+        } else {
+            theme.border_color
+        },
+        theme.bg_color_2,
+        theme.sm_hover_bg_color_3
     );
     let expanded = use_signal(|| false);
+    let expanded_ = expanded();
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
     let label = task.title.clone();
@@ -56,7 +68,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             if select_tags() {
                 TagSelection { task_id, tags: task.tags }
             }
-            if expanded() {
+            if expanded_ || is_late {
                 Due {
                     task_id,
                     due: task.due.map(|due| DueOptions {
@@ -64,6 +76,8 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                         show_time_left: status != TaskStatus::Done
                     })
                 }
+            }
+            if expanded() {
                 Description { task_id, description: task.description }
             //     SpecialActions { task_id }
             }
