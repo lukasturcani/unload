@@ -107,7 +107,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
             class: "flex flex-row gap-2 items-center",
             onsubmit: move |event| {
                 let title = event.values()["Title"].as_value();
-                spawn_forever( set_task_title(board_signals, task_id, title));
+                spawn_forever(set_task_title(board_signals, task_id, title));
                 editing.set(false);
             },
             TextInput {

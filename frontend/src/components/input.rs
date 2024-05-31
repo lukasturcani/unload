@@ -65,7 +65,6 @@ pub fn DateInput(
             class: "p-2.5 {style}",
             r#type: "date",
             name,
-            required: true,
             value,
         }
     }

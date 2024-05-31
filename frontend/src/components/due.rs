@@ -1,7 +1,8 @@
 use std::fmt::Display;
 
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Local, NaiveDate, NaiveTime, TimeZone, Utc};
 use dioxus::prelude::*;
+use reqwest::Client;
 use shared_models::TaskId;
 
 use crate::{
@@ -11,6 +12,7 @@ use crate::{
         input::DateInput,
         tooltip::Tooltip,
     },
+    requests::{self, BoardSignals},
     themes::Theme,
 };
 
@@ -38,11 +40,33 @@ pub fn Due(task_id: TaskId, due: Option<DueOptions>) -> Element {
 
 #[component]
 fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>) -> Element {
+    let board_signals = BoardSignals::default();
     let mut has_due = use_signal(|| due.is_some());
     rsx! {
         form {
             "aria-label": "set due date",
             class: "flex flex-row gap-1 items-center",
+            onsubmit: move |event| {
+                let values = event.values();
+                let due_string = values["Due"].as_value();
+                let due = if due_string.is_empty() {
+                    None
+                } else {
+                    let due = NaiveDate::parse_from_str(&due_string, "%Y-%m-%d").unwrap();
+                    let  time = NaiveTime::parse_from_str(
+                        &format!(
+                            "{}:{} {}",
+                            values["Hour"].as_value(),
+                            values["Minute"].as_value(),
+                            values["AM/PM"].as_value(),
+                        ),
+                        "%I:%M %p",
+                    ).unwrap();
+                    Some(Local.from_local_datetime(&due.and_time(time)).unwrap().into())
+                };
+                spawn_forever(set_task_due(board_signals, task_id, due));
+                editing.set(false);
+            },
             div { class: "size-8", CalendarIcon {} }
             DateInput {
                 id: "task-{task_id}-due-input",
@@ -71,6 +95,7 @@ fn TimeSelect() -> Element {
         div {
             class: "flex flex-row items-center gap-0.5",
             select {
+                name: "Hour",
                 class: "text-base p-2.5 {style}",
                 for hour in 1..=12 {
                     option { value: hour, "{hour:02}" }
@@ -78,12 +103,14 @@ fn TimeSelect() -> Element {
             }
             p { ":" }
             select {
+                name: "Minute",
                 class: "text-base p-2.5 {style}",
                 for minute in [0, 15, 30, 45] {
                     option { value: minute, "{minute:02}" }
                 }
             }
             select {
+                name: "AM/PM",
                 class: "text-base p-2.5 {style}",
                 option { value: "AM", "AM" }
                 option { value: "PM", "PM" }
@@ -169,4 +196,34 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
             }
         }
     }
+}
+
+async fn set_task_due(signals: BoardSignals, task_id: TaskId, due: Option<DateTime<Utc>>) {
+    if send_set_task_due_request(signals, task_id, due)
+        .await
+        .is_ok()
+    {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_set_task_due_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+    due: Option<DateTime<Utc>>,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let board = signals.board.read();
+        board.url.join(&format!(
+            "/api/boards/{}/tasks/{}/due",
+            board.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&due)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
 }
