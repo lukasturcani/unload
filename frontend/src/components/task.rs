@@ -34,7 +34,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
         shadow
         {} {} {}
         ",
-        if is_late {
+        if is_late && status != TaskStatus::Done {
             theme.late_border_color
         } else {
             theme.border_color

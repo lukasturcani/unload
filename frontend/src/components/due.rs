@@ -132,7 +132,7 @@ fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> E
             div { class: "size-8", CalendarIcon {} }
             if let Some(DueOptions { due: due_value, show_time_left, is_late }) = due {
                 p {
-                    class: if is_late { theme.late_text_color },
+                    class: if is_late && show_time_left { theme.late_text_color },
                     if show_time_left {
                         "{format_datetime(utc_to_local(&due_value))} ({time_delta(&now, &due_value)})"
                     } else {
