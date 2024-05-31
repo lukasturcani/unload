@@ -68,7 +68,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             if select_tags() {
                 TagSelection { task_id, tags: task.tags }
             }
-            if expanded_ || is_late {
+            if expanded_ || (is_late && status != TaskStatus::Done) {
                 Due {
                     task_id,
                     due: task.due.map(|due| DueOptions {
