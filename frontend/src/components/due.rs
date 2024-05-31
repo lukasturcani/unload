@@ -149,7 +149,7 @@ fn utc_to_local(time: &DateTime<Utc>) -> DateTime<Local> {
 }
 
 fn format_datetime(time: DateTime<Local>) -> String {
-    format!("{}", time.format("%Y-%m-%d %I:%M %p"))
+    format!("{}", time.format("%d %B %Y %I:%M %p"))
 }
 
 #[component]
