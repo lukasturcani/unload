@@ -92,7 +92,6 @@ fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
                 class: "
                     text-lg sm:text-xl
                     font-bold tracking-tight
-                    underline underline-offset-8
                 ",
                 {title}
             }
