@@ -7,8 +7,8 @@ use crate::{
         due::{Due, DueOptions},
         form::{CancelButton, ConfirmButton},
         icons::{
-            ArchiveIcon, BoltIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
-            InProgressIcon, PlusIcon, RightIcon, ToDoIcon, TrashIcon, UpIcon,
+            ArchiveIcon, BoltIcon, CancelIcon, CopyIcon, DoneIcon, EditIcon, InProgressIcon,
+            PlusIcon, RightIcon, ToDoIcon, TrashIcon, UpIcon,
         },
         input::TextInput,
         task::title::{DenseTitle, Title},
@@ -53,10 +53,14 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     rsx! {
         article {
             "aria-label": label,
-            class: "flex flex-col gap-2 px-3 pt-3 {style}",
+            class: "flex flex-col gap-2 p-3 {style}",
             div {
                 class: "flex flex-row justify-between",
-                Title { task_id, title: task.title }
+                div {
+                    class: "flex flex-row items-center gap-1",
+                    ToggleExpanded { expanded }
+                    Title { task_id, title: task.title }
+                }
                 StatusButtons { task_id }
             }
             div {
@@ -85,7 +89,6 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                 Description { task_id, description: task.description }
                 SpecialActions { task_id }
             }
-            ToggleExpanded { expanded }
         }
     }
 }
@@ -110,7 +113,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
             class: "flex flex-col gap-2 p-1 {style}",
             div {
                 class: "flex flex-row items-center gap-1",
-                ToggleExpandDenseTask { expanded }
+                ToggleExpandedSmall { expanded }
                 DenseTitle { task_id, title: task.title, expanded: expanded() }
             }
         }
@@ -118,7 +121,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
 }
 
 #[component]
-fn ToggleExpandDenseTask(expanded: Signal<bool>) -> Element {
+fn ToggleExpandedSmall(expanded: Signal<bool>) -> Element {
     let style = "
         rounded
         sm:hover:border
@@ -129,6 +132,28 @@ fn ToggleExpandDenseTask(expanded: Signal<bool>) -> Element {
             "aria-label": "toggle expand task",
             "aria-pressed": expanded(),
             class: "size-4 {style}",
+            onclick: move |_| expanded.set(!expanded_),
+            if expanded_ {
+                UpIcon {}
+            } else {
+                RightIcon {}
+            }
+        }
+    }
+}
+
+#[component]
+fn ToggleExpanded(expanded: Signal<bool>) -> Element {
+    let style = "
+        rounded
+        sm:hover:border
+    ";
+    let expanded_ = expanded();
+    rsx! {
+        button {
+            "aria-label": "toggle expand task",
+            "aria-pressed": expanded(),
+            class: "size-5 {style}",
             onclick: move |_| expanded.set(!expanded_),
             if expanded_ {
                 UpIcon {}
@@ -992,37 +1017,6 @@ fn TaskActions(task_id: TaskId) -> Element {
                 },
                 tooltip: "Archive Task",
                 body: rsx!(ArchiveIcon {})
-            }
-        }
-    }
-}
-
-#[component]
-fn ToggleExpanded(expanded: Signal<bool>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!(
-        "rounded {} {}",
-        theme.active_bg_color_2, theme.sm_hover_bg_color_2
-    );
-    let expanded_ = expanded();
-    rsx! {
-        button {
-            "aria-label": "toggle expand task",
-            "aria-pressed": expanded_,
-            class: "
-                h-8 w-full
-                flex flex-row items-center justify-center
-                {style}
-            ",
-            onclick: move |_| expanded.set(!expanded()),
-            div {
-                class: "size-6",
-                if expanded_ {
-                    UpIcon {}
-                } else {
-                    DownIcon {}
-                }
             }
         }
     }
