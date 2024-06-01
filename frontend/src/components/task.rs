@@ -35,7 +35,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
         border
         rounded-lg
         shadow
-        {} {} {}
+        {} {}
         ",
         if is_late && status != TaskStatus::Done {
             theme.late_border_color
@@ -43,7 +43,6 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             theme.border_color
         },
         theme.bg_color_2,
-        theme.sm_hover_bg_color_3
     );
     let expanded = use_signal(|| false);
     let expanded_ = expanded();
@@ -473,10 +472,7 @@ const ASSIGNMENT_LIST_STYLE: &str = "rounded-lg border";
 fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!(
-        "{} {} {}",
-        ASSIGNMENT_LIST_STYLE, theme.bg_color_2, theme.border_color
-    );
+    let style = format!("{} {}", ASSIGNMENT_LIST_STYLE, theme.border_color);
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     let mut assignee_data = Vec::with_capacity(assignees.len());
