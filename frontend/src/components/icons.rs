@@ -110,6 +110,15 @@ pub fn ArchiveIcon() -> Element {
 }
 
 #[component]
+pub fn RightIcon() -> Element {
+    rsx! {
+        Icon {
+            d: "m8.25 4.5 7.5 7.5-7.5 7.5",
+        }
+    }
+}
+
+#[component]
 pub fn UpIcon() -> Element {
     rsx! {
         Icon {

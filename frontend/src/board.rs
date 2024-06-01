@@ -575,9 +575,10 @@ fn DenseToDoColumn() -> Element {
                         .iter()
                         .filter(|task_id| read_model.show_task(**task_id))
                     {
-                        DenseTask {
+                        crate::components::task::DenseTask {
                             key: "{task_id}",
                             task_id: *task_id,
+                            task: read_model.tasks[&task_id].clone(),
                             status: TaskStatus::ToDo,
                         }
                     }
