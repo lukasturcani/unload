@@ -106,15 +106,50 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
         theme.border_color
     );
     let expanded = use_signal(|| false);
+    let expanded_ = expanded();
+    let select_tags = use_signal(|| false);
+    let select_assignees = use_signal(|| false);
     let label = task.title.clone();
+    let is_late = is_late(&task);
     rsx! {
         article {
             "aria-label": label,
             class: "flex flex-col gap-2 p-1 {style}",
             div {
-                class: "flex flex-row items-center gap-1",
-                ToggleExpandedSmall { expanded }
-                DenseTitle { task_id, title: task.title, expanded: expanded() }
+                class: "flex flex-row justify-between",
+                div {
+                    class: "flex flex-row items-center gap-1",
+                    ToggleExpandedSmall { expanded }
+                    DenseTitle { task_id, title: task.title, expanded: expanded_ }
+                }
+                Assignees { task_id, assignees: task.assignees.clone(), select_assignees }
+            }
+            if select_assignees() {
+                AssigneeSelection { task_id, assignees: task.assignees }
+            }
+            if expanded_ {
+                Description { task_id, description: task.description }
+                div {
+                    class: "flex flex row justify-between items-center",
+                    Due {
+                        task_id,
+                        due: task.due.map(|due| DueOptions {
+                            due,
+                            show_time_left: status != TaskStatus::Done,
+                            is_late,
+                        })
+                    }
+                    StatusButtons { task_id }
+                }
+                div {
+                    class: "flex flex row justify-between items-center",
+                    TaskTags { task_id, tags: task.tags.clone(), select_tags }
+                    TaskActions { task_id }
+                }
+                if select_tags() {
+                    TagSelection { task_id, tags: task.tags }
+                }
+                SpecialActions { task_id }
             }
         }
     }
