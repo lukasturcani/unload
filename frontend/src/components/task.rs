@@ -256,7 +256,7 @@ fn DeleteTaskButton(task_id: TaskId) -> Element {
             class: "relative",
             button {
                 "aria-label": "delete task",
-                class: "peer size-6 {style}",
+                class: "block peer size-6 {style}",
                 onclick: move |_| {
                     spawn_forever(delete_task(board_signals, task_id));
                 },
@@ -289,7 +289,7 @@ fn ToDoButton(task_id: TaskId) -> Element {
             class: "relative",
             button {
                 "aria-label": "set task status to to do",
-                class: "peer size-8 {style}",
+                class: "block peer size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::ToDo));
                 },
@@ -309,7 +309,7 @@ fn InProgressButton(task_id: TaskId) -> Element {
             class: "relative",
             button {
                 "aria-label": "set task status to in progress",
-                class: "peer size-8 {style}",
+                class: "block peer size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::InProgress));
                 },
@@ -329,7 +329,7 @@ fn DoneButton(task_id: TaskId) -> Element {
             class: "relative",
             button {
                 "aria-label": "set task status to done",
-                class: "peer size-8 {style}",
+                class: "block peer size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::Done));
                 },
@@ -372,7 +372,7 @@ fn ToggleSelector(show_selector: Signal<bool>, aria_label: String, tooltip: Stri
             class: "relative",
             button {
                 "aria-label": aria_label,
-                class: "peer size-6 {style}",
+                class: "block peer size-6 {style}",
                 "aria-pressed": show_selector(),
                 onclick: move |_| {
                     show_selector.set(!show_selector());
@@ -414,7 +414,7 @@ fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
         div {
             class: "relative",
             button {
-                class: "peer size-6 {style} {color}",
+                class: "block peer size-6 {style} {color}",
                 "aria-label": label,
                 "aria-pressed": user_filter.read().0.contains(&user_id),
                 onclick: move |_| {
@@ -975,7 +975,7 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
             class: "relative",
             button {
                 "aria-label": aria_label,
-                class: "peer size-6 {style}",
+                class: "block peer size-6 {style}",
                 onclick: move |event| onclick.call(event),
                 {body}
             }

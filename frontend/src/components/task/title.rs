@@ -107,7 +107,7 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
             class: "relative",
             button {
                 "aria-label": "edit title",
-                class: "peer size-5",
+                class: "block peer size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }
@@ -126,7 +126,7 @@ fn SmallEditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
             class: "relative",
             button {
                 "aria-label": "edit title",
-                class: "peer size-4",
+                class: "block peer size-4",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }

@@ -187,7 +187,7 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
             class: "relative",
             button {
                 "aria-label": "edit due date",
-                class: "peer size-5",
+                class: "block peer size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }
