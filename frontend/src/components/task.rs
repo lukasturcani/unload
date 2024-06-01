@@ -335,7 +335,7 @@ fn DoneButton(task_id: TaskId) -> Element {
                 },
                 DoneIcon {}
             }
-            Tooltip { content: "Done", position: "-left-4" }
+            Tooltip { content: "Done", position: "-left-6" }
         }
     }
 }
