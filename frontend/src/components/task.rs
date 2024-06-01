@@ -153,7 +153,7 @@ fn ToggleExpanded(expanded: Signal<bool>) -> Element {
         button {
             "aria-label": "toggle expand task",
             "aria-pressed": expanded(),
-            class: "size-5 {style}",
+            class: "size-7 p-1 {style}",
             onclick: move |_| expanded.set(!expanded_),
             if expanded_ {
                 DownIcon {}
