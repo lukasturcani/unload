@@ -7,8 +7,8 @@ use crate::{
         due::{Due, DueOptions},
         form::{CancelButton, ConfirmButton},
         icons::{
-            ArchiveIcon, BoltIcon, CancelIcon, CopyIcon, DoneIcon, EditIcon, InProgressIcon,
-            PlusIcon, RightIcon, ToDoIcon, TrashIcon, UpIcon,
+            ArchiveIcon, BoltIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
+            InProgressIcon, PlusIcon, RightIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
         task::title::{DenseTitle, Title},
@@ -134,7 +134,7 @@ fn ToggleExpandedSmall(expanded: Signal<bool>) -> Element {
             class: "size-4 {style}",
             onclick: move |_| expanded.set(!expanded_),
             if expanded_ {
-                UpIcon {}
+                DownIcon {}
             } else {
                 RightIcon {}
             }
@@ -156,7 +156,7 @@ fn ToggleExpanded(expanded: Signal<bool>) -> Element {
             class: "size-5 {style}",
             onclick: move |_| expanded.set(!expanded_),
             if expanded_ {
-                UpIcon {}
+                DownIcon {}
             } else {
                 RightIcon {}
             }
