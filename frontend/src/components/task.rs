@@ -122,10 +122,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
 
 #[component]
 fn ToggleExpandedSmall(expanded: Signal<bool>) -> Element {
-    let style = "
-        rounded
-        sm:hover:border
-    ";
+    let style = "rounded";
     let expanded_ = expanded();
     rsx! {
         button {
@@ -144,10 +141,7 @@ fn ToggleExpandedSmall(expanded: Signal<bool>) -> Element {
 
 #[component]
 fn ToggleExpanded(expanded: Signal<bool>) -> Element {
-    let style = "
-        rounded
-        sm:hover:border
-    ";
+    let style = "rounded";
     let expanded_ = expanded();
     rsx! {
         button {
