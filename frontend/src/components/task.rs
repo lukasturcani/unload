@@ -53,7 +53,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     rsx! {
         article {
             "aria-label": label,
-            class: "flex flex-col gap-2 p-3 {style}",
+            class: "flex flex-col gap-1 p-2.5 {style}",
             div {
                 class: "flex flex-row justify-between",
                 div {
@@ -278,7 +278,7 @@ fn StatusButtons(task_id: TaskId) -> Element {
     rsx! {
         section {
             "aria-label": "set task status",
-            class: "flex flex-row items-center",
+            class: "flex flex-row items-center gap-1",
             ToDoButton { task_id }
             InProgressButton { task_id }
             DoneButton { task_id }
@@ -295,7 +295,7 @@ fn ToDoButton(task_id: TaskId) -> Element {
             class: "relative",
             button {
                 "aria-label": "set task status to to do",
-                class: "peer size-9 {style}",
+                class: "peer size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::ToDo));
                 },
@@ -315,7 +315,7 @@ fn InProgressButton(task_id: TaskId) -> Element {
             class: "relative",
             button {
                 "aria-label": "set task status to in progress",
-                class: "peer size-9 {style}",
+                class: "peer size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::InProgress));
                 },
@@ -335,7 +335,7 @@ fn DoneButton(task_id: TaskId) -> Element {
             class: "relative",
             button {
                 "aria-label": "set task status to done",
-                class: "peer size-9 {style}",
+                class: "peer size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::Done));
                 },
@@ -981,7 +981,7 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
             class: "relative",
             button {
                 "aria-label": aria_label,
-                class: "peer size-7 {style}",
+                class: "peer size-6 {style}",
                 onclick: move |event| onclick.call(event),
                 {body}
             }
@@ -996,7 +996,7 @@ fn TaskActions(task_id: TaskId) -> Element {
     rsx! {
         section {
             "aria-label": "task actions",
-            class: "flex flex-row",
+            class: "flex flex-row gap-1",
             ActionButton {
                 onclick: move |_| {
                     spawn_forever(create_quick_add_task(board_signals, task_id));
