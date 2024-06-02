@@ -125,6 +125,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     task_id,
                     assignees: task.assignees.clone(),
                     select_assignees,
+                    icon_size: if expanded_ { "size-6" } else { "size-5" },
                     tooltip_position: "",
                     dir: "rtl",
                 }
@@ -397,11 +398,13 @@ fn Assignees(
     task_id: TaskId,
     assignees: Vec<UserId>,
     select_assignees: Signal<bool>,
+    icon_size: Option<&'static str>,
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
+    let size = icon_size.unwrap_or("size-6");
     rsx! {
         section {
             "aria-label": "assignees",
@@ -410,6 +413,7 @@ fn Assignees(
                 UserIcon {
                     user_id,
                     user_data: users[&user_id].clone(),
+                    size,
                     tooltip_position,
                     dir
                 }
@@ -418,6 +422,7 @@ fn Assignees(
                 show_selector: select_assignees,
                 aria_label: "toggle assignee selection",
                 tooltip: "Assign User",
+                size,
                 tooltip_position,
                 dir,
             }
@@ -430,6 +435,7 @@ fn ToggleSelector(
     show_selector: Signal<bool>,
     aria_label: String,
     tooltip: String,
+    size: &'static str,
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
@@ -443,7 +449,7 @@ fn ToggleSelector(
             class: "group relative",
             button {
                 "aria-label": aria_label,
-                class: "block size-6 {style}",
+                class: "block {size} {style}",
                 "aria-pressed": show_selector(),
                 onclick: move |_| {
                     show_selector.set(!show_selector());
@@ -459,6 +465,7 @@ fn ToggleSelector(
 fn UserIcon(
     user_id: UserId,
     user_data: UserData,
+    size: &'static str,
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
@@ -490,7 +497,7 @@ fn UserIcon(
         div {
             class: "group relative",
             button {
-                class: "block size-6 {style} {color}",
+                class: "block {size} {style} {color}",
                 "aria-label": label,
                 "aria-pressed": user_filter.read().0.contains(&user_id),
                 onclick: move |_| {
@@ -966,7 +973,8 @@ fn TaskTags(task_id: TaskId, tags: Vec<TagId>, select_tags: Signal<bool>) -> Ele
             ToggleSelector {
                 show_selector: select_tags,
                 aria_label: "toggle tag selection",
-                tooltip: "Add Tag"
+                tooltip: "Add Tag",
+                size: "size-6",
             }
         }
     }
