@@ -6,10 +6,6 @@ pub struct Theme {
     pub late_border_color: &'static str,
     pub bg_color_1: &'static str,
     pub bg_color_2: &'static str,
-    pub active_bg_color_2: &'static str,
-    pub sm_hover_bg_color_2: &'static str,
-    pub sm_hover_bg_color_3: &'static str,
-    pub active_bg_color_3: &'static str,
     pub divide_color: &'static str,
 }
 
@@ -20,9 +16,5 @@ pub const THEMES: &[Theme] = &[Theme {
     late_border_color: "border-red-600",
     bg_color_1: "bg-gray-900",
     bg_color_2: "bg-gray-800",
-    active_bg_color_2: "active:bg-gray-800",
-    sm_hover_bg_color_2: "sm:hover:bg-gray-800",
-    sm_hover_bg_color_3: "sm:hover:bg-gray-700",
-    active_bg_color_3: "active:bg-gray-700",
     divide_color: "divide-gray-700",
 }];

@@ -247,10 +247,7 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
         "p-4 rounded border whitespace-pre-wrap break-words {} {}",
         theme.bg_color_1, theme.border_color
     );
-    let edit_button_style = format!(
-        "rounded border {} {}",
-        theme.border_color, theme.sm_hover_bg_color_2
-    );
+    let edit_button_style = format!("rounded border {}", theme.border_color,);
     rsx! {
         section {
             "aria-label": "description",
@@ -466,13 +463,11 @@ fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
     }
 }
 
-const ASSIGNMENT_LIST_STYLE: &str = "rounded-lg border";
-
 #[component]
 fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!("{} {}", ASSIGNMENT_LIST_STYLE, theme.border_color);
+    let style = format!("rounded-lg border {}", theme.border_color);
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     let mut assignee_data = Vec::with_capacity(assignees.len());
@@ -499,10 +494,7 @@ fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
 fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!(
-        "{} {} {}",
-        ASSIGNMENT_LIST_STYLE, theme.bg_color_2, theme.border_color
-    );
+    let style = format!("{} {}", theme.bg_color_2, theme.border_color);
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
     let mut unassigned = Vec::with_capacity(tag_data.len() - tags.len());
@@ -615,9 +607,7 @@ fn AssignmentListItem(
     aria_label: String,
     onclick: EventHandler<MouseEvent>,
 ) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("{} {}", theme.sm_hover_bg_color_3, theme.active_bg_color_3);
+    let style = "sm:hover:underline";
     let color = match color {
         Color::Black => "text-black",
         Color::White => "text-white",
