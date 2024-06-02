@@ -247,20 +247,35 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
         "p-4 rounded border whitespace-pre-wrap break-words {} {}",
         theme.bg_color_1, theme.border_color
     );
-    let edit_button_style = format!("rounded border {}", theme.border_color,);
+    let edit_button_style = format!(
+        "
+        rounded border
+        sm:hover:bg-white sm:hover:stroke-black
+        {}
+        ",
+        theme.border_color,
+    );
     rsx! {
         section {
             "aria-label": "description",
-            class: "flex flex-col gap-1 {style}",
-            p { {description} }
-            button {
-                "aria-label": "edit description",
-                class: "group w-full flex flex-row justify-center items-center {edit_button_style}",
-                onclick: move |_| editing.set(true),
-                div {
-                    class: "relative",
-                    div { class: "size-5", EditIcon {} }
-                    Tooltip { content: "Edit Description" }
+            class: "flex flex-col gap-1",
+            p { class: style, {description} }
+            div {
+                class: "flex flex-row justify-center",
+                button {
+                    "aria-label": "edit description",
+                    class: "
+                        group
+                        flex flex-row justify-center items-center
+                        py-1 px-6
+                        {edit_button_style}
+                    ",
+                    onclick: move |_| editing.set(true),
+                    div {
+                        class: "relative",
+                        div { class: "size-5", EditIcon {} }
+                        Tooltip { content: "Edit Description" }
+                    }
                 }
             }
         }
