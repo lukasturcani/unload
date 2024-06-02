@@ -52,7 +52,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     rsx! {
         article {
             "aria-label": label,
-            class: "flex flex-col gap-1 p-2.5 {style}",
+            class: "flex flex-col gap-2 p-2.5 {style}",
             div {
                 class: "flex flex-row justify-between",
                 div {
