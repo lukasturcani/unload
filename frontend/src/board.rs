@@ -1,13 +1,9 @@
 use dioxus::prelude::*;
 
-use std::fmt::Display;
-
 use crate::components::task::{DenseTask, Task};
 use crate::filter_bar::{FilterBar, SizeFilter, TagFilter, UserFilter};
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
-use chrono::DateTime;
-use chrono::Utc;
 use dioxus_router::hooks::use_navigator;
 use itertools::Itertools;
 use shared_models::UserId;
@@ -1284,12 +1280,6 @@ fn QuickAddTask(task_id: QuickAddTaskId, status: TaskStatus) -> Element {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-struct DueOptions {
-    due: DateTime<Utc>,
-    show_time_left: bool,
-}
-
 fn user_bg(model: Signal<Model>, user_id: &UserId, user_color: &Color) -> String {
     if model.read().user_filter.contains(user_id) {
         format!("{} ring ring-blue-500", color_picker::bg_class(user_color))
@@ -1372,18 +1362,6 @@ fn Users(task_id: TaskId, on_click_assign_user: EventHandler<MouseEvent>) -> Ele
                 }
             }
         }
-    }
-}
-
-struct TimeDelta {
-    days: i32,
-    hours: i8,
-    minutes: i8,
-}
-
-impl Display for TimeDelta {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}d {}h {}m", self.days, self.hours, self.minutes)
     }
 }
 
