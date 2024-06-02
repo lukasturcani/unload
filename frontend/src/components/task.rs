@@ -63,7 +63,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                 StatusButtons { task_id }
             }
             div {
-                class: "flex flex row justify-between items-center",
+                class: "flex flex-row justify-between items-center",
                 Assignees { task_id, assignees: task.assignees.clone(), select_assignees }
                 TaskActions { task_id }
             }
@@ -136,7 +136,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
             if expanded_ {
                 Description { task_id, description: task.description }
                 div {
-                    class: "flex flex row justify-between items-center",
+                    class: "flex flex-row justify-between items-center",
                     Due {
                         task_id,
                         due: task.due.map(|due| DueOptions {
