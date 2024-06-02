@@ -121,7 +121,12 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     ToggleExpandedSmall { expanded }
                     DenseTitle { task_id, title: task.title, expanded: expanded_ }
                 }
-                Assignees { task_id, assignees: task.assignees.clone(), select_assignees }
+                Assignees {
+                    task_id,
+                    assignees: task.assignees.clone(),
+                    select_assignees,
+                    dir: "rtl",
+                }
             }
             if select_assignees() {
                 AssigneeSelection { task_id, assignees: task.assignees }
@@ -387,7 +392,12 @@ fn DoneButton(task_id: TaskId) -> Element {
 }
 
 #[component]
-fn Assignees(task_id: TaskId, assignees: Vec<UserId>, select_assignees: Signal<bool>) -> Element {
+fn Assignees(
+    task_id: TaskId,
+    assignees: Vec<UserId>,
+    select_assignees: Signal<bool>,
+    dir: Option<&'static str>,
+) -> Element {
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     rsx! {
@@ -395,19 +405,25 @@ fn Assignees(task_id: TaskId, assignees: Vec<UserId>, select_assignees: Signal<b
             "aria-label": "assignees",
             class: "flex flex-row flex-wrap items-center gap-2",
             for user_id in assignees {
-                UserIcon { user_id, user_data: users[&user_id].clone() }
+                UserIcon { user_id, user_data: users[&user_id].clone(), dir }
             }
             ToggleSelector {
                 show_selector: select_assignees,
                 aria_label: "toggle assignee selection",
-                tooltip: "Assign User"
+                tooltip: "Assign User",
+                dir,
             }
         }
     }
 }
 
 #[component]
-fn ToggleSelector(show_selector: Signal<bool>, aria_label: String, tooltip: String) -> Element {
+fn ToggleSelector(
+    show_selector: Signal<bool>,
+    aria_label: String,
+    tooltip: String,
+    dir: Option<&'static str>,
+) -> Element {
     let style = "
         rounded border-2 border-white
         sm:hover:bg-white sm:hover:stroke-black
@@ -425,13 +441,13 @@ fn ToggleSelector(show_selector: Signal<bool>, aria_label: String, tooltip: Stri
                 },
                 PlusIcon {}
             }
-            Tooltip { content: tooltip }
+            Tooltip { content: tooltip, dir }
         }
     }
 }
 
 #[component]
-fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
+fn UserIcon(user_id: UserId, user_data: UserData, dir: Option<&'static str>) -> Element {
     let mut user_filter = use_context::<Signal<UserFilter>>();
     let color = match user_data.color {
         Color::Black => "border-black aria-pressed:bg-black",
@@ -473,7 +489,7 @@ fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
                 },
                 div { class: "size-full" }
             }
-            Tooltip { content: user_data.name }
+            Tooltip { content: user_data.name, dir }
         }
     }
 }
