@@ -274,7 +274,7 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
                     div {
                         class: "relative",
                         div { class: "size-5", EditIcon {} }
-                        Tooltip { content: "Edit Description" }
+                        Tooltip { content: "Edit Description", position: "-top-12 -left-10" }
                     }
                 }
             }
