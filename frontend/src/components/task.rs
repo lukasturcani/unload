@@ -544,9 +544,6 @@ fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
 
 #[component]
 fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("{} {}", theme.bg_color_2, theme.border_color);
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
     let mut unassigned = Vec::with_capacity(tag_data.len() - tags.len());
@@ -559,7 +556,6 @@ fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
     rsx! {
         section {
             "aria-label": "tag selection",
-            class: "p-2 {style}",
             AssignmentList {
                 body: rsx! {
                     for (tag_id, tag) in unassigned {
@@ -640,9 +636,9 @@ fn AssignmentList(body: Element) -> Element {
         rounded-lg shadow
         border
         divide-y
-        {} {} {}
+        {} {}
     ",
-        theme.border_color, theme.bg_color_2, theme.divide_color
+        theme.border_color, theme.divide_color
     );
     rsx! {
         ul {
