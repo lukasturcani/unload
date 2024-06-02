@@ -125,6 +125,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     task_id,
                     assignees: task.assignees.clone(),
                     select_assignees,
+                    tooltip_position: "",
                     dir: "rtl",
                 }
             }
@@ -396,6 +397,7 @@ fn Assignees(
     task_id: TaskId,
     assignees: Vec<UserId>,
     select_assignees: Signal<bool>,
+    tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
     let users = use_context::<Signal<Users>>();
@@ -405,12 +407,18 @@ fn Assignees(
             "aria-label": "assignees",
             class: "flex flex-row flex-wrap items-center gap-2",
             for user_id in assignees {
-                UserIcon { user_id, user_data: users[&user_id].clone(), dir }
+                UserIcon {
+                    user_id,
+                    user_data: users[&user_id].clone(),
+                    tooltip_position,
+                    dir
+                }
             }
             ToggleSelector {
                 show_selector: select_assignees,
                 aria_label: "toggle assignee selection",
                 tooltip: "Assign User",
+                tooltip_position,
                 dir,
             }
         }
@@ -422,6 +430,7 @@ fn ToggleSelector(
     show_selector: Signal<bool>,
     aria_label: String,
     tooltip: String,
+    tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
     let style = "
@@ -441,13 +450,18 @@ fn ToggleSelector(
                 },
                 PlusIcon {}
             }
-            Tooltip { content: tooltip, dir }
+            Tooltip { content: tooltip, position: tooltip_position, dir }
         }
     }
 }
 
 #[component]
-fn UserIcon(user_id: UserId, user_data: UserData, dir: Option<&'static str>) -> Element {
+fn UserIcon(
+    user_id: UserId,
+    user_data: UserData,
+    tooltip_position: Option<&'static str>,
+    dir: Option<&'static str>,
+) -> Element {
     let mut user_filter = use_context::<Signal<UserFilter>>();
     let color = match user_data.color {
         Color::Black => "border-black aria-pressed:bg-black",
@@ -489,7 +503,7 @@ fn UserIcon(user_id: UserId, user_data: UserData, dir: Option<&'static str>) -> 
                 },
                 div { class: "size-full" }
             }
-            Tooltip { content: user_data.name, dir }
+            Tooltip { content: user_data.name, position: tooltip_position, dir }
         }
     }
 }
