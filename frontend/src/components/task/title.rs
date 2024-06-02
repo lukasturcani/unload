@@ -104,10 +104,10 @@ fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
 fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
     rsx! {
         div {
-            class: "relative",
+            class: "group relative",
             button {
                 "aria-label": "edit title",
-                class: "block peer size-5",
+                class: "block size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }
@@ -123,10 +123,10 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
 fn SmallEditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
     rsx! {
         div {
-            class: "relative",
+            class: "group relative",
             button {
                 "aria-label": "edit title",
-                class: "block peer size-4",
+                class: "block size-4",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }

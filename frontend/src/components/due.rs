@@ -184,10 +184,10 @@ fn format_datetime(time: DateTime<Local>) -> String {
 fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
     rsx! {
         div {
-            class: "relative",
+            class: "group relative",
             button {
                 "aria-label": "edit due date",
-                class: "block peer size-5",
+                class: "block size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }

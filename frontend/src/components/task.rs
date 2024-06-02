@@ -299,10 +299,10 @@ fn DeleteTaskButton(task_id: TaskId) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
         div {
-            class: "relative",
+            class: "group relative",
             button {
                 "aria-label": "delete task",
-                class: "block peer size-6 {style}",
+                class: "block size-6 {style}",
                 onclick: move |_| {
                     spawn_forever(delete_task(board_signals, task_id));
                 },
@@ -332,10 +332,10 @@ fn ToDoButton(task_id: TaskId) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
         div {
-            class: "relative",
+            class: "group relative",
             button {
                 "aria-label": "set task status to to do",
-                class: "block peer size-8 {style}",
+                class: "block size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::ToDo));
                 },
@@ -352,10 +352,10 @@ fn InProgressButton(task_id: TaskId) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
         div {
-            class: "relative",
+            class: "group relative",
             button {
                 "aria-label": "set task status to in progress",
-                class: "block peer size-8 {style}",
+                class: "block size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::InProgress));
                 },
@@ -372,10 +372,10 @@ fn DoneButton(task_id: TaskId) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
         div {
-            class: "relative",
+            class: "group relative",
             button {
                 "aria-label": "set task status to done",
-                class: "block peer size-8 {style}",
+                class: "block size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::Done));
                 },
@@ -415,10 +415,10 @@ fn ToggleSelector(show_selector: Signal<bool>, aria_label: String, tooltip: Stri
     ";
     rsx! {
         div {
-            class: "relative",
+            class: "group relative",
             button {
                 "aria-label": aria_label,
-                class: "block peer size-6 {style}",
+                class: "block size-6 {style}",
                 "aria-pressed": show_selector(),
                 onclick: move |_| {
                     show_selector.set(!show_selector());
@@ -458,9 +458,9 @@ fn UserIcon(user_id: UserId, user_data: UserData) -> Element {
     let label = format!("toggle {} filter", user_data.name);
     rsx! {
         div {
-            class: "relative",
+            class: "group relative",
             button {
-                class: "block peer size-6 {style} {color}",
+                class: "block size-6 {style} {color}",
                 "aria-label": label,
                 "aria-pressed": user_filter.read().0.contains(&user_id),
                 onclick: move |_| {
@@ -1008,10 +1008,10 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
     let aria_label = tooltip.clone();
     rsx! {
         div {
-            class: "relative",
+            class: "group relative",
             button {
                 "aria-label": aria_label,
-                class: "block peer size-6 {style}",
+                class: "block size-6 {style}",
                 onclick: move |event| onclick.call(event),
                 {body}
             }
