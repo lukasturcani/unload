@@ -46,7 +46,7 @@ fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>
     rsx! {
         form {
             "aria-label": "set due date",
-            class: "flex flex-row gap-1 items-center",
+            class: "flex flex-row flex-wrap gap-1 items-center",
             onsubmit: move |event| {
                 let values = event.values();
                 let due_string = values["Due"].as_value();
