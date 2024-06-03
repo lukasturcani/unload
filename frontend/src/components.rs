@@ -1,4 +1,4 @@
-pub mod filters;
+pub mod filter_bar;
 mod form;
 pub mod icons;
 mod input;
