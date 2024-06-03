@@ -57,7 +57,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                 class: "flex flex-row justify-between",
                 div {
                     class: "flex flex-row items-center gap-1",
-                    ToggleExpanded { expanded }
+                    ToggleExpanded { expanded, size: "size-7" }
                     Title { task_id, title: task.title }
                 }
                 StatusButtons { task_id }
@@ -118,7 +118,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                 class: "flex flex-row justify-between",
                 div {
                     class: "flex flex-row items-center gap-1",
-                    ToggleExpandedSmall { expanded }
+                    ToggleExpanded { expanded, size: "size-4" }
                     DenseTitle { task_id, title: task.title, expanded: expanded_ }
                 }
                 Assignees {
@@ -162,33 +162,14 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
 }
 
 #[component]
-fn ToggleExpandedSmall(expanded: Signal<bool>) -> Element {
+fn ToggleExpanded(expanded: Signal<bool>, size: &'static str) -> Element {
     let style = "rounded";
     let expanded_ = expanded();
     rsx! {
         button {
             "aria-label": "toggle expand task",
             "aria-pressed": expanded(),
-            class: "size-4 {style}",
-            onclick: move |_| expanded.set(!expanded_),
-            if expanded_ {
-                DownIcon {}
-            } else {
-                RightIcon {}
-            }
-        }
-    }
-}
-
-#[component]
-fn ToggleExpanded(expanded: Signal<bool>) -> Element {
-    let style = "rounded";
-    let expanded_ = expanded();
-    rsx! {
-        button {
-            "aria-label": "toggle expand task",
-            "aria-pressed": expanded(),
-            class: "size-7 p-1 {style}",
+            class: "{size} p-1 {style}",
             onclick: move |_| expanded.set(!expanded_),
             if expanded_ {
                 DownIcon {}
