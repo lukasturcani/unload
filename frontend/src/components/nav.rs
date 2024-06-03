@@ -31,7 +31,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 to: Route::Board { board_name: board_name.clone() },
                 body: rsx!{
                     div {
-                        class: "flex flex-col items-center justify-center",
+                        class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-8 hidden group-[:not(.current-page)]:block", BoardIcon {} }
                         div { class: "size-8 hidden group-[.current-page]:block", SolidBoardIcon {} }
                         "Board"
@@ -42,7 +42,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 to: Route::TaskArchive { board_name: board_name.clone() },
                 body: rsx!{
                     div {
-                        class: "flex flex-col items-center justify-center",
+                        class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-8 hidden group-[:not(.current-page)]:block", ArchiveIcon {} }
                         div { class: "size-8 hidden group-[.current-page]:block", SolidArchiveIcon {} }
                         "Archive"
@@ -53,7 +53,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 to: Route::Tags { board_name: board_name.clone() },
                 body: rsx!{
                     div {
-                        class: "flex flex-col items-center justify-center",
+                        class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-8 hidden group-[:not(.current-page)]:block", TagIcon {} }
                         div { class: "size-8 hidden group-[.current-page]:block", SolidTagIcon {} }
                         "Tags"
@@ -64,7 +64,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 to: Route::Users { board_name },
                 body: rsx!{
                     div {
-                        class: "flex flex-col items-center justify-center",
+                        class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-8 hidden group-[:not(.current-page)]:block", UsersIcon {} }
                         div { class: "size-8 hidden group-[.current-page]:block", SolidUsersIcon {} }
                         "Users"
