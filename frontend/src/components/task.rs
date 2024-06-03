@@ -4,14 +4,16 @@ use shared_models::{Color, QuickAddData, TagData, TagId, TaskId, TaskStatus, Use
 
 use crate::{
     components::{
-        due::{Due, DueOptions},
         form::{CancelButton, ConfirmButton},
         icons::{
             ArchiveIcon, BoltIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
             InProgressIcon, PlusIcon, RightIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
-        task::title::{DenseTitle, Title},
+        task::{
+            due::{Due, DueOptions},
+            title::{DenseTitle, Title},
+        },
         tooltip::Tooltip,
     },
     model::{Board, TagFilter, Tags, TaskData, UserFilter, Users},
@@ -19,6 +21,7 @@ use crate::{
     themes::Theme,
 };
 
+mod due;
 mod title;
 
 fn is_late(task: &TaskData) -> bool {
