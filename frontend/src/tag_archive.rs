@@ -1,4 +1,5 @@
 use crate::color_picker::{self, SelectingColorPicker};
+use crate::components::nav::NavBar;
 use crate::styles;
 use dioxus::prelude::*;
 use itertools::Itertools;
@@ -31,6 +32,7 @@ pub fn ArchivedTags(board_name: BoardName) -> Element {
                 w-screen h-dvh
                 bg-gray-900
                 flex flex-col
+                text-white stroke-white
             ",
             div {
                 class: "grow w-full p-4 overflow-auto",
@@ -75,33 +77,7 @@ pub fn ArchivedTags(board_name: BoardName) -> Element {
                     }
                 }
             }
-            div {
-                class: styles::BOTTOM_BAR,
-                button {
-                    r#type: "button" ,
-                    class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: move |_| {
-                        nav.go_back();
-                    },
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none",
-                        "viewBox": "0 0 24 24",
-                        "stroke-width": "1.5",
-                        stroke: "currentColor",
-                        class: "
-                            w-6 h-6 text-gray-400
-                            group-active:text-blue-500
-                            sm:group-hover:text-blue-500
-                        ",
-                        path {
-                            "stroke-linecap": "round",
-                            "stroke-linejoin": "round",
-                            d: "M15.75 19.5 8.25 12l7.5-7.5",
-                        }
-                    }
-                }
-            }
+            NavBar { board_name }
         }
     }
 }

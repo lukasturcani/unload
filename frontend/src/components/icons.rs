@@ -10,9 +10,21 @@ pub fn BoardIcon() -> Element {
 }
 
 #[component]
+pub fn SolidBoardIcon() -> Element {
+    rsx! {
+        Icon {
+            fill: "currentColor",
+            stroke_width: "0",
+            d: "M15 3.75H9v16.5h6V3.75ZM16.5 20.25h3.375c1.035 0 1.875-.84 1.875-1.875V5.625c0-1.036-.84-1.875-1.875-1.875H16.5v16.5ZM4.125 3.75H7.5v16.5H4.125a1.875 1.875 0 0 1-1.875-1.875V5.625c0-1.036.84-1.875 1.875-1.875Z",
+        }
+    }
+}
+
+#[component]
 pub fn TagIcon() -> Element {
     rsx! {
         Svg {
+            fill: "none",
             stroke_width: "1.5",
             body: rsx!{
                 Path {
@@ -27,10 +39,42 @@ pub fn TagIcon() -> Element {
 }
 
 #[component]
+pub fn SolidTagIcon() -> Element {
+    rsx! {
+        Svg {
+            fill: "currentColor",
+            stroke_width: "0",
+            body: rsx!{
+                path {
+                    "fill-rule": "evenodd",
+                    d: "M5.25 2.25a3 3 0 0 0-3 3v4.318a3 3 0 0 0 .879 2.121l9.58 9.581c.92.92 2.39 1.186 3.548.428a18.849 18.849 0 0 0 5.441-5.44c.758-1.16.492-2.629-.428-3.548l-9.58-9.581a3 3 0 0 0-2.122-.879H5.25ZM6.375 7.5a1.125 1.125 0 1 0 0-2.25 1.125 1.125 0 0 0 0 2.25Z",
+                    "clip-rule": "evenodd",
+                }
+            }
+        }
+    }
+}
+
+#[component]
 pub fn UsersIcon() -> Element {
     rsx! {
         Icon {
             d: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
+        }
+    }
+}
+
+#[component]
+pub fn SolidUsersIcon() -> Element {
+    rsx! {
+        Svg {
+            fill: "currentColor",
+            stroke_width: "0",
+            body: rsx! {
+                path {
+                    d: "M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z",
+                }
+            }
         }
     }
 }
@@ -145,6 +189,26 @@ pub fn ArchiveIcon() -> Element {
 }
 
 #[component]
+pub fn SolidArchiveIcon() -> Element {
+    rsx! {
+        Svg {
+            fill: "currentColor",
+            stroke_width: "0",
+            body: rsx! {
+                path {
+                    d: "M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375Z"
+                }
+                path {
+                    "fill-rule": "evenodd",
+                    d: "m3.087 9 .54 9.176A3 3 0 0 0 6.62 21h10.757a3 3 0 0 0 2.995-2.824L20.913 9H3.087ZM12 10.5a.75.75 0 0 1 .75.75v4.94l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3 3a.75.75 0 0 1-1.06 0l-3-3a.75.75 0 1 1 1.06-1.06l1.72 1.72v-4.94a.75.75 0 0 1 .75-.75Z",
+                    "clip-rule": "evenodd",
+                }
+            }
+        }
+    }
+}
+
+#[component]
 pub fn RightIcon() -> Element {
     rsx! {
         Icon {
@@ -172,10 +236,16 @@ pub fn DownIcon() -> Element {
 }
 
 #[component]
-fn Icon(d: &'static str, stroke_width: Option<&'static str>) -> Element {
+fn Icon(
+    d: &'static str,
+    fill: Option<&'static str>,
+    stroke_width: Option<&'static str>,
+) -> Element {
     let stroke_width = stroke_width.unwrap_or("1.5");
+    let fill = fill.unwrap_or("none");
     rsx! {
         Svg {
+            fill,
             stroke_width,
             body: rsx!{
                 Path { d }
@@ -185,12 +255,12 @@ fn Icon(d: &'static str, stroke_width: Option<&'static str>) -> Element {
 }
 
 #[component]
-pub fn Svg(body: Element, stroke_width: &'static str) -> Element {
+pub fn Svg(body: Element, fill: &'static str, stroke_width: &'static str) -> Element {
     rsx! {
         svg {
             "aria-hidden": true,
             xmlns: "http://www.w3.org/2000/svg",
-            fill: "none",
+            fill,
             "viewBox": "0 0 24 24",
             "stroke-width": stroke_width,
             {body}

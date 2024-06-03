@@ -2,7 +2,10 @@ use dioxus::prelude::*;
 use shared_models::BoardName;
 
 use crate::{
-    components::icons::{ArchiveIcon, BoardIcon, TagIcon, UsersIcon},
+    components::icons::{
+        ArchiveIcon, BoardIcon, SolidArchiveIcon, SolidBoardIcon, SolidTagIcon, SolidUsersIcon,
+        TagIcon, UsersIcon,
+    },
     route::Route,
     themes::Theme,
 };
@@ -29,7 +32,8 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 body: rsx!{
                     div {
                         class: "flex flex-col items-center justify-center",
-                        div { class: "size-8", BoardIcon {} }
+                        div { class: "size-8 hidden group-[:not(.current-page)]:block", BoardIcon {} }
+                        div { class: "size-8 hidden group-[.current-page]:block", SolidBoardIcon {} }
                         "Board"
                     }
                 }
@@ -39,7 +43,8 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 body: rsx!{
                     div {
                         class: "flex flex-col items-center justify-center",
-                        div { class: "size-8", ArchiveIcon {} }
+                        div { class: "size-8 hidden group-[:not(.current-page)]:block", ArchiveIcon {} }
+                        div { class: "size-8 hidden group-[.current-page]:block", SolidArchiveIcon {} }
                         "Archive"
                     }
                 }
@@ -49,7 +54,8 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 body: rsx!{
                     div {
                         class: "flex flex-col items-center justify-center",
-                        div { class: "size-8", TagIcon {} }
+                        div { class: "size-8 hidden group-[:not(.current-page)]:block", TagIcon {} }
+                        div { class: "size-8 hidden group-[.current-page]:block", SolidTagIcon {} }
                         "Tags"
                     }
                 }
@@ -59,7 +65,8 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 body: rsx!{
                     div {
                         class: "flex flex-col items-center justify-center",
-                        div { class: "size-8", UsersIcon {} }
+                        div { class: "size-8 hidden group-[:not(.current-page)]:block", UsersIcon {} }
+                        div { class: "size-8 hidden group-[.current-page]:block", SolidUsersIcon {} }
                         "Users"
                     }
                 }
@@ -71,15 +78,14 @@ pub fn NavBar(board_name: BoardName) -> Element {
 #[component]
 fn NavLink(to: Route, body: Element) -> Element {
     let shared_css = "
-        h-full w-1/6
+        group h-full w-1/6
     ";
-    let shared_style = "";
-    let style = "";
-    let active_style = "bg-white stroke-black text-black";
+    let style = "sm:hover:underline";
+    let active_style = "current-page underline";
     rsx! {
         Link {
-            class: "{shared_css} {shared_style} {style}",
-            active_class: "{shared_css} {shared_style} {active_style}",
+            class: "{shared_css} {style}",
+            active_class: active_style,
             to,
             {body}
         }

@@ -1,10 +1,8 @@
 use std::str::FromStr;
 
 use crate::color_picker::{self, SelectingColorPicker};
-use crate::route::Route;
-use crate::styles;
+use crate::components::nav::NavBar;
 use dioxus::prelude::*;
-use dioxus_router::hooks::use_navigator;
 use itertools::Itertools;
 use reqwest::Url;
 use shared_models::{BoardName, Color, UserEntry, UserId};
@@ -19,7 +17,6 @@ pub fn Users(board_name: BoardName) -> Element {
         UsersUrl(url.join(&format!("/api/boards/{}/", board_name)).unwrap())
     });
     let users = use_signal(|| UserEntries(Vec::new()));
-    let nav = use_navigator();
     use_future(move || async move {
         let url = &url.read().0;
         get_users(users, url).await;
@@ -30,6 +27,7 @@ pub fn Users(board_name: BoardName) -> Element {
                 w-screen h-dvh
                 bg-gray-900
                 flex flex-col
+                text-white stroke-white
             ",
             div {
                 class: "grow w-full p-4 overflow-auto",
@@ -75,64 +73,7 @@ pub fn Users(board_name: BoardName) -> Element {
                     }
                 }
             }
-            div {
-                class: styles::BOTTOM_BAR,
-                button {
-                    r#type: "button",
-                    class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: {
-                            let board_name = board_name.clone();
-                            move |_| {
-                            nav.push(Route::Board {
-                                board_name: board_name.clone(),
-                            });
-                        }
-                    },
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none",
-                        "viewBox": "0 0 24 24",
-                        "stroke-width": "1.5",
-                        stroke: "currentColor",
-                        class: "
-                            w-6 h-6 text-gray-400
-                            group-active:text-blue-500
-                            sm:group-hover:text-blue-500
-                        ",
-                        path {
-                            "stroke-linecap": "round",
-                            "stroke-linejoin": "round",
-                            d: "M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z"
-                        }
-                    }
-                }
-                button {
-                    r#type: "button" ,
-                    class: styles::BOTTOM_BAR_BUTTON,
-                    onclick: move |_| {
-                        nav.push(Route::AddUser {
-                            board_name: board_name.clone(),
-                        });
-                    },
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        fill: "none",
-                        "viewBox": "0 0 24 24",
-                        "stroke-width": "1.5",
-                        stroke: "currentColor",
-                        class: "
-                            w-6 h-6 text-gray-400
-                            group-active:text-blue-500
-                            sm:group-hover:text-blue-500
-                        ",
-                        path {
-                            "stroke-linecap": "round",
-                            "stroke-linejoin": "round",
-                            d: "M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z",
-                        }
-                    }
-                }
-            }
+            NavBar { board_name }
         }
     }
 }
