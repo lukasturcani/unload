@@ -982,7 +982,7 @@ fn TagChip(task_id: TaskId, tag_id: TagId, tag_data: TagData) -> Element {
         Color::Teal => "border-teal-300 aria-pressed:bg-teal-300",
         Color::Aqua => "border-cyan-500 aria-pressed:bg-cyan-500",
     };
-    let style = "rounded border-2 ease-in-out duration-100 sm:hover:scale-110";
+    let style = "rounded border-2";
     let delete_tag_button_style = "rounded active:border sm:hover:border";
     let pressed = tag_filter.read().0.contains(&tag_id);
     rsx! {
