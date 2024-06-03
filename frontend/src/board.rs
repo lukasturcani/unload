@@ -1,9 +1,11 @@
 use dioxus::prelude::*;
 
+use crate::components::nav::NavBar;
 use crate::components::task::{DenseTask, Task};
 use crate::filter_bar::{FilterBar, SizeFilter, TagFilter, UserFilter};
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
+use crate::themes::Theme;
 use dioxus_router::hooks::use_navigator;
 use itertools::Itertools;
 use shared_models::UserId;
@@ -249,9 +251,15 @@ fn OneColumnBoard(board_name: BoardName) -> Element {
 
 #[component]
 fn ThreeColumnBoard(board_name: BoardName) -> Element {
-    let style = "
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
         text-white stroke-white
-    ";
+        {}
+    ",
+        theme.bg_color_1
+    );
     let mut board_signals = BoardSignals::default();
     if board_signals.model.read().board_name != board_name {
         board_signals.model.write().board_name = board_name.clone();
@@ -260,7 +268,7 @@ fn ThreeColumnBoard(board_name: BoardName) -> Element {
     use_future(move || requests::board(board_signals));
     rsx! {
         div {
-            class: "flex flex-col bg-gray-900 h-dvh w-screen {style}",
+            class: "flex flex-col h-dvh w-screen {style}",
             div {
                 class: "grow flex flex-col gap-2 overflow-y-auto p-4 pb-2",
                 div {
@@ -280,9 +288,7 @@ fn ThreeColumnBoard(board_name: BoardName) -> Element {
                 }
                 FilterBar {}
             }
-            BottomBar {
-                board_name: board_name.clone(),
-            }
+            NavBar { board_name }
         }
     }
 }
