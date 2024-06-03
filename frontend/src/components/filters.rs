@@ -11,7 +11,6 @@ pub fn FilterBar() -> Element {
             class: "grid grid-cols-3 gap-2",
             TagFilter {}
             UserFilter {}
-            SizeFilter {}
         }
     }
 }
@@ -133,80 +132,5 @@ fn size_bg(model: Signal<Model>, size: &TaskSize) -> &'static str {
         }
     } else {
         "bg-inherit"
-    }
-}
-
-#[component]
-pub fn SizeFilter() -> Element {
-    let mut model = use_context::<Signal<Model>>();
-    rsx! {
-        div {
-            div {
-                class: "
-                    flex flex-row flex-wrap gap-2
-                    justify-center sm:justify-start
-                ",
-                button {
-                    r#type: "button",
-                    class: "
-                        text-sm font-medium rounded  cursor-pointer
-                        w-20 py-0.5
-                        border-2 border-emerald-700
-                        sm:hover:bg-emerald-700
-                        {size_bg(model, &TaskSize::Small)} text-green-300
-                    ",
-                    onclick: move |event| {
-                        event.stop_propagation();
-                        let mut model = model.write();
-                        if model.size_filter == Some(TaskSize::Small) {
-                            model.size_filter = None;
-                        } else {
-                            model.size_filter = Some(TaskSize::Small);
-                        }
-                    },
-                    "Small",
-                }
-                button {
-                    r#type: "button",
-                    class: "
-                        text-sm font-medium rounded cursor-pointer
-                        w-20 py-0.5
-                        border-2 border-yellow-900
-                        sm:hover:bg-yellow-900
-                        {size_bg(model, &TaskSize::Medium)} text-yellow-300
-                    ",
-                    onclick: move |event| {
-                        event.stop_propagation();
-                        let mut model = model.write();
-                        if model.size_filter == Some(TaskSize::Medium) {
-                            model.size_filter = None;
-                        } else {
-                            model.size_filter = Some(TaskSize::Medium);
-                        }
-                    },
-                    "Medium",
-                }
-                button {
-                    r#type: "button",
-                    class: "
-                        text-sm font-medium rounded  cursor-pointer
-                        w-20 py-0.5
-                        border-2 border-red-900
-                        sm:hover:bg-red-900
-                        {size_bg(model, &TaskSize::Large)} text-red-300
-                    ",
-                    onclick: move |event| {
-                        event.stop_propagation();
-                        let mut model = model.write();
-                        if model.size_filter == Some(TaskSize::Large) {
-                            model.size_filter = None;
-                        } else {
-                            model.size_filter = Some(TaskSize::Large);
-                        }
-                    },
-                    "Large",
-                }
-            }
-        }
     }
 }
