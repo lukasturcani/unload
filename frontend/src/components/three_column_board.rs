@@ -3,7 +3,7 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
-        icons::{DoneIcon, InProgressIcon, ToDoIcon},
+        icons::{DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
         nav::NavBar,
         task::{DenseTask, Task},
     },
@@ -34,6 +34,16 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
+            Header {
+                body: rsx!{
+                    div {}
+                    h1 {
+                        class: "text-3xl font-extrabold",
+                        "{board_name}"
+                    }
+                    DenseButton { dense }
+                }
+            }
             div {
                 class: "grow flex flex-col gap-2 overflow-y-auto p-4 pb-2",
                 div {
@@ -48,6 +58,45 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                 // FilterBar {}
             }
             NavBar { board_name }
+        }
+    }
+}
+
+#[component]
+fn DenseButton(dense: Signal<bool>) -> Element {
+    let style = "
+        border-2 rounded
+        aria-pressed:bg-white aria-pressed:stroke-black
+    ";
+    let dense_ = dense();
+    rsx! {
+        button {
+            class: "size-9 p-1 {style}",
+            "aria-pressed": dense_,
+            onclick: move |_| dense.set(!dense_),
+            StackIcon {}
+        }
+    }
+}
+
+#[component]
+fn Header(body: Element) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
+        border-b {}
+        ",
+        theme.border_color
+    );
+    rsx! {
+        header {
+            class: "
+                flex flex-row items-center justify-around
+                w-full h-14 shrink-0 grow-0
+                {style}
+            ",
+            {body}
         }
     }
 }
