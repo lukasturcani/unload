@@ -2,8 +2,11 @@ use dioxus::prelude::*;
 use shared_models::{BoardName, TaskStatus};
 
 use crate::{
-    components::{nav::NavBar, task::Task},
-    model::{Board, TagFilter, Tasks, UserFilter},
+    components::{
+        nav::NavBar,
+        task::{DenseTask, Task},
+    },
+    model::{task_filter, Board, TagFilter, Tasks, UserFilter},
     requests::{self, BoardSignals},
     themes::Theme,
 };
@@ -20,6 +23,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
         theme.bg_color_1
     );
     let dense = use_signal(|| false);
+    let dense_ = dense();
     let mut board_signals = BoardSignals::default();
     if board_signals.model.read().board_name != board_name {
         board_signals.model.write().board_name = board_name.clone();
@@ -35,15 +39,9 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                     class: "grow w-full h-full overflow-y-auto",
                     div {
                         class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
-                        if board_signals.model.read().dense_view {
-                            // DenseToDoColumn {}
-                            // DenseInProgressColumn {}
-                            // DenseDoneColumn {}
-                        } else {
-                            Column { status: TaskStatus::ToDo }
-                            Column { status: TaskStatus::InProgress }
-                            Column { status: TaskStatus::Done }
-                        }
+                        Column { status: TaskStatus::ToDo, dense: dense_ }
+                        Column { status: TaskStatus::InProgress, dense: dense_ }
+                        Column { status: TaskStatus::Done, dense: dense_ }
                     },
                 }
                 // FilterBar {}
@@ -54,7 +52,27 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
 }
 
 #[component]
-fn Column(status: TaskStatus) -> Element {
+fn Column(status: TaskStatus, dense: bool) -> Element {
+    rsx! {
+        section {
+            h2 {
+                match status {
+                    TaskStatus::ToDo => "To Do",
+                    TaskStatus::InProgress => "In Progress",
+                    TaskStatus::Done => "Done",
+                }
+            }
+            if dense {
+                DenseColumnTasks { status }
+            } else {
+                ColumnTasks { status }
+            }
+        }
+    }
+}
+
+#[component]
+fn ColumnTasks(status: TaskStatus) -> Element {
     let tasks = use_context::<Signal<Tasks>>();
     let tasks = tasks.read();
     let board = use_context::<Signal<Board>>();
@@ -69,34 +87,49 @@ fn Column(status: TaskStatus) -> Element {
         TaskStatus::Done => &board.done,
     };
     rsx! {
-        div {
-            for task_id in column_tasks
-                .iter()
-                .filter(|task_id| {
-                    let task = &tasks.0[task_id];
-                    if user_filter
-                        .0
-                        .iter()
-                        .any(|user_id| !task.assignees.contains(user_id))
-                    {
-                        return false;
-                    }
-                    if tag_filter
-                        .0
-                        .iter()
-                        .any(|tag_id| !task.tags.contains(tag_id))
-                    {
-                        return false;
-                    }
-                    true
-                })
-            {
-                Task {
-                    key: "{task_id}",
-                    task_id: *task_id,
-                    task: tasks.0[task_id].clone(),
-                    status: status,
-                }
+        for task_id in column_tasks
+            .iter()
+            .filter(|task_id| {
+                task_filter(task_id, &tasks.0, &user_filter.0, &tag_filter.0)
+            })
+        {
+            Task {
+                key: "{task_id}",
+                task_id: *task_id,
+                task: tasks.0[task_id].clone(),
+                status: status,
+            }
+        }
+    }
+}
+
+#[component]
+fn DenseColumnTasks(status: TaskStatus) -> Element {
+    let tasks = use_context::<Signal<Tasks>>();
+    let tasks = tasks.read();
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
+    let user_filter = use_context::<Signal<UserFilter>>();
+    let user_filter = user_filter.read();
+    let tag_filter = use_context::<Signal<TagFilter>>();
+    let tag_filter = tag_filter.read();
+    let column_tasks = match status {
+        TaskStatus::ToDo => &board.to_do,
+        TaskStatus::InProgress => &board.in_progress,
+        TaskStatus::Done => &board.done,
+    };
+    rsx! {
+        for task_id in column_tasks
+            .iter()
+            .filter(|task_id| {
+                task_filter(task_id, &tasks.0, &user_filter.0, &tag_filter.0)
+            })
+        {
+            DenseTask {
+                key: "{task_id}",
+                task_id: *task_id,
+                task: tasks.0[task_id].clone(),
+                status: status,
             }
         }
     }

@@ -44,6 +44,25 @@ pub struct UserFilter(pub HashSet<UserId>);
 #[derive(Debug, Default)]
 pub struct TagFilter(pub HashSet<TagId>);
 
+pub fn task_filter(
+    task_id: &TaskId,
+    tasks: &HashMap<TaskId, TaskData>,
+    user_filter: &HashSet<UserId>,
+    tag_filter: &HashSet<TagId>,
+) -> bool {
+    let task = &tasks[task_id];
+    if user_filter
+        .iter()
+        .any(|user_id| !task.assignees.contains(user_id))
+    {
+        return false;
+    }
+    if tag_filter.iter().any(|tag_id| !task.tags.contains(tag_id)) {
+        return false;
+    }
+    true
+}
+
 #[derive(Debug)]
 pub struct Model {
     pub url: Url,
