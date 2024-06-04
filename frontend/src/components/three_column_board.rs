@@ -3,6 +3,7 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
+        icons::{DoneIcon, InProgressIcon, ToDoIcon},
         nav::NavBar,
         task::{DenseTask, Task},
     },
@@ -53,19 +54,51 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
 
 #[component]
 fn Column(status: TaskStatus, dense: bool) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let heading_style = "text-3xl font-extrabold";
+    let style = format!(
+        "
+        border {}
+        ",
+        theme.border_color
+    );
     rsx! {
         section {
-            h2 {
+            class: "flex flex-col overflow-y-auto {style}",
+            div {
+                class: "flex items-center gap-2",
                 match status {
-                    TaskStatus::ToDo => "To Do",
-                    TaskStatus::InProgress => "In Progress",
-                    TaskStatus::Done => "Done",
+                    TaskStatus::ToDo => rsx! {
+                        div { class: "size-8", ToDoIcon {} }
+                        h2 {
+                            class: heading_style,
+                            "To Do"
+                        }
+                    },
+                    TaskStatus::InProgress => rsx! {
+                        div { class: "size-8", InProgressIcon {} }
+                        h2 {
+                            class: heading_style,
+                            "In Progress"
+                        }
+                    },
+                    TaskStatus::Done => rsx! {
+                        div { class: "size-8", DoneIcon {} }
+                        h2 {
+                            class: heading_style,
+                            "Done"
+                        }
+                    }
                 }
             }
-            if dense {
-                DenseColumnTasks { status }
-            } else {
-                ColumnTasks { status }
+            div {
+                class: "grow flex flex-col gap-2 overflow-y-scroll",
+                if dense {
+                    DenseColumnTasks { status }
+                } else {
+                    ColumnTasks { status }
+                }
             }
         }
     }
