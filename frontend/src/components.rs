@@ -5,6 +5,6 @@ mod input;
 pub mod nav;
 mod tag_icon;
 pub mod task;
-mod three_column_board;
+pub mod three_column_board;
 mod tooltip;
 mod user_icon;

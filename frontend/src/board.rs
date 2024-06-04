@@ -1,11 +1,10 @@
 use dioxus::prelude::*;
 
-use crate::components::filter_bar::{FilterBar, TagFilter, UserFilter};
-use crate::components::nav::NavBar;
+use crate::components::filter_bar::{TagFilter, UserFilter};
 use crate::components::task::{DenseTask, Task};
+use crate::components::three_column_board::ThreeColumnBoard;
 use crate::responsive_layout::ResponsiveLayout;
 use crate::route::Route;
-use crate::themes::Theme;
 use dioxus_router::hooks::use_navigator;
 use itertools::Itertools;
 use shared_models::UserId;
