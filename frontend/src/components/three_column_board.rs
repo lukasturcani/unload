@@ -102,16 +102,19 @@ fn Header(body: Element) -> Element {
 }
 
 #[component]
+fn ColumnHeading(value: String) -> Element {
+    let style = "text-3xl font-extrabold";
+    rsx! {
+        h2 { class: style, {value} }
+    }
+}
+
+#[component]
 fn Column(status: TaskStatus, dense: bool) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let heading_style = "text-3xl font-extrabold";
-    let style = format!(
-        "
-        border {}
-        ",
-        theme.border_color
-    );
+    let style = format!("border {}", theme.border_color);
+    let gap = if dense { "" } else { "gap-2" };
     rsx! {
         section {
             class: "flex flex-col overflow-y-auto {style}",
@@ -120,29 +123,20 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
                 match status {
                     TaskStatus::ToDo => rsx! {
                         div { class: "size-8", ToDoIcon {} }
-                        h2 {
-                            class: heading_style,
-                            "To Do"
-                        }
+                        ColumnHeading { value: "To Do" }
                     },
                     TaskStatus::InProgress => rsx! {
                         div { class: "size-8", InProgressIcon {} }
-                        h2 {
-                            class: heading_style,
-                            "In Progress"
-                        }
+                        ColumnHeading { value: "In Progress" }
                     },
                     TaskStatus::Done => rsx! {
                         div { class: "size-8", DoneIcon {} }
-                        h2 {
-                            class: heading_style,
-                            "Done"
-                        }
+                        ColumnHeading { value: "Done" }
                     }
                 }
             }
             div {
-                class: "grow flex flex-col gap-2 overflow-y-scroll",
+                class: "grow flex flex-col {gap} overflow-y-scroll",
                 if dense {
                     DenseColumnTasks { status }
                 } else {

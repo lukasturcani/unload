@@ -123,7 +123,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                 class: "flex flex-row justify-between",
                 div {
                     class: "flex flex-row items-center gap-1",
-                    ToggleExpanded { expanded, size: "size-4" }
+                    ToggleExpanded { expanded, size: "size-5" }
                     DenseTitle { task_id, title: task.title, expanded: expanded_ }
                 }
                 Assignees {

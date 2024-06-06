@@ -168,7 +168,7 @@ frontend:
 
 # watch the frontend
 watch-frontend:
-  watchexec -w frontend -w shared_models "\
+  watchexec -c -w frontend -w shared_models "\
   cd frontend && \
   rm -rf dist && \
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
@@ -189,7 +189,7 @@ website:
 
 # watch the website
 watch-website:
-  watchexec -w website "\
+  watchexec -c -w website "\
   cd website && \
   rm -rf dist && \
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
