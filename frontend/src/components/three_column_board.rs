@@ -3,7 +3,7 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
-        form::CancelButton,
+        form::{CancelButton, ConfirmButton},
         icons::{CircledPlusIcon, DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
         input::TextInput,
         nav::NavBar,
@@ -118,7 +118,7 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
     let style = format!("border {}", theme.border_color);
     let gap = if dense { "" } else { "gap-2" };
     let adding_task = use_signal(|| false);
-    let mut new_task = use_signal(|| None);
+    let new_task = use_signal(|| None);
     rsx! {
         section {
             class: "flex flex-col overflow-y-auto px-2 pt-2 {style}",
@@ -147,19 +147,7 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
                     ColumnTasks { status }
                 }
                 if adding_task() {
-                    form {
-                        TextInput {
-                            onmounted: Some(EventHandler::new(move |e: MountedEvent| {
-                                new_task.set(Some(e.clone()));
-                                spawn(async move {
-                                    let _ = e.set_focus(true).await;
-                                });
-                            })),
-                            id: "new-{status:#?}-task-title-input",
-                            label: "Title",
-                        }
-                        CancelButton { label: "cancel adding task", editing: adding_task }
-                    }
+                    NewTaskForm { status, adding_task, new_task }
                 }
             }
             AddTaskButton { adding_task, new_task }
@@ -168,10 +156,58 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
 }
 
 #[component]
+fn NewTaskForm(
+    status: TaskStatus,
+    adding_task: Signal<bool>,
+    new_task: Signal<Option<MountedEvent>>,
+) -> Element {
+    let board_signals = BoardSignals::default();
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
+        border
+        rounded-lg
+        shadow
+        {} {}
+        ",
+        theme.border_color, theme.bg_color_2,
+    );
+    rsx! {
+        form {
+            class: "flex flex-row gap-1 p-2.5 items-center {style}",
+            onsubmit: move |event| {
+                let title = event.values()["Title"].as_value();
+                spawn_forever(create_task(board_signals, title, status));
+                adding_task.set(false);
+            },
+            TextInput {
+                onmounted: Some(EventHandler::new(move |e: MountedEvent| {
+                    new_task.set(Some(e.clone()));
+                    spawn(async move {
+                        let _ = e.set_focus(true).await;
+                    });
+                })),
+                id: "new-{status:#?}-task-title-input",
+                label: "Title",
+            }
+            ConfirmButton { label: "add task" }
+            CancelButton { label: "cancel adding task", editing: adding_task }
+        }
+    }
+}
+
+#[component]
 fn AddTaskButton(adding_task: Signal<bool>, new_task: Signal<Option<MountedEvent>>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border-t {}", theme.border_color);
     rsx! {
         button {
-            class: "h-12 shrink-0 grow-0 flex flex-row justify-center items-center",
+            class: "
+                h-12 shrink-0 grow-0 flex flex-row justify-center items-center
+                {style}
+            ",
             onclick: move |_| async move {
                 if adding_task() {
                     let _ = new_task.unwrap().set_focus(true).await;
@@ -249,4 +285,24 @@ fn DenseColumnTasks(status: TaskStatus) -> Element {
             }
         }
     }
+}
+
+async fn create_task(signals: BoardSignals, title: String, status: TaskStatus) {
+    if let Ok(task_id) = requests::create_task(
+        signals.board,
+        &shared_models::TaskData {
+            title,
+            description: String::new(),
+            due: None,
+            size: shared_models::TaskSize::Small,
+            status,
+            assignees: Vec::new(),
+            tags: Vec::new(),
+        },
+    )
+    .await
+    {
+        log::info!("created task: {task_id}");
+    }
+    requests::board(signals).await;
 }
