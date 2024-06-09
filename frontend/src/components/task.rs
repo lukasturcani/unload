@@ -31,7 +31,12 @@ fn is_late(task: &TaskData) -> bool {
 }
 
 #[component]
-pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
+pub fn Task(
+    task_id: TaskId,
+    task: TaskData,
+    status: TaskStatus,
+    scroll_to: Option<bool>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let is_late = is_late(&task);
@@ -58,6 +63,11 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
         article {
             "aria-label": label,
             class: "flex flex-col gap-2 p-2.5 {style}",
+            onmounted: move |event| async move {
+                if scroll_to.unwrap_or(false) {
+                    let _ = event.scroll_to(ScrollBehavior::Smooth).await;
+                }
+            },
             div {
                 class: "flex flex-row justify-between",
                 div {
