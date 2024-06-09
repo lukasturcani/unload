@@ -3,7 +3,9 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
-        icons::{DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
+        form::CancelButton,
+        icons::{CircledPlusIcon, DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
+        input::TextInput,
         nav::NavBar,
         task::{DenseTask, Task},
     },
@@ -115,9 +117,11 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
     let theme = theme.read();
     let style = format!("border {}", theme.border_color);
     let gap = if dense { "" } else { "gap-2" };
+    let adding_task = use_signal(|| false);
+    let mut new_task = use_signal(|| None);
     rsx! {
         section {
-            class: "flex flex-col overflow-y-auto {style}",
+            class: "flex flex-col overflow-y-auto px-2 pt-2 {style}",
             div {
                 class: "flex items-center gap-2",
                 match status {
@@ -136,12 +140,48 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
                 }
             }
             div {
-                class: "grow flex flex-col {gap} overflow-y-scroll",
+                class: "grow flex flex-col {gap} overflow-y-scroll pt-2",
                 if dense {
                     DenseColumnTasks { status }
                 } else {
                     ColumnTasks { status }
                 }
+                if adding_task() {
+                    form {
+                        TextInput {
+                            onmounted: Some(EventHandler::new(move |e: MountedEvent| {
+                                new_task.set(Some(e.clone()));
+                                spawn(async move {
+                                    let _ = e.set_focus(true).await;
+                                });
+                            })),
+                            id: "new-{status:#?}-task-title-input",
+                            label: "Title",
+                        }
+                        CancelButton { label: "cancel adding task", editing: adding_task }
+                    }
+                }
+            }
+            AddTaskButton { adding_task, new_task }
+        }
+    }
+}
+
+#[component]
+fn AddTaskButton(adding_task: Signal<bool>, new_task: Signal<Option<MountedEvent>>) -> Element {
+    rsx! {
+        button {
+            class: "h-12 shrink-0 grow-0 flex flex-row justify-center items-center",
+            onclick: move |_| async move {
+                if adding_task() {
+                    let _ = new_task.unwrap().set_focus(true).await;
+                } else {
+                    adding_task.set(true);
+                }
+            },
+            div {
+                class: "size-6",
+                CircledPlusIcon {}
             }
         }
     }

@@ -3,7 +3,12 @@ use dioxus::prelude::*;
 use crate::themes::Theme;
 
 #[component]
-pub fn TextInput(id: String, label: String, value: Option<String>) -> Element {
+pub fn TextInput(
+    id: String,
+    label: String,
+    value: Option<String>,
+    onmounted: Option<EventHandler<MountedEvent>>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -23,12 +28,23 @@ pub fn TextInput(id: String, label: String, value: Option<String>) -> Element {
             r#for: "{id}",
             {label}
         }
-        input {
-            id,
-            class: "p-2.5 {style}",
-            name,
-            required: true,
-            value,
+        if let Some(onmounted) = onmounted {
+            input {
+                id: id.clone(),
+                class: "p-2.5 {style}",
+                name,
+                required: true,
+                value,
+                onmounted: move |e| onmounted.call(e),
+            }
+        } else {
+            input {
+                id: id.clone(),
+                class: "p-2.5 {style}",
+                name,
+                required: true,
+                value,
+            }
         }
     }
 }
