@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
-use shared_models::{BoardName, TaskId, TaskStatus};
+use shared_models::{BoardName, TaskStatus};
 
 use crate::{
-    commands::ScrollTarget,
+    commands::{FocusTarget, ScrollTarget},
     components::{
         form::{CancelButton, ConfirmButton},
         icons::{CircledPlusIcon, DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
@@ -119,7 +119,6 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
     let style = format!("border {}", theme.border_color);
     let gap = if dense { "" } else { "gap-2" };
     let adding_task = use_signal(|| false);
-    let new_task = use_signal(|| None);
     rsx! {
         section {
             class: "flex flex-col overflow-y-auto px-2 pt-2 {style}",
@@ -148,20 +147,16 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
                     ColumnTasks { status }
                 }
                 if adding_task() {
-                    NewTaskForm { status, adding_task, new_task }
+                    NewTaskForm { status, adding_task }
                 }
             }
-            AddTaskButton { adding_task, new_task }
+            AddTaskButton { status, adding_task }
         }
     }
 }
 
 #[component]
-fn NewTaskForm(
-    status: TaskStatus,
-    adding_task: Signal<bool>,
-    new_task: Signal<Option<MountedEvent>>,
-) -> Element {
+fn NewTaskForm(status: TaskStatus, adding_task: Signal<bool>) -> Element {
     let scroll_target = use_context::<Signal<ScrollTarget>>();
     let board_signals = BoardSignals::default();
     let theme = use_context::<Signal<Theme>>();
@@ -184,12 +179,6 @@ fn NewTaskForm(
                 adding_task.set(false);
             },
             TextInput {
-                onmounted: Some(EventHandler::new(move |e: MountedEvent| {
-                    new_task.set(Some(e.clone()));
-                    spawn(async move {
-                        let _ = e.set_focus(true).await;
-                    });
-                })),
                 id: "new-{status:#?}-task-title-input",
                 label: "Title",
             }
@@ -200,7 +189,8 @@ fn NewTaskForm(
 }
 
 #[component]
-fn AddTaskButton(adding_task: Signal<bool>, new_task: Signal<Option<MountedEvent>>) -> Element {
+fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>) -> Element {
+    let mut focus_target = use_context::<Signal<FocusTarget>>();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border-t {}", theme.border_color);
@@ -212,7 +202,9 @@ fn AddTaskButton(adding_task: Signal<bool>, new_task: Signal<Option<MountedEvent
             ",
             onclick: move |_| async move {
                 if adding_task() {
-                    let _ = new_task.unwrap().set_focus(true).await;
+                    focus_target.set(
+                        FocusTarget(Some(format!("new-{status:#?}-task-title-input")))
+                    );
                 } else {
                     adding_task.set(true);
                 }
