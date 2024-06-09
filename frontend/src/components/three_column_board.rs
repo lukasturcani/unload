@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 use shared_models::{BoardName, TaskId, TaskStatus};
 
 use crate::{
+    commands::ScrollTarget,
     components::{
         form::{CancelButton, ConfirmButton},
         icons::{CircledPlusIcon, DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
@@ -119,7 +120,6 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
     let gap = if dense { "" } else { "gap-2" };
     let adding_task = use_signal(|| false);
     let new_task = use_signal(|| None);
-    let scroll_to = use_signal(|| None);
     rsx! {
         section {
             class: "flex flex-col overflow-y-auto px-2 pt-2 {style}",
@@ -145,10 +145,10 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
                 if dense {
                     DenseColumnTasks { status }
                 } else {
-                    ColumnTasks { status, scroll_to: scroll_to() }
+                    ColumnTasks { status }
                 }
                 if adding_task() {
-                    NewTaskForm { status, adding_task, new_task, scroll_to }
+                    NewTaskForm { status, adding_task, new_task }
                 }
             }
             AddTaskButton { adding_task, new_task }
@@ -161,8 +161,8 @@ fn NewTaskForm(
     status: TaskStatus,
     adding_task: Signal<bool>,
     new_task: Signal<Option<MountedEvent>>,
-    scroll_to: Signal<Option<TaskId>>,
 ) -> Element {
+    let scroll_target = use_context::<Signal<ScrollTarget>>();
     let board_signals = BoardSignals::default();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -180,7 +180,7 @@ fn NewTaskForm(
             class: "flex flex-row gap-1 p-2.5 items-center {style}",
             onsubmit: move |event| {
                 let title = event.values()["Title"].as_value();
-                spawn_forever(create_task(board_signals, title, status, scroll_to));
+                spawn_forever(create_task(board_signals, title, status, scroll_target));
                 adding_task.set(false);
             },
             TextInput {
@@ -226,7 +226,7 @@ fn AddTaskButton(adding_task: Signal<bool>, new_task: Signal<Option<MountedEvent
 }
 
 #[component]
-fn ColumnTasks(status: TaskStatus, scroll_to: Option<TaskId>) -> Element {
+fn ColumnTasks(status: TaskStatus) -> Element {
     let tasks = use_context::<Signal<Tasks>>();
     let tasks = tasks.read();
     let board = use_context::<Signal<Board>>();
@@ -251,8 +251,7 @@ fn ColumnTasks(status: TaskStatus, scroll_to: Option<TaskId>) -> Element {
                 key: "{task_id}",
                 task_id: *task_id,
                 task: tasks.0[task_id].clone(),
-                status: status,
-                scroll_to: scroll_to.map(|id| id == *task_id),
+                status,
             }
         }
     }
@@ -294,7 +293,7 @@ async fn create_task(
     signals: BoardSignals,
     title: String,
     status: TaskStatus,
-    mut scroll_to: Signal<Option<TaskId>>,
+    mut scroll_target: Signal<ScrollTarget>,
 ) {
     if let Ok(task_id) = requests::create_task(
         signals.board,
@@ -311,7 +310,7 @@ async fn create_task(
     .await
     {
         log::info!("created task: {task_id}");
-        scroll_to.set(Some(task_id));
+        requests::board(signals).await;
+        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
     }
-    requests::board(signals).await;
 }
