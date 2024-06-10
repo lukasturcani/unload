@@ -1,5 +1,4 @@
 use crate::color_picker;
-use crate::components::nav::NavBar;
 use dioxus::prelude::*;
 use reqwest::Url;
 use shared_models::{
@@ -55,7 +54,6 @@ pub fn TaskArchive(board_name: BoardName) -> Element {
                     }
                 }
             }
-            NavBar { board_name }
         }
     }
 }

@@ -1,5 +1,4 @@
 use crate::color_picker::{self, SelectingColorPicker};
-use crate::components::nav::NavBar;
 use dioxus::prelude::*;
 use itertools::Itertools;
 use reqwest::Url;
@@ -76,7 +75,6 @@ pub fn ArchivedTags(board_name: BoardName) -> Element {
                     }
                 }
             }
-            NavBar { board_name }
         }
     }
 }
