@@ -19,7 +19,7 @@ use crate::{
         tooltip::Tooltip,
         user_icon::UserIcon,
     },
-    model::{Board, Tags, TaskData, Users},
+    model::{Board, Tags, TaskData, UnloadUrl, Users},
     requests::{self, BoardSignals},
     themes::Theme,
 };
@@ -990,8 +990,9 @@ async fn send_set_task_status_request(
     status: TaskStatus,
 ) -> Result<(), anyhow::Error> {
     let url = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}/status",
             board.board_name, task_id
         ))?
@@ -1019,11 +1020,10 @@ async fn send_create_quick_add_task_request(
     task_id: TaskId,
 ) -> Result<TaskId, anyhow::Error> {
     let (url, task_data) = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
         let task = &signals.tasks.read().0[&task_id];
-        let url = board
-            .url
-            .join(&format!("/api/boards/{}/quick-add", board.board_name))?;
+        let url = url.join(&format!("/api/boards/{}/quick-add", board.board_name))?;
         (
             url,
             QuickAddData {
@@ -1055,8 +1055,9 @@ async fn send_clone_task_request(
     task_id: TaskId,
 ) -> Result<TaskId, anyhow::Error> {
     let url = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}/clone",
             board.board_name, task_id
         ))?
@@ -1080,8 +1081,9 @@ async fn send_archive_task_request(
     task_id: TaskId,
 ) -> Result<(), anyhow::Error> {
     let url = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}/archived",
             board.board_name, task_id
         ))?
@@ -1110,8 +1112,9 @@ async fn send_delete_task_assignee_request(
     assignee: UserId,
 ) -> Result<(), anyhow::Error> {
     let url = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}/assignees/{}",
             board.board_name, task_id, assignee
         ))?
@@ -1134,8 +1137,9 @@ async fn send_add_task_assignee_request(
     assignee: UserId,
 ) -> Result<(), anyhow::Error> {
     let url = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}/assignees",
             board.board_name, task_id
         ))?
@@ -1150,7 +1154,7 @@ async fn send_add_task_assignee_request(
 }
 
 async fn create_user(signals: BoardSignals, task_id: TaskId, user_data: UserData) {
-    match requests::create_user(signals.board, user_data).await {
+    match requests::create_user(signals.url, signals.board, user_data).await {
         Ok((user_id, _)) => {
             add_task_assignee(signals, task_id, user_id).await;
         }
@@ -1161,7 +1165,7 @@ async fn create_user(signals: BoardSignals, task_id: TaskId, user_data: UserData
 }
 
 async fn create_tag(signals: BoardSignals, task_id: TaskId, tag_data: TagData) {
-    match requests::create_tag(signals.board, tag_data).await {
+    match requests::create_tag(signals.url, signals.board, tag_data).await {
         Ok((tag_id, _)) => {
             add_task_tag(signals, task_id, tag_id).await;
         }
@@ -1172,7 +1176,7 @@ async fn create_tag(signals: BoardSignals, task_id: TaskId, tag_data: TagData) {
 }
 
 async fn add_task_tag(signals: BoardSignals, task_id: TaskId, tag_id: TagId) {
-    if send_add_task_tag_request(signals.board, task_id, tag_id)
+    if send_add_task_tag_request(signals.url, signals.board, task_id, tag_id)
         .await
         .is_ok()
     {
@@ -1181,13 +1185,15 @@ async fn add_task_tag(signals: BoardSignals, task_id: TaskId, tag_id: TagId) {
 }
 
 async fn send_add_task_tag_request(
+    url: Signal<UnloadUrl>,
     board: Signal<Board>,
     task_id: TaskId,
     tag_id: TagId,
 ) -> Result<(), anyhow::Error> {
     let url = {
+        let url = &url.read().0;
         let board = board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}/tags",
             board.board_name, task_id
         ))?
@@ -1216,8 +1222,9 @@ async fn send_set_task_description_request(
     description: String,
 ) -> Result<(), anyhow::Error> {
     let url = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}/description",
             board.board_name, task_id
         ))?
@@ -1242,8 +1249,9 @@ async fn send_delete_task_request(
     task_id: TaskId,
 ) -> Result<(), anyhow::Error> {
     let url = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}",
             board.board_name, task_id
         ))?

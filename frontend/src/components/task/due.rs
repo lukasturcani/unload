@@ -214,8 +214,9 @@ async fn send_set_task_due_request(
     due: Option<DateTime<Utc>>,
 ) -> Result<(), anyhow::Error> {
     let url = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}/due",
             board.board_name, task_id
         ))?

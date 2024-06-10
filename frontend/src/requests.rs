@@ -1,5 +1,4 @@
 use crate::model::Board;
-use crate::model::Model;
 use crate::model::QuickAddTasks;
 use crate::model::Tags;
 use crate::model::TaskData;
@@ -20,7 +19,6 @@ use tokio::join;
 
 #[derive(Copy, Clone)]
 pub struct BoardSignals {
-    pub model: Signal<Model>,
     pub board: Signal<Board>,
     pub url: Signal<UnloadUrl>,
     pub tasks: Signal<Tasks>,
@@ -32,7 +30,6 @@ pub struct BoardSignals {
 impl Default for BoardSignals {
     fn default() -> Self {
         Self {
-            model: use_context::<Signal<Model>>(),
             board: use_context::<Signal<Board>>(),
             url: use_context::<Signal<UnloadUrl>>(),
             tasks: use_context::<Signal<Tasks>>(),
@@ -46,21 +43,12 @@ impl Default for BoardSignals {
 pub async fn board(mut signals: BoardSignals) {
     log::info!("sending board data request");
     if let (Ok(new_users), Ok(new_tasks), Ok(new_tags), Ok(new_quick_add)) = join!(
-        get_users(signals.board),
-        get_tasks(signals.board),
-        get_tags(signals.board),
-        get_quick_add(signals.board)
+        get_users(signals.url, signals.board),
+        get_tasks(signals.url, signals.board),
+        get_tags(signals.url, signals.board),
+        get_quick_add(signals.url, signals.board)
     ) {
         log::info!("got board data");
-        let mut model = signals.model.write();
-        model.users = new_users.clone();
-        model.tasks = new_tasks.tasks.clone();
-        model.tags = new_tags.clone();
-        model.to_do = new_tasks.to_do.clone();
-        model.in_progress = new_tasks.in_progress.clone();
-        model.done = new_tasks.done.clone();
-        model.quick_add = new_quick_add.clone();
-
         let mut board = signals.board.write();
         let mut tasks = signals.tasks.write();
         let mut users = signals.users.write();
@@ -79,12 +67,14 @@ pub async fn board(mut signals: BoardSignals) {
     }
 }
 
-async fn get_users(board: Signal<Board>) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
+async fn get_users(
+    url: Signal<UnloadUrl>,
+    board: Signal<Board>,
+) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
     let url = {
-        let model = board.read();
-        model
-            .url
-            .join(&format!("/api/boards/{}/users", model.board_name))?
+        let url = &url.read().0;
+        let board = board.read();
+        url.join(&format!("/api/boards/{}/users", board.board_name))?
     };
     Ok(Client::new()
         .get(url)
@@ -105,12 +95,14 @@ async fn get_users(board: Signal<Board>) -> Result<HashMap<UserId, UserData>, an
         }))
 }
 
-async fn get_tags(board: Signal<Board>) -> Result<HashMap<TagId, TagData>, anyhow::Error> {
+async fn get_tags(
+    url: Signal<UnloadUrl>,
+    board: Signal<Board>,
+) -> Result<HashMap<TagId, TagData>, anyhow::Error> {
     let url = {
-        let model = board.read();
-        model
-            .url
-            .join(&format!("/api/boards/{}/tags", model.board_name))?
+        let url = &url.read().0;
+        let board = board.read();
+        url.join(&format!("/api/boards/{}/users", board.board_name))?
     };
     Ok(Client::new()
         .get(url)
@@ -131,12 +123,14 @@ async fn get_tags(board: Signal<Board>) -> Result<HashMap<TagId, TagData>, anyho
         }))
 }
 
-async fn get_tasks(board: Signal<Board>) -> Result<TasksResponse, anyhow::Error> {
+async fn get_tasks(
+    url: Signal<UnloadUrl>,
+    board: Signal<Board>,
+) -> Result<TasksResponse, anyhow::Error> {
     let url = {
+        let url = &url.read().0;
         let board = board.read();
-        board
-            .url
-            .join(&format!("/api/boards/{}/tasks", board.board_name))?
+        url.join(&format!("/api/boards/{}/users", board.board_name))?
     };
     let client = Client::new();
     Ok(client
@@ -170,13 +164,13 @@ async fn get_tasks(board: Signal<Board>) -> Result<TasksResponse, anyhow::Error>
 }
 
 async fn get_quick_add(
+    url: Signal<UnloadUrl>,
     board: Signal<Board>,
 ) -> Result<HashMap<QuickAddTaskId, QuickAddData>, anyhow::Error> {
     let url = {
-        let model = board.read();
-        model
-            .url
-            .join(&format!("/api/boards/{}/quick-add", model.board_name))?
+        let url = &url.read().0;
+        let board = board.read();
+        url.join(&format!("/api/boards/{}/users", board.board_name))?
     };
     Ok(Client::new()
         .get(url)
@@ -235,16 +229,16 @@ impl From<Vec<TaskEntry>> for TasksResponse {
 }
 
 pub async fn create_user(
+    url: Signal<UnloadUrl>,
     board: Signal<Board>,
     mut user_data: UserData,
 ) -> Result<(UserId, String), anyhow::Error> {
-    user_data.name = user_data.name.trim().to_string();
     let url = {
+        let url = &url.read().0;
         let board = board.read();
-        board
-            .url
-            .join(&format!("/api/boards/{}/users", board.board_name))?
+        url.join(&format!("/api/boards/{}/users", board.board_name))?
     };
+    user_data.name = user_data.name.trim().to_string();
     Ok((
         Client::new()
             .post(url)
@@ -258,16 +252,16 @@ pub async fn create_user(
 }
 
 pub async fn create_tag(
+    url: Signal<UnloadUrl>,
     board: Signal<Board>,
     mut tag_data: TagData,
 ) -> Result<(TagId, String), anyhow::Error> {
-    tag_data.name = tag_data.name.trim().to_string();
     let url = {
+        let url = &url.read().0;
         let board = board.read();
-        board
-            .url
-            .join(&format!("/api/boards/{}/tags", board.board_name))?
+        url.join(&format!("/api/boards/{}/users", board.board_name))?
     };
+    tag_data.name = tag_data.name.trim().to_string();
     Ok((
         Client::new()
             .post(url)
@@ -281,14 +275,14 @@ pub async fn create_tag(
 }
 
 pub async fn create_task(
+    url: Signal<UnloadUrl>,
     board: Signal<Board>,
     task_data: &shared_models::TaskData,
 ) -> Result<TaskId, anyhow::Error> {
     let url = {
+        let url = &url.read().0;
         let board = board.read();
-        board
-            .url
-            .join(&format!("/api/boards/{}/tasks", board.board_name))?
+        url.join(&format!("/api/boards/{}/users", board.board_name))?
     };
     Ok(Client::new()
         .post(url)

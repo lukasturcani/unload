@@ -187,22 +187,8 @@ fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
         )
         .nest_service("/", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name", compressed_dir(&serve_dir))
-        .nest_service("/boards/:board_name/add-user", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/users", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/tags", compressed_dir(&serve_dir))
-        .nest_service("/boards/:board_name/add-task", compressed_dir(&serve_dir))
-        .nest_service(
-            "/boards/:board_name/add-to-do-task",
-            compressed_dir(&serve_dir),
-        )
-        .nest_service(
-            "/boards/:board_name/add-in-progress-task",
-            compressed_dir(&serve_dir),
-        )
-        .nest_service(
-            "/boards/:board_name/add-done-task",
-            compressed_dir(&serve_dir),
-        )
         .nest_service("/boards/:board_name/archive", compressed_dir(&serve_dir))
 }
 

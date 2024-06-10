@@ -1,6 +1,5 @@
 use crate::color_picker::{self, SelectingColorPicker};
 use crate::components::nav::NavBar;
-use crate::styles;
 use dioxus::prelude::*;
 use itertools::Itertools;
 use reqwest::Url;

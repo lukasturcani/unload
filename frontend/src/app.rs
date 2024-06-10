@@ -1,14 +1,11 @@
 use crate::commands::{FocusCommand, FocusTarget, ScrollCommand, ScrollTarget};
-use crate::model::{
-    Board, Model, QuickAddTasks, TagFilter, Tags, Tasks, UnloadUrl, UserFilter, Users,
-};
+use crate::model::{Board, QuickAddTasks, TagFilter, Tags, Tasks, UnloadUrl, UserFilter, Users};
 use crate::route::Route;
 use crate::themes::THEMES;
 use dioxus::prelude::*;
 
 #[component]
 pub fn App() -> Element {
-    use_context_provider(|| Signal::new(Model::default()));
     use_context_provider(|| Signal::new(Board::default()));
     use_context_provider(|| Signal::new(UnloadUrl::default()));
     use_context_provider(|| Signal::new(Tasks::default()));

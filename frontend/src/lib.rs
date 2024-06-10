@@ -1,7 +1,4 @@
-mod add_task;
-mod add_user;
 pub mod app;
-mod board;
 mod color_picker;
 mod commands;
 mod components;

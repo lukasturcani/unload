@@ -132,8 +132,9 @@ async fn send_delete_task_tag_request(
     tag_id: TagId,
 ) -> Result<(), anyhow::Error> {
     let url = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}/tags/{}",
             board.board_name, task_id, tag_id
         ))?

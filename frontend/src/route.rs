@@ -1,7 +1,5 @@
-use crate::add_task::{AddDoneTask, AddInProgressTask, AddTask, AddToDoTask};
-use crate::add_user::AddUser;
-use crate::board::Board;
 use crate::components::archive::Archive;
+use crate::components::board::Board;
 use crate::join_board::JoinBoard;
 use crate::tags::Tags;
 use crate::users::Users;
@@ -14,20 +12,10 @@ pub enum Route {
     JoinBoard {},
     #[route("/boards/:board_name")]
     Board { board_name: BoardName },
-    #[route("/boards/:board_name/add-user")]
-    AddUser { board_name: BoardName },
     #[route("/boards/:board_name/users")]
     Users { board_name: BoardName },
     #[route("/boards/:board_name/tags")]
     Tags { board_name: BoardName },
     #[route("/boards/:board_name/archive")]
     Archive { board_name: BoardName },
-    #[route("/boards/:board_name/add-task")]
-    AddTask { board_name: BoardName },
-    #[route("/boards/:board_name/add-to-do-task")]
-    AddToDoTask { board_name: BoardName },
-    #[route("/boards/:board_name/add-in-progress-task")]
-    AddInProgressTask { board_name: BoardName },
-    #[route("/boards/:board_name/add-done-task")]
-    AddDoneTask { board_name: BoardName },
 }

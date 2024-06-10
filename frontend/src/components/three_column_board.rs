@@ -32,8 +32,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let dense = use_signal(|| false);
     let dense_ = dense();
     let mut board_signals = BoardSignals::default();
-    if board_signals.model.read().board_name != board_name {
-        board_signals.model.write().board_name = board_name.clone();
+    if board_signals.board.read().board_name != board_name {
         board_signals.board.write().board_name = board_name.clone();
     }
     use_future(move || requests::board(board_signals));
@@ -326,6 +325,7 @@ async fn create_task(
     mut scroll_target: Signal<ScrollTarget>,
 ) {
     if let Ok(task_id) = requests::create_task(
+        signals.url,
         signals.board,
         &shared_models::TaskData {
             title,

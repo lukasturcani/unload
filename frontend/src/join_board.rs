@@ -1,4 +1,4 @@
-use crate::model::Model;
+use crate::model::{Board, UnloadUrl};
 use crate::route::Route;
 use crate::styles;
 use dioxus::prelude::*;
@@ -14,7 +14,8 @@ const TEXT_INPUT: &str = "
 
 #[component]
 pub fn JoinBoard() -> Element {
-    let mut model = use_context::<Signal<Model>>();
+    let url = use_context::<Signal<UnloadUrl>>();
+    let mut board = use_context::<Signal<Board>>();
     let nav = use_navigator();
     rsx! {
         div{
@@ -28,9 +29,9 @@ pub fn JoinBoard() -> Element {
                         r#type: "text",
                         required: true,
                         placeholder: "Board Name",
-                        value: "{model.read().board_name}",
+                        value: "{board.read().board_name}",
                         oninput: move |event| {
-                            model.write().board_name = event.data.value().into()
+                            board.write().board_name = event.data.value().into()
                         },
                     },
                     button {
@@ -38,7 +39,7 @@ pub fn JoinBoard() -> Element {
                         r#type: "submit",
                         onclick: move |_| {
                             nav.push(Route::Board {
-                                board_name: model.read().board_name.clone(),
+                                board_name: board.read().board_name.clone(),
                             });
                         },
                         "Join"
@@ -59,7 +60,7 @@ pub fn JoinBoard() -> Element {
                 class: "inline-flex items-center justify-center w-full py-5",
                 button {
                     class: styles::BUTTON,
-                    onclick: move |_| create_board(model, nav),
+                    onclick: move |_| create_board(url, board, nav),
                     "Create New Board",
                 },
             },
@@ -67,18 +68,22 @@ pub fn JoinBoard() -> Element {
     }
 }
 
-async fn create_board(model: Signal<Model>, nav: Navigator) {
-    if let Ok(board_name) = send_create_board_request(model).await {
+async fn create_board(url: Signal<UnloadUrl>, board: Signal<Board>, nav: Navigator) {
+    if let Ok(board_name) = send_create_board_request(url, board).await {
         nav.push(Route::Board { board_name });
     }
 }
 
-async fn send_create_board_request(model: Signal<Model>) -> Result<BoardName, anyhow::Error> {
+async fn send_create_board_request(
+    url: Signal<UnloadUrl>,
+    board: Signal<Board>,
+) -> Result<BoardName, anyhow::Error> {
     let request = {
-        let model = model.read();
+        let url = &url.read().0;
+        let board = board.read();
         let client = Client::new();
-        let url = model.url.join("/api/boards")?;
-        client.post(url).json(&model.board_name)
+        let url = url.join("/api/boards")?;
+        client.post(url).json(&board.board_name)
     };
     Ok(request.send().await?.json::<BoardName>().await?)
 }

@@ -153,8 +153,9 @@ async fn send_set_task_title_request(
     title: String,
 ) -> Result<(), anyhow::Error> {
     let url = {
+        let url = &signals.url.read().0;
         let board = signals.board.read();
-        board.url.join(&format!(
+        url.join(&format!(
             "/api/boards/{}/tasks/{}/title",
             board.board_name, task_id
         ))?
