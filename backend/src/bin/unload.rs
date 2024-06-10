@@ -203,14 +203,7 @@ fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
             "/boards/:board_name/add-done-task",
             compressed_dir(&serve_dir),
         )
-        .nest_service(
-            "/boards/:board_name/archive/tasks",
-            compressed_dir(&serve_dir),
-        )
-        .nest_service(
-            "/boards/:board_name/archive/tags",
-            compressed_dir(serve_dir),
-        )
+        .nest_service("/boards/:board_name/archive", compressed_dir(&serve_dir))
 }
 
 fn init_tracing(otlp_endpoint: &str, environment: String, log: String) -> Result<()> {

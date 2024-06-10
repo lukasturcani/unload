@@ -1,3 +1,4 @@
+pub mod archive;
 pub mod filter_bar;
 mod form;
 pub mod icons;

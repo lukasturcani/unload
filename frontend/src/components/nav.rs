@@ -39,17 +39,6 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 }
             }
             NavLink {
-                to: Route::TaskArchive { board_name: board_name.clone() },
-                body: rsx!{
-                    div {
-                        class: "h-full flex flex-col items-center justify-center",
-                        div { class: "size-8 hidden group-[:not(.current-page)]:block", ArchiveIcon {} }
-                        div { class: "size-8 hidden group-[.current-page]:block", SolidArchiveIcon {} }
-                        "Archive"
-                    }
-                }
-            }
-            NavLink {
                 to: Route::Tags { board_name: board_name.clone() },
                 body: rsx!{
                     div {
@@ -61,13 +50,24 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 }
             }
             NavLink {
-                to: Route::Users { board_name },
+                to: Route::Users { board_name: board_name.clone() },
                 body: rsx!{
                     div {
                         class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-8 hidden group-[:not(.current-page)]:block", UsersIcon {} }
                         div { class: "size-8 hidden group-[.current-page]:block", SolidUsersIcon {} }
                         "Users"
+                    }
+                }
+            }
+            NavLink {
+                to: Route::Archive { board_name },
+                body: rsx!{
+                    div {
+                        class: "h-full flex flex-col items-center justify-center",
+                        div { class: "size-8 hidden group-[:not(.current-page)]:block", ArchiveIcon {} }
+                        div { class: "size-8 hidden group-[.current-page]:block", SolidArchiveIcon {} }
+                        "Archive"
                     }
                 }
             }

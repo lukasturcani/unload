@@ -117,9 +117,9 @@ fn OneColumnBoard(board_name: BoardName) -> Element {
                         onclick: {
                             let board_name = board_name.clone();
                             move |_| {
-                                nav.push(Route::TaskArchive {
-                                    board_name: board_name.clone(),
-                                });
+                                // nav.push(Route::TaskArchive {
+                                //     board_name: board_name.clone(),
+                                // });
                             }
                         },
                         svg {

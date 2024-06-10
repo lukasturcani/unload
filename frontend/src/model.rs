@@ -12,7 +12,6 @@ use shared_models::{
 
 #[derive(Debug)]
 pub struct Board {
-    pub url: Url,
     pub board_name: BoardName,
     pub to_do: Vec<TaskId>,
     pub in_progress: Vec<TaskId>,
@@ -22,12 +21,20 @@ pub struct Board {
 impl Default for Board {
     fn default() -> Self {
         Self {
-            url: Url::from_str(&web_sys::window().unwrap().origin()).unwrap(),
             board_name: BoardName::from(""),
             to_do: Vec::default(),
             in_progress: Vec::default(),
             done: Vec::default(),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct UnloadUrl(pub Url);
+
+impl Default for UnloadUrl {
+    fn default() -> Self {
+        Self(Url::from_str(&web_sys::window().unwrap().origin()).unwrap())
     }
 }
 

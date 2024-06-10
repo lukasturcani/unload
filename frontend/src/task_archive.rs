@@ -1,6 +1,5 @@
 use crate::color_picker;
 use crate::components::nav::NavBar;
-use crate::styles;
 use dioxus::prelude::*;
 use reqwest::Url;
 use shared_models::{

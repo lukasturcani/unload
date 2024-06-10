@@ -4,6 +4,7 @@ use crate::model::QuickAddTasks;
 use crate::model::Tags;
 use crate::model::TaskData;
 use crate::model::Tasks;
+use crate::model::UnloadUrl;
 use crate::model::Users;
 use dioxus::prelude::*;
 use reqwest::Client;
@@ -21,6 +22,7 @@ use tokio::join;
 pub struct BoardSignals {
     pub model: Signal<Model>,
     pub board: Signal<Board>,
+    pub url: Signal<UnloadUrl>,
     pub tasks: Signal<Tasks>,
     pub users: Signal<Users>,
     pub tags: Signal<Tags>,
@@ -32,6 +34,7 @@ impl Default for BoardSignals {
         Self {
             model: use_context::<Signal<Model>>(),
             board: use_context::<Signal<Board>>(),
+            url: use_context::<Signal<UnloadUrl>>(),
             tasks: use_context::<Signal<Tasks>>(),
             users: use_context::<Signal<Users>>(),
             tags: use_context::<Signal<Tags>>(),

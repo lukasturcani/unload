@@ -1,10 +1,9 @@
 use crate::add_task::{AddDoneTask, AddInProgressTask, AddTask, AddToDoTask};
 use crate::add_user::AddUser;
 use crate::board::Board;
+use crate::components::archive::Archive;
 use crate::join_board::JoinBoard;
-use crate::tag_archive::ArchivedTags;
 use crate::tags::Tags;
-use crate::task_archive::TaskArchive;
 use crate::users::Users;
 use dioxus::prelude::*;
 use shared_models::BoardName;
@@ -21,8 +20,8 @@ pub enum Route {
     Users { board_name: BoardName },
     #[route("/boards/:board_name/tags")]
     Tags { board_name: BoardName },
-    #[route("/boards/:board_name/archive/tags")]
-    ArchivedTags { board_name: BoardName },
+    #[route("/boards/:board_name/archive")]
+    Archive { board_name: BoardName },
     #[route("/boards/:board_name/add-task")]
     AddTask { board_name: BoardName },
     #[route("/boards/:board_name/add-to-do-task")]
@@ -31,6 +30,4 @@ pub enum Route {
     AddInProgressTask { board_name: BoardName },
     #[route("/boards/:board_name/add-done-task")]
     AddDoneTask { board_name: BoardName },
-    #[route("/boards/:board_name/archive/tasks")]
-    TaskArchive { board_name: BoardName },
 }
