@@ -25,13 +25,13 @@ pub fn Title(task_id: TaskId, title: String) -> Element {
 }
 
 #[component]
-pub fn DenseTitle(task_id: TaskId, title: String, expanded: bool) -> Element {
+pub fn DenseTitle(task_id: TaskId, title: String, is_late: bool, expanded: bool) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
             TitleInput { task_id, editing, title }
         } else {
-            DenseTitleShow { task_id, editing, title, expanded }
+            DenseTitleShow { task_id, editing, title, is_late, expanded }
         }
     }
 }
@@ -64,18 +64,20 @@ fn DenseTitleShow(
     task_id: TaskId,
     editing: Signal<bool>,
     title: String,
+    is_late: bool,
     expanded: bool,
 ) -> Element {
+    let text_color = if is_late { "text-red-600" } else { "" };
     rsx! {
         div {
             class: "flex flex-row gap-2 items-center",
             h3 {
                 class: if expanded {
-                    "
-                    text-lg sm:text-xl
-                    font-bold tracking-tight
-                    "
-                } else { "text-sm tracking-tight" },
+                    format!("
+                        {text_color} text-lg sm:text-xl
+                        font-bold tracking-tight
+                    ")
+                } else { format!("{text_color} text-sm tracking-tight") },
                 {title}
             }
             SmallEditButton { task_id, editing }
