@@ -102,7 +102,7 @@ async fn get_tags(
     let url = {
         let url = &url.read().0;
         let board = board.read();
-        url.join(&format!("/api/boards/{}/users", board.board_name))?
+        url.join(&format!("/api/boards/{}/tags", board.board_name))?
     };
     Ok(Client::new()
         .get(url)
@@ -130,7 +130,7 @@ async fn get_tasks(
     let url = {
         let url = &url.read().0;
         let board = board.read();
-        url.join(&format!("/api/boards/{}/users", board.board_name))?
+        url.join(&format!("/api/boards/{}/tasks", board.board_name))?
     };
     let client = Client::new();
     Ok(client
@@ -170,7 +170,7 @@ async fn get_quick_add(
     let url = {
         let url = &url.read().0;
         let board = board.read();
-        url.join(&format!("/api/boards/{}/users", board.board_name))?
+        url.join(&format!("/api/boards/{}/quick-add", board.board_name))?
     };
     Ok(Client::new()
         .get(url)
@@ -259,7 +259,7 @@ pub async fn create_tag(
     let url = {
         let url = &url.read().0;
         let board = board.read();
-        url.join(&format!("/api/boards/{}/users", board.board_name))?
+        url.join(&format!("/api/boards/{}/tags", board.board_name))?
     };
     tag_data.name = tag_data.name.trim().to_string();
     Ok((
@@ -282,7 +282,7 @@ pub async fn create_task(
     let url = {
         let url = &url.read().0;
         let board = board.read();
-        url.join(&format!("/api/boards/{}/users", board.board_name))?
+        url.join(&format!("/api/boards/{}/tasks", board.board_name))?
     };
     Ok(Client::new()
         .post(url)
