@@ -1,12 +1,10 @@
 use dioxus::prelude::*;
 use shared_models::BoardName;
 
-use crate::{
-    components::{
-        icons::{DoneIcon, SolidDoneIcon, SolidTagIcon, TagIcon},
-        nav::NavBar,
-    },
-    tag_archive::ArchivedTags,
+use crate::components::{
+    icons::{DoneIcon, SolidDoneIcon, SolidTagIcon, TagIcon},
+    nav::NavBar,
+    tag_archive::TagArchive,
     task_archive::TaskArchive,
 };
 
@@ -69,7 +67,7 @@ pub fn Archive(board_name: BoardName) -> Element {
             }
             match tab_ {
                 Tab::Tasks => rsx!{TaskArchive { board_name: board_name.clone() }},
-                Tab::Tags => rsx!{ArchivedTags { board_name: board_name.clone() }},
+                Tab::Tags => rsx!{TagArchive { board_name: board_name.clone() }},
             }
             NavBar { board_name }
         }

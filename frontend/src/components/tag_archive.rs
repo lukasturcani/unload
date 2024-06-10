@@ -12,13 +12,12 @@ struct TagsUrl(reqwest::Url);
 struct TagEntries(Vec<TagEntry>);
 
 #[component]
-pub fn ArchivedTags(board_name: BoardName) -> Element {
+pub fn TagArchive(board_name: BoardName) -> Element {
     let url = use_signal(|| {
         let url = Url::from_str(&web_sys::window().unwrap().origin()).unwrap();
         TagsUrl(url.join(&format!("/api/boards/{}/", board_name)).unwrap())
     });
     let tags = use_signal(TagEntries::default);
-    let nav = use_navigator();
     use_future(move || async move {
         let url = &url.read().0;
         get_tags(tags, url).await;

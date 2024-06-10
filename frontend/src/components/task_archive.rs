@@ -30,12 +30,7 @@ pub fn TaskArchive(board_name: BoardName) -> Element {
     });
     rsx! {
         div {
-            class: "
-                w-screen h-dvh
-                bg-gray-900
-                flex flex-col
-                text-white stroke-white
-            ",
+            class: "grow flex flex-col overflow-auto",
             ul {
                 class: "
                     grow w-full p-4 overflow-auto

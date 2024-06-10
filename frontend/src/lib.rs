@@ -8,8 +8,6 @@ mod requests;
 mod responsive_layout;
 mod route;
 mod styles;
-mod tag_archive;
 mod tags;
-mod task_archive;
 mod themes;
 mod users;
