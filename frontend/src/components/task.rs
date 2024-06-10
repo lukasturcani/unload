@@ -105,8 +105,8 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
     let theme = theme.read();
     let style = format!(
         "
-        border-t
-        last:border-b
+        first:border-t
+        border-b
         {}
         ",
         theme.border_color
