@@ -402,6 +402,7 @@ fn Assignees(
     let size = icon_size.unwrap_or("size-6");
     rsx! {
         section {
+            id: "task-{task_id}-assignees",
             "aria-label": "assignees",
             class: "flex flex-row flex-wrap items-center gap-2",
             for user_id in assignees {
@@ -414,7 +415,7 @@ fn Assignees(
                 }
             }
             ToggleSelector {
-                task_id,
+                r#for: "task-{task_id}-assignees",
                 show_selector: select_assignees,
                 aria_label: "toggle assignee selection",
                 tooltip: "Assign User",
@@ -428,7 +429,7 @@ fn Assignees(
 
 #[component]
 fn ToggleSelector(
-    task_id: TaskId,
+    r#for: String,
     show_selector: Signal<bool>,
     aria_label: String,
     tooltip: String,
@@ -452,7 +453,7 @@ fn ToggleSelector(
                 onclick: move |_| {
                     let show = show_selector();
                     if !show {
-                        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                        scroll_target.set(ScrollTarget(Some(r#for.clone())));
                     }
                     show_selector.set(!show);
                 },
@@ -687,7 +688,11 @@ fn AddUserListItem(task_id: TaskId) -> Element {
             if show_form() {
                 AddUserListForm { task_id, show_form }
             } else {
-                ShowSelectionListFormButton { content: "Add User", show_form }
+                ShowSelectionListFormButton {
+                    r#for: "task-{task_id}-new-user-form",
+                    content: "Add User",
+                    show_form ,
+                }
             }
         }
     }
@@ -701,19 +706,27 @@ fn AddTagListItem(task_id: TaskId) -> Element {
             if show_form() {
                 AddTagListForm { task_id, show_form }
             } else {
-                ShowSelectionListFormButton { content: "Add Tag", show_form }
+                ShowSelectionListFormButton {
+                    r#for: "task-{task_id}-new-tag-form",
+                    content: "Add Tag",
+                    show_form,
+                }
             }
         }
     }
 }
 
 #[component]
-fn ShowSelectionListFormButton(content: String, show_form: Signal<bool>) -> Element {
+fn ShowSelectionListFormButton(r#for: String, content: String, show_form: Signal<bool>) -> Element {
+    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     let style = "text-blue-500 sm:hover:underline active:underline";
     rsx! {
         button {
             class: "px-4 py-2 w-full text-left {style}",
-            onclick: move |_| show_form.set(true),
+            onclick: move |_| {
+                scroll_target.set(ScrollTarget(Some(r#for.clone())));
+                show_form.set(true)
+            },
             {content}
         }
     }
@@ -725,6 +738,7 @@ fn AddUserListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
     rsx! {
         li {
             form {
+                id: "task-{task_id}-new-user-form",
                 "aria-label": "add user",
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
@@ -757,6 +771,7 @@ fn AddTagListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
     rsx! {
         li {
             form {
+                id: "task-{task_id}-new-tag-form",
                 "aria-label": "add tag",
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
@@ -909,13 +924,14 @@ fn TaskTags(task_id: TaskId, tags: Vec<TagId>, select_tags: Signal<bool>) -> Ele
     let tag_data = &tag_data.read().0;
     rsx! {
         section {
+            id: "task-{task_id}-tags",
             "aria-label": "tags",
             class: "flex flex-row flex-wrap gap-2 items-center",
             for tag_id in tags {
                 TaskTagIcon { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
             }
             ToggleSelector {
-                task_id,
+                r#for: "task-{task_id}-tags",
                 show_selector: select_tags,
                 aria_label: "toggle tag selection",
                 tooltip: "Add Tag",
