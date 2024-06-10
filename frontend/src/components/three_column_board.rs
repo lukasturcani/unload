@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use itertools::Itertools;
 use shared_models::{BoardName, TaskStatus};
 
 use crate::{
@@ -8,9 +9,11 @@ use crate::{
         icons::{CircledPlusIcon, DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
         input::TextInput,
         nav::NavBar,
+        tag_icon::FilterBarTagIcon,
         task::{DenseTask, Task},
+        user_icon::UserIcon,
     },
-    model::{task_filter, Board, TagFilter, Tasks, UserFilter},
+    model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
     requests::{self, BoardSignals},
     themes::Theme,
 };
@@ -58,9 +61,44 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                         Column { status: TaskStatus::Done, dense: dense_ }
                     },
                 }
-                // FilterBar {}
+                FilterBar {}
             }
             NavBar { board_name }
+        }
+    }
+}
+
+#[component]
+fn FilterBar() -> Element {
+    let tags = use_context::<Signal<Tags>>();
+    let tags = &tags.read().0;
+    let users = use_context::<Signal<Users>>();
+    let users = &users.read().0;
+    rsx! {
+        div {
+            class: "grid grid-cols-5 gap-1",
+            div {
+                class: "col-span-4 flex flex-row items-center gap-1",
+                for tag_id in tags.keys().sorted_by_key(|tag_id| tags[tag_id].name.to_lowercase())
+                {
+                    FilterBarTagIcon {
+                        tag_id: *tag_id,
+                        tag_data: tags[&tag_id].clone(),
+                    }
+                }
+            }
+            div {
+                class: "col-span-1 flex flex-row items-center gap-1",
+                for user_id in users.keys().sorted_by_key(|user_id| users[user_id].name.to_lowercase())
+                {
+                    UserIcon {
+                        user_id: *user_id,
+                        user_data: users[&user_id].clone(),
+                        size: "size-6",
+                        dir: "rtl",
+                    }
+                }
+            }
         }
     }
 }

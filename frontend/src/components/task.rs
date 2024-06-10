@@ -11,7 +11,7 @@ use crate::{
             InProgressIcon, PlusIcon, RightIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
-        tag_icon::TagIcon,
+        tag_icon::TaskTagIcon,
         task::{
             due::{Due, DueOptions},
             title::{DenseTitle, Title},
@@ -912,7 +912,7 @@ fn TaskTags(task_id: TaskId, tags: Vec<TagId>, select_tags: Signal<bool>) -> Ele
             "aria-label": "tags",
             class: "flex flex-row flex-wrap gap-2 items-center",
             for tag_id in tags {
-                TagIcon { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
+                TaskTagIcon { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
             }
             ToggleSelector {
                 task_id,
