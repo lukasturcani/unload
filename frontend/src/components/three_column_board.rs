@@ -121,7 +121,7 @@ fn Column(status: TaskStatus, dense: bool) -> Element {
     let adding_task = use_signal(|| false);
     rsx! {
         section {
-            class: "flex flex-col overflow-y-auto px-2 pt-2 {style}",
+            class: "flex flex-col overflow-y-auto px-2 pt-2 gap-2 {style}",
             div {
                 class: "flex items-center gap-2",
                 match status {

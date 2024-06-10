@@ -3,6 +3,7 @@ use reqwest::Client;
 use shared_models::{Color, QuickAddData, TagData, TagId, TaskId, TaskStatus, UserData, UserId};
 
 use crate::{
+    commands::ScrollTarget,
     components::{
         form::{CancelButton, ConfirmButton},
         icons::{
@@ -63,7 +64,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                 class: "flex flex-row justify-between",
                 div {
                     class: "flex flex-row items-center gap-1",
-                    ToggleExpanded { expanded, size: "size-7" }
+                    ToggleExpanded { task_id, expanded, size: "size-7" }
                     Title { task_id, title: task.title }
                 }
                 StatusButtons { task_id }
@@ -118,13 +119,14 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
     let is_late = is_late(&task);
     rsx! {
         article {
+            id: "task-{task_id}-article",
             "aria-label": label,
             class: "flex flex-col gap-2 p-1 {style}",
             div {
                 class: "flex flex-row justify-between",
                 div {
                     class: "flex flex-row items-center gap-1",
-                    ToggleExpanded { expanded, size: "size-5" }
+                    ToggleExpanded { task_id, expanded, size: "size-5" }
                     DenseTitle { task_id, title: task.title, expanded: expanded_ }
                 }
                 Assignees {
@@ -168,7 +170,8 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
 }
 
 #[component]
-fn ToggleExpanded(expanded: Signal<bool>, size: &'static str) -> Element {
+fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -> Element {
+    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     let style = "rounded";
     let expanded_ = expanded();
     rsx! {
@@ -176,7 +179,12 @@ fn ToggleExpanded(expanded: Signal<bool>, size: &'static str) -> Element {
             "aria-label": "toggle expand task",
             "aria-pressed": expanded(),
             class: "{size} p-1 {style}",
-            onclick: move |_| expanded.set(!expanded_),
+            onclick: move |_| {
+                if !expanded() {
+                    scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                }
+                expanded.set(!expanded_);
+             },
             if expanded_ {
                 DownIcon {}
             } else {
@@ -406,6 +414,7 @@ fn Assignees(
                 }
             }
             ToggleSelector {
+                task_id,
                 show_selector: select_assignees,
                 aria_label: "toggle assignee selection",
                 tooltip: "Assign User",
@@ -419,6 +428,7 @@ fn Assignees(
 
 #[component]
 fn ToggleSelector(
+    task_id: TaskId,
     show_selector: Signal<bool>,
     aria_label: String,
     tooltip: String,
@@ -431,6 +441,7 @@ fn ToggleSelector(
         sm:hover:bg-white sm:hover:stroke-black
         aria-pressed:bg-white aria-pressed:stroke-black
     ";
+    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         div {
             class: "group relative",
@@ -439,7 +450,11 @@ fn ToggleSelector(
                 class: "block {size} {style}",
                 "aria-pressed": show_selector(),
                 onclick: move |_| {
-                    show_selector.set(!show_selector());
+                    let show = show_selector();
+                    if !show {
+                        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                    }
+                    show_selector.set(!show);
                 },
                 PlusIcon {}
             }
@@ -900,6 +915,7 @@ fn TaskTags(task_id: TaskId, tags: Vec<TagId>, select_tags: Signal<bool>) -> Ele
                 TagIcon { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
             }
             ToggleSelector {
+                task_id,
                 show_selector: select_tags,
                 aria_label: "toggle tag selection",
                 tooltip: "Add Tag",
