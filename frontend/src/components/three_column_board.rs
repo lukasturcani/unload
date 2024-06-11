@@ -22,13 +22,7 @@ use crate::{
 pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!(
-        "
-        text-white stroke-white
-        {}
-    ",
-        theme.bg_color_1
-    );
+    let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let dense = use_signal(|| false);
     let dense_ = dense();
     let mut board_signals = BoardSignals::default();

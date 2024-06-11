@@ -10,6 +10,7 @@ use crate::{
         tooltip::Tooltip,
     },
     requests::{self, BoardSignals},
+    themes::Theme,
 };
 
 #[component]
@@ -67,7 +68,9 @@ fn DenseTitleShow(
     is_late: bool,
     expanded: bool,
 ) -> Element {
-    let text_color = if is_late { "text-red-600" } else { "" };
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let text_color = if is_late { theme.late_text_color } else { "" };
     rsx! {
         div {
             class: "flex flex-row gap-2 items-center",
