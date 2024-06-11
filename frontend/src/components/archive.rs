@@ -20,7 +20,8 @@ pub fn Archive(board_name: BoardName) -> Element {
     let tab_ = tab();
     let style = "
         sm:hover:underline
-        aria-pressed:underline
+        sm:hover:aria-selected:no-underline
+        aria-selected:border-b border-white
     ";
     rsx! {
         div {
@@ -33,7 +34,7 @@ pub fn Archive(board_name: BoardName) -> Element {
             div {
                 class: "grid grid-cols-2 place-items-center h-14 shrink-0 grow-0",
                 button {
-                    "aria-pressed": tab_ == Tab::Tasks,
+                    "aria-selected": tab_ == Tab::Tasks,
                     class: "
                         size-full flex flex-row items-center justify-center gap-1
                         {style}
@@ -49,7 +50,7 @@ pub fn Archive(board_name: BoardName) -> Element {
                     "Tasks"
                 }
                 button {
-                    "aria-pressed": tab_ == Tab::Tags,
+                    "aria-selected": tab_ == Tab::Tags,
                     class: "
                         size-full flex flex-row items-center justify-center gap-1
                         {style}
