@@ -71,7 +71,7 @@ fn FilterBar() -> Element {
         div {
             class: "grid grid-cols-5 gap-1",
             div {
-                class: "col-span-4 flex flex-row items-center gap-1",
+                class: "col-span-4 flex flex-row flex-wrap items-center gap-1",
                 for tag_id in tags.keys().sorted_by_key(|tag_id| tags[tag_id].name.to_lowercase())
                 {
                     FilterBarTagIcon {
@@ -81,7 +81,7 @@ fn FilterBar() -> Element {
                 }
             }
             div {
-                class: "col-span-1 flex flex-row items-center gap-1",
+                class: "col-span-1 flex flex-row flex-wrap items-center gap-1",
                 for user_id in users.keys().sorted_by_key(|user_id| users[user_id].name.to_lowercase())
                 {
                     UserIcon {
