@@ -25,10 +25,10 @@ pub fn ConfirmButton(label: String) -> Element {
 pub fn CancelButton(label: String, editing: Signal<bool>) -> Element {
     let style = "
         rounded-md
-        border border-red-500
-        stroke-red-500
-        active:bg-red-500
-        sm:hover:bg-red-500 sm:hover:stroke-white
+        border border-red-600
+        stroke-red-600
+        active:bg-red-600
+        sm:hover:bg-red-600 sm:hover:stroke-white
     ";
     rsx! {
         button {
