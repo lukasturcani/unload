@@ -13,6 +13,7 @@ mod model;
 #[component]
 pub fn Users(board_name: BoardName) -> Element {
     let url = use_context::<Signal<UnloadUrl>>();
+    eval(&format!(r#"document.title = "{board_name}";"#));
     use_context_provider(move || {
         let url = url
             .read()
