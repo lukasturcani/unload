@@ -5,6 +5,7 @@ use shared_models::{Color, QuickAddData, TagData, TagId, TaskId, TaskStatus, Use
 use crate::{
     commands::ScrollTarget,
     components::{
+        color_picker::ColorPicker,
         form::{CancelButton, ConfirmButton},
         icons::{
             ArchiveIcon, BoltIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
@@ -743,7 +744,9 @@ fn AddUserListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
                     let name = event.values()["Name"].as_value();
-                    let color = color_from_string(&event.values()["color-picker"].as_value());
+                    let color = serde_json::from_str(
+                        &event.values()["color-picker"].as_value()
+                    ).unwrap();
                     spawn_forever(create_user(board_signals, task_id, UserData{ name, color }));
                     show_form.set(false);
                 },
@@ -776,7 +779,9 @@ fn AddTagListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
                     let name = event.values()["Name"].as_value();
-                    let color = color_from_string(&event.values()["color-picker"].as_value());
+                    let color = serde_json::from_str(
+                        &event.values()["color-picker"].as_value()
+                    ).unwrap();
                     spawn_forever(create_tag(board_signals, task_id, TagData{ name, color }));
                     show_form.set(false);
                 },
@@ -791,126 +796,6 @@ fn AddTagListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
                     CancelButton {
                         label: "cancel adding tag",
                         editing: show_form,
-                    }
-                }
-            }
-        }
-    }
-}
-
-fn color_to_string(color: Color) -> &'static str {
-    match color {
-        Color::Black => "black",
-        Color::White => "white",
-        Color::Gray => "gray",
-        Color::Silver => "silver",
-        Color::Maroon => "maroon",
-        Color::Red => "red",
-        Color::Purple => "purple",
-        Color::Fushsia => "fushsia",
-        Color::Green => "green",
-        Color::Lime => "lime",
-        Color::Olive => "olive",
-        Color::Yellow => "yellow",
-        Color::Navy => "navy",
-        Color::Blue => "blue",
-        Color::Teal => "teal",
-        Color::Aqua => "aqua",
-    }
-}
-
-fn color_from_string(color: &str) -> Color {
-    match color {
-        "black" => Color::Black,
-        "white" => Color::White,
-        "gray" => Color::Gray,
-        "silver" => Color::Silver,
-        "maroon" => Color::Maroon,
-        "red" => Color::Red,
-        "purple" => Color::Purple,
-        "fushsia" => Color::Fushsia,
-        "green" => Color::Green,
-        "lime" => Color::Lime,
-        "olive" => Color::Olive,
-        "yellow" => Color::Yellow,
-        "navy" => Color::Navy,
-        "blue" => Color::Blue,
-        "teal" => Color::Teal,
-        "aqua" => Color::Aqua,
-        _ => panic!("invalid color"),
-    }
-}
-
-fn color_to_bg(color: Color) -> &'static str {
-    match color {
-        Color::Black => "bg-black",
-        Color::White => "bg-white",
-        Color::Gray => "bg-gray-400",
-        Color::Silver => "bg-slate-500",
-        Color::Maroon => "bg-rose-400",
-        Color::Red => "bg-red-600",
-        Color::Purple => "bg-purple-600",
-        Color::Fushsia => "bg-fuchsia-400",
-        Color::Green => "bg-emerald-500",
-        Color::Lime => "bg-lime-500",
-        Color::Olive => "bg-indigo-400",
-        Color::Yellow => "bg-yellow-400",
-        Color::Navy => "bg-amber-200",
-        Color::Blue => "bg-blue-400",
-        Color::Teal => "bg-teal-300",
-        Color::Aqua => "bg-cyan-500",
-    }
-}
-
-#[component]
-fn ColorPicker() -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let fieldset_style = format!("rounded-lg border {}", theme.border_color);
-    let legend_style = "text-sm";
-    let radio_style = "
-        rounded-md
-        ease-in-out duration-100
-        hover:scale-125 peer-checked:scale-125
-    ";
-    rsx! {
-        fieldset {
-            class: "flex flex-row items-center justify-center py-2 {fieldset_style}",
-            legend {
-                class: legend_style,
-                "Color"
-            }
-            div {
-                class: "grid grid-cols-4 gap-4",
-                for color in [
-                    Color::Black,
-                    Color::White,
-                    Color::Gray,
-                    Color::Silver,
-                    Color::Maroon,
-                    Color::Red,
-                    Color::Purple,
-                    Color::Fushsia,
-                    Color::Green,
-                    Color::Lime,
-                    Color::Olive,
-                    Color::Yellow,
-                    Color::Navy,
-                    Color::Blue,
-                    Color::Teal,
-                    Color::Aqua,
-                ] {
-                    label {
-                        class: "flex flex-row items-center gap-2",
-                        input {
-                            value: color_to_string(color),
-                            class: "peer",
-                            "aria-label": "color1",
-                            required: true,
-                            r#type: "radio",
-                            name: "color-picker",
-                        }
-                        div { class: "inline-block size-6 {radio_style} {color_to_bg(color)}" }
                     }
                 }
             }

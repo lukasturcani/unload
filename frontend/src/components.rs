@@ -1,5 +1,6 @@
 pub mod archive;
 pub mod board;
+mod color_picker;
 mod form;
 mod icons;
 mod input;

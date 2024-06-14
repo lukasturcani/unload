@@ -1515,6 +1515,7 @@ dependencies = [
  "itertools 0.12.1",
  "log",
  "reqwest",
+ "serde_json",
  "shared_models",
  "tokio",
  "web-sys",
