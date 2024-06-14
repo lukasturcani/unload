@@ -84,6 +84,7 @@ fn FilterBar() -> Element {
                         user_data: users[&user_id].clone(),
                         size: "size-6",
                         dir: "rtl",
+                        tooltip_position: "-top-11",
                     }
                 }
             }
