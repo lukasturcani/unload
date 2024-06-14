@@ -38,9 +38,9 @@ fn UsersPage(board_name: BoardName) -> Element {
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     rsx! {
         div {
-            class: "flex flex-col h-dvh w-screen pt-4 {style}",
+            class: "flex flex-col h-dvh w-screen {style}",
             div {
-                class: "grow container mx-auto",
+                class: "grow container mx-auto h-full overflow-y-auto py-4",
                 UserList {}
             }
             NavBar { board_name }
