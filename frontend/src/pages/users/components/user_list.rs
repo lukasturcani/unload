@@ -46,8 +46,8 @@ fn UserListItem(user: UserEntry) -> Element {
                 flex flex-row justify-between
             ",
             div {
-                class: "flex flex-row items-center gap-1",
-                Color { color: user.color }
+                class: "flex flex-row items-center gap-5",
+                Color { user_id: user.id, color: user.color }
                 Name { user_id: user.id, name: user.name }
             }
             div {
@@ -59,18 +59,65 @@ fn UserListItem(user: UserEntry) -> Element {
 }
 
 #[component]
-fn Color(color: Color) -> Element {
-    rsx! {}
+fn Color(user_id: UserId, color: Color) -> Element {
+    let editing = use_signal(|| false);
+    rsx! {
+        div {
+            class: "flex flex-row items-center gap-1",
+            if editing() {
+            }
+            else {
+                ColorShow { color, editing }
+            }
+        }
+    }
+}
+
+#[component]
+fn ColorShow(color: Color, editing: Signal<bool>) -> Element {
+    let color = match color {
+        Color::Black => "bg-black",
+        Color::White => "bg-white",
+        Color::Gray => "bg-gray-400",
+        Color::Silver => "bg-slate-500",
+        Color::Maroon => "bg-rose-400",
+        Color::Red => "bg-red-600",
+        Color::Purple => "bg-purple-600",
+        Color::Fushsia => "bg-fuchsia-400",
+        Color::Green => "bg-emerald-500",
+        Color::Lime => "bg-lime-500",
+        Color::Olive => "bg-indigo-400",
+        Color::Yellow => "bg-yellow-400",
+        Color::Navy => "bg-amber-200",
+        Color::Blue => "bg-blue-400",
+        Color::Teal => "bg-teal-300",
+        Color::Aqua => "bg-cyan-500",
+    };
+    let style = format!("rounded {color}");
+    rsx! {
+        div {
+            class: "size-6 {style}",
+        }
+        button {
+            class: "size-4",
+            "aria-label": "edit color",
+            onclick: move |_| editing.set(true),
+            EditIcon {}
+        }
+    }
 }
 
 #[component]
 fn Name(user_id: UserId, name: String) -> Element {
     let editing = use_signal(|| false);
     rsx! {
-        if editing() {
-            NameInput { user_id, name, editing }
-        } else {
-            NameShow { name, editing }
+        div {
+            class: "flex flex-row items-center gap-1",
+            if editing() {
+                NameInput { user_id, name, editing }
+            } else {
+                NameShow { name, editing }
+            }
         }
     }
 }
