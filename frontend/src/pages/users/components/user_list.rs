@@ -1,8 +1,11 @@
 use dioxus::prelude::*;
-use shared_models::{UserEntry, UserId};
+use shared_models::{Color, UserEntry, UserId};
 
 use crate::{
-    components::{icons::TrashIcon, tooltip::Tooltip},
+    components::{
+        icons::{EditIcon, TrashIcon},
+        tooltip::Tooltip,
+    },
     pages::users::{
         model::{UserEntries, UsersUrl},
         requests,
@@ -42,12 +45,49 @@ fn UserListItem(user: UserEntry) -> Element {
                 flex flex-row justify-between
             ",
             div {
-                { user.name }
+                class: "flex flex-row items-center gap-1",
+                Color { color: user.color }
+                Name { name: user.name }
             }
             div {
                 class: "flex flex-row items-center gap-1",
                 DeleteUserBUtton { user_id: user.id }
             }
+        }
+    }
+}
+
+#[component]
+fn Color(color: Color) -> Element {
+    rsx! {}
+}
+
+#[component]
+fn Name(name: String) -> Element {
+    let editing = use_signal(|| false);
+    rsx! {
+        if editing() {
+            NameInput { name, editing }
+        } else {
+            NameShow { name, editing }
+        }
+    }
+}
+
+#[component]
+fn NameInput(name: String, editing: Signal<bool>) -> Element {
+    rsx! {}
+}
+
+#[component]
+fn NameShow(name: String, editing: Signal<bool>) -> Element {
+    rsx! {
+        {name}
+        button {
+            class: "size-4",
+            "aria-label": "edit name",
+            onclick: move |_| editing.set(true),
+            EditIcon {}
         }
     }
 }
