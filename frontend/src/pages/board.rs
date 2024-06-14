@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 
 use crate::components::one_column_board::OneColumnBoard;
 use crate::pages::board::model::{Board, QuickAddTasks, TagFilter, Tags, Tasks, UserFilter, Users};
+use crate::pages::board::requests::BoardSignals;
 use crate::pages::board::three_column_board::ThreeColumnBoard;
 use crate::responsive_layout::ResponsiveLayout;
 
@@ -23,6 +24,11 @@ pub fn Board(board_name: BoardName) -> Element {
     use_context_provider(|| Signal::new(TagFilter::default()));
     let layout = ResponsiveLayout::from_window();
     eval(&format!(r#"document.title = "{board_name}";"#));
+    let mut board_signals = BoardSignals::default();
+    if board_signals.board.read().board_name != board_name {
+        board_signals.board.write().board_name = board_name.clone();
+    }
+    use_future(move || requests::board(board_signals));
     rsx! {
         match layout {
             ResponsiveLayout::Narrow => rsx! {

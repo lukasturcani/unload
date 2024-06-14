@@ -25,11 +25,6 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let dense = use_signal(|| false);
     let dense_ = dense();
-    let mut board_signals = BoardSignals::default();
-    if board_signals.board.read().board_name != board_name {
-        board_signals.board.write().board_name = board_name.clone();
-    }
-    use_future(move || requests::board(board_signals));
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
