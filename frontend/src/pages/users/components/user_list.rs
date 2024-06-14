@@ -2,10 +2,7 @@ use dioxus::prelude::*;
 use shared_models::{Color, UserEntry, UserId};
 
 use crate::{
-    components::{
-        icons::{EditIcon, TrashIcon},
-        tooltip::Tooltip,
-    },
+    components::icons::{EditIcon, TrashIcon},
     pages::users::{
         model::{UserEntries, UsersUrl},
         requests,
