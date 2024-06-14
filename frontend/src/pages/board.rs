@@ -1,11 +1,16 @@
 use dioxus::prelude::*;
 
 use crate::components::one_column_board::OneColumnBoard;
-use crate::model::{Board, QuickAddTasks, TagFilter, Tags, Tasks, UserFilter, Users};
-use crate::pages::three_column_board::ThreeColumnBoard;
+use crate::pages::board::model::{Board, QuickAddTasks, TagFilter, Tags, Tasks, UserFilter, Users};
+use crate::pages::board::three_column_board::ThreeColumnBoard;
 use crate::responsive_layout::ResponsiveLayout;
 
 use shared_models::BoardName;
+
+mod components;
+mod model;
+mod requests;
+mod three_column_board;
 
 #[component]
 pub fn Board(board_name: BoardName) -> Element {

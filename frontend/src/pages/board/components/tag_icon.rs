@@ -3,8 +3,10 @@ use shared_models::{Color, TagData, TagId, TaskId};
 
 use crate::{
     components::icons::CancelIcon,
-    model::TagFilter,
-    requests::{self, BoardSignals},
+    pages::board::{
+        model::TagFilter,
+        requests::{self, BoardSignals},
+    },
 };
 
 #[component]

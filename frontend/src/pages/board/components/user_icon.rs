@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use shared_models::{Color, UserData, UserId};
 
-use crate::{components::tooltip::Tooltip, model::UserFilter};
+use crate::{components::tooltip::Tooltip, pages::board::model::UserFilter};
 
 #[component]
 pub fn UserIcon(

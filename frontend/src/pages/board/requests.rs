@@ -1,10 +1,10 @@
-use crate::model::Board;
-use crate::model::QuickAddTasks;
-use crate::model::Tags;
-use crate::model::TaskData;
-use crate::model::Tasks;
 use crate::model::UnloadUrl;
-use crate::model::Users;
+use crate::pages::board::model::Board;
+use crate::pages::board::model::QuickAddTasks;
+use crate::pages::board::model::Tags;
+use crate::pages::board::model::TaskData;
+use crate::pages::board::model::Tasks;
+use crate::pages::board::model::Users;
 use dioxus::prelude::*;
 use reqwest::Client;
 use shared_models::QuickAddData;

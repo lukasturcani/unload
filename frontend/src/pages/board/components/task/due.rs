@@ -12,7 +12,7 @@ use crate::{
         input::DateInput,
         tooltip::Tooltip,
     },
-    requests::{self, BoardSignals},
+    pages::board::requests::{self, BoardSignals},
     themes::Theme,
 };
 

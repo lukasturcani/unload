@@ -9,7 +9,7 @@ use crate::{
         input::TextInput,
         tooltip::Tooltip,
     },
-    requests::{self, BoardSignals},
+    pages::board::requests::{self, BoardSignals},
     themes::Theme,
 };
 

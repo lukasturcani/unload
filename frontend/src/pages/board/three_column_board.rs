@@ -9,12 +9,12 @@ use crate::{
         icons::{CircledPlusIcon, DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
         input::TextInput,
         nav::NavBar,
-        tag_icon::FilterBarTagIcon,
-        task::{DenseTask, Task},
-        user_icon::UserIcon,
     },
-    model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
-    requests::{self, BoardSignals},
+    pages::board::{
+        components::{DenseTask, FilterBarTagIcon, Task, UserIcon},
+        model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
+        requests::{self, BoardSignals},
+    },
     themes::Theme,
 };
 

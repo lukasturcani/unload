@@ -12,16 +12,20 @@ use crate::{
             InProgressIcon, PlusIcon, RightIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
-        tag_icon::TaskTagIcon,
-        task::{
-            due::{Due, DueOptions},
-            title::{DenseTitle, Title},
-        },
         tooltip::Tooltip,
-        user_icon::UserIcon,
     },
-    model::{Board, Tags, TaskData, UnloadUrl, Users},
-    requests::{self, BoardSignals},
+    model::UnloadUrl,
+    pages::board::{
+        components::{
+            task::{
+                due::{Due, DueOptions},
+                title::{DenseTitle, Title},
+            },
+            TaskTagIcon, UserIcon,
+        },
+        model::{Board, Tags, TaskData, Users},
+        requests::{self, BoardSignals},
+    },
     themes::Theme,
 };
 
