@@ -20,6 +20,32 @@ async fn send_get_users_request(url: &Url) -> Result<Vec<UserEntry>, anyhow::Err
         .await?)
 }
 
+pub async fn set_user_name(
+    users: Signal<UserEntries>,
+    url: Signal<UsersUrl>,
+    user_id: UserId,
+    name: String,
+) {
+    let url = &url.read().0;
+    let _ = send_set_user_name_request(url, user_id, name).await;
+    get_users_(users, url).await;
+}
+
+async fn send_set_user_name_request(
+    url: &Url,
+    user_id: UserId,
+    name: String,
+) -> Result<(), anyhow::Error> {
+    let url = url.join(&format!("users/{}/name", user_id))?;
+    Ok(reqwest::Client::new()
+        .put(url)
+        .json(&name)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
 pub async fn get_users_(mut users: Signal<UserEntries>, url: &Url) {
     if let Ok(result) = send_get_users_request(url).await {
         users.write().0 = result;

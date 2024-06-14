@@ -77,11 +77,18 @@ fn Name(user_id: UserId, name: String) -> Element {
 
 #[component]
 fn NameInput(user_id: UserId, name: String, editing: Signal<bool>) -> Element {
+    let url = use_context::<Signal<UsersUrl>>();
+    let users = use_context::<Signal<UserEntries>>();
     rsx! {
         form {
             id: "user-{user_id}-name-form",
             "aria-label": "edit name",
             class: "flex flex-row gap-2 items-center",
+            onsubmit: move |event| {
+                let name = event.values()["Name"].as_value();
+                spawn_forever(requests::set_user_name(users, url, user_id, name));
+                editing.set(false);
+            },
             TextInput {
                 id: "user-{user_id}-name-input",
                 label: "Name",
