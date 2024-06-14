@@ -18,7 +18,7 @@ pub fn UserList() -> Element {
     let users = use_context::<Signal<UserEntries>>();
     rsx! {
         ul {
-            class: "overflow-y-auto h-full {style}",
+            class: "overflow-y-auto w-full max-h-5/6 {style}",
             for user in users.read().0.iter() {
                 UserListItem { user: user.clone() }
             }
