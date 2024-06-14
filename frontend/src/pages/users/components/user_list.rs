@@ -1,7 +1,14 @@
 use dioxus::prelude::*;
-use shared_models::UserEntry;
+use shared_models::{UserEntry, UserId};
 
-use crate::{pages::users::model::UserEntries, themes::Theme};
+use crate::{
+    components::{icons::TrashIcon, tooltip::Tooltip},
+    pages::users::{
+        model::{UserEntries, UsersUrl},
+        requests,
+    },
+    themes::Theme,
+};
 
 #[component]
 pub fn UserList() -> Element {
@@ -30,8 +37,34 @@ pub fn UserList() -> Element {
 fn UserListItem(user: UserEntry) -> Element {
     rsx! {
         li {
-            class: "px-3 py-1",
-            { user.name }
+            class: "
+                px-3 py-1
+                flex flex-row justify-between
+            ",
+            div {
+                { user.name }
+            }
+            div {
+                class: "flex flex-row items-center gap-1",
+                DeleteUserBUtton { user_id: user.id }
+            }
+        }
+    }
+}
+
+#[component]
+fn DeleteUserBUtton(user_id: UserId) -> Element {
+    let url = use_context::<Signal<UsersUrl>>();
+    let users = use_context::<Signal<UserEntries>>();
+    let style = "stroke-red-600";
+    rsx! {
+        button {
+            "aria-label": "delete user",
+            class: "block size-6 {style}",
+            onclick: move |_| {
+                spawn_forever(requests::delete_user(users, url, user_id));
+            },
+            TrashIcon {}
         }
     }
 }

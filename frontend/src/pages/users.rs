@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
-use reqwest::Url;
-use shared_models::{BoardName, UserEntry};
+use shared_models::BoardName;
 
 use crate::components::nav::NavBar;
 use crate::model::UnloadUrl;
@@ -10,6 +9,7 @@ use crate::themes::Theme;
 
 mod components;
 mod model;
+mod requests;
 
 #[component]
 pub fn Users(board_name: BoardName) -> Element {
@@ -27,7 +27,7 @@ pub fn Users(board_name: BoardName) -> Element {
             Signal::new(UsersUrl(url))
         }
     });
-    use_future(move || get_users(users, url));
+    use_future(move || requests::get_users(users, url));
     rsx! { UsersPage { board_name } }
 }
 
@@ -49,21 +49,4 @@ fn UsersPage(board_name: BoardName) -> Element {
             NavBar { board_name }
         }
     }
-}
-
-async fn get_users(mut users: Signal<UserEntries>, url: Signal<UsersUrl>) {
-    let url = &url.read().0;
-    if let Ok(result) = send_get_users_request(url).await {
-        users.write().0 = result;
-    }
-}
-
-async fn send_get_users_request(url: &Url) -> Result<Vec<UserEntry>, anyhow::Error> {
-    let url = url.join("users")?;
-    Ok(reqwest::Client::new()
-        .get(url.clone())
-        .send()
-        .await?
-        .json::<Vec<UserEntry>>()
-        .await?)
 }
