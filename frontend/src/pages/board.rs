@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::components::one_column_board::OneColumnBoard;
-use crate::components::three_column_board::ThreeColumnBoard;
+use crate::pages::three_column_board::ThreeColumnBoard;
 use crate::responsive_layout::ResponsiveLayout;
 
 use shared_models::BoardName;

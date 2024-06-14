@@ -1,6 +1,6 @@
 use crate::components::archive::Archive;
-use crate::components::board::Board;
 use crate::join_board::JoinBoard;
+use crate::pages::Board;
 use crate::tags::Tags;
 use crate::users::Users;
 use dioxus::prelude::*;
