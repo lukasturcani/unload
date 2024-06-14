@@ -8,4 +8,3 @@ pub mod one_column_board;
 pub mod tag_archive;
 pub mod task_archive;
 pub mod tooltip;
-pub mod user_list;
