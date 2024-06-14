@@ -11,3 +11,4 @@ pub mod task;
 pub mod task_archive;
 pub mod tooltip;
 pub mod user_icon;
+pub mod user_list;
