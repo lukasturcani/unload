@@ -2,7 +2,11 @@ use dioxus::prelude::*;
 use shared_models::{Color, UserEntry, UserId};
 
 use crate::{
-    components::icons::{EditIcon, TrashIcon},
+    components::{
+        form::{CancelButton, ConfirmButton},
+        icons::{EditIcon, TrashIcon},
+        input::TextInput,
+    },
     pages::users::{
         model::{UserEntries, UsersUrl},
         requests,
@@ -44,7 +48,7 @@ fn UserListItem(user: UserEntry) -> Element {
             div {
                 class: "flex flex-row items-center gap-1",
                 Color { color: user.color }
-                Name { name: user.name }
+                Name { user_id: user.id, name: user.name }
             }
             div {
                 class: "flex flex-row items-center gap-1",
@@ -60,11 +64,11 @@ fn Color(color: Color) -> Element {
 }
 
 #[component]
-fn Name(name: String) -> Element {
+fn Name(user_id: UserId, name: String) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
-            NameInput { name, editing }
+            NameInput { user_id, name, editing }
         } else {
             NameShow { name, editing }
         }
@@ -72,8 +76,20 @@ fn Name(name: String) -> Element {
 }
 
 #[component]
-fn NameInput(name: String, editing: Signal<bool>) -> Element {
-    rsx! {}
+fn NameInput(user_id: UserId, name: String, editing: Signal<bool>) -> Element {
+    rsx! {
+        form {
+            id: "user-{user_id}-name-form",
+            "aria-label": "edit name",
+            class: "flex flex-row gap-2 items-center",
+            TextInput {
+                id: "user-{user_id}-name-input",
+                label: "Name",
+            }
+            ConfirmButton { label: "set name" }
+            CancelButton { label: "cancel name update", editing }
+        }
+    }
 }
 
 #[component]
