@@ -1,8 +1,7 @@
 use crate::components::archive::Archive;
 use crate::join_board::JoinBoard;
-use crate::pages::Board;
+use crate::pages::{Board, Users};
 use crate::tags::Tags;
-use crate::users::Users;
 use dioxus::prelude::*;
 use shared_models::BoardName;
 
