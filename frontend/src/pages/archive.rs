@@ -22,6 +22,7 @@ enum Tab {
 
 #[component]
 pub fn Archive(board_name: BoardName) -> Element {
+    eval(&format!(r#"document.title = "{board_name}";"#));
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let mut tab = use_signal(|| Tab::Tasks);
@@ -75,7 +76,7 @@ pub fn Archive(board_name: BoardName) -> Element {
                 }
             }
             match tab_ {
-                Tab::Tasks => rsx!{},
+                Tab::Tasks => rsx!{TaskArchive { board_name: board_name.clone() }},
                 Tab::Tags => rsx!{TagArchive { board_name: board_name.clone() }},
             }
             NavBar { board_name }

@@ -1,12 +1,14 @@
 use dioxus::prelude::*;
 use reqwest::Url;
-use shared_models::{Color, TagEntry, TagId};
+use shared_models::{Color, TagEntry, TagId, TaskEntry};
 
-use super::model::{TagEntries, TagsUrl};
+use crate::model::UnloadUrl;
+
+use super::model::{TagEntries, TaskEntries};
 
 pub async fn set_tag_color(
     tags: Signal<TagEntries>,
-    url: Signal<TagsUrl>,
+    url: Signal<UnloadUrl>,
     tag_id: TagId,
     color: Color,
 ) {
@@ -32,7 +34,7 @@ async fn send_set_tag_color_request(
 
 pub async fn set_tag_name(
     tags: Signal<TagEntries>,
-    url: Signal<TagsUrl>,
+    url: Signal<UnloadUrl>,
     tag_id: TagId,
     name: String,
 ) {
@@ -56,7 +58,7 @@ async fn send_set_tag_name_request(
         .await?)
 }
 
-pub async fn delete_tag(tags: Signal<TagEntries>, url: Signal<TagsUrl>, tag_id: TagId) {
+pub async fn delete_tag(tags: Signal<TagEntries>, url: Signal<UnloadUrl>, tag_id: TagId) {
     let url = &url.read().0;
     let _ = send_delete_tag_request(url, tag_id).await;
     get_tags_(tags, url).await;
@@ -72,7 +74,7 @@ async fn send_delete_tag_request(url: &Url, tag_id: TagId) -> Result<(), anyhow:
         .await?)
 }
 
-pub async fn set_tag_archived(tags: Signal<TagEntries>, url: Signal<TagsUrl>, tag_id: TagId) {
+pub async fn set_tag_archived(tags: Signal<TagEntries>, url: Signal<UnloadUrl>, tag_id: TagId) {
     let url = &url.read().0;
     let _ = send_set_tag_archived_request(url, tag_id).await;
     get_tags_(tags, url).await;
@@ -89,7 +91,7 @@ async fn send_set_tag_archived_request(url: &Url, tag_id: TagId) -> Result<(), a
         .await?)
 }
 
-pub async fn get_tags(mut tags: Signal<TagEntries>, url: Signal<TagsUrl>) {
+pub async fn get_tags(mut tags: Signal<TagEntries>, url: Signal<UnloadUrl>) {
     let url = &url.read().0;
     if let Ok(result) = send_get_tags_request(url).await {
         tags.write().0 = result;
@@ -109,5 +111,22 @@ async fn send_get_tags_request(url: &Url) -> Result<Vec<TagEntry>, anyhow::Error
         .send()
         .await?
         .json::<Vec<TagEntry>>()
+        .await?)
+}
+
+pub async fn get_tasks(mut tasks: Signal<TaskEntries>, url: Signal<UnloadUrl>) {
+    let url = &url.read().0;
+    if let Ok(result) = send_get_tasks_request(url).await {
+        tasks.write().0 = result;
+    }
+}
+
+async fn send_get_tasks_request(url: &Url) -> Result<Vec<TaskEntry>, anyhow::Error> {
+    let url = url.join("archive/tasks")?;
+    Ok(reqwest::Client::new()
+        .get(url)
+        .send()
+        .await?
+        .json::<Vec<TaskEntry>>()
         .await?)
 }
