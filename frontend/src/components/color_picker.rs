@@ -4,7 +4,7 @@ use shared_models::Color;
 use crate::themes::Theme;
 
 #[component]
-pub fn ColorPicker() -> Element {
+pub fn ColorPicker(selected_color: Option<Color>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let fieldset_style = format!("rounded-lg border {}", theme.border_color);
@@ -49,6 +49,7 @@ pub fn ColorPicker() -> Element {
                             required: true,
                             r#type: "radio",
                             name: "color-picker",
+                            checked: selected_color.map_or(false, |c| color == c),
                         }
                         div { class: "inline-block size-6 {radio_style} {color_to_bg(color)}" }
                     }

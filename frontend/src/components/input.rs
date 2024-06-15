@@ -30,7 +30,7 @@ pub fn TextInput(id: String, label: String, value: Option<String>) -> Element {
             required: true,
             value,
             onmounted: move |event| async move {
-                let _ = event.set_focus(true);
+                let _ = event.set_focus(true).await;
             },
         }
     }

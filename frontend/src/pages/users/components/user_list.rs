@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 use shared_models::{Color, UserEntry, UserId};
 
 use crate::{
+    commands::ScrollTarget,
     components::{
         color_picker::ColorPicker,
         form::ConfirmButton,
@@ -58,8 +59,8 @@ fn UserListItem(user: UserEntry) -> Element {
                     ",
                     div {
                         class: "flex flex-row items-center gap-5",
-                        ColorShow { color: user.color, state }
-                        NameShow { name: user.name, state }
+                        ColorShow { user_id: user.id, color: user.color, state }
+                        NameShow { user_id: user.id, name: user.name, state }
 
                     }
                     div {
@@ -71,7 +72,7 @@ fn UserListItem(user: UserEntry) -> Element {
             State::EditingColor => rsx! {
                 li {
                     class: "flex flex-row w-full items-center justify-center",
-                    ColorSelect { user_id: user.id, state }
+                    ColorSelect { user_id: user.id, color: user.color, state }
                 }
             },
             State::EditingName => rsx! {
@@ -85,7 +86,7 @@ fn UserListItem(user: UserEntry) -> Element {
 }
 
 #[component]
-fn ColorSelect(user_id: UserId, state: Signal<State>) -> Element {
+fn ColorSelect(user_id: UserId, color: Color, state: Signal<State>) -> Element {
     let users = use_context::<Signal<UserEntries>>();
     let url = use_context::<Signal<UsersUrl>>();
     rsx! {
@@ -100,7 +101,7 @@ fn ColorSelect(user_id: UserId, state: Signal<State>) -> Element {
                 spawn_forever(requests::set_user_color(users, url, user_id, color));
                 state.set(State::Show);
             },
-            ColorPicker { }
+            ColorPicker { selected_color: color }
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
                 ConfirmButton { label: "set color" }
@@ -132,7 +133,8 @@ fn CancelButton(label: String, state: Signal<State>) -> Element {
 }
 
 #[component]
-fn ColorShow(color: Color, state: Signal<State>) -> Element {
+fn ColorShow(user_id: UserId, color: Color, state: Signal<State>) -> Element {
+    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     let color = match color {
         Color::Black => "bg-black",
         Color::White => "bg-white",
@@ -161,7 +163,12 @@ fn ColorShow(color: Color, state: Signal<State>) -> Element {
             button {
                 class: "size-4",
                 "aria-label": "edit color",
-                onclick: move |_| state.set(State::EditingColor),
+                onclick: move |_| {
+                    scroll_target.set(
+                        ScrollTarget(Some(format!("user-{user_id}-color-form")))
+                    );
+                    state.set(State::EditingColor)
+                },
                 EditIcon {}
             }
         }
@@ -176,7 +183,7 @@ fn NameInput(user_id: UserId, name: String, state: Signal<State>) -> Element {
         form {
             id: "user-{user_id}-name-form",
             "aria-label": "edit name",
-            class: "flex flex-row gap-2 items-center",
+            class: "flex flex-row gap-2 items-center p-2",
             onsubmit: move |event| {
                 let name = event.values()["Name"].as_value();
                 spawn_forever(requests::set_user_name(users, url, user_id, name));
@@ -185,6 +192,7 @@ fn NameInput(user_id: UserId, name: String, state: Signal<State>) -> Element {
             TextInput {
                 id: "user-{user_id}-name-input",
                 label: "Name",
+                value: name,
             }
             ConfirmButton { label: "set name" }
             CancelButton { label: "cancel name update", state }
@@ -193,7 +201,8 @@ fn NameInput(user_id: UserId, name: String, state: Signal<State>) -> Element {
 }
 
 #[component]
-fn NameShow(name: String, state: Signal<State>) -> Element {
+fn NameShow(user_id: UserId, name: String, state: Signal<State>) -> Element {
+    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         div {
             class: "flex flex-row items-center gap-1",
@@ -201,7 +210,12 @@ fn NameShow(name: String, state: Signal<State>) -> Element {
             button {
                 class: "size-4",
                 "aria-label": "edit name",
-                onclick: move |_| state.set(State::EditingName),
+                onclick: move |_| {
+                    scroll_target.set(
+                        ScrollTarget(Some(format!("user-{user_id}-name-form")))
+                    );
+                    state.set(State::EditingName)
+                },
                 EditIcon {}
             }
         }
