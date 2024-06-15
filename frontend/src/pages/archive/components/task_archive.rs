@@ -1,14 +1,13 @@
 use dioxus::prelude::*;
 
-use crate::model::UnloadUrl;
 use crate::pages::archive::components::task_list::TaskList;
-use crate::pages::archive::model::TaskEntries;
+use crate::pages::archive::model::{BoardUrl, TaskEntries};
 use crate::pages::archive::requests;
 use shared_models::BoardName;
 
 #[component]
 pub fn TaskArchive(board_name: BoardName) -> Element {
-    let url = use_context::<Signal<UnloadUrl>>();
+    let url = use_context::<Signal<BoardUrl>>();
     let tags = use_context_provider(|| Signal::new(TaskEntries::default()));
     use_future(move || requests::get_tasks(tags, url));
     rsx! { TasksTab { board_name } }

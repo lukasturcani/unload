@@ -1,14 +1,13 @@
 use dioxus::prelude::*;
 use shared_models::BoardName;
 
-use crate::model::UnloadUrl;
 use crate::pages::archive::components::tag_list::TagList;
-use crate::pages::archive::model::TagEntries;
+use crate::pages::archive::model::{BoardUrl, TagEntries};
 use crate::pages::archive::requests;
 
 #[component]
 pub fn TagArchive(board_name: BoardName) -> Element {
-    let url = use_context::<Signal<UnloadUrl>>();
+    let url = use_context::<Signal<BoardUrl>>();
     let tags = use_context_provider(|| Signal::new(TagEntries::default()));
     use_future(move || requests::get_tags(tags, url));
     rsx! { TagsTab { board_name } }

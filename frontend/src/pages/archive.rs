@@ -6,7 +6,11 @@ use crate::{
         icons::{DoneIcon, SolidDoneIcon, SolidTagIcon, TagIcon},
         nav::NavBar,
     },
-    pages::archive::components::{TagArchive, TaskArchive},
+    model::UnloadUrl,
+    pages::archive::{
+        components::{TagArchive, TaskArchive},
+        model::BoardUrl,
+    },
     themes::Theme,
 };
 
@@ -23,6 +27,16 @@ enum Tab {
 #[component]
 pub fn Archive(board_name: BoardName) -> Element {
     eval(&format!(r#"document.title = "{board_name}";"#));
+    let url = use_context::<Signal<UnloadUrl>>();
+    use_context_provider(|| {
+        Signal::new(BoardUrl(
+            url.read()
+                .0
+                .join(&format!("/api/boards/{}", board_name))
+                .unwrap(),
+        ))
+    });
+
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let mut tab = use_signal(|| Tab::Tasks);

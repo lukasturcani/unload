@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
+use reqwest::Url;
 use shared_models::{TagData, TagEntry, TagId, TaskEntry, UserData, UserId};
+
+pub struct BoardUrl(pub Url);
 
 #[derive(Default)]
 pub struct Users(pub HashMap<UserId, UserData>);

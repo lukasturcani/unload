@@ -9,8 +9,10 @@ use crate::{
         icons::{CancelIcon, EditIcon, TrashIcon, UnarchiveIcon},
         input::TextInput,
     },
-    model::UnloadUrl,
-    pages::archive::{model::TagEntries, requests},
+    pages::archive::{
+        model::{BoardUrl, TagEntries},
+        requests,
+    },
     themes::Theme,
 };
 
@@ -87,7 +89,7 @@ fn TagListItem(tag: TagEntry) -> Element {
 #[component]
 fn ColorSelect(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
     let tags = use_context::<Signal<TagEntries>>();
-    let url = use_context::<Signal<UnloadUrl>>();
+    let url = use_context::<Signal<BoardUrl>>();
     rsx! {
         form {
             id: "tag-{tag_id}-color-form",
@@ -176,7 +178,7 @@ fn ColorShow(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
 
 #[component]
 fn NameInput(tag_id: TagId, name: String, state: Signal<State>) -> Element {
-    let url = use_context::<Signal<UnloadUrl>>();
+    let url = use_context::<Signal<BoardUrl>>();
     let tags = use_context::<Signal<TagEntries>>();
     rsx! {
         form {
@@ -223,7 +225,7 @@ fn NameShow(tag_id: TagId, name: String, state: Signal<State>) -> Element {
 
 #[component]
 fn DeleteTagButton(tag_id: TagId) -> Element {
-    let url = use_context::<Signal<UnloadUrl>>();
+    let url = use_context::<Signal<BoardUrl>>();
     let tags = use_context::<Signal<TagEntries>>();
     let style = "stroke-red-600";
     rsx! {
@@ -240,7 +242,7 @@ fn DeleteTagButton(tag_id: TagId) -> Element {
 
 #[component]
 fn ArchiveTagButton(tag_id: TagId) -> Element {
-    let url = use_context::<Signal<UnloadUrl>>();
+    let url = use_context::<Signal<BoardUrl>>();
     let tags = use_context::<Signal<TagEntries>>();
     rsx! {
         button {

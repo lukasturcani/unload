@@ -11,9 +11,8 @@ use crate::{
         },
         tooltip::Tooltip,
     },
-    model::UnloadUrl,
     pages::archive::{
-        model::{Tags, TaskEntries, Users},
+        model::{BoardUrl, Tags, TaskEntries, Users},
         requests,
     },
     themes::Theme,
@@ -207,7 +206,7 @@ pub fn UserIcon(
 
 #[component]
 fn TaskActions(task_id: TaskId) -> Element {
-    let url = use_context::<Signal<UnloadUrl>>();
+    let url = use_context::<Signal<BoardUrl>>();
     let tasks = use_context::<Signal<TaskEntries>>();
     rsx! {
         section {
@@ -326,7 +325,7 @@ fn SpecialActions(task_id: TaskId) -> Element {
 
 #[component]
 fn DeleteTaskButton(task_id: TaskId) -> Element {
-    let url = use_context::<Signal<UnloadUrl>>();
+    let url = use_context::<Signal<BoardUrl>>();
     let tasks = use_context::<Signal<TaskEntries>>();
     let style = "stroke-red-600";
     rsx! {
