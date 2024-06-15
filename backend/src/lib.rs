@@ -276,11 +276,14 @@ WHERE
             TagRow,
             "
 SELECT
-    task_id, tag_id
+    task_tags.task_id, task_tags.tag_id
 FROM
     task_tags
+LEFT JOIN
+    tags ON task_tags.tag_id = tags.id
 WHERE
-    board_name = ?",
+    task_tags.board_name = ?
+    AND tags.archived = FALSE",
             board_name,
         )
         .fetch_all(&mut *tx)
