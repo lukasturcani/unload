@@ -23,7 +23,10 @@ pub fn TaskList() -> Element {
     let tasks = use_context::<Signal<TaskEntries>>();
     rsx! {
         div {
-            class: "overflow-y-auto w-full max-w-lg",
+            class: "
+                overflow-y-auto w-full max-w-lg
+                flex flex-col gap-2
+            ",
             for task in tasks.read().0.iter() {
                 Task { task: task.clone() }
             }
