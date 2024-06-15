@@ -246,7 +246,7 @@ fn ArchiveTagButton(tag_id: TagId) -> Element {
     let tags = use_context::<Signal<TagEntries>>();
     rsx! {
         button {
-            "aria-label": "archive tag",
+            "aria-label": "restore tag",
             class: "block size-6",
             onclick: move |_| {
                 spawn_forever(requests::set_tag_archived(tags, url, tag_id));
