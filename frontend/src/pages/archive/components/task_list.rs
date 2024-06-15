@@ -65,13 +65,37 @@ fn Task(task: TaskEntry) -> Element {
                     "aria-label": "task status",
                     match task.status {
                         TaskStatus::ToDo => rsx! {
-                            div { class: "size-8", ToDoIcon {} }
+                            div {
+                                class: "group relative",
+                                div { class: "size-8", ToDoIcon {} }
+                                Tooltip {
+                                    content: "To Do",
+                                    position: "",
+                                    dir: "rtl"
+                                }
+                            }
                         },
                         TaskStatus::InProgress => rsx! {
-                            div { class: "size-8", InProgressIcon {} }
+                            div {
+                                class: "group relative",
+                                div { class: "size-8", InProgressIcon {} }
+                                Tooltip {
+                                    content: "In Progress",
+                                    position: "",
+                                    dir: "rtl"
+                                }
+                            }
                         },
                         TaskStatus::Done => rsx! {
-                            div { class: "size-8", DoneIcon {} }
+                            div {
+                                class: "group relative",
+                                div { class: "size-8", DoneIcon {} }
+                                Tooltip {
+                                    content: "Done",
+                                    position: "",
+                                    dir: "rtl"
+                                }
+                            }
                         }
                     }
                 }
@@ -239,7 +263,7 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
                 onclick: move |event| onclick.call(event),
                 {body}
             }
-            Tooltip { position: "-top-10 -left-20", content: tooltip }
+            Tooltip { position: "", content: tooltip, dir: "rtl" }
         }
     }
 }
