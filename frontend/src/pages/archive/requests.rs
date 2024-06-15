@@ -1,8 +1,13 @@
-use dioxus::prelude::*;
-use reqwest::Url;
-use shared_models::{Color, TagEntry, TagId, TaskEntry, TaskId};
+use std::collections::HashMap;
 
-use super::model::{BoardUrl, TagEntries, TaskEntries};
+use dioxus::prelude::*;
+use reqwest::{Client, Url};
+use shared_models::{
+    Color, TagData, TagEntry, TagId, TaskEntry, TaskId, UserData, UserEntry, UserId,
+};
+use tokio::join;
+
+use super::model::{BoardUrl, TagEntries, Tags, TaskEntries, Users};
 
 pub async fn set_tag_color(
     tags: Signal<TagEntries>,
@@ -21,7 +26,7 @@ async fn send_set_tag_color_request(
     color: Color,
 ) -> Result<(), anyhow::Error> {
     let url = url.join(&format!("tags/{}/color", tag_id))?;
-    Ok(reqwest::Client::new()
+    Ok(Client::new()
         .put(url)
         .json(&color)
         .send()
@@ -47,7 +52,7 @@ async fn send_set_tag_name_request(
     name: String,
 ) -> Result<(), anyhow::Error> {
     let url = url.join(&format!("tags/{}/name", tag_id))?;
-    Ok(reqwest::Client::new()
+    Ok(Client::new()
         .put(url)
         .json(&name)
         .send()
@@ -64,12 +69,7 @@ pub async fn delete_tag(tags: Signal<TagEntries>, url: Signal<BoardUrl>, tag_id:
 
 async fn send_delete_tag_request(url: &Url, tag_id: TagId) -> Result<(), anyhow::Error> {
     let url = url.join(&format!("tags/{}", tag_id))?;
-    Ok(reqwest::Client::new()
-        .delete(url)
-        .send()
-        .await?
-        .json::<()>()
-        .await?)
+    Ok(Client::new().delete(url).send().await?.json::<()>().await?)
 }
 
 pub async fn set_task_archived(tasks: Signal<TaskEntries>, url: Signal<BoardUrl>, task_id: TaskId) {
@@ -80,7 +80,7 @@ pub async fn set_task_archived(tasks: Signal<TaskEntries>, url: Signal<BoardUrl>
 
 async fn send_set_task_archived_request(url: &Url, task_id: TaskId) -> Result<(), anyhow::Error> {
     let url = url.join(&format!("tasks/{}/archived", task_id))?;
-    Ok(reqwest::Client::new()
+    Ok(Client::new()
         .put(url)
         .json(&false)
         .send()
@@ -97,7 +97,7 @@ pub async fn set_tag_archived(tags: Signal<TagEntries>, url: Signal<BoardUrl>, t
 
 async fn send_set_tag_archived_request(url: &Url, tag_id: TagId) -> Result<(), anyhow::Error> {
     let url = url.join(&format!("tags/{}/archived", tag_id))?;
-    Ok(reqwest::Client::new()
+    Ok(Client::new()
         .put(url)
         .json(&false)
         .send()
@@ -106,7 +106,7 @@ async fn send_set_tag_archived_request(url: &Url, tag_id: TagId) -> Result<(), a
         .await?)
 }
 
-pub async fn get_tags(mut tags: Signal<TagEntries>, url: Signal<BoardUrl>) {
+pub async fn get_tag_entries(mut tags: Signal<TagEntries>, url: Signal<BoardUrl>) {
     let url = &url.read().0;
     if let Ok(result) = send_get_tags_request(url).await {
         tags.write().0 = result;
@@ -121,7 +121,7 @@ async fn get_tags_(mut tags: Signal<TagEntries>, url: &Url) {
 
 async fn send_get_tags_request(url: &Url) -> Result<Vec<TagEntry>, anyhow::Error> {
     let url = url.join("archive/tags")?;
-    Ok(reqwest::Client::new()
+    Ok(Client::new()
         .get(url)
         .send()
         .await?
@@ -129,9 +129,87 @@ async fn send_get_tags_request(url: &Url) -> Result<Vec<TagEntry>, anyhow::Error
         .await?)
 }
 
-pub async fn get_tasks(tasks: Signal<TaskEntries>, url: Signal<BoardUrl>) {
+pub async fn get_task_archive(
+    mut tasks: Signal<TaskEntries>,
+    mut tags: Signal<Tags>,
+    mut users: Signal<Users>,
+    url: Signal<BoardUrl>,
+) {
     let url = &url.read().0;
-    get_tasks_(tasks, url).await;
+    if let (Ok(new_tasks), Ok(mut new_tags), Ok(new_unarchived_tags), Ok(new_users)) = join!(
+        send_get_tasks_request(url),
+        get_tags(url),
+        get_unarchived_tags(url),
+        get_users(url)
+    ) {
+        new_tags.extend(new_unarchived_tags);
+        tasks.write().0 = new_tasks;
+        tags.write().0 = new_tags;
+        users.write().0 = new_users;
+    }
+}
+
+async fn get_tags(url: &Url) -> Result<HashMap<TagId, TagData>, anyhow::Error> {
+    let url = url.join("archive/tags")?;
+    Ok(Client::new()
+        .get(url)
+        .send()
+        .await?
+        .json::<Vec<TagEntry>>()
+        .await?
+        .into_iter()
+        .fold(HashMap::new(), |mut tags, tag| {
+            tags.insert(
+                tag.id,
+                TagData {
+                    name: tag.name,
+                    color: tag.color,
+                },
+            );
+            tags
+        }))
+}
+
+async fn get_unarchived_tags(url: &Url) -> Result<HashMap<TagId, TagData>, anyhow::Error> {
+    let url = url.join("tags")?;
+    Ok(Client::new()
+        .get(url)
+        .send()
+        .await?
+        .json::<Vec<TagEntry>>()
+        .await?
+        .into_iter()
+        .fold(HashMap::new(), |mut tags, tag| {
+            tags.insert(
+                tag.id,
+                TagData {
+                    name: tag.name,
+                    color: tag.color,
+                },
+            );
+            tags
+        }))
+}
+
+async fn get_users(url: &Url) -> Result<HashMap<UserId, UserData>, anyhow::Error> {
+    let url = url.join("users")?;
+    Ok(Client::new()
+        .get(url)
+        .send()
+        .await?
+        .json::<Vec<UserEntry>>()
+        .await?
+        .into_iter()
+        .fold(HashMap::new(), |mut users, user| {
+            users.insert(
+                user.id,
+                UserData {
+                    name: user.name,
+                    color: user.color,
+                },
+            );
+            users
+        }))
 }
 
 async fn get_tasks_(mut tasks: Signal<TaskEntries>, url: &Url) {
@@ -142,7 +220,7 @@ async fn get_tasks_(mut tasks: Signal<TaskEntries>, url: &Url) {
 
 async fn send_get_tasks_request(url: &Url) -> Result<Vec<TaskEntry>, anyhow::Error> {
     let url = url.join("archive/tasks")?;
-    Ok(reqwest::Client::new()
+    Ok(Client::new()
         .get(url)
         .send()
         .await?
@@ -158,10 +236,5 @@ pub async fn delete_task(tasks: Signal<TaskEntries>, url: Signal<BoardUrl>, task
 
 async fn send_delete_task_request(url: &Url, task_id: TaskId) -> Result<(), anyhow::Error> {
     let url = url.join(&format!("tasks/{}", task_id))?;
-    Ok(reqwest::Client::new()
-        .delete(url)
-        .send()
-        .await?
-        .json::<()>()
-        .await?)
+    Ok(Client::new().delete(url).send().await?.json::<()>().await?)
 }

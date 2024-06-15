@@ -9,7 +9,7 @@ use crate::pages::archive::requests;
 pub fn TagArchive(board_name: BoardName) -> Element {
     let url = use_context::<Signal<BoardUrl>>();
     let tags = use_context_provider(|| Signal::new(TagEntries::default()));
-    use_future(move || requests::get_tags(tags, url));
+    use_future(move || requests::get_tag_entries(tags, url));
     rsx! { TagsTab { board_name } }
 }
 

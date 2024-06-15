@@ -32,11 +32,10 @@ pub fn Archive(board_name: BoardName) -> Element {
         Signal::new(BoardUrl(
             url.read()
                 .0
-                .join(&format!("/api/boards/{}", board_name))
+                .join(&format!("/api/boards/{board_name}/"))
                 .unwrap(),
         ))
     });
-
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let mut tab = use_signal(|| Tab::Tasks);
