@@ -16,7 +16,7 @@ pub fn ColorPicker() -> Element {
     ";
     rsx! {
         fieldset {
-            class: "flex flex-row items-center justify-center py-2 {fieldset_style}",
+            class: "flex flex-row items-center justify-center p-2 {fieldset_style}",
             legend {
                 class: legend_style,
                 "Color"

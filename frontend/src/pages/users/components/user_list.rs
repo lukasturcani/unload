@@ -4,8 +4,8 @@ use shared_models::{Color, UserEntry, UserId};
 use crate::{
     components::{
         color_picker::ColorPicker,
-        form::{CancelButton, ConfirmButton},
-        icons::{EditIcon, TrashIcon},
+        form::ConfirmButton,
+        icons::{CancelIcon, EditIcon, TrashIcon},
         input::TextInput,
     },
     pages::users::{
@@ -30,7 +30,7 @@ pub fn UserList() -> Element {
     let users = use_context::<Signal<UserEntries>>();
     rsx! {
         ul {
-            class: "overflow-y-auto w-full {style}",
+            class: "overflow-y-auto w-full max-w-lg {style}",
             for user in users.read().0.iter() {
                 UserListItem { user: user.clone() }
             }
@@ -38,68 +38,101 @@ pub fn UserList() -> Element {
     }
 }
 
+#[derive(Clone, Copy)]
+enum State {
+    EditingColor,
+    EditingName,
+    Show,
+}
+
 #[component]
 fn UserListItem(user: UserEntry) -> Element {
+    let state = use_signal(|| State::Show);
     rsx! {
-        li {
-            class: "
-                px-3 py-1
-                flex flex-row justify-between
-            ",
-            div {
-                class: "flex flex-row items-center gap-5",
-                Color { user_id: user.id, color: user.color }
-                Name { user_id: user.id, name: user.name }
-            }
-            div {
-                class: "flex flex-row items-center gap-1",
-                DeleteUserBUtton { user_id: user.id }
-            }
+        match state() {
+            State::Show => rsx! {
+                li {
+                    class: "
+                        px-3 py-1
+                        flex flex-row justify-between
+                    ",
+                    div {
+                        class: "flex flex-row items-center gap-5",
+                        ColorShow { color: user.color, state }
+                        NameShow { name: user.name, state }
+
+                    }
+                    div {
+                        class: "flex flex-row items-center gap-1",
+                        DeleteUserButton { user_id: user.id }
+                    }
+                }
+            },
+            State::EditingColor => rsx! {
+                li {
+                    class: "flex flex-row w-full items-center justify-center",
+                    ColorSelect { user_id: user.id, state }
+                }
+            },
+            State::EditingName => rsx! {
+                li {
+                    class: "flex flex-row w-full items-center justify-center",
+                    NameInput { user_id: user.id, name: user.name, state }
+                }
+            },
         }
     }
 }
 
 #[component]
-fn Color(user_id: UserId, color: Color) -> Element {
-    let editing = use_signal(|| false);
-    rsx! {
-        div {
-            class: "flex flex-row items-center gap-1",
-            if editing() {
-                ColorSelect { user_id, editing }
-            }
-            else {
-                ColorShow { color, editing }
-            }
-        }
-    }
-}
-
-#[component]
-fn ColorSelect(user_id: UserId, editing: Signal<bool>) -> Element {
+fn ColorSelect(user_id: UserId, state: Signal<State>) -> Element {
     let users = use_context::<Signal<UserEntries>>();
     let url = use_context::<Signal<UsersUrl>>();
     rsx! {
         form {
             id: "user-{user_id}-color-form",
             "aria-label": "edit color",
-            class: "flex flex-row gap-2 items-center",
+            class: "flex flex-col gap-2 items-center p-2",
             onsubmit: move |event| {
                 let color = serde_json::from_str(
                     &event.values()["color-picker"].as_value()
                 ).unwrap();
                 spawn_forever(requests::set_user_color(users, url, user_id, color));
-                editing.set(false);
+                state.set(State::Show);
             },
             ColorPicker { }
-            ConfirmButton { label: "set color" }
-            CancelButton { label: "cancel color update", editing }
+            div {
+                class: "flex flex-row gap-2 items-center justify-center",
+                ConfirmButton { label: "set color" }
+                CancelButton { label: "cancel color update", state }
+            }
         }
     }
 }
 
 #[component]
-fn ColorShow(color: Color, editing: Signal<bool>) -> Element {
+fn CancelButton(label: String, state: Signal<State>) -> Element {
+    let style = "
+        rounded-md
+        border border-red-600
+        stroke-red-600
+        active:bg-red-600
+        sm:hover:bg-red-600 sm:hover:stroke-white
+    ";
+    rsx! {
+        button {
+            "aria-label": label,
+            class: "size-7 {style}",
+            onclick: move |_| {
+                state.set(State::Show);
+            },
+            CancelIcon {}
+        }
+    }
+}
+
+#[component]
+fn ColorShow(color: Color, state: Signal<State>) -> Element {
     let color = match color {
         Color::Black => "bg-black",
         Color::White => "bg-white",
@@ -121,34 +154,22 @@ fn ColorShow(color: Color, editing: Signal<bool>) -> Element {
     let style = format!("rounded {color}");
     rsx! {
         div {
-            class: "size-6 {style}",
-        }
-        button {
-            class: "size-4",
-            "aria-label": "edit color",
-            onclick: move |_| editing.set(true),
-            EditIcon {}
-        }
-    }
-}
-
-#[component]
-fn Name(user_id: UserId, name: String) -> Element {
-    let editing = use_signal(|| false);
-    rsx! {
-        div {
             class: "flex flex-row items-center gap-1",
-            if editing() {
-                NameInput { user_id, name, editing }
-            } else {
-                NameShow { name, editing }
+            div {
+                class: "size-6 {style}",
+            }
+            button {
+                class: "size-4",
+                "aria-label": "edit color",
+                onclick: move |_| state.set(State::EditingColor),
+                EditIcon {}
             }
         }
     }
 }
 
 #[component]
-fn NameInput(user_id: UserId, name: String, editing: Signal<bool>) -> Element {
+fn NameInput(user_id: UserId, name: String, state: Signal<State>) -> Element {
     let url = use_context::<Signal<UsersUrl>>();
     let users = use_context::<Signal<UserEntries>>();
     rsx! {
@@ -159,33 +180,36 @@ fn NameInput(user_id: UserId, name: String, editing: Signal<bool>) -> Element {
             onsubmit: move |event| {
                 let name = event.values()["Name"].as_value();
                 spawn_forever(requests::set_user_name(users, url, user_id, name));
-                editing.set(false);
+                state.set(State::Show);
             },
             TextInput {
                 id: "user-{user_id}-name-input",
                 label: "Name",
             }
             ConfirmButton { label: "set name" }
-            CancelButton { label: "cancel name update", editing }
+            CancelButton { label: "cancel name update", state }
         }
     }
 }
 
 #[component]
-fn NameShow(name: String, editing: Signal<bool>) -> Element {
+fn NameShow(name: String, state: Signal<State>) -> Element {
     rsx! {
-        {name}
-        button {
-            class: "size-4",
-            "aria-label": "edit name",
-            onclick: move |_| editing.set(true),
-            EditIcon {}
+        div {
+            class: "flex flex-row items-center gap-1",
+            {name}
+            button {
+                class: "size-4",
+                "aria-label": "edit name",
+                onclick: move |_| state.set(State::EditingName),
+                EditIcon {}
+            }
         }
     }
 }
 
 #[component]
-fn DeleteUserBUtton(user_id: UserId) -> Element {
+fn DeleteUserButton(user_id: UserId) -> Element {
     let url = use_context::<Signal<UsersUrl>>();
     let users = use_context::<Signal<UserEntries>>();
     let style = "stroke-red-600";
