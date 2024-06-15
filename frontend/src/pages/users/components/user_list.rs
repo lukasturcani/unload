@@ -3,6 +3,7 @@ use shared_models::{Color, UserEntry, UserId};
 
 use crate::{
     components::{
+        color_picker::ColorPicker,
         form::{CancelButton, ConfirmButton},
         icons::{EditIcon, TrashIcon},
         input::TextInput,
@@ -65,10 +66,34 @@ fn Color(user_id: UserId, color: Color) -> Element {
         div {
             class: "flex flex-row items-center gap-1",
             if editing() {
+                ColorSelect { user_id, editing }
             }
             else {
                 ColorShow { color, editing }
             }
+        }
+    }
+}
+
+#[component]
+fn ColorSelect(user_id: UserId, editing: Signal<bool>) -> Element {
+    let users = use_context::<Signal<UserEntries>>();
+    let url = use_context::<Signal<UsersUrl>>();
+    rsx! {
+        form {
+            id: "user-{user_id}-color-form",
+            "aria-label": "edit color",
+            class: "flex flex-row gap-2 items-center",
+            onsubmit: move |event| {
+                let color = serde_json::from_str(
+                    &event.values()["color-picker"].as_value()
+                ).unwrap();
+                spawn_forever(requests::set_user_color(users, url, user_id, color));
+                editing.set(false);
+            },
+            ColorPicker { }
+            ConfirmButton { label: "set color" }
+            CancelButton { label: "cancel color update", editing }
         }
     }
 }
