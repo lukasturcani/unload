@@ -6,7 +6,7 @@ use crate::{
     components::{
         color_picker::ColorPicker,
         form::ConfirmButton,
-        icons::{CancelIcon, EditIcon, TrashIcon},
+        icons::{ArchiveIcon, CancelIcon, EditIcon, TrashIcon},
         input::TextInput,
     },
     pages::tags::{
@@ -65,6 +65,7 @@ fn TagListItem(tag: TagEntry) -> Element {
                     }
                     div {
                         class: "flex flex-row items-center gap-1",
+                        ArchiveTagButton { tag_id: tag.id }
                         DeleteTagButton { tag_id: tag.id }
                     }
                 }
@@ -235,6 +236,22 @@ fn DeleteTagButton(tag_id: TagId) -> Element {
                 spawn_forever(requests::delete_tag(tags, url, tag_id));
             },
             TrashIcon {}
+        }
+    }
+}
+
+#[component]
+fn ArchiveTagButton(tag_id: TagId) -> Element {
+    let url = use_context::<Signal<TagsUrl>>();
+    let tags = use_context::<Signal<TagEntries>>();
+    rsx! {
+        button {
+            "aria-label": "archive tag",
+            class: "block size-6",
+            onclick: move |_| {
+                spawn_forever(requests::set_tag_archived(tags, url, tag_id));
+            },
+            ArchiveIcon {}
         }
     }
 }

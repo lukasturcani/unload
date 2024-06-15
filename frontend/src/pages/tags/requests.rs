@@ -93,3 +93,20 @@ async fn send_delete_tag_request(url: &Url, tag_id: TagId) -> Result<(), anyhow:
         .json::<()>()
         .await?)
 }
+
+pub async fn set_tag_archived(tags: Signal<TagEntries>, url: Signal<TagsUrl>, tag_id: TagId) {
+    let url = &url.read().0;
+    let _ = send_set_tag_archived_request(url, tag_id).await;
+    get_tags_(tags, url).await;
+}
+
+async fn send_set_tag_archived_request(url: &Url, tag_id: TagId) -> Result<(), anyhow::Error> {
+    let url = url.join(&format!("tags/{}/archived", tag_id))?;
+    Ok(reqwest::Client::new()
+        .put(url)
+        .json(&true)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
