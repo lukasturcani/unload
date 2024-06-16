@@ -20,16 +20,12 @@ use crate::{
 
 #[component]
 pub fn TaskList() -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("divide-y sm:divide-none {}", theme.divide_color);
     let tasks = use_context::<Signal<TaskEntries>>();
     rsx! {
         div {
             class: "
                 overflow-y-auto w-full max-w-lg
                 flex flex-col sm:gap-2
-                {style}
             ",
             for task in tasks.read().0.iter() {
                 Task { task: task.clone() }
@@ -46,6 +42,8 @@ fn Task(task: TaskEntry) -> Element {
     let expanded = use_signal(|| false);
     let style = format!(
         "
+        first:border-t
+        border-b
         sm:border
         sm:rounded-lg
         sm:shadow
