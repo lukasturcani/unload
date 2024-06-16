@@ -24,7 +24,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
         nav {
             class: "
                 flex flex-row justify-center
-                grow-0 shrink-0 w-full h-16
+                grow-0 shrink-0 w-full h-10 sm:h-16
                 text-xs sm:text-base
                 {style}
             ",
@@ -33,8 +33,8 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 body: rsx!{
                     div {
                         class: "h-full flex flex-col items-center justify-center",
-                        div { class: "size-8 hidden group-[:not(.current-page)]:block", BoardIcon {} }
-                        div { class: "size-8 hidden group-[.current-page]:block", SolidBoardIcon {} }
+                        div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", BoardIcon {} }
+                        div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidBoardIcon {} }
                         "Board"
                     }
                 }
@@ -44,8 +44,8 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 body: rsx!{
                     div {
                         class: "h-full flex flex-col items-center justify-center",
-                        div { class: "size-8 hidden group-[:not(.current-page)]:block", TagIcon {} }
-                        div { class: "size-8 hidden group-[.current-page]:block", SolidTagIcon {} }
+                        div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", TagIcon {} }
+                        div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidTagIcon {} }
                         "Tags"
                     }
                 }
@@ -55,8 +55,8 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 body: rsx!{
                     div {
                         class: "h-full flex flex-col items-center justify-center",
-                        div { class: "size-8 hidden group-[:not(.current-page)]:block", UsersIcon {} }
-                        div { class: "size-8 hidden group-[.current-page]:block", SolidUsersIcon {} }
+                        div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", UsersIcon {} }
+                        div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidUsersIcon {} }
                         "Users"
                     }
                 }
@@ -66,8 +66,8 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 body: rsx!{
                     div {
                         class: "h-full flex flex-col items-center justify-center",
-                        div { class: "size-8 hidden group-[:not(.current-page)]:block", ArchiveIcon {} }
-                        div { class: "size-8 hidden group-[.current-page]:block", SolidArchiveIcon {} }
+                        div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", ArchiveIcon {} }
+                        div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidArchiveIcon {} }
                         "Archive"
                     }
                 }
@@ -82,7 +82,7 @@ fn NavLink(to: Route, body: Element) -> Element {
         group h-full w-full sm:max-w-lg
     ";
     let style = "sm:hover:underline";
-    let active_style = "current-page underline";
+    let active_style = "current-page sm:underline";
     rsx! {
         Link {
             class: "{shared_css} {style}",
