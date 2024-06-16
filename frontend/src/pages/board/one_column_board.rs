@@ -168,9 +168,7 @@ fn ToggleActionsDrawerButton(drawer: Signal<Drawer>) -> Element {
 
 #[component]
 fn ColumnSwitcher(status: Signal<TaskStatus>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("border rounded {}", theme.border_color);
+    let style = "border rounded";
     rsx! {
         button {
             class: "
