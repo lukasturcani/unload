@@ -41,7 +41,7 @@ fn UsersPage(board_name: BoardName) -> Element {
             class: "flex flex-col h-dvh w-screen {style}",
             div {
                 class: "
-                    grow container mx-auto py-4 h-full overflow-y-auto
+                    grow container mx-auto sm:py-4 h-full overflow-y-auto
                     flex flex-col items-center justify-center
                 ",
                 UserList {}

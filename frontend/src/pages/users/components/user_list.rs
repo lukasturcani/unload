@@ -22,7 +22,7 @@ pub fn UserList() -> Element {
     let theme = theme.read();
     let style = format!(
         "
-            border rounded-lg
+            border sm:rounded-lg
             divide-y
             {} {}
         ",

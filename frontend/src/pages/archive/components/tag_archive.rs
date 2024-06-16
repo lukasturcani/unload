@@ -18,7 +18,7 @@ fn TagsTab(board_name: BoardName) -> Element {
     rsx! {
         div {
             class: "
-                grow container mx-auto py-4 h-full overflow-y-auto
+                grow container mx-auto sm:py-4 h-full overflow-y-auto
                 flex flex-col items-center justify-center
             ",
             TagList {}

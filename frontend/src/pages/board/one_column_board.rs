@@ -54,9 +54,15 @@ fn Header(body: Element) -> Element {
 
 #[component]
 fn Column(status: TaskStatus) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("divide-y {}", theme.divide_color);
     rsx! {
         div {
-            class: "grow flex flex-col gap-2 overflow-y-auto",
+            class: "
+                grow flex flex-col overflow-y-auto
+                {style}
+            ",
             ColumnTasks { status }
         }
     }

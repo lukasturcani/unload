@@ -43,9 +43,10 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let is_late = is_late(&task);
     let style = format!(
         "
-        border
-        rounded-lg
-        shadow
+        border-x
+        sm:border-y
+        sm:rounded-lg
+        sm:shadow
         {} {}
         ",
         if is_late && status != TaskStatus::Done {
