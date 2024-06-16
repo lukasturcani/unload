@@ -43,16 +43,15 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let is_late = is_late(&task);
     let style = format!(
         "
-        border-x
-        sm:border-y
+        sm:border
         sm:rounded-lg
         sm:shadow
         {} {}
         ",
         if is_late && status != TaskStatus::Done {
-            theme.late_border_color
+            format!("border-x {}", theme.late_border_color)
         } else {
-            theme.border_color
+            theme.border_color.into()
         },
         theme.bg_color_2,
     );
