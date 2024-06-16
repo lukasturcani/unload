@@ -27,6 +27,11 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let status = use_signal(|| TaskStatus::ToDo);
     let drawer = use_signal(|| Drawer::None);
+    let column_label = match status() {
+        TaskStatus::ToDo => "To Do",
+        TaskStatus::InProgress => "In Progress",
+        TaskStatus::Done => "Done",
+    };
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
@@ -40,7 +45,11 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
                     ToggleActionsDrawerButton { drawer }
                 }
             }
-            Column { status: status() }
+            section {
+                class: "grow overflow-y-auto",
+                "aria-label": "{column_label} tasks",
+                Column { status: status() }
+            }
             NavBar { board_name }
         }
     }
@@ -74,8 +83,7 @@ fn Column(status: TaskStatus) -> Element {
     let theme = theme.read();
     let style = format!("divide-y {}", theme.divide_color);
     rsx! {
-        section {
-            "aria-label": "tasks",
+        div {
             class: "
                 grow flex flex-col overflow-y-auto
                 {style}
