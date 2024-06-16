@@ -2,7 +2,10 @@ use dioxus::prelude::*;
 use shared_models::{BoardName, TaskStatus};
 
 use crate::{
-    components::nav::NavBar,
+    components::{
+        icons::{BarsIcon, ElipsisHorizontalIcon},
+        nav::NavBar,
+    },
     pages::board::{
         components::Task,
         model::{task_filter, Board, TagFilter, Tasks, UserFilter},
@@ -10,18 +13,31 @@ use crate::{
     themes::Theme,
 };
 
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum Drawer {
+    None,
+    Actions,
+    Navigation,
+}
+
 #[component]
 pub fn OneColumnBoard(board_name: BoardName) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let status = use_signal(|| TaskStatus::ToDo);
+    let drawer = use_signal(|| Drawer::None);
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
             Header {
                 body: rsx! {
-
+                    ToggleNavDrawerButton { drawer }
+                    h1 {
+                        class: "font-extrabold",
+                        "{board_name}"
+                    }
+                    ToggleActionsDrawerButton { drawer }
                 }
             }
             Column { status: status() }
@@ -43,8 +59,8 @@ fn Header(body: Element) -> Element {
     rsx! {
         header {
             class: "
-                flex flex-row items-center justify-around
-                w-full h-14 shrink-0 grow-0
+                flex flex-row items-center justify-between
+                w-full h-10 shrink-0 grow-0 px-2
                 {style}
             ",
             {body}
@@ -96,6 +112,50 @@ fn ColumnTasks(status: TaskStatus) -> Element {
                 task: tasks.0[task_id].clone(),
                 status,
             }
+        }
+    }
+}
+
+#[component]
+fn ToggleNavDrawerButton(drawer: Signal<Drawer>) -> Element {
+    let style = "
+        border rounded
+        aria-pressed:bg-white aria-pressed:stroke-black
+    ";
+    rsx! {
+        button {
+            class: "size-6 p-1 {style}",
+            "aria-pressed": drawer() == Drawer::Navigation,
+            onclick: move |_| {
+                if drawer() == Drawer::Navigation {
+                    drawer.set(Drawer::None)
+                } else {
+                    drawer.set(Drawer::Navigation)
+                }
+            },
+            BarsIcon {}
+        }
+    }
+}
+
+#[component]
+fn ToggleActionsDrawerButton(drawer: Signal<Drawer>) -> Element {
+    let style = "
+        border rounded
+        aria-pressed:bg-white aria-pressed:stroke-black
+    ";
+    rsx! {
+        button {
+            class: "size-6 p-1 {style}",
+            "aria-pressed": drawer() == Drawer::Actions,
+            onclick: move |_| {
+                if drawer() == Drawer::Actions {
+                    drawer.set(Drawer::None)
+                } else {
+                    drawer.set(Drawer::Actions)
+                }
+            },
+            ElipsisHorizontalIcon {}
         }
     }
 }

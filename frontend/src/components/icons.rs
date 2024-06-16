@@ -1,6 +1,24 @@
 use dioxus::prelude::*;
 
 #[component]
+pub fn BarsIcon() -> Element {
+    rsx! {
+        Icon {
+            d: "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5",
+        }
+    }
+}
+
+#[component]
+pub fn ElipsisHorizontalIcon() -> Element {
+    rsx! {
+        Icon {
+            d: "M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z",
+        }
+    }
+}
+
+#[component]
 pub fn StackIcon() -> Element {
     rsx! {
         Icon {
