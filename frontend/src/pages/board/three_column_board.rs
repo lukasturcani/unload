@@ -94,10 +94,9 @@ fn FilterBar() -> Element {
 
 #[component]
 fn DenseButton(dense: Signal<bool>) -> Element {
-    let style = "
-        border-2 rounded
-        aria-pressed:bg-white aria-pressed:stroke-black
-    ";
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border-2 rounded {}", theme.button);
     let dense_ = dense();
     rsx! {
         button {
