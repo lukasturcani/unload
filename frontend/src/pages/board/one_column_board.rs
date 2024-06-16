@@ -3,7 +3,7 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
-        icons::{BarsIcon, ElipsisHorizontalIcon},
+        icons::{BarsIcon, DoneIcon, ElipsisHorizontalIcon, InProgressIcon, ToDoIcon},
         nav::NavBar,
     },
     pages::board::{
@@ -46,8 +46,16 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
                 }
             }
             section {
-                class: "grow overflow-y-auto",
+                class: "grow flex flex-col overflow-y-auto",
                 "aria-label": "{column_label} tasks",
+                div {
+                    class: "
+                        w-full shrink-0 grow-0
+                        flex flex-row items-center justify-center
+                        pb-1
+                    ",
+                    ColumnSwitcher { status }
+                }
                 Column { status: status() }
             }
             NavBar { board_name }
@@ -57,20 +65,11 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
 
 #[component]
 fn Header(body: Element) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!(
-        "
-        border-b {}
-        ",
-        theme.border_color
-    );
     rsx! {
         header {
             class: "
                 flex flex-row items-center justify-between
                 w-full h-10 shrink-0 grow-0 px-2
-                {style}
             ",
             {body}
         }
@@ -165,6 +164,37 @@ fn ToggleActionsDrawerButton(drawer: Signal<Drawer>) -> Element {
                 }
             },
             ElipsisHorizontalIcon {}
+        }
+    }
+}
+
+#[component]
+fn ColumnSwitcher(status: Signal<TaskStatus>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border rounded {}", theme.border_color);
+    rsx! {
+        button {
+            class: "
+                py-0.5 px-1
+                flex flex-row gap-1 items-center
+                text-xs
+                {style}
+            ",
+            match status() {
+                TaskStatus::ToDo => rsx! {
+                    div { class: "size-3", ToDoIcon {} }
+                    "To Do"
+                },
+                TaskStatus::InProgress => rsx! {
+                    div { class: "size-3", InProgressIcon {} }
+                    "In Progress"
+                },
+                TaskStatus::Done => rsx! {
+                    div { class: "size-3", DoneIcon {} }
+                    "Done"
+                }
+            }
         }
     }
 }
