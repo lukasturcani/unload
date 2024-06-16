@@ -126,10 +126,9 @@ fn ColumnTasks(status: TaskStatus) -> Element {
 
 #[component]
 fn ToggleNavDrawerButton(drawer: Signal<Drawer>) -> Element {
-    let style = "
-        border rounded
-        aria-pressed:bg-white aria-pressed:stroke-black
-    ";
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
             class: "size-6 p-1 {style}",
@@ -148,10 +147,9 @@ fn ToggleNavDrawerButton(drawer: Signal<Drawer>) -> Element {
 
 #[component]
 fn ToggleActionsDrawerButton(drawer: Signal<Drawer>) -> Element {
-    let style = "
-        border rounded
-        aria-pressed:bg-white aria-pressed:stroke-black
-    ";
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
             class: "size-6 p-1 {style}",

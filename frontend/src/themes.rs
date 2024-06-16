@@ -7,6 +7,7 @@ pub struct Theme {
     pub bg_color_1: &'static str,
     pub bg_color_2: &'static str,
     pub divide_color: &'static str,
+    pub button: &'static str,
 }
 
 pub const THEMES: &[Theme] = &[
@@ -18,6 +19,7 @@ pub const THEMES: &[Theme] = &[
         bg_color_1: "bg-gray-900",
         bg_color_2: "bg-gray-800",
         divide_color: "divide-gray-700",
+        button: "aria-pressed:bg-white aria-pressed:stroke-black",
     },
     Theme {
         text_color: "text-white stroke-white",
@@ -27,5 +29,6 @@ pub const THEMES: &[Theme] = &[
         bg_color_1: "bg-gray-900",
         bg_color_2: "bg-pink-500",
         divide_color: "divide-pink-400",
+        button: "aria-pressed:bg-white aria-pressed:stroke-black",
     },
 ];

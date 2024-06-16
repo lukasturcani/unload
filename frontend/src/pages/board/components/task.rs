@@ -442,11 +442,9 @@ fn ToggleSelector(
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
-    let style = "
-        rounded border-2 border-white
-        sm:hover:bg-white sm:hover:stroke-black
-        aria-pressed:bg-white aria-pressed:stroke-black
-    ";
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded border-2 {}", theme.button);
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         div {
