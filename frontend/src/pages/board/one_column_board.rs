@@ -74,7 +74,8 @@ fn Column(status: TaskStatus) -> Element {
     let theme = theme.read();
     let style = format!("divide-y {}", theme.divide_color);
     rsx! {
-        div {
+        section {
+            "aria-label": "tasks",
             class: "
                 grow flex flex-col overflow-y-auto
                 {style}
