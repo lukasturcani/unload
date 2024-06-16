@@ -22,7 +22,7 @@ pub fn TagList() -> Element {
     let theme = theme.read();
     let style = format!(
         "
-            border sm:rounded-lg
+            sm:border sm:rounded-lg
             divide-y
             {} {}
         ",
