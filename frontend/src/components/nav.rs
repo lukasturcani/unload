@@ -25,6 +25,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
             class: "
                 flex flex-row justify-center
                 grow-0 shrink-0 w-full h-16
+                text-xs sm:text-base
                 {style}
             ",
             NavLink {
@@ -78,7 +79,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
 #[component]
 fn NavLink(to: Route, body: Element) -> Element {
     let shared_css = "
-        group h-full w-1/6
+        group h-full w-full sm:max-w-lg
     ";
     let style = "sm:hover:underline";
     let active_style = "current-page underline";
