@@ -3,7 +3,10 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
-        icons::{BarsIcon, DoneIcon, ElipsisHorizontalIcon, InProgressIcon, ToDoIcon},
+        icons::{
+            BarsIcon, DoneIcon, ElipsisHorizontalIcon, InProgressIcon, SparklesIcon, StackIcon,
+            ToDoIcon,
+        },
         nav::NavBar,
     },
     pages::board::{
@@ -61,6 +64,61 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
                 Column { status: status() }
             }
             NavBar { board_name }
+        }
+        match panel() {
+            Panel::Actions => rsx! { ActionsSheet { panel } },
+            _ => rsx! {},
+        }
+    }
+}
+
+#[component]
+fn BottomSheet(panel: Signal<Panel>, body: Element) -> Element {
+    rsx! {
+        div {
+            class: "
+                size-full absolute inset-0 z-10
+                flex flex-col
+            ",
+            div {
+                class: "grow backdrop-blur-sm",
+                onclick: move |_| panel.set(Panel::None),
+            }
+            {body}
+        }
+    }
+}
+
+#[component]
+fn ActionsSheet(panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
+                rounded-t border-t
+                {} {} {}
+            ",
+        theme.bg_color_1, theme.text_color, theme.border_color
+    );
+    rsx! {
+        BottomSheet {
+            panel
+            body: rsx! {
+                section {
+                    "aria-label": "actions",
+                    class: "flex flex-col gap-2 pt-2 pb-20 {style}",
+                    button {
+                        class: "flex flex-row gap-1 items-center justify-left px-1",
+                        div { class: "size-5", StackIcon {} }
+                        "Toggle dense view"
+                    }
+                    button {
+                        class: "flex flex-row gap-1 items-center justify-left px-1",
+                        div { class: "size-5", SparklesIcon {} }
+                        "Change theme"
+                    }
+                }
+            },
         }
     }
 }
