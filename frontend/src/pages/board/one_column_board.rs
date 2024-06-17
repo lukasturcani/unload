@@ -27,7 +27,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let status = use_signal(|| TaskStatus::ToDo);
-    let panel = use_signal(|| Panel::None);
+    let mut panel = use_signal(|| Panel::None);
     let column_label = match status() {
         TaskStatus::ToDo => "To Do",
         TaskStatus::InProgress => "In Progress",
@@ -35,6 +35,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
     };
     rsx! {
         div {
+            onclick: move |_| panel.set(Panel::None),
             class: "flex flex-col h-dvh w-screen {style}",
             Header {
                 body: rsx! {
@@ -134,7 +135,8 @@ fn ToggleNavDrawerButton(panel: Signal<Panel>) -> Element {
         button {
             class: "size-6 p-1 {style}",
             "aria-pressed": panel() == Panel::Navigation,
-            onclick: move |_| {
+            onclick: move |event| {
+                event.stop_propagation();
                 if panel() == Panel::Navigation {
                     panel.set(Panel::None)
                 } else {
@@ -155,7 +157,8 @@ fn ToggleActionsDrawerButton(panel: Signal<Panel>) -> Element {
         button {
             class: "size-6 p-1 {style}",
             "aria-pressed": panel() == Panel::Actions,
-            onclick: move |_| {
+            onclick: move |event| {
+                event.stop_propagation();
                 if panel() == Panel::Actions {
                     panel.set(Panel::None)
                 } else {
@@ -190,7 +193,14 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                     text-xs
                     {status_style}
                 ",
-                onclick: move |_| panel.set(Panel::Status),
+                onclick: move |event| {
+                    if panel() == Panel::Status {
+                        panel.set(Panel::None);
+                    } else {
+                        panel.set(Panel::Status);
+                    }
+                    event.stop_propagation();
+                },
                 match status() {
                     TaskStatus::ToDo => rsx! {
                         div { class: "size-3", ToDoIcon {} }
@@ -209,34 +219,37 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
             if panel() == Panel::Status {
                 div {
                     class: "
-                        absolute left-0
+                        absolute -bottom-20
                         w-32 z-10
                         flex flex-col
                         {dropdown_style}
                     ",
                     button {
                         class: "flex flex-row gap-1 items-center justify-center",
-                        onclick: move |_| {
+                        onclick: move |event| {
                             status.set(TaskStatus::ToDo);
                             panel.set(Panel::None);
+                            event.stop_propagation();
                         },
                         div { class: "size-4", ToDoIcon {} }
                         "To Do",
                     }
                     button {
                         class: "flex flex-row gap-1 items-center justify-center",
-                        onclick: move |_| {
+                        onclick: move |event| {
                             status.set(TaskStatus::InProgress);
                             panel.set(Panel::None);
+                            event.stop_propagation();
                         },
                         div { class: "size-4", InProgressIcon {} }
                         "In Progress",
                     }
                     button {
                         class: "flex flex-row gap-1 items-center justify-center",
-                        onclick: move |_| {
+                        onclick: move |event| {
                             status.set(TaskStatus::Done);
                             panel.set(Panel::None);
+                            event.stop_propagation();
                         },
                         div { class: "size-4", DoneIcon {} }
                         "Done",
