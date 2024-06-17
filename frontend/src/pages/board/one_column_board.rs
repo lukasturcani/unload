@@ -22,6 +22,8 @@ enum Panel {
     Actions,
     Navigation,
     Status,
+    Filter,
+    Themes,
 }
 
 #[component]
@@ -114,6 +116,7 @@ fn ActionsSheet(panel: Signal<Panel>) -> Element {
                     }
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
+                        onclick: move |_| panel.set(Panel::None),
                         div { class: "size-5", StackIcon {} }
                         "Toggle dense view"
                     }
