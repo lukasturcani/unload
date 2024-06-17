@@ -5,8 +5,8 @@ use shared_models::{BoardName, TaskStatus};
 use crate::{
     components::{
         icons::{
-            BarsIcon, DoneIcon, ElipsisHorizontalIcon, FilterIcon, InProgressIcon, SparklesIcon,
-            StackIcon, ToDoIcon,
+            BarsIcon, CancelIcon, DoneIcon, ElipsisHorizontalIcon, FilterIcon, InProgressIcon,
+            SparklesIcon, StackIcon, ToDoIcon,
         },
         nav::NavBar,
     },
@@ -359,6 +359,15 @@ fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
             "aria-label": "filters",
             class: "flex flex-col gap-1 px-2 py-1 {style}",
             div {
+                class: "flex flex-row px-1 justify-end",
+                button {
+                    "aria-label": "close filters",
+                    class: "size-6",
+                    onclick: move |_| extra_bar.set(ExtraBar::None),
+                    CancelIcon {}
+                }
+            }
+            div {
                 class: "flex flex-row gap-1 flex-wrap items-center justify-center",
                 for tag_id in tags.keys().sorted_by_key(|tag_id| tags[tag_id].name.to_lowercase())
                 {
@@ -380,6 +389,7 @@ fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
                     }
                 }
             }
+
         }
     }
 }
