@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use itertools::Itertools;
 use shared_models::{BoardName, TaskStatus};
 
 use crate::{
@@ -10,8 +11,8 @@ use crate::{
         nav::NavBar,
     },
     pages::board::{
-        components::Task,
-        model::{task_filter, Board, TagFilter, Tasks, UserFilter},
+        components::{FilterBarTagIcon, Task, UserIcon},
+        model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
     },
     themes::Theme,
 };
@@ -22,6 +23,11 @@ enum Panel {
     Actions,
     Navigation,
     Status,
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum ExtraBar {
+    None,
     Filter,
     Themes,
 }
@@ -38,6 +44,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
         TaskStatus::InProgress => "In Progress",
         TaskStatus::Done => "Done",
     };
+    let extra_bar = use_signal(|| ExtraBar::None);
     rsx! {
         div {
             onclick: move |_| panel.set(Panel::None),
@@ -65,10 +72,14 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
                 }
                 Column { status: status() }
             }
+            match extra_bar() {
+                ExtraBar::Filter => rsx! { FilterBar { extra_bar } },
+                _ => rsx! {},
+            }
             NavBar { board_name }
         }
         match panel() {
-            Panel::Actions => rsx! { ActionsSheet { panel } },
+            Panel::Actions => rsx! { ActionsSheet { panel, extra_bar } },
             _ => rsx! {},
         }
     }
@@ -92,7 +103,7 @@ fn BottomSheet(panel: Signal<Panel>, body: Element) -> Element {
 }
 
 #[component]
-fn ActionsSheet(panel: Signal<Panel>) -> Element {
+fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -111,6 +122,10 @@ fn ActionsSheet(panel: Signal<Panel>) -> Element {
                     class: "flex flex-col gap-2 pt-2 pb-20 {style}",
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
+                        onclick: move |_| {
+                            extra_bar.set(ExtraBar::Filter);
+                            panel.set(Panel::None);
+                        },
                         div { class: "size-5", FilterIcon {} }
                         "Filter tasks"
                     }
@@ -122,6 +137,10 @@ fn ActionsSheet(panel: Signal<Panel>) -> Element {
                     }
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
+                        onclick: move |_| {
+                            extra_bar.set(ExtraBar::Themes);
+                            panel.set(Panel::None);
+                        },
                         div { class: "size-5", SparklesIcon {} }
                         "Change theme"
                     }
@@ -319,6 +338,45 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                         },
                         div { class: "size-4", DoneIcon {} }
                         "Done",
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border-t {}", theme.border_color);
+    let tags = use_context::<Signal<Tags>>();
+    let tags = &tags.read().0;
+    let users = use_context::<Signal<Users>>();
+    let users = &users.read().0;
+    rsx! {
+        section {
+            "aria-label": "filters",
+            class: "flex flex-col gap-1 px-2 py-1 {style}",
+            div {
+                class: "flex flex-row gap-1 flex-wrap items-center justify-center",
+                for tag_id in tags.keys().sorted_by_key(|tag_id| tags[tag_id].name.to_lowercase())
+                {
+                    FilterBarTagIcon {
+                        tag_id: *tag_id,
+                        tag_data: tags[&tag_id].clone(),
+                    }
+                }
+            }
+            div {
+                class: "flex flex-row gap-1 flex-wrap items-center justify-center",
+                for user_id in users.keys().sorted_by_key(|user_id| users[user_id].name.to_lowercase())
+                {
+                    UserIcon {
+                        user_id: *user_id,
+                        user_data: users[&user_id].clone(),
+                        size: "size-6",
+                        tooltip_position: "-left-3 -top-10",
                     }
                 }
             }

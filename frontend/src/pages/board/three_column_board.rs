@@ -63,7 +63,8 @@ fn FilterBar() -> Element {
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     rsx! {
-        div {
+        section {
+            "aria-label": "filters",
             class: "grid grid-cols-5 gap-1",
             div {
                 class: "col-span-4 flex flex-row flex-wrap items-center gap-1",
