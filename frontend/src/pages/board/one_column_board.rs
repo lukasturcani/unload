@@ -220,12 +220,12 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                 div {
                     class: "
                         absolute -bottom-20
-                        w-32 z-10
+                        z-10
                         flex flex-col
                         {dropdown_style}
                     ",
                     button {
-                        class: "flex flex-row gap-1 items-center justify-center",
+                        class: "flex flex-row gap-1 items-center text-nowrap px-1",
                         onclick: move |event| {
                             status.set(TaskStatus::ToDo);
                             panel.set(Panel::None);
@@ -235,7 +235,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                         "To Do",
                     }
                     button {
-                        class: "flex flex-row gap-1 items-center justify-center",
+                        class: "flex flex-row gap-1 items-center text-nowrap px-1",
                         onclick: move |event| {
                             status.set(TaskStatus::InProgress);
                             panel.set(Panel::None);
@@ -245,7 +245,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                         "In Progress",
                     }
                     button {
-                        class: "flex flex-row gap-1 items-center justify-center",
+                        class: "flex flex-row gap-1 items-center text-nowrap px-1",
                         onclick: move |event| {
                             status.set(TaskStatus::Done);
                             panel.set(Panel::None);
