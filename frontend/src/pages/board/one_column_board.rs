@@ -4,8 +4,8 @@ use shared_models::{BoardName, TaskStatus};
 use crate::{
     components::{
         icons::{
-            BarsIcon, DoneIcon, ElipsisHorizontalIcon, InProgressIcon, SparklesIcon, StackIcon,
-            ToDoIcon,
+            BarsIcon, DoneIcon, ElipsisHorizontalIcon, FilterIcon, InProgressIcon, SparklesIcon,
+            StackIcon, ToDoIcon,
         },
         nav::NavBar,
     },
@@ -95,7 +95,7 @@ fn ActionsSheet(panel: Signal<Panel>) -> Element {
     let theme = theme.read();
     let style = format!(
         "
-                rounded-t border-t
+                rounded-t-2xl border-t
                 {} {} {}
             ",
         theme.bg_color_1, theme.text_color, theme.border_color
@@ -108,12 +108,17 @@ fn ActionsSheet(panel: Signal<Panel>) -> Element {
                     "aria-label": "actions",
                     class: "flex flex-col gap-2 pt-2 pb-20 {style}",
                     button {
-                        class: "flex flex-row gap-1 items-center justify-left px-1",
+                        class: "flex flex-row gap-2 items-center justify-left px-1",
+                        div { class: "size-5", FilterIcon {} }
+                        "Filter tasks"
+                    }
+                    button {
+                        class: "flex flex-row gap-2 items-center justify-left px-1",
                         div { class: "size-5", StackIcon {} }
                         "Toggle dense view"
                     }
                     button {
-                        class: "flex flex-row gap-1 items-center justify-left px-1",
+                        class: "flex flex-row gap-2 items-center justify-left px-1",
                         div { class: "size-5", SparklesIcon {} }
                         "Change theme"
                     }
