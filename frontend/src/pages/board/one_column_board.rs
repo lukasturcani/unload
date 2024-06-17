@@ -14,10 +14,11 @@ use crate::{
 };
 
 #[derive(Clone, Copy, Eq, PartialEq)]
-enum Drawer {
+enum Panel {
     None,
     Actions,
     Navigation,
+    Status,
 }
 
 #[component]
@@ -26,7 +27,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let status = use_signal(|| TaskStatus::ToDo);
-    let drawer = use_signal(|| Drawer::None);
+    let panel = use_signal(|| Panel::None);
     let column_label = match status() {
         TaskStatus::ToDo => "To Do",
         TaskStatus::InProgress => "In Progress",
@@ -37,12 +38,12 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
             class: "flex flex-col h-dvh w-screen {style}",
             Header {
                 body: rsx! {
-                    ToggleNavDrawerButton { drawer }
+                    ToggleNavDrawerButton { panel }
                     h1 {
                         class: "font-extrabold",
                         "{board_name}"
                     }
-                    ToggleActionsDrawerButton { drawer }
+                    ToggleActionsDrawerButton { panel }
                 }
             }
             section {
@@ -51,10 +52,10 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
                 div {
                     class: "
                         w-full shrink-0 grow-0
-                        flex flex-row items-center justify-center
-                        pb-1
+                        flex flex-row items-center
+                        pb-1 px-2
                     ",
-                    ColumnSwitcher { status }
+                    ColumnSwitcher { status, panel }
                 }
                 Column { status: status() }
             }
@@ -125,19 +126,19 @@ fn ColumnTasks(status: TaskStatus) -> Element {
 }
 
 #[component]
-fn ToggleNavDrawerButton(drawer: Signal<Drawer>) -> Element {
+fn ToggleNavDrawerButton(panel: Signal<Panel>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
             class: "size-6 p-1 {style}",
-            "aria-pressed": drawer() == Drawer::Navigation,
+            "aria-pressed": panel() == Panel::Navigation,
             onclick: move |_| {
-                if drawer() == Drawer::Navigation {
-                    drawer.set(Drawer::None)
+                if panel() == Panel::Navigation {
+                    panel.set(Panel::None)
                 } else {
-                    drawer.set(Drawer::Navigation)
+                    panel.set(Panel::Navigation)
                 }
             },
             BarsIcon {}
@@ -146,19 +147,19 @@ fn ToggleNavDrawerButton(drawer: Signal<Drawer>) -> Element {
 }
 
 #[component]
-fn ToggleActionsDrawerButton(drawer: Signal<Drawer>) -> Element {
+fn ToggleActionsDrawerButton(panel: Signal<Panel>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
             class: "size-6 p-1 {style}",
-            "aria-pressed": drawer() == Drawer::Actions,
+            "aria-pressed": panel() == Panel::Actions,
             onclick: move |_| {
-                if drawer() == Drawer::Actions {
-                    drawer.set(Drawer::None)
+                if panel() == Panel::Actions {
+                    panel.set(Panel::None)
                 } else {
-                    drawer.set(Drawer::Actions)
+                    panel.set(Panel::Actions)
                 }
             },
             ElipsisHorizontalIcon {}
@@ -167,28 +168,79 @@ fn ToggleActionsDrawerButton(drawer: Signal<Drawer>) -> Element {
 }
 
 #[component]
-fn ColumnSwitcher(status: Signal<TaskStatus>) -> Element {
-    let style = "border rounded";
+fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let status_style = "border rounded";
+    let dropdown_style = format!(
+        "
+            border divide-y
+            rounded-lg shadow-sm
+            {} {} {}
+        ",
+        theme.border_color, theme.divide_color, theme.bg_color_2,
+    );
     rsx! {
-        button {
-            class: "
-                py-0.5 px-1
-                flex flex-row gap-1 items-center
-                text-xs
-                {style}
-            ",
-            match status() {
-                TaskStatus::ToDo => rsx! {
-                    div { class: "size-3", ToDoIcon {} }
-                    "To Do"
-                },
-                TaskStatus::InProgress => rsx! {
-                    div { class: "size-3", InProgressIcon {} }
-                    "In Progress"
-                },
-                TaskStatus::Done => rsx! {
-                    div { class: "size-3", DoneIcon {} }
-                    "Done"
+        div {
+            class: "group relative",
+            button {
+                class: "
+                    py-0.5 px-1
+                    flex flex-row gap-1 items-center
+                    text-xs
+                    {status_style}
+                ",
+                onclick: move |_| panel.set(Panel::Status),
+                match status() {
+                    TaskStatus::ToDo => rsx! {
+                        div { class: "size-3", ToDoIcon {} }
+                        "To Do"
+                    },
+                    TaskStatus::InProgress => rsx! {
+                        div { class: "size-3", InProgressIcon {} }
+                        "In Progress"
+                    },
+                    TaskStatus::Done => rsx! {
+                        div { class: "size-3", DoneIcon {} }
+                        "Done"
+                    }
+                }
+            }
+            if panel() == Panel::Status {
+                div {
+                    class: "
+                        absolute left-0
+                        w-32 z-10
+                        flex flex-col
+                        {dropdown_style}
+                    ",
+                    button {
+                        class: "flex flex-row gap-1 items-center justify-center",
+                        onclick: move |_| {
+                            status.set(TaskStatus::ToDo);
+                            panel.set(Panel::None);
+                        },
+                        div { class: "size-4", ToDoIcon {} }
+                        "To Do",
+                    }
+                    button {
+                        class: "flex flex-row gap-1 items-center justify-center",
+                        onclick: move |_| {
+                            status.set(TaskStatus::InProgress);
+                            panel.set(Panel::None);
+                        },
+                        div { class: "size-4", InProgressIcon {} }
+                        "In Progress",
+                    }
+                    button {
+                        class: "flex flex-row gap-1 items-center justify-center",
+                        onclick: move |_| {
+                            status.set(TaskStatus::Done);
+                            panel.set(Panel::None);
+                        },
+                        div { class: "size-4", DoneIcon {} }
+                        "Done",
+                    }
                 }
             }
         }
