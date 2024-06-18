@@ -4,8 +4,9 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
-        icons::{DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
+        icons::{DoneIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon},
         nav::NavBar,
+        tooltip::Tooltip,
     },
     model::AppSettings,
     pages::board::{
@@ -20,6 +21,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
+    let show_themes = use_signal(|| false);
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
@@ -30,7 +32,11 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                         class: "text-3xl font-extrabold",
                         "{board_name}"
                     }
-                    DenseButton { }
+                    div {
+                        class: "flex flex-row gap-2",
+                        DenseButton {}
+                        ThemeButton { show_themes }
+                    }
                 }
             }
             div {
@@ -95,14 +101,41 @@ fn DenseButton() -> Element {
     let style = format!("border-2 rounded {}", theme.button);
     let mut settings = use_context::<Signal<AppSettings>>();
     rsx! {
-        button {
-            class: "size-9 p-1 {style}",
-            "aria-pressed": settings.read().dense(),
-            onclick: move |_| {
-                let dense = settings.read().dense();
-                settings.write().set_dense(!dense);
-            },
-            StackIcon {}
+        div {
+            class: "group relative",
+            button {
+                "aria-label": "toggle dense view",
+                class: "size-9 p-1 {style}",
+                "aria-pressed": settings.read().dense(),
+                onclick: move |_| {
+                    let dense = settings.read().dense();
+                    settings.write().set_dense(!dense);
+                },
+                StackIcon {}
+            }
+            Tooltip { content: "Toggle Dense View", position: "-left-10" }
+        }
+    }
+}
+
+#[component]
+fn ThemeButton(show_themes: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border-2 rounded {}", theme.button);
+    rsx! {
+        div {
+            class: "group relative",
+            button {
+                "aria-label": "toggle show themes",
+                class: "size-9 p-1 {style}",
+                "aria-pressed": show_themes(),
+                onclick: move |_| {
+                    show_themes.set(!show_themes());
+                },
+                SparklesIcon {}
+            }
+            Tooltip { content: "Toggle Show Themes", position: "-left-14" }
         }
     }
 }
