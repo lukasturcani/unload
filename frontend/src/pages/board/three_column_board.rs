@@ -15,7 +15,7 @@ use crate::{
         },
         model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
     },
-    themes::{Theme, THEMES},
+    themes::Theme,
 };
 
 #[component]
@@ -64,11 +64,12 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
 
 #[component]
 fn Themes() -> Element {
+    let themes = use_context::<Signal<Vec<Theme>>>();
     rsx! {
         section {
             class: "flex flex-row overflow-x-auto gap-2",
             h2 { class: "text-xl", "Themes:" }
-            for theme in THEMES {
+            for theme in themes.read().iter() {
                 ThemeButton { theme: *theme }
             }
         }
