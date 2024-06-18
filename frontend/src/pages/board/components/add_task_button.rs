@@ -12,7 +12,8 @@ pub fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>) -> Element {
     rsx! {
         button {
             class: "
-                h-12 shrink-0 grow-0 flex flex-row justify-center items-center
+                h-10 sm:h-12 shrink-0 grow-0
+                flex flex-row justify-center items-center
                 {style}
             ",
             onclick: move |_| async move {

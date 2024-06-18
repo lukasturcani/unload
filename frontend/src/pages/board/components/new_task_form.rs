@@ -19,9 +19,9 @@ pub fn NewTaskForm(status: TaskStatus, adding_task: Signal<bool>) -> Element {
     let theme = theme.read();
     let style = format!(
         "
-        border
-        rounded-lg
-        shadow
+        sm:border
+        sm:rounded-lg
+        sm:shadow
         {} {}
         ",
         theme.border_color, theme.bg_color_2,
