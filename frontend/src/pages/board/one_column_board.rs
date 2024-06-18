@@ -12,7 +12,9 @@ use crate::{
     },
     model::AppSettings,
     pages::board::{
-        components::{AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, UserIcon},
+        components::{
+            AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
+        },
         model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
     },
     themes::Theme,
@@ -78,7 +80,8 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
             AddTaskButton { status: status_, adding_task }
             match extra_bar() {
                 ExtraBar::Filter => rsx! { FilterBar { extra_bar } },
-                _ => rsx! {},
+                ExtraBar::Themes => rsx! { ThemesBar { extra_bar } },
+                ExtraBar::None => rsx! {},
             }
             NavBar { board_name }
         }
@@ -389,6 +392,29 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                         "Done",
                     }
                 }
+            }
+        }
+    }
+}
+
+#[component]
+fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
+    let themes = use_context::<Signal<Vec<Theme>>>();
+    rsx! {
+        section {
+            class: "flex flex-row gap-2 items-center justify-between",
+            "aria-label": "themes",
+            div {
+                class: "flex flex-row overflow-x-auto gap-2",
+                for theme in themes.read().iter() {
+                    ThemeButton { theme: *theme }
+                }
+            }
+            button {
+                "aria-label": "close theme selector",
+                class: "size-6",
+                onclick: move |_| extra_bar.set(ExtraBar::None),
+                CancelIcon {}
             }
         }
     }

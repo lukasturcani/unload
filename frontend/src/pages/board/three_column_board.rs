@@ -53,7 +53,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                     },
                 }
                 if show_themes() {
-                    Themes {}
+                    ThemesBar {}
                 }
                 FilterBar {}
             }
@@ -63,7 +63,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
 }
 
 #[component]
-fn Themes() -> Element {
+fn ThemesBar() -> Element {
     let themes = use_context::<Signal<Vec<Theme>>>();
     rsx! {
         section {
