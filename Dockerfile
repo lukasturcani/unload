@@ -1,4 +1,4 @@
-FROM rust:1.74.0 as builder
+FROM rust:1.79.0 as builder
 RUN apt-get update && apt-get install -y npm fd-find
 RUN rustup target add wasm32-unknown-unknown
 RUN \
