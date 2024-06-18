@@ -128,8 +128,10 @@ fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> E
             div { class: "size-6", ClockIcon {} }
             if let Some(DueOptions { due, show_time_left, is_late }) = due {
                 HasDue { due, show_time_left, is_late }
+                EditButton { task_id, editing, dir: "rtl" }
+            } else {
+                EditButton { task_id, editing, dir: "" }
             }
-            EditButton { task_id, editing }
         }
     }
 }
@@ -163,7 +165,7 @@ fn HasDue(due: DateTime<Utc>, show_time_left: bool, is_late: bool) -> Element {
 }
 
 #[component]
-fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
+fn EditButton(task_id: TaskId, editing: Signal<bool>, dir: &'static str) -> Element {
     rsx! {
         div {
             class: "group relative",
@@ -176,7 +178,7 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
             Tooltip {
                 content: "Edit Due Date",
                 position: "",
-                dir: "rtl",
+                dir,
             }
         }
     }

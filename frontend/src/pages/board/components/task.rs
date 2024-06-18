@@ -147,24 +147,24 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                 AssigneeSelection { task_id, assignees: task.assignees }
             }
             if expanded_ {
-                Description { task_id, description: task.description }
                 div {
-                    class: "flex flex-row justify-between items-center",
-                    Due {
-                        task_id,
-                        due: task.due.map(|due| DueOptions {
-                            due,
-                            show_time_left: status != TaskStatus::Done,
-                            is_late,
-                        })
-                    }
+                    class: "flex flex-row justify-center items-center",
                     StatusButtons { task_id }
                 }
+                Description { task_id, description: task.description }
+                Due {
+                    task_id,
+                    due: task.due.map(|due| DueOptions {
+                        due,
+                        show_time_left: status != TaskStatus::Done,
+                        is_late,
+                    })
+                }
                 div {
-                    class: "flex flex row justify-between items-center",
-                    TaskTags { task_id, tags: task.tags.clone(), select_tags }
+                    class: "flex flex row justify-center items-center",
                     TaskActions { task_id }
                 }
+                TaskTags { task_id, tags: task.tags.clone(), select_tags }
                 if select_tags() {
                     TagSelection { task_id, tags: task.tags }
                 }

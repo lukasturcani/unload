@@ -10,6 +10,7 @@ use crate::{
         input::TextInput,
         nav::NavBar,
     },
+    model::AppSettings,
     pages::board::{
         components::{DenseTask, FilterBarTagIcon, Task, UserIcon},
         model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
@@ -23,8 +24,6 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
-    let dense = use_signal(|| false);
-    let dense_ = dense();
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
@@ -35,7 +34,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                         class: "text-3xl font-extrabold",
                         "{board_name}"
                     }
-                    DenseButton { dense }
+                    DenseButton { }
                 }
             }
             div {
@@ -44,9 +43,9 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                     class: "grow w-full h-full overflow-y-auto",
                     div {
                         class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
-                        Column { status: TaskStatus::ToDo, dense: dense_ }
-                        Column { status: TaskStatus::InProgress, dense: dense_ }
-                        Column { status: TaskStatus::Done, dense: dense_ }
+                        Column { status: TaskStatus::ToDo }
+                        Column { status: TaskStatus::InProgress }
+                        Column { status: TaskStatus::Done }
                     },
                 }
                 FilterBar {}
@@ -94,16 +93,19 @@ fn FilterBar() -> Element {
 }
 
 #[component]
-fn DenseButton(dense: Signal<bool>) -> Element {
+fn DenseButton() -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border-2 rounded {}", theme.button);
-    let dense_ = dense();
+    let mut settings = use_context::<Signal<AppSettings>>();
     rsx! {
         button {
             class: "size-9 p-1 {style}",
-            "aria-pressed": dense_,
-            onclick: move |_| dense.set(!dense_),
+            "aria-pressed": settings.read().dense(),
+            onclick: move |_| {
+                let dense = settings.read().dense();
+                settings.write().set_dense(!dense);
+            },
             StackIcon {}
         }
     }
@@ -140,10 +142,12 @@ fn ColumnHeading(value: String) -> Element {
 }
 
 #[component]
-fn Column(status: TaskStatus, dense: bool) -> Element {
+fn Column(status: TaskStatus) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border {}", theme.border_color);
+    let settings = use_context::<Signal<AppSettings>>();
+    let dense = settings.read().dense();
     let gap = if dense { "" } else { "gap-2" };
     let adding_task = use_signal(|| false);
     rsx! {
