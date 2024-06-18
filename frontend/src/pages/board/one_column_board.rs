@@ -458,7 +458,7 @@ fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
                 {
                     FilterBarTagIcon {
                         tag_id: *tag_id,
-                        tag_data: tags[&tag_id].clone(),
+                        tag_data: tags[tag_id].clone(),
                     }
                 }
             }
@@ -468,7 +468,7 @@ fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
                 {
                     UserIcon {
                         user_id: *user_id,
-                        user_data: users[&user_id].clone(),
+                        user_data: users[user_id].clone(),
                         size: "size-6",
                         tooltip_position: "-left-3 -top-10",
                     }

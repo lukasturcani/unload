@@ -95,7 +95,7 @@ fn FilterBar() -> Element {
                 {
                     FilterBarTagIcon {
                         tag_id: *tag_id,
-                        tag_data: tags[&tag_id].clone(),
+                        tag_data: tags[tag_id].clone(),
                     }
                 }
             }
@@ -105,7 +105,7 @@ fn FilterBar() -> Element {
                 {
                     UserIcon {
                         user_id: *user_id,
-                        user_data: users[&user_id].clone(),
+                        user_data: users[user_id].clone(),
                         size: "size-6",
                         dir: "rtl",
                         tooltip_position: "-top-11",
