@@ -1,4 +1,5 @@
-use chrono::{DateTime, Local, Utc};
+use crate::datetime;
+use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use shared_models::{Color, TagData, TagId, TaskEntry, TaskId, TaskStatus, UserData, UserId};
 
@@ -382,20 +383,9 @@ fn ShowDue(due: Option<DateTime<Utc>>) -> Element {
             div { class: "size-8", CalendarIcon {} }
             if let Some(due_value) = due {
                 p {
-                    "{format_datetime(utc_to_local(&due_value))}"
+                    "{datetime::format(datetime::utc_to_local(&due_value))}"
                 }
             }
         }
     }
-}
-
-fn utc_to_local(time: &DateTime<Utc>) -> DateTime<Local> {
-    chrono::DateTime::<chrono::offset::Local>::from_naive_utc_and_offset(
-        time.naive_utc(),
-        *chrono::offset::Local::now().offset(),
-    )
-}
-
-fn format_datetime(time: DateTime<Local>) -> String {
-    format!("{}", time.format("%d %B %Y %I:%M %p"))
 }

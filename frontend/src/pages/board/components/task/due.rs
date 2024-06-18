@@ -1,5 +1,4 @@
-use std::fmt::Display;
-
+use crate::datetime;
 use chrono::{DateTime, Local, NaiveDate, NaiveTime, TimeZone, Utc};
 use dioxus::prelude::*;
 use reqwest::Client;
@@ -134,50 +133,15 @@ fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> E
                 p {
                     class: if is_late && show_time_left { theme.late_text_color },
                     if show_time_left {
-                        "{format_datetime(utc_to_local(&due_value))} ({time_delta(&now, &due_value)})"
+                        "{datetime::format(datetime::utc_to_local(&due_value))} ({datetime::time_delta(&now, &due_value)})"
                     } else {
-                        "{format_datetime(utc_to_local(&due_value))}"
+                        "{datetime::format(datetime::utc_to_local(&due_value))}"
                     }
                 }
             }
             EditButton { task_id, editing }
         }
     }
-}
-
-struct TimeDelta {
-    days: i32,
-    hours: i8,
-    minutes: i8,
-}
-
-impl Display for TimeDelta {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}d {}h {}m", self.days, self.hours, self.minutes)
-    }
-}
-
-fn time_delta(start: &DateTime<Utc>, stop: &DateTime<Utc>) -> TimeDelta {
-    let duration = stop.naive_utc() - start.naive_utc();
-    let days = duration.num_days();
-    let hours = duration.num_hours() - duration.num_days() * 24;
-    let minutes = duration.num_minutes() - (days * 24 * 60) - (hours * 60);
-    TimeDelta {
-        days: days as i32,
-        hours: hours as i8,
-        minutes: minutes as i8,
-    }
-}
-
-fn utc_to_local(time: &DateTime<Utc>) -> DateTime<Local> {
-    chrono::DateTime::<chrono::offset::Local>::from_naive_utc_and_offset(
-        time.naive_utc(),
-        *chrono::offset::Local::now().offset(),
-    )
-}
-
-fn format_datetime(time: DateTime<Local>) -> String {
-    format!("{}", time.format("%d %B %Y %I:%M %p"))
 }
 
 #[component]
