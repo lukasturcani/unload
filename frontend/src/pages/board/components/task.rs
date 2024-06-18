@@ -130,7 +130,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
             div {
                 class: "flex flex-row justify-between",
                 div {
-                    class: "flex flex-row flex-wrap items-center gap-1",
+                    class: "flex flex-row items-center gap-1",
                     ToggleExpanded { task_id, expanded, size: "size-5" }
                     DenseTitle { task_id, title: task.title, is_late, expanded: expanded_ }
                 }
@@ -183,7 +183,7 @@ fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -
         button {
             "aria-label": "toggle expand task",
             "aria-pressed": expanded(),
-            class: "{size} p-1 {style}",
+            class: "shrink-0 {size} p-1 {style}",
             onclick: move |_| {
                 if !expanded() {
                     scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
