@@ -12,7 +12,7 @@ use crate::{
     },
     model::AppSettings,
     pages::board::{
-        components::{DenseTask, FilterBarTagIcon, Task, UserIcon},
+        components::{AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, UserIcon},
         model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
     },
     themes::Theme,
@@ -39,13 +39,15 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let status = use_signal(|| TaskStatus::ToDo);
+    let status_ = status();
     let mut panel = use_signal(|| Panel::None);
-    let column_label = match status() {
+    let column_label = match status_ {
         TaskStatus::ToDo => "To Do",
         TaskStatus::InProgress => "In Progress",
         TaskStatus::Done => "Done",
     };
     let extra_bar = use_signal(|| ExtraBar::None);
+    let adding_task = use_signal(|| false);
     rsx! {
         div {
             onclick: move |_| panel.set(Panel::None),
@@ -71,8 +73,9 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
                     ",
                     ColumnSwitcher { status, panel }
                 }
-                Column { status: status() }
+                Column { status: status_, adding_task }
             }
+            AddTaskButton { status: status_, adding_task }
             match extra_bar() {
                 ExtraBar::Filter => rsx! { FilterBar { extra_bar } },
                 _ => rsx! {},
@@ -170,7 +173,7 @@ fn Header(body: Element) -> Element {
 }
 
 #[component]
-fn Column(status: TaskStatus) -> Element {
+fn Column(status: TaskStatus, adding_task: Signal<bool>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("divide-y {}", theme.divide_color);
@@ -185,6 +188,9 @@ fn Column(status: TaskStatus) -> Element {
                 DenseColumnTasks { status }
             } else {
                 ColumnTasks { status }
+            }
+            if adding_task() {
+                NewTaskForm { status, adding_task }
             }
         }
     }

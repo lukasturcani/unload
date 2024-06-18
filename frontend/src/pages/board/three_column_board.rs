@@ -3,18 +3,14 @@ use itertools::Itertools;
 use shared_models::{BoardName, TaskStatus};
 
 use crate::{
-    commands::{FocusTarget, ScrollTarget},
     components::{
-        form::{CancelButton, ConfirmButton},
-        icons::{CircledPlusIcon, DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
-        input::TextInput,
+        icons::{DoneIcon, InProgressIcon, StackIcon, ToDoIcon},
         nav::NavBar,
     },
     model::AppSettings,
     pages::board::{
-        components::{DenseTask, FilterBarTagIcon, Task, UserIcon},
+        components::{AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, UserIcon},
         model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
-        requests::{self, BoardSignals},
     },
     themes::Theme,
 };
@@ -187,68 +183,6 @@ fn Column(status: TaskStatus) -> Element {
 }
 
 #[component]
-fn NewTaskForm(status: TaskStatus, adding_task: Signal<bool>) -> Element {
-    let scroll_target = use_context::<Signal<ScrollTarget>>();
-    let board_signals = BoardSignals::default();
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!(
-        "
-        border
-        rounded-lg
-        shadow
-        {} {}
-        ",
-        theme.border_color, theme.bg_color_2,
-    );
-    rsx! {
-        form {
-            class: "flex flex-row gap-1 p-2.5 items-center {style}",
-            onsubmit: move |event| {
-                let title = event.values()["Title"].as_value();
-                spawn_forever(create_task(board_signals, title, status, scroll_target));
-                adding_task.set(false);
-            },
-            TextInput {
-                id: "new-{status:#?}-task-title-input",
-                label: "Title",
-            }
-            ConfirmButton { label: "add task" }
-            CancelButton { label: "cancel adding task", editing: adding_task }
-        }
-    }
-}
-
-#[component]
-fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>) -> Element {
-    let mut focus_target = use_context::<Signal<FocusTarget>>();
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("border-t {}", theme.border_color);
-    rsx! {
-        button {
-            class: "
-                h-12 shrink-0 grow-0 flex flex-row justify-center items-center
-                {style}
-            ",
-            onclick: move |_| async move {
-                if adding_task() {
-                    focus_target.set(
-                        FocusTarget(Some(format!("new-{status:#?}-task-title-input")))
-                    );
-                } else {
-                    adding_task.set(true);
-                }
-            },
-            div {
-                class: "size-6",
-                CircledPlusIcon {}
-            }
-        }
-    }
-}
-
-#[component]
 fn ColumnTasks(status: TaskStatus) -> Element {
     let tasks = use_context::<Signal<Tasks>>();
     let tasks = tasks.read();
@@ -309,32 +243,5 @@ fn DenseColumnTasks(status: TaskStatus) -> Element {
                 status,
             }
         }
-    }
-}
-
-async fn create_task(
-    signals: BoardSignals,
-    title: String,
-    status: TaskStatus,
-    mut scroll_target: Signal<ScrollTarget>,
-) {
-    if let Ok(task_id) = requests::create_task(
-        signals.url,
-        signals.board,
-        &shared_models::TaskData {
-            title,
-            description: String::new(),
-            due: None,
-            size: shared_models::TaskSize::Small,
-            status,
-            assignees: Vec::new(),
-            tags: Vec::new(),
-        },
-    )
-    .await
-    {
-        log::info!("created task: {task_id}");
-        requests::board(signals).await;
-        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
     }
 }
