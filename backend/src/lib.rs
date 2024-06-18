@@ -10,8 +10,7 @@ use shared_models::TagData;
 use shared_models::TagEntry;
 use shared_models::TagId;
 use shared_models::{
-    BoardName, Color, TaskData, TaskEntry, TaskId, TaskSize, TaskStatus, UserData, UserEntry,
-    UserId,
+    BoardName, Color, TaskData, TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId,
 };
 use sqlx::SqlitePool;
 use std::collections::HashMap;
@@ -25,7 +24,6 @@ struct TaskRow {
     created: DateTime<Utc>,
     updated: DateTime<Utc>,
     due: Option<DateTime<Utc>>,
-    size: TaskSize,
     status: TaskStatus,
 }
 
@@ -38,7 +36,6 @@ impl TaskRow {
             created: self.created,
             updated: self.updated,
             due: self.due,
-            size: self.size,
             status: self.status,
             assignees,
             tags,
@@ -50,7 +47,6 @@ struct QuickAddTaskRow {
     id: QuickAddTaskId,
     title: String,
     description: String,
-    size: TaskSize,
 }
 
 impl QuickAddTaskRow {
@@ -59,7 +55,6 @@ impl QuickAddTaskRow {
             id: self.id,
             title: self.title,
             description: self.description,
-            size: self.size,
             assignees,
             tags,
         }
@@ -150,7 +145,6 @@ SELECT
     created AS "created: DateTime<Utc>",
     updated AS "updated: DateTime<Utc>",
     due AS "due: DateTime<Utc>",
-    size AS "size: TaskSize",
     status AS "status: TaskStatus"
 FROM
     tasks
@@ -224,7 +218,7 @@ SELECT
     created AS "created: DateTime<Utc>",
     updated AS "updated: DateTime<Utc>",
     due AS "due: DateTime<Utc>",
-    size AS "size: TaskSize", status AS "status: TaskStatus"
+    status AS "status: TaskStatus"
 FROM
     tasks
 WHERE
@@ -329,15 +323,14 @@ pub async fn create_task(
     let mut tx = pool.begin().await?;
     let task_id = sqlx::query!(
         "
-INSERT INTO tasks (board_name, title, description, created, updated, due, size, status)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+INSERT INTO tasks (board_name, title, description, created, updated, due, status)
+VALUES (?, ?, ?, ?, ?, ?, ?)",
         board_name,
         task_data.title,
         task_data.description,
         created,
         created,
         task_data.due,
-        task_data.size,
         task_data.status,
     )
     .execute(&mut *tx)
@@ -691,31 +684,6 @@ WHERE
     Ok(Json(()))
 }
 
-pub async fn update_task_size(
-    State(pool): State<SqlitePool>,
-    Path((board_name, task_id)): Path<(BoardName, TaskId)>,
-    Json(size): Json<TaskSize>,
-) -> Result<Json<()>> {
-    let mut tx = pool.begin().await?;
-    sqlx::query!(
-        "
-UPDATE
-    tasks
-SET
-    size = ?
-WHERE
-   board_name = ? AND id = ?
-",
-        size,
-        board_name,
-        task_id
-    )
-    .execute(&mut *tx)
-    .await?;
-    tx.commit().await?;
-    Ok(Json(()))
-}
-
 pub async fn update_task_due(
     State(pool): State<SqlitePool>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
@@ -884,7 +852,7 @@ SELECT
     created AS "created: DateTime<Utc>",
     updated AS "updated: DateTime<Utc>",
     due AS "due: DateTime<Utc>",
-    size AS "size: TaskSize", status AS "status: TaskStatus"
+    status AS "status: TaskStatus"
 FROM
     tasks
 WHERE
@@ -1277,12 +1245,11 @@ pub async fn create_quick_add_task(
     let mut tx = pool.begin().await?;
     let task_id = sqlx::query!(
         "
-INSERT INTO quick_add_tasks (board_name, title, description, size)
-VALUES (?, ?, ?, ?)",
+INSERT INTO quick_add_tasks (board_name, title, description)
+VALUES (?, ?, ?)",
         board_name,
         task_data.title,
         task_data.description,
-        task_data.size,
     )
     .execute(&mut *tx)
     .await?
@@ -1328,7 +1295,7 @@ pub async fn show_quick_add_tasks(
         QuickAddTaskRow,
         r#"
 SELECT
-    id, title, description, size AS "size: TaskSize"
+    id, title, description
 FROM
     quick_add_tasks
 WHERE

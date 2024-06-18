@@ -85,14 +85,6 @@ impl FromStr for QuickAddTaskId {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
-pub enum TaskSize {
-    Small,
-    Medium,
-    Large,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum TaskStatus {
     ToDo,
     InProgress,
@@ -151,7 +143,6 @@ pub struct TaskData {
     pub title: String,
     pub description: String,
     pub due: Option<DateTime<Utc>>,
-    pub size: TaskSize,
     pub status: TaskStatus,
     pub assignees: Vec<UserId>,
     pub tags: Vec<TagId>,
@@ -165,7 +156,6 @@ pub struct TaskEntry {
     pub created: DateTime<Utc>,
     pub updated: DateTime<Utc>,
     pub due: Option<DateTime<Utc>>,
-    pub size: TaskSize,
     pub status: TaskStatus,
     pub assignees: Vec<UserId>,
     pub tags: Vec<TagId>,
@@ -209,7 +199,6 @@ pub enum Color {
 pub struct QuickAddData {
     pub title: String,
     pub description: String,
-    pub size: TaskSize,
     pub assignees: Vec<UserId>,
     pub tags: Vec<TagId>,
 }
@@ -219,7 +208,6 @@ impl From<QuickAddEntry> for QuickAddData {
         Self {
             title: value.title,
             description: value.description,
-            size: value.size,
             assignees: value.assignees,
             tags: value.tags,
         }
@@ -231,7 +219,6 @@ pub struct QuickAddEntry {
     pub id: QuickAddTaskId,
     pub title: String,
     pub description: String,
-    pub size: TaskSize,
     pub assignees: Vec<UserId>,
     pub tags: Vec<TagId>,
 }

@@ -2,8 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use chrono::{DateTime, Utc};
 use shared_models::{
-    BoardName, QuickAddData, QuickAddTaskId, TagData, TagId, TaskEntry, TaskId, TaskSize, UserData,
-    UserId,
+    BoardName, QuickAddData, QuickAddTaskId, TagData, TagId, TaskEntry, TaskId, UserData, UserId,
 };
 
 #[derive(Debug)]
@@ -45,7 +44,6 @@ pub struct TaskData {
     pub created: DateTime<Utc>,
     pub updated: DateTime<Utc>,
     pub due: Option<DateTime<Utc>>,
-    pub size: TaskSize,
     pub assignees: Vec<UserId>,
     pub tags: Vec<TagId>,
 }
@@ -58,7 +56,6 @@ impl From<TaskEntry> for TaskData {
             created: value.created,
             updated: value.updated,
             due: value.due,
-            size: value.size,
             assignees: value.assignees,
             tags: value.tags,
         }
@@ -89,7 +86,6 @@ impl From<TaskData> for QuickAddData {
         Self {
             title: value.title,
             description: value.description,
-            size: value.size,
             assignees: value.assignees,
             tags: value.tags,
         }
@@ -101,7 +97,6 @@ impl From<&TaskData> for QuickAddData {
         Self {
             title: value.title.clone(),
             description: value.description.clone(),
-            size: value.size,
             assignees: value.assignees.clone(),
             tags: value.tags.clone(),
         }

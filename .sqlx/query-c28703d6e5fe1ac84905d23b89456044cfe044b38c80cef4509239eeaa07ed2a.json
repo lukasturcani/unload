@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\nSELECT\n    id, title, description,\n    created AS \"created: DateTime<Utc>\",\n    updated AS \"updated: DateTime<Utc>\",\n    due AS \"due: DateTime<Utc>\",\n    size AS \"size: TaskSize\", status AS \"status: TaskStatus\"\nFROM\n    tasks\nWHERE\n    board_name = ?\n    AND archived = TRUE",
+  "query": "\nSELECT\n    id, title, description,\n    created AS \"created: DateTime<Utc>\",\n    updated AS \"updated: DateTime<Utc>\",\n    due AS \"due: DateTime<Utc>\",\n    status AS \"status: TaskStatus\"\nFROM\n    tasks\nWHERE\n    board_name = ?\n    AND archived = FALSE",
   "describe": {
     "columns": [
       {
@@ -34,13 +34,8 @@
         "type_info": "Datetime"
       },
       {
-        "name": "size: TaskSize",
-        "ordinal": 6,
-        "type_info": "Text"
-      },
-      {
         "name": "status: TaskStatus",
-        "ordinal": 7,
+        "ordinal": 6,
         "type_info": "Text"
       }
     ],
@@ -54,9 +49,8 @@
       false,
       false,
       true,
-      false,
       false
     ]
   },
-  "hash": "322295e31f8491e81d58f066ee92fd780a1750b4e164a7ed041bd0fd1f63209f"
+  "hash": "c28703d6e5fe1ac84905d23b89456044cfe044b38c80cef4509239eeaa07ed2a"
 }

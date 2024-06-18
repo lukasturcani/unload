@@ -929,7 +929,6 @@ async fn send_create_quick_add_task_request(
             QuickAddData {
                 title: task.title.clone(),
                 description: task.description.clone(),
-                size: task.size,
                 tags: task.tags.clone(),
                 assignees: task.assignees.clone(),
             },

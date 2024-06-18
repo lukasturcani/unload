@@ -57,7 +57,6 @@ async fn create_task(
             title,
             description: String::new(),
             due: None,
-            size: shared_models::TaskSize::Small,
             status,
             assignees: Vec::new(),
             tags: Vec::new(),
