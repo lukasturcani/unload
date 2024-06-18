@@ -10,10 +10,12 @@ use crate::{
     },
     model::AppSettings,
     pages::board::{
-        components::{AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, UserIcon},
+        components::{
+            AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
+        },
         model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
     },
-    themes::Theme,
+    themes::{Theme, THEMES},
 };
 
 #[component]
@@ -35,7 +37,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                     div {
                         class: "flex flex-row gap-2",
                         DenseButton {}
-                        ThemeButton { show_themes }
+                        ToggleThemesButton { show_themes }
                     }
                 }
             }
@@ -50,9 +52,25 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                         Column { status: TaskStatus::Done }
                     },
                 }
+                if show_themes() {
+                    Themes {}
+                }
                 FilterBar {}
             }
             NavBar { board_name }
+        }
+    }
+}
+
+#[component]
+fn Themes() -> Element {
+    rsx! {
+        section {
+            class: "flex flex-row overflow-x-auto gap-2",
+            h2 { class: "text-xl", "Themes:" }
+            for theme in THEMES {
+                ThemeButton { theme: *theme }
+            }
         }
     }
 }
@@ -119,7 +137,7 @@ fn DenseButton() -> Element {
 }
 
 #[component]
-fn ThemeButton(show_themes: Signal<bool>) -> Element {
+fn ToggleThemesButton(show_themes: Signal<bool>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border-2 rounded {}", theme.button);
