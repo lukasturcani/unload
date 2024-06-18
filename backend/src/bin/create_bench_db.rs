@@ -1,6 +1,6 @@
 use clap::Parser;
 use indicatif::ProgressBar;
-use shared_models::{Color, TaskSize, TaskStatus};
+use shared_models::{Color, TaskStatus};
 use sqlx::SqlitePool;
 
 #[derive(Parser)]
@@ -69,8 +69,8 @@ async fn main() -> Result<(), anyhow::Error> {
         for task_id in 0..args.num_tasks_per_board {
             sqlx::query(
                 "
-INSERT INTO tasks (id, board_name, title, description, created, updated, due, size, status, archived)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+INSERT INTO tasks (id, board_name, title, description, created, updated, due, status, archived)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             )
             .bind(board_id * args.num_tasks_per_board + task_id)
             .bind(format!("board-{}", board_id))
@@ -79,7 +79,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             .bind(task_id)
             .bind(task_id)
             .bind(Some(task_id))
-            .bind(TaskSize::Small)
             .bind(TaskStatus::ToDo)
             .bind(task_id > 100)
             .execute(&mut *tx)

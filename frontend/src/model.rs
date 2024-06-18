@@ -1,126 +1,51 @@
-use std::{
-    collections::{HashMap, HashSet},
-    str::FromStr,
-};
+use std::str::FromStr;
 
-use chrono::{DateTime, Utc};
+use gloo::storage::{LocalStorage, Storage};
 use reqwest::Url;
-use shared_models::{
-    BoardName, QuickAddData, QuickAddTaskId, TagData, TagId, TaskEntry, TaskId, TaskSize, UserData,
-    UserId,
-};
 
-pub struct Model {
-    pub url: Url,
-    pub board_name: BoardName,
-    pub tasks: HashMap<TaskId, TaskData>,
-    pub users: HashMap<UserId, UserData>,
-    pub tags: HashMap<TagId, TagData>,
-    pub to_do: Vec<TaskId>,
-    pub in_progress: Vec<TaskId>,
-    pub done: Vec<TaskId>,
-    pub user_search_created_user: Option<(UserId, String)>,
-    pub tag_search_created_tag: Option<(TagId, String)>,
-    pub tag_filter: HashSet<TagId>,
-    pub size_filter: Option<TaskSize>,
-    pub user_filter: HashSet<UserId>,
-    pub dense_view: bool,
-    pub quick_add: HashMap<QuickAddTaskId, QuickAddData>,
+#[derive(Debug)]
+pub struct AppSettings {
+    data: std::marker::PhantomData<()>,
 }
 
-impl Model {
-    pub fn show_task(&self, task_id: TaskId) -> bool {
-        let task = &self.tasks[&task_id];
-        if self.size_filter.map_or(false, |filter| filter != task.size) {
-            return false;
-        }
-        if self
-            .user_filter
-            .iter()
-            .any(|user_id| !task.assignees.contains(user_id))
-        {
-            return false;
-        }
-        if self
-            .tag_filter
-            .iter()
-            .any(|tag_id| !task.tags.contains(tag_id))
-        {
-            return false;
-        }
-        true
+impl AppSettings {
+    pub fn set_dense(&mut self, dense: bool) {
+        LocalStorage::set("dense", dense).unwrap();
+    }
+
+    pub fn dense(&self) -> bool {
+        LocalStorage::get("dense").unwrap()
+    }
+
+    pub fn set_theme(&mut self, theme: String) {
+        LocalStorage::set("theme", theme).unwrap();
+    }
+
+    pub fn theme(&self) -> String {
+        LocalStorage::get("theme").unwrap()
     }
 }
 
-impl Default for Model {
+impl AppSettings {
+    pub fn new(default_theme: String) -> Self {
+        let mut settings = AppSettings {
+            data: std::marker::PhantomData,
+        };
+        if LocalStorage::get::<bool>("dense").is_err() {
+            settings.set_dense(false);
+        }
+        if LocalStorage::get::<String>("theme").is_err() {
+            settings.set_theme(default_theme);
+        }
+        settings
+    }
+}
+
+#[derive(Debug)]
+pub struct UnloadUrl(pub Url);
+
+impl Default for UnloadUrl {
     fn default() -> Self {
-        Self {
-            url: Url::from_str(&web_sys::window().unwrap().origin()).unwrap(),
-            board_name: BoardName::from(""),
-            tasks: HashMap::default(),
-            users: HashMap::default(),
-            tags: HashMap::default(),
-            to_do: Vec::default(),
-            in_progress: Vec::default(),
-            done: Vec::default(),
-            user_search_created_user: Option::default(),
-            tag_search_created_tag: Option::default(),
-            tag_filter: HashSet::default(),
-            size_filter: None,
-            user_filter: HashSet::default(),
-            dense_view: false,
-            quick_add: HashMap::default(),
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct TaskData {
-    pub title: String,
-    pub description: String,
-    pub created: DateTime<Utc>,
-    pub updated: DateTime<Utc>,
-    pub due: Option<DateTime<Utc>>,
-    pub size: TaskSize,
-    pub assignees: Vec<UserId>,
-    pub tags: Vec<TagId>,
-}
-
-impl From<TaskEntry> for TaskData {
-    fn from(value: TaskEntry) -> Self {
-        Self {
-            title: value.title,
-            description: value.description,
-            created: value.created,
-            updated: value.updated,
-            due: value.due,
-            size: value.size,
-            assignees: value.assignees,
-            tags: value.tags,
-        }
-    }
-}
-
-impl From<TaskData> for QuickAddData {
-    fn from(value: TaskData) -> Self {
-        Self {
-            title: value.title,
-            description: value.description,
-            size: value.size,
-            assignees: value.assignees,
-            tags: value.tags,
-        }
-    }
-}
-
-impl From<&TaskData> for QuickAddData {
-    fn from(value: &TaskData) -> Self {
-        Self {
-            title: value.title.clone(),
-            description: value.description.clone(),
-            size: value.size,
-            assignees: value.assignees.clone(),
-            tags: value.tags.clone(),
-        }
+        Self(Url::from_str(&web_sys::window().unwrap().origin()).unwrap())
     }
 }

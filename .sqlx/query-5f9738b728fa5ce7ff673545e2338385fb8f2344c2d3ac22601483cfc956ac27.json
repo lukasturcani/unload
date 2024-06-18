@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\nSELECT\n    task_tags.task_id, task_tags.tag_id\nFROM\n    task_tags\nLEFT JOIN\n    tags ON task_tags.tag_id = tags.id\nWHERE\n    task_tags.board_name = ?\n    AND tags.archived = FALSE",
+  "describe": {
+    "columns": [
+      {
+        "name": "task_id",
+        "ordinal": 0,
+        "type_info": "Int64"
+      },
+      {
+        "name": "tag_id",
+        "ordinal": 1,
+        "type_info": "Int64"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "5f9738b728fa5ce7ff673545e2338385fb8f2344c2d3ac22601483cfc956ac27"
+}

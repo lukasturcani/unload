@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nINSERT INTO\n    tasks (board_name, title, description, created, updated, due, status)\nSELECT\n    board_name, title, description, created, updated, due, status\nFROM\n    tasks\nWHERE\n    board_name = ? AND id = ?\nLIMIT 1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "0c9670531f4c8d3105c31637c75b3b8043d7ea2a62b42e2cca277950527ba8c4"
+}

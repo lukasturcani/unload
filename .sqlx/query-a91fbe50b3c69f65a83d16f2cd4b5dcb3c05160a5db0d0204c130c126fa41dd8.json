@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nINSERT INTO quick_add_tasks (board_name, title, description)\nVALUES (?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "a91fbe50b3c69f65a83d16f2cd4b5dcb3c05160a5db0d0204c130c126fa41dd8"
+}

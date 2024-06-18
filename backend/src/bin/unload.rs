@@ -28,8 +28,8 @@ use unload::{
     delete_task_tag, delete_user, show_archived_tags, show_archived_tasks, show_quick_add_tasks,
     show_tag, show_tags, show_task, show_tasks, show_user, show_users, update_tag_archived,
     update_tag_color, update_tag_name, update_task_archived, update_task_assignees,
-    update_task_description, update_task_due, update_task_size, update_task_status,
-    update_task_tags, update_task_title, update_user_color, update_user_name, Result,
+    update_task_description, update_task_due, update_task_status, update_task_tags,
+    update_task_title, update_user_color, update_user_name, Result,
 };
 
 #[derive(confique::Config)]
@@ -91,10 +91,6 @@ fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
         .route(
             "/api/boards/:board_name/tasks/:task_id/description",
             put(update_task_description),
-        )
-        .route(
-            "/api/boards/:board_name/tasks/:task_id/size",
-            put(update_task_size),
         )
         .route(
             "/api/boards/:board_name/tasks/:task_id/due",
@@ -187,30 +183,9 @@ fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
         )
         .nest_service("/", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name", compressed_dir(&serve_dir))
-        .nest_service("/boards/:board_name/add-user", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/users", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/tags", compressed_dir(&serve_dir))
-        .nest_service("/boards/:board_name/add-task", compressed_dir(&serve_dir))
-        .nest_service(
-            "/boards/:board_name/add-to-do-task",
-            compressed_dir(&serve_dir),
-        )
-        .nest_service(
-            "/boards/:board_name/add-in-progress-task",
-            compressed_dir(&serve_dir),
-        )
-        .nest_service(
-            "/boards/:board_name/add-done-task",
-            compressed_dir(&serve_dir),
-        )
-        .nest_service(
-            "/boards/:board_name/archive/tasks",
-            compressed_dir(&serve_dir),
-        )
-        .nest_service(
-            "/boards/:board_name/archive/tags",
-            compressed_dir(serve_dir),
-        )
+        .nest_service("/boards/:board_name/archive", compressed_dir(&serve_dir))
 }
 
 fn init_tracing(otlp_endpoint: &str, environment: String, log: String) -> Result<()> {
@@ -327,8 +302,7 @@ mod tests {
     use axum_test::TestServer;
     use chrono::Utc;
     use shared_models::{
-        BoardName, Color, TagData, TagEntry, TaskData, TaskEntry, TaskSize, TaskStatus, UserData,
-        UserEntry,
+        BoardName, Color, TagData, TagEntry, TaskData, TaskEntry, TaskStatus, UserData, UserEntry,
     };
 
     #[tokio::test]
@@ -451,7 +425,6 @@ mod tests {
             title: "first".to_string(),
             description: "first description".to_string(),
             due: Some(Utc::now()),
-            size: TaskSize::Small,
             status: TaskStatus::ToDo,
             assignees: user_ids.clone(),
             tags: Vec::new(),
@@ -467,7 +440,6 @@ mod tests {
             title: "second".to_string(),
             description: "second description".to_string(),
             due: Some(Utc::now()),
-            size: TaskSize::Medium,
             status: TaskStatus::InProgress,
             assignees: user_ids.clone(),
             tags: vec![tag_ids[0]],
@@ -483,7 +455,6 @@ mod tests {
             title: "third".to_string(),
             description: "third description".to_string(),
             due: None,
-            size: TaskSize::Large,
             status: TaskStatus::Done,
             assignees: user_ids.clone(),
             tags: vec![tag_ids[0], tag_ids[1]],
@@ -512,7 +483,6 @@ mod tests {
                 created: task_entry.created,
                 updated: task_entry.updated,
                 due: task_data.due,
-                size: task_data.size,
                 status: task_data.status,
                 assignees: task_data.assignees.clone(),
                 tags: task_data.tags.clone(),
