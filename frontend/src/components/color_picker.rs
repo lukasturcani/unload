@@ -22,7 +22,7 @@ pub fn ColorPicker(selected_color: Option<Color>) -> Element {
                 "Color"
             }
             div {
-                class: "grid grid-cols-4 gap-4",
+                class: "grid grid-cols-4 gap-4 group filled",
                 for color in [
                     Color::Black,
                     Color::White,
@@ -51,7 +51,7 @@ pub fn ColorPicker(selected_color: Option<Color>) -> Element {
                             name: "color-picker",
                             checked: selected_color.map_or(false, |c| color == c),
                         }
-                        div { class: "inline-block size-6 {radio_style} {color_to_bg(color)}" }
+                        div { class: "inline-block size-6 {radio_style} {color_to_bg(&theme, color)}" }
                     }
                 }
             }
@@ -59,23 +59,23 @@ pub fn ColorPicker(selected_color: Option<Color>) -> Element {
     }
 }
 
-fn color_to_bg(color: Color) -> &'static str {
+fn color_to_bg(theme: &Theme, color: Color) -> &'static str {
     match color {
-        Color::Black => "bg-black",
-        Color::White => "bg-white",
-        Color::Gray => "bg-gray-400",
-        Color::Silver => "bg-slate-500",
-        Color::Maroon => "bg-rose-400",
-        Color::Red => "bg-red-600",
-        Color::Purple => "bg-purple-600",
-        Color::Fushsia => "bg-fuchsia-400",
-        Color::Green => "bg-emerald-500",
-        Color::Lime => "bg-lime-500",
-        Color::Olive => "bg-indigo-400",
-        Color::Yellow => "bg-yellow-400",
-        Color::Navy => "bg-amber-200",
-        Color::Blue => "bg-blue-400",
-        Color::Teal => "bg-teal-300",
-        Color::Aqua => "bg-cyan-500",
+        Color::Black => theme.color1_button,
+        Color::White => theme.color2_button,
+        Color::Gray => theme.color3_button,
+        Color::Silver => theme.color4_button,
+        Color::Maroon => theme.color5_button,
+        Color::Red => theme.color6_button,
+        Color::Purple => theme.color7_button,
+        Color::Fushsia => theme.color8_button,
+        Color::Green => theme.color9_button,
+        Color::Lime => theme.color10_button,
+        Color::Olive => theme.color11_button,
+        Color::Yellow => theme.color12_button,
+        Color::Navy => theme.color13_button,
+        Color::Blue => theme.color14_button,
+        Color::Teal => theme.color15_button,
+        Color::Aqua => theme.color16_button,
     }
 }

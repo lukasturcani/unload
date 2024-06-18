@@ -60,73 +60,89 @@ impl Default for Theme {
             bg_color_2: "bg-gray-800",
             divide_color: "divide-gray-700",
             button: "
-            aria-pressed:bg-white
-            aria-pressed:text-black aria-pressed:stroke-black
-        ",
+                aria-pressed:bg-white
+                aria-pressed:text-black aria-pressed:stroke-black
+            ",
             color1_button: "
-            aria-pressed:bg-red-600
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-black
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-black
+            ",
             color2_button: "
-            aria-pressed:bg-pink-500
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-white
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-white
+            ",
             color3_button: "
-            aria-pressed:bg-fuchsia-400
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-gray-400
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-gray-400
+            ",
             color4_button: "
-            aria-pressed:bg-green-600
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-slate-500
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-slate-500
+            ",
             color5_button: "
-            aria-pressed:bg-emerald-500
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-rose-400
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-rose-400
+            ",
             color6_button: "
-            aria-pressed:bg-amber-200
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-red-600
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-red-600
+            ",
             color7_button: "
-            aria-pressed:bg-amber-200
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-purple-600
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-purple-600
+            ",
             color8_button: "
-            aria-pressed:bg-yellow-400
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-fuchsia-400
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-fuchsia-400
+            ",
             color9_button: "
-            aria-pressed:bg-purple-600
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-emerald-500
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-emerald-500
+            ",
             color10_button: "
-            aria-pressed:bg-fuchsia-400
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-lime-500
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-lime-500
+            ",
             color11_button: "
-            aria-pressed:bg-fuchsia-400
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-indigo-400
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-indigo-400
+            ",
             color12_button: "
-            aria-pressed:bg-fuchsia-400
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-yellow-400
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-yellow-400
+            ",
             color13_button: "
-            aria-pressed:bg-blue-400
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-amber-200
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-amber-200
+            ",
             color14_button: "
-            aria-pressed:bg-teal-300
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-blue-400
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-blue-400
+            ",
             color15_button: "
-            aria-pressed:bg-aqua-200
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-teal-300
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-teal-300
+            ",
             color16_button: "
-            aria-pressed:bg-cyan-500
-            aria-pressed:text-white aria-pressed:stroke-white
-        ",
+                aria-pressed:bg-cyan-500
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-cyan-500
+            ",
         }
     }
 }
