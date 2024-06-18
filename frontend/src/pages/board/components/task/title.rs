@@ -79,7 +79,7 @@ fn DenseTitleShow(
     let text_color = if is_late { theme.late_text_color } else { "" };
     rsx! {
         div {
-            class: "flex flex-row gap-2 items-center",
+            class: "flex flex-row gap-2 pr-2 items-center",
             h3 {
                 class: if expanded {
                     format!("
