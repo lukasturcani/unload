@@ -67,10 +67,13 @@ fn Themes() -> Element {
     let themes = use_context::<Signal<Vec<Theme>>>();
     rsx! {
         section {
-            class: "flex flex-row overflow-x-auto gap-2",
+            class: "flex flex-row gap-2 items-center",
             h2 { class: "text-xl", "Themes:" }
-            for theme in themes.read().iter() {
-                ThemeButton { theme: *theme }
+            div {
+                class: "flex flex-row overflow-x-auto gap-2",
+                for theme in themes.read().iter() {
+                    ThemeButton { theme: *theme }
+                }
             }
         }
     }

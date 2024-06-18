@@ -17,7 +17,9 @@ pub fn ThemeButton(theme: Theme) -> Element {
         button {
             class: "
                 flex flex-row items-center
-                px-1.5 py-0.5 {style}
+                shrink-0
+                px-1.5 py-0.5
+                {style}
             ",
             "aria-pressed": app_theme() == theme,
             onclick: move |_| {
