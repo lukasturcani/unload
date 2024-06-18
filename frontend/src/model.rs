@@ -23,7 +23,9 @@ impl Default for AppSettings {
         let mut settings = AppSettings {
             data: std::marker::PhantomData,
         };
-        settings.set_dense(false);
+        if LocalStorage::get::<bool>("dense").is_err() {
+            settings.set_dense(false);
+        }
         settings
     }
 }
