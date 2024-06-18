@@ -73,7 +73,7 @@ impl Default for Theme {
             color2_button: "
                 border-white
                 aria-pressed:bg-white
-                aria-pressed:text-white aria-pressed:stroke-white
+                aria-pressed:text-black aria-pressed:stroke-black
                 group-[.filled]:bg-white
                 group-[.text-colored]:text-white
             ",
