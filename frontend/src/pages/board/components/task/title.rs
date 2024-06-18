@@ -43,19 +43,25 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
     rsx! {
         form {
             "aria-label": "update title",
-            class: "flex flex-row gap-2 items-center",
+            class: "flex flex-col gap-2 justify-center items-center",
             onsubmit: move |event| {
                 let title = event.values()["Title"].as_value();
                 spawn_forever(set_task_title(board_signals, task_id, title));
                 editing.set(false);
             },
-            TextInput {
-                id: "task-{task_id}-title-input",
-                label: "Title",
-                value: title,
+            div {
+                class: "flex flex-row gap-1 items-center",
+                TextInput {
+                    id: "task-{task_id}-title-input",
+                    label: "Title",
+                    value: title,
+                }
             }
-            ConfirmButton { label: "set title" }
-            CancelButton { label: "cancel title update", editing }
+            div {
+                class: "flex flex-row gap-1 items-center",
+                ConfirmButton { label: "set title" }
+                CancelButton { label: "cancel title update", editing }
+            }
         }
     }
 }
@@ -118,7 +124,7 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
             }
             Tooltip {
                 content: "Edit Title",
-                position: ""
+                position: "",
             }
         }
     }

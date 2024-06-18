@@ -66,7 +66,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             "aria-label": label,
             class: "flex flex-col gap-2 p-2.5 {style}",
             div {
-                class: "flex flex-row justify-between",
+                class: "flex flex-row justify-between items-center",
                 div {
                     class: "flex flex-row items-center gap-1",
                     ToggleExpanded { task_id, expanded, size: "size-7" }
@@ -318,7 +318,7 @@ fn StatusButtons(task_id: TaskId) -> Element {
     rsx! {
         section {
             "aria-label": "set task status",
-            class: "flex flex-row items-center gap-1",
+            class: "flex flex-row flex-wrap items-center justify-end gap-1",
             ToDoButton { task_id }
             InProgressButton { task_id }
             DoneButton { task_id }
@@ -341,7 +341,7 @@ fn ToDoButton(task_id: TaskId) -> Element {
                 },
                 ToDoIcon {}
             }
-            Tooltip { content: "To Do", position: "" }
+            Tooltip { content: "To Do", position: "", dir: "rtl" }
         }
     }
 }
@@ -361,7 +361,7 @@ fn InProgressButton(task_id: TaskId) -> Element {
                 },
                 InProgressIcon {}
             }
-            Tooltip { content: "In Progress", position: "-left-10" }
+            Tooltip { content: "In Progress", position: "", dir: "rtl" }
         }
     }
 }
@@ -381,7 +381,7 @@ fn DoneButton(task_id: TaskId) -> Element {
                 },
                 DoneIcon {}
             }
-            Tooltip { content: "Done", position: "-left-6" }
+            Tooltip { content: "Done", position: "", dir: "rtl" }
         }
     }
 }
