@@ -420,9 +420,9 @@ pub async fn clone_task(
     let clone_id = sqlx::query!(
         r#"
 INSERT INTO
-    tasks (board_name, title, description, created, updated, due, size, status)
+    tasks (board_name, title, description, created, updated, due, status)
 SELECT
-    board_name, title, description, created, updated, due, size, status
+    board_name, title, description, created, updated, due, status
 FROM
     tasks
 WHERE

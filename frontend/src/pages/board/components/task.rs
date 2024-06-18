@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use reqwest::Client;
-use shared_models::{Color, QuickAddData, TagData, TagId, TaskId, TaskStatus, UserData, UserId};
+use shared_models::{Color, TagData, TagId, TaskId, TaskStatus, UserData, UserId};
 
 use crate::{
     commands::ScrollTarget,
@@ -8,8 +8,8 @@ use crate::{
         color_picker::ColorPicker,
         form::{CancelButton, ConfirmButton},
         icons::{
-            ArchiveIcon, BoltIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, EditIcon,
-            InProgressIcon, PlusIcon, RightIcon, ToDoIcon, TrashIcon,
+            ArchiveIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, EditIcon, InProgressIcon,
+            PlusIcon, RightIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
         tooltip::Tooltip,
@@ -850,13 +850,13 @@ fn TaskActions(task_id: TaskId) -> Element {
         section {
             "aria-label": "task actions",
             class: "flex flex-row gap-1",
-            ActionButton {
-                onclick: move |_| {
-                    spawn_forever(create_quick_add_task(board_signals, task_id));
-                },
-                tooltip: "Add to Quick Tasks",
-                body: rsx!(BoltIcon {}),
-            }
+            // ActionButton {
+            //     onclick: move |_| {
+            //         spawn_forever(create_quick_add_task(board_signals, task_id));
+            //     },
+            //     tooltip: "Add to Quick Tasks",
+            //     body: rsx!(BoltIcon {}),
+            // }
             ActionButton {
                 onclick: move |_| {
                     spawn_forever(clone_task(board_signals, task_id)) ;
@@ -906,42 +906,42 @@ async fn send_set_task_status_request(
         .await?)
 }
 
-async fn create_quick_add_task(signals: BoardSignals, task_id: TaskId) {
-    if send_create_quick_add_task_request(signals, task_id)
-        .await
-        .is_ok()
-    {
-        requests::board(signals).await;
-    }
-}
+// async fn create_quick_add_task(signals: BoardSignals, task_id: TaskId) {
+//     if send_create_quick_add_task_request(signals, task_id)
+//         .await
+//         .is_ok()
+//     {
+//         requests::board(signals).await;
+//     }
+// }
 
-async fn send_create_quick_add_task_request(
-    signals: BoardSignals,
-    task_id: TaskId,
-) -> Result<TaskId, anyhow::Error> {
-    let (url, task_data) = {
-        let url = &signals.url.read().0;
-        let board = signals.board.read();
-        let task = &signals.tasks.read().0[&task_id];
-        let url = url.join(&format!("/api/boards/{}/quick-add", board.board_name))?;
-        (
-            url,
-            QuickAddData {
-                title: task.title.clone(),
-                description: task.description.clone(),
-                tags: task.tags.clone(),
-                assignees: task.assignees.clone(),
-            },
-        )
-    };
-    Ok(reqwest::Client::new()
-        .post(url)
-        .json(&task_data)
-        .send()
-        .await?
-        .json::<TaskId>()
-        .await?)
-}
+// async fn send_create_quick_add_task_request(
+//     signals: BoardSignals,
+//     task_id: TaskId,
+// ) -> Result<TaskId, anyhow::Error> {
+//     let (url, task_data) = {
+//         let url = &signals.url.read().0;
+//         let board = signals.board.read();
+//         let task = &signals.tasks.read().0[&task_id];
+//         let url = url.join(&format!("/api/boards/{}/quick-add", board.board_name))?;
+//         (
+//             url,
+//             QuickAddData {
+//                 title: task.title.clone(),
+//                 description: task.description.clone(),
+//                 tags: task.tags.clone(),
+//                 assignees: task.assignees.clone(),
+//             },
+//         )
+//     };
+//     Ok(reqwest::Client::new()
+//         .post(url)
+//         .json(&task_data)
+//         .send()
+//         .await?
+//         .json::<TaskId>()
+//         .await?)
+// }
 
 async fn clone_task(signals: BoardSignals, task_id: TaskId) {
     if send_clone_task_request(signals, task_id).await.is_ok() {
