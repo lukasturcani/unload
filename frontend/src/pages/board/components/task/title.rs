@@ -98,7 +98,7 @@ fn DenseTitleShow(
 fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
     rsx! {
         div {
-            class: "flex flex-row gap-2 items-center",
+            class: "flex flex-row gap-2 pr-2 items-center",
             h3 {
                 class: "
                     text-lg sm:text-xl

@@ -318,7 +318,7 @@ fn StatusButtons(task_id: TaskId) -> Element {
     rsx! {
         section {
             "aria-label": "set task status",
-            class: "flex flex-row flex-wrap items-center justify-end gap-1",
+            class: "flex flex-row items-center justify-end gap-1",
             ToDoButton { task_id }
             InProgressButton { task_id }
             DoneButton { task_id }
