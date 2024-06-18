@@ -58,7 +58,7 @@ fn UserListItem(user: UserEntry) -> Element {
                         flex flex-row justify-between
                     ",
                     div {
-                        class: "flex flex-row items-center gap-5",
+                        class: "flex flex-row items-center gap-5 group filled",
                         ColorShow { user_id: user.id, color: user.color, state }
                         NameShow { user_id: user.id, name: user.name, state }
 
@@ -135,23 +135,25 @@ fn CancelButton(label: String, state: Signal<State>) -> Element {
 #[component]
 fn ColorShow(user_id: UserId, color: Color, state: Signal<State>) -> Element {
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
     let color = match color {
-        Color::Black => "bg-black",
-        Color::White => "bg-white",
-        Color::Gray => "bg-gray-400",
-        Color::Silver => "bg-slate-500",
-        Color::Maroon => "bg-rose-400",
-        Color::Red => "bg-red-600",
-        Color::Purple => "bg-purple-600",
-        Color::Fushsia => "bg-fuchsia-400",
-        Color::Green => "bg-emerald-500",
-        Color::Lime => "bg-lime-500",
-        Color::Olive => "bg-indigo-400",
-        Color::Yellow => "bg-yellow-400",
-        Color::Navy => "bg-amber-200",
-        Color::Blue => "bg-blue-400",
-        Color::Teal => "bg-teal-300",
-        Color::Aqua => "bg-cyan-500",
+        Color::Black => theme.color1_button,
+        Color::White => theme.color2_button,
+        Color::Gray => theme.color3_button,
+        Color::Silver => theme.color4_button,
+        Color::Maroon => theme.color5_button,
+        Color::Red => theme.color6_button,
+        Color::Purple => theme.color7_button,
+        Color::Fushsia => theme.color8_button,
+        Color::Green => theme.color9_button,
+        Color::Lime => theme.color10_button,
+        Color::Olive => theme.color11_button,
+        Color::Yellow => theme.color12_button,
+        Color::Navy => theme.color13_button,
+        Color::Blue => theme.color14_button,
+        Color::Teal => theme.color15_button,
+        Color::Aqua => theme.color16_button,
     };
     let style = format!("rounded {color}");
     rsx! {
