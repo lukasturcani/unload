@@ -121,11 +121,23 @@ fn TimeSelect() -> Element {
 
 #[component]
 fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let icon_style = if let Some(DueOptions {
+        is_late: true,
+        show_time_left: true,
+        ..
+    }) = due
+    {
+        theme.late_text_color
+    } else {
+        ""
+    };
     rsx! {
         section {
             "aria-label": "due date",
             class: "flex flex-row gap-2 items-center text-sm",
-            div { class: "size-6", ClockIcon {} }
+            div { class: "size-6 {icon_style}", ClockIcon {} }
             if let Some(DueOptions { due, show_time_left, is_late }) = due {
                 HasDue { due, show_time_left, is_late }
                 EditButton { task_id, editing, dir: "rtl" }
@@ -138,14 +150,11 @@ fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> E
 
 #[component]
 fn HasDue(due: DateTime<Utc>, show_time_left: bool, is_late: bool) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
     let now = Utc::now();
     let time_delta = datetime::time_delta(&now, &due);
     rsx! {
         div {
             class: "flex flex-col gap-0.5",
-            class: if is_late && show_time_left { theme.late_text_color },
             p {
                 "Due: {datetime::format(datetime::utc_to_local(&due))}"
             }
