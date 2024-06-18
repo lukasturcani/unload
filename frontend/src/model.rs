@@ -3,6 +3,8 @@ use std::str::FromStr;
 use gloo::storage::{LocalStorage, Storage};
 use reqwest::Url;
 
+use crate::themes::THEMES;
+
 #[derive(Debug)]
 pub struct AppSettings {
     data: std::marker::PhantomData<()>,
@@ -16,6 +18,14 @@ impl AppSettings {
     pub fn dense(&self) -> bool {
         LocalStorage::get("dense").unwrap()
     }
+
+    pub fn set_theme(&mut self, theme: String) {
+        LocalStorage::set("theme", theme).unwrap();
+    }
+
+    pub fn theme(&self) -> String {
+        LocalStorage::get("theme").unwrap()
+    }
 }
 
 impl Default for AppSettings {
@@ -25,6 +35,9 @@ impl Default for AppSettings {
         };
         if LocalStorage::get::<bool>("dense").is_err() {
             settings.set_dense(false);
+        }
+        if LocalStorage::get::<String>("theme").is_err() {
+            settings.set_theme(THEMES[0].name.to_string());
         }
         settings
     }

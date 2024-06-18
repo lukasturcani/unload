@@ -6,11 +6,18 @@ use dioxus::prelude::*;
 
 #[component]
 pub fn App() -> Element {
+    let settings = use_context_provider(|| Signal::new(AppSettings::default()));
+    use_context_provider(move || {
+        let theme_name = settings.read().theme();
+        let theme = THEMES
+            .iter()
+            .find(|theme| theme.name == theme_name)
+            .unwrap();
+        Signal::new(*theme)
+    });
     use_context_provider(|| Signal::new(UnloadUrl::default()));
-    use_context_provider(|| Signal::new(THEMES[0]));
     use_context_provider(|| Signal::new(ScrollTarget::default()));
     use_context_provider(|| Signal::new(FocusTarget::default()));
-    use_context_provider(|| Signal::new(AppSettings::default()));
     rsx! {
         Router::<Route>{}
         ScrollCommand {}
