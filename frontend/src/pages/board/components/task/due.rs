@@ -1,4 +1,3 @@
-use crate::datetime;
 use chrono::{DateTime, Local, NaiveDate, NaiveTime, TimeZone, Utc};
 use dioxus::prelude::*;
 use reqwest::Client;
@@ -7,10 +6,11 @@ use shared_models::TaskId;
 use crate::{
     components::{
         form::{CancelButton, ConfirmButton},
-        icons::{CalendarIcon, EditIcon},
+        icons::{ClockIcon, EditIcon},
         input::DateInput,
         tooltip::Tooltip,
     },
+    datetime,
     pages::board::requests::{self, BoardSignals},
     themes::Theme,
 };
@@ -67,7 +67,7 @@ fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>
                 spawn_forever(set_task_due(board_signals, task_id, due));
                 editing.set(false);
             },
-            div { class: "size-8", CalendarIcon {} }
+            div { class: "size-6", ClockIcon {} }
             DateInput {
                 id: "task-{task_id}-due-input",
                 label: "Due",
@@ -121,25 +121,43 @@ fn TimeSelect() -> Element {
 
 #[component]
 fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let now = Utc::now();
     rsx! {
         section {
             "aria-label": "due date",
-            class: "flex flex-row gap-2 items-center",
-            div { class: "size-8", CalendarIcon {} }
-            if let Some(DueOptions { due: due_value, show_time_left, is_late }) = due {
-                p {
-                    class: if is_late && show_time_left { theme.late_text_color },
-                    if show_time_left {
-                        "{datetime::format(datetime::utc_to_local(&due_value))} ({datetime::time_delta(&now, &due_value)})"
-                    } else {
-                        "{datetime::format(datetime::utc_to_local(&due_value))}"
+            class: "flex flex-row gap-2 items-center text-sm",
+            div { class: "size-6", ClockIcon {} }
+            if let Some(DueOptions { due, show_time_left, is_late }) = due {
+                HasDue { due, show_time_left, is_late }
+            }
+            EditButton { task_id, editing }
+        }
+    }
+}
+
+#[component]
+fn HasDue(due: DateTime<Utc>, show_time_left: bool, is_late: bool) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let now = Utc::now();
+    let time_delta = datetime::time_delta(&now, &due);
+    rsx! {
+        div {
+            class: "flex flex-col gap-0.5",
+            class: if is_late && show_time_left { theme.late_text_color },
+            p {
+                "Due: {datetime::format(datetime::utc_to_local(&due))}"
+            }
+            if show_time_left {
+                if time_delta.is_negative() {
+                    p {
+                        "Late: {datetime::time_delta(&now, &due)}"
+                    }
+                } else {
+                    p {
+                        "Left: {datetime::time_delta(&now, &due)}"
                     }
                 }
             }
-            EditButton { task_id, editing }
         }
     }
 }
@@ -157,7 +175,8 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
             }
             Tooltip {
                 content: "Edit Due Date",
-                position: ""
+                position: "",
+                dir: "rtl",
             }
         }
     }

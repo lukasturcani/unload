@@ -10,18 +10,29 @@ pub fn utc_to_local(time: &DateTime<Utc>) -> DateTime<Local> {
 }
 
 pub fn format(time: DateTime<Local>) -> String {
-    format!("{}", time.format("%d %B %Y %I:%M %p"))
+    time.format("%A · %d %B %Y · %I:%M %p").to_string()
 }
 
 pub struct TimeDelta {
+    negative: bool,
     days: i32,
     hours: i8,
     minutes: i8,
 }
 
+impl TimeDelta {
+    pub fn is_negative(&self) -> bool {
+        self.negative
+    }
+}
+
 impl Display for TimeDelta {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}d {}h {}m", self.days, self.hours, self.minutes)
+        write!(
+            f,
+            "{} days {} hours {} minutes",
+            self.days, self.hours, self.minutes
+        )
     }
 }
 
@@ -31,8 +42,9 @@ pub fn time_delta(start: &DateTime<Utc>, stop: &DateTime<Utc>) -> TimeDelta {
     let hours = duration.num_hours() - duration.num_days() * 24;
     let minutes = duration.num_minutes() - (days * 24 * 60) - (hours * 60);
     TimeDelta {
-        days: days as i32,
-        hours: hours as i8,
-        minutes: minutes as i8,
+        negative: days < 0 || hours < 0 || minutes < 0,
+        days: days.abs() as i32,
+        hours: hours.abs() as i8,
+        minutes: minutes.abs() as i8,
     }
 }
