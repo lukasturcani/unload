@@ -195,23 +195,25 @@ pub fn UserIcon(
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
     let color = match user_data.color {
-        Color::Black => "border-black aria-pressed:bg-black",
-        Color::White => "border-white aria-pressed:bg-white",
-        Color::Gray => "border-gray-400 aria-pressed:bg-gray-400",
-        Color::Silver => "border-slate-500 aria-pressed:bg-slate-500",
-        Color::Maroon => "border-rose-400 aria-pressed:bg-rose-400",
-        Color::Red => "border-red-600 aria-pressed:bg-red-600",
-        Color::Purple => "border-purple-600 aria-pressed:bg-purple-600",
-        Color::Fushsia => "border-fuchsia-400 aria-pressed:bg-fuchsia-400",
-        Color::Green => "border-emerald-500 aria-pressed:bg-emerald-500",
-        Color::Lime => "border-lime-500 aria-pressed:bg-lime-500",
-        Color::Olive => "border-indigo-400 aria-pressed:bg-indigo-400",
-        Color::Yellow => "border-yellow-400 aria-pressed:bg-yellow-400",
-        Color::Navy => "border-amber-200 aria-pressed:bg-amber-200",
-        Color::Blue => "border-blue-400 aria-pressed:bg-blue-400",
-        Color::Teal => "border-teal-300 aria-pressed:bg-teal-300",
-        Color::Aqua => "border-cyan-500 aria-pressed:bg-cyan-500",
+        Color::Black => theme.color1_button,
+        Color::White => theme.color2_button,
+        Color::Gray => theme.color3_button,
+        Color::Silver => theme.color4_button,
+        Color::Maroon => theme.color5_button,
+        Color::Red => theme.color6_button,
+        Color::Purple => theme.color7_button,
+        Color::Fushsia => theme.color8_button,
+        Color::Green => theme.color9_button,
+        Color::Lime => theme.color10_button,
+        Color::Olive => theme.color11_button,
+        Color::Yellow => theme.color12_button,
+        Color::Navy => theme.color13_button,
+        Color::Blue => theme.color14_button,
+        Color::Teal => theme.color15_button,
+        Color::Aqua => theme.color16_button,
     };
     let style = "
         rounded border-2
@@ -289,23 +291,25 @@ fn TaskTags(task_id: TaskId, tags: Vec<TagId>) -> Element {
 
 #[component]
 pub fn TaskTagIcon(task_id: TaskId, tag_id: TagId, tag_data: TagData) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
     let color = match tag_data.color {
-        Color::Black => "border-black aria-pressed:bg-black",
-        Color::White => "border-white aria-pressed:bg-white",
-        Color::Gray => "border-gray-400 aria-pressed:bg-gray-400",
-        Color::Silver => "border-slate-500 aria-pressed:bg-slate-500",
-        Color::Maroon => "border-rose-400 aria-pressed:bg-rose-400",
-        Color::Red => "border-red-600 aria-pressed:bg-red-600",
-        Color::Purple => "border-purple-600 aria-pressed:bg-purple-600",
-        Color::Fushsia => "border-fuchsia-400 aria-pressed:bg-fuchsia-400",
-        Color::Green => "border-emerald-500 aria-pressed:bg-emerald-500",
-        Color::Lime => "border-lime-500 aria-pressed:bg-lime-500",
-        Color::Olive => "border-indigo-400 aria-pressed:bg-indigo-400",
-        Color::Yellow => "border-yellow-400 aria-pressed:bg-yellow-400",
-        Color::Navy => "border-amber-200 aria-pressed:bg-amber-200",
-        Color::Blue => "border-blue-400 aria-pressed:bg-blue-400",
-        Color::Teal => "border-teal-300 aria-pressed:bg-teal-300",
-        Color::Aqua => "border-cyan-500 aria-pressed:bg-cyan-500",
+        Color::Black => theme.color1_button,
+        Color::White => theme.color2_button,
+        Color::Gray => theme.color3_button,
+        Color::Silver => theme.color4_button,
+        Color::Maroon => theme.color5_button,
+        Color::Red => theme.color6_button,
+        Color::Purple => theme.color7_button,
+        Color::Fushsia => theme.color8_button,
+        Color::Green => theme.color9_button,
+        Color::Lime => theme.color10_button,
+        Color::Olive => theme.color11_button,
+        Color::Yellow => theme.color12_button,
+        Color::Navy => theme.color13_button,
+        Color::Blue => theme.color14_button,
+        Color::Teal => theme.color15_button,
+        Color::Aqua => theme.color16_button,
     };
     let style = "rounded border-2";
     rsx! {
