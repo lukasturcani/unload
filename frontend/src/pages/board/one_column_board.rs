@@ -10,8 +10,9 @@ use crate::{
         },
         nav::NavBar,
     },
+    model::AppSettings,
     pages::board::{
-        components::{FilterBarTagIcon, Task, UserIcon},
+        components::{DenseTask, FilterBarTagIcon, Task, UserIcon},
         model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
     },
     themes::Theme,
@@ -113,6 +114,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
             ",
         theme.bg_color_1, theme.text_color, theme.border_color
     );
+    let mut settings = use_context::<Signal<AppSettings>>();
     rsx! {
         BottomSheet {
             panel
@@ -131,7 +133,11 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                     }
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
-                        onclick: move |_| panel.set(Panel::None),
+                        onclick: move |_| {
+                            panel.set(Panel::None);
+                            let dense = settings.read().dense();
+                            settings.write().set_dense(!dense);
+                        },
                         div { class: "size-5", StackIcon {} }
                         "Toggle dense view"
                     }
@@ -168,13 +174,18 @@ fn Column(status: TaskStatus) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("divide-y {}", theme.divide_color);
+    let settings = use_context::<Signal<AppSettings>>();
     rsx! {
         div {
             class: "
                 grow flex flex-col overflow-y-auto
                 {style}
             ",
-            ColumnTasks { status }
+            if settings.read().dense() {
+                DenseColumnTasks { status }
+            } else {
+                ColumnTasks { status }
+            }
         }
     }
 }
@@ -202,6 +213,38 @@ fn ColumnTasks(status: TaskStatus) -> Element {
             })
         {
             Task {
+                key: "{task_id}",
+                task_id: *task_id,
+                task: tasks.0[task_id].clone(),
+                status,
+            }
+        }
+    }
+}
+
+#[component]
+fn DenseColumnTasks(status: TaskStatus) -> Element {
+    let tasks = use_context::<Signal<Tasks>>();
+    let tasks = tasks.read();
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
+    let user_filter = use_context::<Signal<UserFilter>>();
+    let user_filter = user_filter.read();
+    let tag_filter = use_context::<Signal<TagFilter>>();
+    let tag_filter = tag_filter.read();
+    let column_tasks = match status {
+        TaskStatus::ToDo => &board.to_do,
+        TaskStatus::InProgress => &board.in_progress,
+        TaskStatus::Done => &board.done,
+    };
+    rsx! {
+        for task_id in column_tasks
+            .iter()
+            .filter(|task_id| {
+                task_filter(task_id, &tasks.0, &user_filter.0, &tag_filter.0)
+            })
+        {
+            DenseTask {
                 key: "{task_id}",
                 task_id: *task_id,
                 task: tasks.0[task_id].clone(),
