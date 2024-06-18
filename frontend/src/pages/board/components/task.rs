@@ -602,24 +602,26 @@ fn AssignmentListItem(
     aria_label: String,
     onclick: EventHandler<MouseEvent>,
 ) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
     let style = "sm:hover:underline";
     let color = match color {
-        Color::Black => "text-black",
-        Color::White => "text-white",
-        Color::Gray => "text-gray-400",
-        Color::Silver => "text-slate-500",
-        Color::Maroon => "text-rose-400",
-        Color::Red => "text-red-600",
-        Color::Purple => "text-purple-600",
-        Color::Fushsia => "text-fuchsia-400",
-        Color::Green => "text-emerald-500",
-        Color::Lime => "text-lime-500",
-        Color::Olive => "text-indigo-400",
-        Color::Yellow => "text-yellow-400",
-        Color::Navy => "text-amber-200",
-        Color::Blue => "text-blue-400",
-        Color::Teal => "text-teal-300",
-        Color::Aqua => "text-cyan-500",
+        Color::Black => theme.color1_text,
+        Color::White => theme.color2_text,
+        Color::Gray => theme.color3_text,
+        Color::Silver => theme.color4_text,
+        Color::Maroon => theme.color5_text,
+        Color::Red => theme.color6_text,
+        Color::Purple => theme.color7_text,
+        Color::Fushsia => theme.color8_text,
+        Color::Green => theme.color9_text,
+        Color::Lime => theme.color10_text,
+        Color::Olive => theme.color11_text,
+        Color::Yellow => theme.color12_text,
+        Color::Navy => theme.color13_text,
+        Color::Blue => theme.color14_text,
+        Color::Teal => theme.color15_text,
+        Color::Aqua => theme.color16_text,
     };
     rsx! {
         li {

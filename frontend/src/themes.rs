@@ -10,21 +10,37 @@ pub struct Theme {
     pub divide_color: &'static str,
     pub button: &'static str,
     pub color1_button: &'static str,
+    pub color1_text: &'static str,
     pub color2_button: &'static str,
+    pub color2_text: &'static str,
     pub color3_button: &'static str,
+    pub color3_text: &'static str,
     pub color4_button: &'static str,
+    pub color4_text: &'static str,
     pub color5_button: &'static str,
+    pub color5_text: &'static str,
     pub color6_button: &'static str,
+    pub color6_text: &'static str,
     pub color7_button: &'static str,
+    pub color7_text: &'static str,
     pub color8_button: &'static str,
+    pub color8_text: &'static str,
     pub color9_button: &'static str,
+    pub color9_text: &'static str,
     pub color10_button: &'static str,
+    pub color10_text: &'static str,
     pub color11_button: &'static str,
+    pub color11_text: &'static str,
     pub color12_button: &'static str,
+    pub color12_text: &'static str,
     pub color13_button: &'static str,
+    pub color13_text: &'static str,
     pub color14_button: &'static str,
+    pub color14_text: &'static str,
     pub color15_button: &'static str,
+    pub color15_text: &'static str,
     pub color16_button: &'static str,
+    pub color16_text: &'static str,
 }
 
 pub fn themes() -> Vec<Theme> {
@@ -70,6 +86,7 @@ impl Default for Theme {
                 group-[.filled]:bg-black
                 group-[.text-colored]:text-black
             ",
+            color1_text: "text-black",
             color2_button: "
                 border-white
                 aria-pressed:bg-white
@@ -77,6 +94,7 @@ impl Default for Theme {
                 group-[.filled]:bg-white
                 group-[.text-colored]:text-white
             ",
+            color2_text: "text-white",
             color3_button: "
                 border-gray-400
                 aria-pressed:bg-gray-400
@@ -84,6 +102,7 @@ impl Default for Theme {
                 group-[.filled]:bg-gray-400
                 group-[.text-colored]:text-gray-400
             ",
+            color3_text: "text-gray-400",
             color4_button: "
                 border-slate-500
                 aria-pressed:bg-slate-500
@@ -91,6 +110,7 @@ impl Default for Theme {
                 group-[.filled]:bg-slate-500
                 group-[.text-colored]:text-slate-500
             ",
+            color4_text: "text-slate-500",
             color5_button: "
                 border-rose-400
                 aria-pressed:bg-rose-400
@@ -98,6 +118,7 @@ impl Default for Theme {
                 group-[.filled]:bg-rose-400
                 group-[.text-colored]:text-rose-400
             ",
+            color5_text: "text-rose-400",
             color6_button: "
                 border-red-600
                 aria-pressed:bg-red-600
@@ -105,6 +126,7 @@ impl Default for Theme {
                 group-[.filled]:bg-red-600
                 group-[.text-colored]:text-red-600
             ",
+            color6_text: "text-red-600",
             color7_button: "
                 border-purple-600
                 aria-pressed:bg-purple-600
@@ -112,6 +134,7 @@ impl Default for Theme {
                 group-[.filled]:bg-purple-600
                 group-[.text-colored]:text-purple-600
             ",
+            color7_text: "text-purple-600",
             color8_button: "
                 border-fuchsia-400
                 aria-pressed:bg-fuchsia-400
@@ -119,6 +142,7 @@ impl Default for Theme {
                 group-[.filled]:bg-fuchsia-400
                 group-[.text-colored]:text-fuchsia-400
             ",
+            color8_text: "text-fuchsia-400",
             color9_button: "
                 border-emerald-500
                 aria-pressed:bg-emerald-500
@@ -126,6 +150,7 @@ impl Default for Theme {
                 group-[.filled]:bg-emerald-500
                 group-[.text-colored]:text-emerald-500
             ",
+            color9_text: "text-emerald-500",
             color10_button: "
                 border-lime-500
                 aria-pressed:bg-lime-500
@@ -133,6 +158,7 @@ impl Default for Theme {
                 group-[.filled]:bg-lime-500
                 group-[.text-colored]:text-lime-500
             ",
+            color10_text: "text-lime-500",
             color11_button: "
                 border-indigo-400
                 aria-pressed:bg-indigo-400
@@ -140,6 +166,7 @@ impl Default for Theme {
                 group-[.filled]:bg-indigo-400
                 group-[.text-colored]:text-indigo-400
             ",
+            color11_text: "text-indigo-400",
             color12_button: "
                 border-yellow-400
                 aria-pressed:bg-yellow-400
@@ -147,6 +174,7 @@ impl Default for Theme {
                 group-[.filled]:bg-yellow-400
                 group-[.text-colored]:text-yellow-400
             ",
+            color12_text: "text-yellow-400",
             color13_button: "
                 border-amber-200
                 aria-pressed:bg-amber-200
@@ -154,6 +182,7 @@ impl Default for Theme {
                 group-[.filled]:bg-amber-200
                 group-[.text-colored]:text-amber-200
             ",
+            color13_text: "text-amber-200",
             color14_button: "
                 border-blue-400
                 aria-pressed:bg-blue-400
@@ -161,6 +190,7 @@ impl Default for Theme {
                 group-[.filled]:bg-blue-400
                 group-[.text-colored]:text-blue-400
             ",
+            color14_text: "text-blue-400",
             color15_button: "
                 border-teal-300
                 aria-pressed:bg-teal-300
@@ -168,6 +198,7 @@ impl Default for Theme {
                 group-[.filled]:bg-teal-300
                 group-[.text-colored]:text-teal-300
             ",
+            color15_text: "text-teal-300",
             color16_button: "
                 border-cyan-500
                 aria-pressed:bg-cyan-500
@@ -175,6 +206,7 @@ impl Default for Theme {
                 group-[.filled]:bg-cyan-500
                 group-[.text-colored]:text-cyan-500
             ",
+            color16_text: "text-cyan-500",
         }
     }
 }
