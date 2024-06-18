@@ -1,5 +1,4 @@
-use crate::join_board::JoinBoard;
-use crate::pages::{Archive, Board, Tags, Users};
+use crate::pages::{Archive, Board, JoinBoard, Tags, Users};
 use dioxus::prelude::*;
 use shared_models::BoardName;
 
