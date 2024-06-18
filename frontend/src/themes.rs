@@ -68,96 +68,112 @@ impl Default for Theme {
                 aria-pressed:bg-black
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-black
+                group-[.text-colored]:text-black
             ",
             color2_button: "
                 border-white
                 aria-pressed:bg-white
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-white
+                group-[.text-colored]:text-white
             ",
             color3_button: "
                 border-gray-400
                 aria-pressed:bg-gray-400
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-gray-400
+                group-[.text-colored]:text-gray-400
             ",
             color4_button: "
                 border-slate-500
                 aria-pressed:bg-slate-500
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-slate-500
+                group-[.text-colored]:text-slate-500
             ",
             color5_button: "
                 border-rose-400
                 aria-pressed:bg-rose-400
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-rose-400
+                group-[.text-colored]:text-rose-400
             ",
             color6_button: "
                 border-red-600
                 aria-pressed:bg-red-600
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-red-600
+                group-[.text-colored]:text-red-600
             ",
             color7_button: "
                 border-purple-600
                 aria-pressed:bg-purple-600
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-purple-600
+                group-[.text-colored]:text-purple-600
             ",
             color8_button: "
                 border-fuchsia-400
                 aria-pressed:bg-fuchsia-400
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-fuchsia-400
+                group-[.text-colored]:text-fuchsia-400
             ",
             color9_button: "
                 border-emerald-500
                 aria-pressed:bg-emerald-500
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-emerald-500
+                group-[.text-colored]:text-emerald-500
             ",
             color10_button: "
                 border-lime-500
                 aria-pressed:bg-lime-500
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-lime-500
+                group-[.text-colored]:text-lime-500
             ",
             color11_button: "
                 border-indigo-400
                 aria-pressed:bg-indigo-400
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-indigo-400
+                group-[.text-colored]:text-indigo-400
             ",
             color12_button: "
                 border-yellow-400
                 aria-pressed:bg-yellow-400
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-yellow-400
+                group-[.text-colored]:text-yellow-400
             ",
             color13_button: "
                 border-amber-200
                 aria-pressed:bg-amber-200
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-amber-200
+                group-[.text-colored]:text-amber-200
             ",
             color14_button: "
                 border-blue-400
                 aria-pressed:bg-blue-400
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-blue-400
+                group-[.text-colored]:text-blue-400
             ",
             color15_button: "
                 border-teal-300
                 aria-pressed:bg-teal-300
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-teal-300
+                group-[.text-colored]:text-teal-300
             ",
             color16_button: "
                 border-cyan-500
                 aria-pressed:bg-cyan-500
                 aria-pressed:text-white aria-pressed:stroke-white
                 group-[.filled]:bg-cyan-500
+                group-[.text-colored]:text-cyan-500
             ",
         }
     }

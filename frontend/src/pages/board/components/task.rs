@@ -517,7 +517,7 @@ fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
 fn UserBadges(task_id: TaskId, assignees: Vec<(UserId, UserData)>) -> Element {
     rsx! {
        div {
-            class: "flex flex-row gap-2 flex-wrap",
+            class: "flex flex-row gap-2 flex-wrap group text-colored",
             for (user_id, user_data) in assignees {
                 UserBadge { task_id, user_id, user_data }
             }
@@ -527,6 +527,8 @@ fn UserBadges(task_id: TaskId, assignees: Vec<(UserId, UserData)>) -> Element {
 
 #[component]
 fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
     let board_signals = BoardSignals::default();
     let style = "border-2 rounded";
     let button_style = "
@@ -535,22 +537,22 @@ fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
         sm:hover:border sm:hover:border-white
     ";
     let color = match user_data.color {
-        Color::Black => "border-black text-black",
-        Color::White => "border-white text-white",
-        Color::Gray => "border-gray-400 text-gray-400",
-        Color::Silver => "border-slate-500 text-slate-500",
-        Color::Maroon => "border-rose-400 text-rose-400",
-        Color::Red => "border-red-600 text-red-600",
-        Color::Purple => "border-purple-600 text-purple-600",
-        Color::Fushsia => "border-fuchsia-400 text-fuchsia-400",
-        Color::Green => "border-emerald-500 text-emerald-500",
-        Color::Lime => "border-lime-500 text-lime-500",
-        Color::Olive => "border-indigo-400 text-indigo-400",
-        Color::Yellow => "border-yellow-400 text-yellow-400",
-        Color::Navy => "border-amber-200 text-amber-200",
-        Color::Blue => "border-blue-400 text-blue-400",
-        Color::Teal => "border-teal-300 text-teal-300",
-        Color::Aqua => "border-cyan-500 text-cyan-500",
+        Color::Black => theme.color1_button,
+        Color::White => theme.color2_button,
+        Color::Gray => theme.color3_button,
+        Color::Silver => theme.color4_button,
+        Color::Maroon => theme.color5_button,
+        Color::Red => theme.color6_button,
+        Color::Purple => theme.color7_button,
+        Color::Fushsia => theme.color8_button,
+        Color::Green => theme.color9_button,
+        Color::Lime => theme.color10_button,
+        Color::Olive => theme.color11_button,
+        Color::Yellow => theme.color12_button,
+        Color::Navy => theme.color13_button,
+        Color::Blue => theme.color14_button,
+        Color::Teal => theme.color15_button,
+        Color::Aqua => theme.color16_button,
     };
     let unassign_label = format!("unassign {} from task", user_data.name);
     rsx! {
