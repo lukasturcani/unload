@@ -400,9 +400,19 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
 #[component]
 fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
     let themes = use_context::<Signal<Vec<Theme>>>();
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "border-t divide-x-2 {} {}",
+        theme.border_color, theme.divide_color
+    );
     rsx! {
         section {
-            class: "flex flex-row gap-2 items-center justify-between",
+            class: "
+                flex flex-row gap-2 items-center justify-between
+                py-2
+                {style}
+            ",
             "aria-label": "themes",
             div {
                 class: "flex flex-row overflow-x-auto gap-2",
@@ -412,7 +422,7 @@ fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
             }
             button {
                 "aria-label": "close theme selector",
-                class: "size-6",
+                class: "size-6 shrink-0",
                 onclick: move |_| extra_bar.set(ExtraBar::None),
                 CancelIcon {}
             }
