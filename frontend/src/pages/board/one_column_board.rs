@@ -172,16 +172,10 @@ fn Header(body: Element) -> Element {
 
 #[component]
 fn Column(status: TaskStatus, adding_task: Signal<bool>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("divide-y {}", theme.divide_color);
     let settings = use_context::<Signal<AppSettings>>();
     rsx! {
         div {
-            class: "
-                grow flex flex-col overflow-y-auto
-                {style}
-            ",
+            class: "grow flex flex-col overflow-y-auto",
             if settings.read().dense() {
                 DenseColumnTasks { status }
             } else {
