@@ -61,7 +61,11 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
                         class: "font-extrabold",
                         "{board_name}"
                     }
-                    ToggleActionsDrawerButton { panel }
+                    div {
+                        class: "flex flex-row gap-2 items-center",
+                        ToggleFiltersButton { extra_bar }
+                        ToggleActionsDrawerButton { panel }
+                    }
                 }
             }
             section {
@@ -115,7 +119,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
     let theme = theme.read();
     let style = format!(
         "
-                rounded-t-2xl border-t
+                rounded-t-2xl text-lg border-t
                 {} {} {}
             ",
         theme.bg_color_1, theme.text_color, theme.border_color
@@ -128,15 +132,6 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                 section {
                     "aria-label": "actions",
                     class: "flex flex-col gap-2 pt-2 pb-20 {style}",
-                    button {
-                        class: "flex flex-row gap-2 items-center justify-left px-1",
-                        onclick: move |_| {
-                            extra_bar.set(ExtraBar::Filter);
-                            panel.set(Panel::None);
-                        },
-                        div { class: "size-5", FilterIcon {} }
-                        "Filter tasks"
-                    }
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
                         onclick: move |_| {
@@ -177,16 +172,10 @@ fn Header(body: Element) -> Element {
 
 #[component]
 fn Column(status: TaskStatus, adding_task: Signal<bool>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("divide-y {}", theme.divide_color);
     let settings = use_context::<Signal<AppSettings>>();
     rsx! {
         div {
-            class: "
-                grow flex flex-col overflow-y-auto
-                {style}
-            ",
+            class: "grow flex flex-col overflow-y-auto",
             if settings.read().dense() {
                 DenseColumnTasks { status }
             } else {
@@ -270,7 +259,7 @@ fn ToggleNavDrawerButton(panel: Signal<Panel>) -> Element {
     let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
-            class: "size-6 p-1 {style}",
+            class: "size-7 p-1 {style}",
             "aria-pressed": panel() == Panel::Navigation,
             onclick: move |event| {
                 event.stop_propagation();
@@ -292,7 +281,8 @@ fn ToggleActionsDrawerButton(panel: Signal<Panel>) -> Element {
     let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
-            class: "size-6 p-1 {style}",
+            "aria-label": "toggle actions drawer",
+            class: "size-7 p-1 {style}",
             "aria-pressed": panel() == Panel::Actions,
             onclick: move |event| {
                 event.stop_propagation();
@@ -303,6 +293,29 @@ fn ToggleActionsDrawerButton(panel: Signal<Panel>) -> Element {
                 }
             },
             ElipsisHorizontalIcon {}
+        }
+    }
+}
+
+#[component]
+fn ToggleFiltersButton(extra_bar: Signal<ExtraBar>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border rounded {}", theme.button);
+    rsx! {
+        button {
+            "aria-label": "toggle show filters",
+            class: "size-7 p-1 {style}",
+            "aria-pressed": extra_bar() == ExtraBar::Filter,
+            onclick: move |event| {
+                event.stop_propagation();
+                if extra_bar() == ExtraBar::Filter {
+                    extra_bar.set(ExtraBar::None)
+                } else {
+                    extra_bar.set(ExtraBar::Filter)
+                }
+            },
+            FilterIcon {}
         }
     }
 }
@@ -327,7 +340,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                 class: "
                     py-0.5 px-1
                     flex flex-row gap-1 items-center
-                    text-xs
+                    text-sm
                     {status_style}
                 ",
                 onclick: move |event| {
@@ -356,9 +369,10 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
             if panel() == Panel::Status {
                 div {
                     class: "
-                        absolute -bottom-20
+                        absolute -bottom-24
                         z-10
                         flex flex-col
+                        text-lg
                         {dropdown_style}
                     ",
                     button {
@@ -368,7 +382,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             panel.set(Panel::None);
                             event.stop_propagation();
                         },
-                        div { class: "size-4", ToDoIcon {} }
+                        div { class: "size-5", ToDoIcon {} }
                         "To Do",
                     }
                     button {
@@ -378,7 +392,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             panel.set(Panel::None);
                             event.stop_propagation();
                         },
-                        div { class: "size-4", InProgressIcon {} }
+                        div { class: "size-5", InProgressIcon {} }
                         "In Progress",
                     }
                     button {
@@ -388,7 +402,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             panel.set(Panel::None);
                             event.stop_propagation();
                         },
-                        div { class: "size-4", DoneIcon {} }
+                        div { class: "size-5", DoneIcon {} }
                         "Done",
                     }
                 }

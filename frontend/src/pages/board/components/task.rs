@@ -43,15 +43,17 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let is_late = is_late(&task);
     let style = format!(
         "
+        first:border-t
+        border-b
         sm:border
         sm:rounded-lg
         sm:shadow
         {} {}
         ",
         if is_late && status != TaskStatus::Done {
-            format!("border-x {}", theme.late_border_color)
+            theme.late_border_color
         } else {
-            theme.border_color.into()
+            theme.border_color
         },
         theme.bg_color_2,
     );
@@ -191,9 +193,9 @@ fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -
                 expanded.set(!expanded_);
              },
             if expanded_ {
-                DownIcon {}
-            } else {
                 RightIcon {}
+            } else {
+                DownIcon {}
             }
         }
     }
@@ -413,6 +415,7 @@ fn Assignees(
                 }
             }
             ToggleSelector {
+                task_id,
                 r#for: "task-{task_id}-assignees",
                 show_selector: select_assignees,
                 aria_label: "toggle assignee selection",
@@ -427,6 +430,7 @@ fn Assignees(
 
 #[component]
 fn ToggleSelector(
+    task_id: TaskId,
     r#for: String,
     show_selector: Signal<bool>,
     aria_label: String,
@@ -448,7 +452,9 @@ fn ToggleSelector(
                 "aria-pressed": show_selector(),
                 onclick: move |_| {
                     let show = show_selector();
-                    if !show {
+                    if show {
+                        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                    } else {
                         scroll_target.set(ScrollTarget(Some(r#for.clone())));
                     }
                     show_selector.set(!show);
@@ -815,6 +821,7 @@ fn TaskTags(task_id: TaskId, tags: Vec<TagId>, select_tags: Signal<bool>) -> Ele
                 TaskTagIcon { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
             }
             ToggleSelector {
+                task_id,
                 r#for: "task-{task_id}-tags",
                 show_selector: select_tags,
                 aria_label: "toggle tag selection",
