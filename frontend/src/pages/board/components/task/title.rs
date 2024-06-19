@@ -3,6 +3,7 @@ use reqwest::Client;
 use shared_models::TaskId;
 
 use crate::{
+    commands::ScrollTarget,
     components::{
         form::{CancelButton, ConfirmButton},
         icons::EditIcon,
@@ -113,13 +114,20 @@ fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
 
 #[component]
 fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
+    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         div {
             class: "group relative",
             button {
                 "aria-label": "edit title",
                 class: "block size-5",
-                onclick: move |_| editing.set(true),
+                onclick: move |_| {
+
+                    scroll_target.set(
+                        ScrollTarget(Some(format!("task-{task_id}-title-input")))
+                    );
+                    editing.set(true);
+                },
                 EditIcon {}
             }
             Tooltip {
