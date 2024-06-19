@@ -115,7 +115,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
     let theme = theme.read();
     let style = format!(
         "
-                rounded-t-2xl border-t
+                rounded-t-2xl text-lg border-t
                 {} {} {}
             ",
         theme.bg_color_1, theme.text_color, theme.border_color
