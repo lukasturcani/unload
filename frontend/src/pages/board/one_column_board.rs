@@ -327,7 +327,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                 class: "
                     py-0.5 px-1
                     flex flex-row gap-1 items-center
-                    text-xs
+                    text-sm
                     {status_style}
                 ",
                 onclick: move |event| {
@@ -356,9 +356,10 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
             if panel() == Panel::Status {
                 div {
                     class: "
-                        absolute -bottom-20
+                        absolute -bottom-24
                         z-10
                         flex flex-col
+                        text-lg
                         {dropdown_style}
                     ",
                     button {
@@ -368,7 +369,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             panel.set(Panel::None);
                             event.stop_propagation();
                         },
-                        div { class: "size-4", ToDoIcon {} }
+                        div { class: "size-5", ToDoIcon {} }
                         "To Do",
                     }
                     button {
@@ -378,7 +379,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             panel.set(Panel::None);
                             event.stop_propagation();
                         },
-                        div { class: "size-4", InProgressIcon {} }
+                        div { class: "size-5", InProgressIcon {} }
                         "In Progress",
                     }
                     button {
@@ -388,7 +389,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             panel.set(Panel::None);
                             event.stop_propagation();
                         },
-                        div { class: "size-4", DoneIcon {} }
+                        div { class: "size-5", DoneIcon {} }
                         "Done",
                     }
                 }
