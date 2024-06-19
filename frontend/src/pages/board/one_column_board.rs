@@ -61,7 +61,11 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
                         class: "font-extrabold",
                         "{board_name}"
                     }
-                    ToggleActionsDrawerButton { panel }
+                    div {
+                        class: "flex flex-row gap-2 items-center",
+                        ToggleFiltersButton { extra_bar }
+                        ToggleActionsDrawerButton { panel }
+                    }
                 }
             }
             section {
@@ -128,15 +132,6 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                 section {
                     "aria-label": "actions",
                     class: "flex flex-col gap-2 pt-2 pb-20 {style}",
-                    button {
-                        class: "flex flex-row gap-2 items-center justify-left px-1",
-                        onclick: move |_| {
-                            extra_bar.set(ExtraBar::Filter);
-                            panel.set(Panel::None);
-                        },
-                        div { class: "size-5", FilterIcon {} }
-                        "Filter tasks"
-                    }
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
                         onclick: move |_| {
@@ -270,7 +265,7 @@ fn ToggleNavDrawerButton(panel: Signal<Panel>) -> Element {
     let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
-            class: "size-6 p-1 {style}",
+            class: "size-7 p-1 {style}",
             "aria-pressed": panel() == Panel::Navigation,
             onclick: move |event| {
                 event.stop_propagation();
@@ -292,7 +287,8 @@ fn ToggleActionsDrawerButton(panel: Signal<Panel>) -> Element {
     let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
-            class: "size-6 p-1 {style}",
+            "aria-label": "toggle actions drawer",
+            class: "size-7 p-1 {style}",
             "aria-pressed": panel() == Panel::Actions,
             onclick: move |event| {
                 event.stop_propagation();
@@ -303,6 +299,29 @@ fn ToggleActionsDrawerButton(panel: Signal<Panel>) -> Element {
                 }
             },
             ElipsisHorizontalIcon {}
+        }
+    }
+}
+
+#[component]
+fn ToggleFiltersButton(extra_bar: Signal<ExtraBar>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border rounded {}", theme.button);
+    rsx! {
+        button {
+            "aria-label": "toggle show filters",
+            class: "size-7 p-1 {style}",
+            "aria-pressed": extra_bar() == ExtraBar::Filter,
+            onclick: move |event| {
+                event.stop_propagation();
+                if extra_bar() == ExtraBar::Filter {
+                    extra_bar.set(ExtraBar::None)
+                } else {
+                    extra_bar.set(ExtraBar::Filter)
+                }
+            },
+            FilterIcon {}
         }
     }
 }
