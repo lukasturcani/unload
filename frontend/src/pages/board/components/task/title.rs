@@ -122,7 +122,6 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
                 "aria-label": "edit title",
                 class: "block size-5",
                 onclick: move |_| {
-
                     scroll_target.set(
                         ScrollTarget(Some(format!("task-{task_id}-title-input")))
                     );
