@@ -9,7 +9,7 @@ use crate::{
         form::{CancelButton, ConfirmButton},
         icons::{
             ArchiveIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, EditIcon, InProgressIcon,
-            PlusIcon, RightIcon, ToDoIcon, TrashIcon,
+            PlusIcon, ToDoIcon, TrashIcon, UpIcon,
         },
         input::TextInput,
         tooltip::Tooltip,
@@ -193,7 +193,7 @@ fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -
                 expanded.set(!expanded_);
              },
             if expanded_ {
-                RightIcon {}
+                UpIcon {}
             } else {
                 DownIcon {}
             }
