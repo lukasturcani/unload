@@ -51,7 +51,9 @@ pub fn themes() -> Vec<Theme> {
             text_color: "text-white stroke-white",
             late_text_color: "text-red-300 stroke-red-300",
             border_color: "border-pink-400",
-            late_border_color: "border-x-red-300 sm:border-red-300",
+            late_border_color: "
+                border-x border-x-red-300 border-y-pink-400 sm:border-red-300
+            ",
             bg_color_1: "bg-gray-900",
             bg_color_2: "bg-pink-500",
             divide_color: "divide-pink-400",
@@ -71,7 +73,9 @@ impl Default for Theme {
             text_color: "text-white stroke-white",
             late_text_color: "text-red-600 stroke-red-600",
             border_color: "border-gray-700",
-            late_border_color: "border-x border-x-red-600 sm:border-red-600",
+            late_border_color: "
+                border-x border-x-red-600 border-y-gray-700 sm:border-red-600
+            ",
             bg_color_1: "bg-gray-900",
             bg_color_2: "bg-gray-800",
             divide_color: "divide-gray-700",
