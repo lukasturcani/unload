@@ -191,9 +191,9 @@ fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -
                 expanded.set(!expanded_);
              },
             if expanded_ {
-                DownIcon {}
-            } else {
                 RightIcon {}
+            } else {
+                DownIcon {}
             }
         }
     }
