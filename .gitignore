@@ -7,3 +7,8 @@ website/assets/tailwind.css
 website/dist
 website/node_modules
 /target
+/unload-mobile/target
+
+# cargo-mobile2
+unload-mobile/.cargo/
+unload-mobile/gen
