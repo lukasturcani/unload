@@ -165,7 +165,6 @@ mobile:
   cd unload-mobile && cargo build --target aarch64-apple-ios-sim
   ln -sf $(pwd)/target $(pwd)/unload-mobile/target
 
-
 # build the frontend
 frontend:
   rm -rf frontend/dist
