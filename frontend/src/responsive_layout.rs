@@ -26,5 +26,5 @@ fn width() -> f64 {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn width() -> f64 {
-    dioxus::mobile::window().inner_size().width as f64
+    0.0
 }

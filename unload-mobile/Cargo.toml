@@ -38,6 +38,9 @@ log = "0.4"
 wry = "0.37"
 tao = "0.26"
 dioxus = { version = "0.5", features = ["mobile"] }
+reqwest = "0.11"
+frontend = { path = "../frontend" }
+
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.13"

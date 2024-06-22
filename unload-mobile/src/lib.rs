@@ -1,5 +1,8 @@
 use anyhow::Result;
 use dioxus::prelude::*;
+use frontend::app::App;
+use reqwest::Url;
+use std::str::FromStr;
 
 #[cfg(target_os = "android")]
 fn init_logging() {
@@ -49,36 +52,13 @@ pub extern "C" fn start_app() {
 
 pub fn main() -> Result<()> {
     init_logging();
-
-    launch(app);
-
+    launch(Unload);
     Ok(())
 }
 
-fn app() -> Element {
-    let mut items = use_signal(|| vec![1, 2, 3]);
-
-    log::debug!("Hello from the app");
-
-    rsx! {
-        div {
-            h1 { "Hello, Mobile"}
-            div { margin_left: "auto", margin_right: "auto", width: "200px", padding: "10px", border: "1px solid black",
-                button {
-                    onclick: move|_| {
-                        println!("Clicked!");
-                        let mut items_mut = items.write();
-                        let new_item = items_mut.len() + 1;
-                        items_mut.push(new_item);
-                        println!("Requested update");
-                    },
-                    "Add item"
-                }
-                for item in items.read().iter() {
-                    div { "- {item}" }
-                }
-            }
-        }
-    }
+#[component]
+fn Unload() -> Element {
+    let origin = Url::from_str("https://unload.life/").unwrap();
+    rsx! { App { origin } }
 }
 
