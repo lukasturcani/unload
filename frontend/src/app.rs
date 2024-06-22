@@ -3,9 +3,10 @@ use crate::model::{AppSettings, UnloadUrl};
 use crate::route::Route;
 use crate::themes::themes;
 use dioxus::prelude::*;
+use reqwest::Url;
 
 #[component]
-pub fn App() -> Element {
+pub fn App(origin: Url) -> Element {
     let themes = use_context_provider(|| Signal::new(themes()));
     let theme = themes.read()[0].name.to_string();
     let settings = use_context_provider(|| Signal::new(AppSettings::new(theme)));
@@ -18,7 +19,7 @@ pub fn App() -> Element {
             .unwrap();
         Signal::new(*theme)
     });
-    use_context_provider(|| Signal::new(UnloadUrl::default()));
+    use_context_provider(|| Signal::new(UnloadUrl(origin)));
     use_context_provider(|| Signal::new(ScrollTarget::default()));
     use_context_provider(|| Signal::new(FocusTarget::default()));
     rsx! {
