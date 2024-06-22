@@ -5,6 +5,7 @@ use crate::pages::board::one_column_board::OneColumnBoard;
 use crate::pages::board::requests::BoardSignals;
 use crate::pages::board::three_column_board::ThreeColumnBoard;
 use crate::responsive_layout::ResponsiveLayout;
+use crate::window::use_window_size;
 
 use shared_models::BoardName;
 
@@ -23,7 +24,8 @@ pub fn Board(board_name: BoardName) -> Element {
     use_context_provider(|| Signal::new(QuickAddTasks::default()));
     use_context_provider(|| Signal::new(UserFilter::default()));
     use_context_provider(|| Signal::new(TagFilter::default()));
-    let layout = ResponsiveLayout::from_window();
+    let window_size = use_window_size()();
+    let layout = ResponsiveLayout::from_window_size(window_size);
     eval(&format!(r#"document.title = "{board_name}";"#));
     let mut board_signals = BoardSignals::default();
     if board_signals.board.read().board_name != board_name {
