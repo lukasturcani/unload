@@ -24,7 +24,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - if: steps.cache.outputs.cache-hit != 'true'
         run: cargo install sqlx-cli --no-default-features --features sqlite
-      - run: apt-get update && apt-get install -y libgtk-3-dev
+      - run: sudo apt-get update && apt-get install -y libgtk-3-dev
       - run: just test
   cargo-fmt:
     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - uses: dtolnay/rust-toolchain@stable
-      - run: apt-get update && apt-get install -y libgtk-3-dev
+      - run: sudo apt-get update && apt-get install -y libgtk-3-dev
       - run: cargo check --all-features
   cargo-clippy:
     runs-on: ubuntu-latest
@@ -66,5 +66,5 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - run: apt-get update && apt-get install -y libgtk-3-dev
+      - run: sudo apt-get update && apt-get install -y libgtk-3-dev
       - run: cargo clippy --tests -- -D warnings
