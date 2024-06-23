@@ -1,6 +1,9 @@
 use dioxus::prelude::*;
+use dioxus_sdk::storage::*;
 
-use crate::pages::board::model::{Board, QuickAddTasks, TagFilter, Tags, Tasks, UserFilter, Users};
+use crate::pages::board::model::{
+    Board, Dense, QuickAddTasks, TagFilter, Tags, Tasks, UserFilter, Users,
+};
 use crate::pages::board::one_column_board::OneColumnBoard;
 use crate::pages::board::requests::BoardSignals;
 use crate::pages::board::three_column_board::ThreeColumnBoard;
@@ -17,6 +20,8 @@ mod three_column_board;
 
 #[component]
 pub fn Board(board_name: BoardName) -> Element {
+    let dense = use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
+    use_context_provider(|| Signal::new(Dense(dense())));
     use_context_provider(|| Signal::new(Board::default()));
     use_context_provider(|| Signal::new(Tasks::default()));
     use_context_provider(|| Signal::new(Users::default()));

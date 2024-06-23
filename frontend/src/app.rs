@@ -1,5 +1,5 @@
 use crate::commands::{FocusCommand, FocusTarget, ScrollCommand, ScrollTarget};
-use crate::model::{Dense, UnloadUrl};
+use crate::model::UnloadUrl;
 use crate::route::Route;
 use crate::themes::themes;
 use dioxus::prelude::*;
@@ -23,8 +23,6 @@ pub fn App(origin: Url) -> Element {
             None => Signal::new(themes[0]),
         }
     });
-    let dense = use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
-    use_context_provider(|| Signal::new(Dense(dense())));
     use_context_provider(|| Signal::new(UnloadUrl(origin)));
     use_context_provider(|| Signal::new(ScrollTarget::default()));
     use_context_provider(|| Signal::new(FocusTarget::default()));
