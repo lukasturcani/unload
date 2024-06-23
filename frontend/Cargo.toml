@@ -20,6 +20,7 @@ dioxus-logger = "0.4.1"
 dioxus-sdk = { version = "0.5", features = ["storage"] }
 console_error_panic_hook = "0.1.7"
 wasm-bindgen = "0.2"
+manganis = "0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 dioxus = { version = "0.5", features = ["mobile"] }
