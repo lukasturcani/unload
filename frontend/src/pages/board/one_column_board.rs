@@ -11,12 +11,11 @@ use crate::{
         },
         nav::NavBar,
     },
-    model::Dense,
     pages::board::{
         components::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
         },
-        model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
+        model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
     },
     themes::Theme,
 };
