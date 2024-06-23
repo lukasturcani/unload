@@ -1,12 +1,9 @@
-//! Utilities for the window.
-
 use dioxus::prelude::*;
 use std::sync::Once;
 
 #[allow(dead_code)]
 static INIT: Once = Once::new();
 
-/// Stores the width and height of a window, screen, or viewport.
 #[derive(Clone, Copy, Debug)]
 pub struct WindowSize {
     /// The horizontal size in pixels.
@@ -15,26 +12,6 @@ pub struct WindowSize {
     pub height: u32,
 }
 
-/// A hook for receiving the size of the Window.
-///
-/// The initial window size will be returned with this hook and
-/// updated continously as the window is resized.
-///
-/// # Example
-///
-/// ```rust
-/// use dioxus::prelude::*;
-/// use dioxus_sdk::utils::window::use_window_size;
-///
-/// fn App() -> Element {
-///     let size = use_window_size();
-///
-///     rsx! {
-///         p { "Width: {size().width}" }
-///         p { "Height: {size().height}" }
-///     }
-/// }
-/// ```
 pub fn use_window_size() -> ReadOnlySignal<WindowSize> {
     let window_size = match try_use_context::<Signal<WindowSize>>() {
         Some(w) => w,
@@ -51,7 +28,6 @@ pub fn use_window_size() -> ReadOnlySignal<WindowSize> {
     use_hook(|| ReadOnlySignal::new(window_size))
 }
 
-// Listener for the web implementation.
 #[cfg(target_family = "wasm")]
 fn listen(mut window_size: Signal<WindowSize>) {
     use wasm_bindgen::{closure::Closure, JsCast, JsValue};
@@ -83,7 +59,6 @@ fn listen(mut window_size: Signal<WindowSize>) {
     });
 }
 
-// Listener for anything but the web implementation.
 #[cfg(not(target_family = "wasm"))]
 fn listen(mut window_size: Signal<WindowSize>) {
     use dioxus::mobile::{tao::event::Event, window, WindowEvent};
@@ -103,28 +78,10 @@ fn listen(mut window_size: Signal<WindowSize>) {
     });
 }
 
-/// Get the size of the current window.
-///
-/// This function will return the current size of the window.
-///
-/// ```rust
-/// use dioxus::prelude::*;
-/// use dioxus_sdk::utils::window::get_window_size;
-///
-/// fn App() -> Element {
-///     let size = use_signal(get_window_size);
-///
-///     rsx! {
-///         p { "Width: {size().width}" }
-///         p { "Height: {size().height}" }
-///     }
-/// }
-/// ```
 pub fn get_window_size() -> WindowSize {
     get_window_size_platform()
 }
 
-// Web implementation of size getter.
 #[cfg(target_family = "wasm")]
 fn get_window_size_platform() -> WindowSize {
     use wasm_bindgen::JsValue;
@@ -146,7 +103,6 @@ fn get_window_size_platform() -> WindowSize {
     WindowSize { width, height }
 }
 
-// Desktop implementation of size getter.
 #[cfg(not(target_family = "wasm"))]
 fn get_window_size_platform() -> WindowSize {
     let window = dioxus::mobile::window();

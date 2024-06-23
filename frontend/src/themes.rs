@@ -1,5 +1,3 @@
-const _TAILWIND_URL: &str = manganis::mg!(file("assets/tailwind.css"));
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Theme {
     pub name: &'static str,
