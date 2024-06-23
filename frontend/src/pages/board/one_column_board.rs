@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::storage::*;
 use itertools::Itertools;
 use shared_models::{BoardName, TaskStatus};
 
@@ -10,12 +11,11 @@ use crate::{
         },
         nav::NavBar,
     },
-    model::AppSettings,
     pages::board::{
         components::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
         },
-        model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
+        model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
     },
     themes::Theme,
 };
@@ -124,7 +124,9 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
             ",
         theme.bg_color_1, theme.text_color, theme.border_color
     );
-    let mut settings = use_context::<Signal<AppSettings>>();
+    let mut dense = use_context::<Signal<Dense>>();
+    let mut dense_storage =
+        use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
     rsx! {
         BottomSheet {
             panel
@@ -135,9 +137,9 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
                         onclick: move |_| {
-                            panel.set(Panel::None);
-                            let dense = settings.read().dense();
-                            settings.write().set_dense(!dense);
+                            let new_dense = !dense.read().0;
+                            dense.set(Dense(new_dense));
+                            dense_storage.set(new_dense);
                         },
                         div { class: "size-5", StackIcon {} }
                         "Toggle dense view"
@@ -172,11 +174,11 @@ fn Header(body: Element) -> Element {
 
 #[component]
 fn Column(status: TaskStatus, adding_task: Signal<bool>) -> Element {
-    let settings = use_context::<Signal<AppSettings>>();
+    let dense = use_context::<Signal<Dense>>().read().0;
     rsx! {
         div {
             class: "grow flex flex-col overflow-y-auto",
-            if settings.read().dense() {
+            if dense {
                 DenseColumnTasks { status }
             } else {
                 ColumnTasks { status }

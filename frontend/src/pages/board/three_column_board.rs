@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::storage::*;
 use itertools::Itertools;
 use shared_models::{BoardName, TaskStatus};
 
@@ -8,12 +9,11 @@ use crate::{
         nav::NavBar,
         tooltip::Tooltip,
     },
-    model::AppSettings,
     pages::board::{
         components::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
         },
-        model::{task_filter, Board, TagFilter, Tags, Tasks, UserFilter, Users},
+        model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
     },
     themes::Theme,
 };
@@ -121,17 +121,20 @@ fn DenseButton() -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border-2 rounded {}", theme.button);
-    let mut settings = use_context::<Signal<AppSettings>>();
+    let mut dense = use_context::<Signal<Dense>>();
+    let mut dense_storage =
+        use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
     rsx! {
         div {
             class: "group relative",
             button {
                 "aria-label": "toggle dense view",
                 class: "size-9 p-1 {style}",
-                "aria-pressed": settings.read().dense(),
+                "aria-pressed": dense.read().0,
                 onclick: move |_| {
-                    let dense = settings.read().dense();
-                    settings.write().set_dense(!dense);
+                    let new_dense = !dense.read().0;
+                    dense.set(Dense(new_dense));
+                    dense_storage.set(new_dense);
                 },
                 StackIcon {}
             }
@@ -197,8 +200,7 @@ fn Column(status: TaskStatus) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border {}", theme.border_color);
-    let settings = use_context::<Signal<AppSettings>>();
-    let dense = settings.read().dense();
+    let dense = use_context::<Signal<Dense>>().read().0;
     let gap = if dense { "" } else { "gap-2" };
     let adding_task = use_signal(|| false);
     rsx! {

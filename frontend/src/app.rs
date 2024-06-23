@@ -1,24 +1,29 @@
 use crate::commands::{FocusCommand, FocusTarget, ScrollCommand, ScrollTarget};
-use crate::model::{AppSettings, UnloadUrl};
+use crate::model::UnloadUrl;
 use crate::route::Route;
 use crate::themes::themes;
 use dioxus::prelude::*;
+use dioxus_sdk::storage::*;
+use reqwest::Url;
 
 #[component]
-pub fn App() -> Element {
+pub fn App(origin: Url) -> Element {
     let themes = use_context_provider(|| Signal::new(themes()));
-    let theme = themes.read()[0].name.to_string();
-    let settings = use_context_provider(|| Signal::new(AppSettings::new(theme)));
-    use_context_provider(move || {
-        let theme_name = settings.read().theme();
-        let themes = themes.read();
-        let theme = themes
-            .iter()
-            .find(|theme| theme.name == theme_name)
-            .unwrap();
-        Signal::new(*theme)
+    let stored_theme = use_synced_storage::<LocalStorage, String>("theme".to_string(), move || {
+        themes.read()[0].name.to_string()
     });
-    use_context_provider(|| Signal::new(UnloadUrl::default()));
+    use_context_provider(move || {
+        let themes = themes.read();
+        let stored_theme = stored_theme.read();
+        match themes
+            .iter()
+            .find(|theme| theme.name == stored_theme.as_str())
+        {
+            Some(theme) => Signal::new(*theme),
+            None => Signal::new(themes[0]),
+        }
+    });
+    use_context_provider(|| Signal::new(UnloadUrl(origin)));
     use_context_provider(|| Signal::new(ScrollTarget::default()));
     use_context_provider(|| Signal::new(FocusTarget::default()));
     rsx! {

@@ -6,6 +6,9 @@ use shared_models::{
 };
 
 #[derive(Debug)]
+pub struct Dense(pub bool);
+
+#[derive(Debug)]
 pub struct Board {
     pub board_name: BoardName,
     pub to_do: Vec<TaskId>,
