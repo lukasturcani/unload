@@ -1,8 +1,0 @@
-[app]
-name = "unload-mobile"
-stylized-name = "Unload"
-identifier = "unload"
-template-pack = "wry"
-
-[apple]
-development-team = "VU2732RJ94"
