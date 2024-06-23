@@ -143,15 +143,19 @@ check:
 
   echo
   (set -x; cargo fmt --check)
+  test $? = 0
 
   echo
   (set -x; cargo check --all-features)
+  test $? = 0
 
   echo
   (set -x; cargo clippy --tests -- -D warnings)
+  test $? = 0
 
   echo
   (set -x; just test)
+  test $? = 0
 
   test $error = 0
 

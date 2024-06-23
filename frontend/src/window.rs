@@ -9,7 +9,6 @@ pub struct WindowSize {
     /// The horizontal size in pixels.
     pub width: u32,
     /// The vertical size in pixels.
-    #[allow(dead_code)]
     pub height: u32,
 }
 
