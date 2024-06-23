@@ -10,11 +10,15 @@ pub fn ScrollCommand() -> Element {
     let scroll = eval(
         r#"
             let elementId = await dioxus.recv();
-            document.getElementById(elementId).scrollIntoView({behavior: "smooth"});
+            if (elementId !== "ignore") {
+                document.getElementById(elementId).scrollIntoView({behavior: "smooth"});
+            }
         "#,
     );
     if let Some(scroll_target) = scroll_target {
         scroll.send(scroll_target.clone().into()).unwrap();
+    } else {
+        scroll.send("ignore".into()).unwrap();
     }
     rsx! {}
 }
@@ -29,11 +33,15 @@ pub fn FocusCommand() -> Element {
     let focus = eval(
         r#"
             let elementId = await dioxus.recv();
-            document.getElementById(elementId).focus();
+            if (elementId !== "ignore") {
+                document.getElementById(elementId).focus();
+            }
         "#,
     );
     if let Some(focus_target) = focus_target {
         focus.send(focus_target.clone().into()).unwrap();
+    } else {
+        focus.send("ignore".into()).unwrap();
     }
     rsx! {}
 }
