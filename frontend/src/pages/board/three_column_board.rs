@@ -9,6 +9,7 @@ use crate::{
         nav::NavBar,
         tooltip::Tooltip,
     },
+    model::Dense,
     pages::board::{
         components::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
@@ -121,15 +122,21 @@ fn DenseButton() -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border-2 rounded {}", theme.button);
-    let mut dense = use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
+    let mut dense = use_context::<Signal<Dense>>();
+    let mut dense_storage =
+        use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
     rsx! {
         div {
             class: "group relative",
             button {
                 "aria-label": "toggle dense view",
                 class: "size-9 p-1 {style}",
-                "aria-pressed": dense(),
-                onclick: move |_| dense.set(!dense()),
+                "aria-pressed": dense.read().0,
+                onclick: move |_| {
+                    let new_dense = !dense.read().0;
+                    dense.set(Dense(new_dense));
+                    dense_storage.set(new_dense);
+                },
                 StackIcon {}
             }
             Tooltip { content: "Toggle Dense View", position: "-left-10" }
@@ -194,7 +201,7 @@ fn Column(status: TaskStatus) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border {}", theme.border_color);
-    let dense = use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false)();
+    let dense = use_context::<Signal<Dense>>().read().0;
     let gap = if dense { "" } else { "gap-2" };
     let adding_task = use_signal(|| false);
     rsx! {

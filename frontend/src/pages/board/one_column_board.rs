@@ -11,6 +11,7 @@ use crate::{
         },
         nav::NavBar,
     },
+    model::Dense,
     pages::board::{
         components::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
@@ -124,7 +125,9 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
             ",
         theme.bg_color_1, theme.text_color, theme.border_color
     );
-    let mut dense = use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
+    let mut dense = use_context::<Signal<Dense>>();
+    let mut dense_storage =
+        use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
     rsx! {
         BottomSheet {
             panel
@@ -135,8 +138,9 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
                         onclick: move |_| {
-                            panel.set(Panel::None);
-                            dense.set(!dense());
+                            let new_dense = !dense.read().0;
+                            dense.set(Dense(new_dense));
+                            dense_storage.set(new_dense);
                         },
                         div { class: "size-5", StackIcon {} }
                         "Toggle dense view"
@@ -171,11 +175,11 @@ fn Header(body: Element) -> Element {
 
 #[component]
 fn Column(status: TaskStatus, adding_task: Signal<bool>) -> Element {
-    let dense = use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
+    let dense = use_context::<Signal<Dense>>().read().0;
     rsx! {
         div {
             class: "grow flex flex-col overflow-y-auto",
-            if dense() {
+            if dense {
                 DenseColumnTasks { status }
             } else {
                 ColumnTasks { status }
