@@ -59,6 +59,6 @@ pub fn main() -> Result<()> {
 
 #[component]
 fn Unload() -> Element {
-    let origin = Url::from_str("https://unload.life/").unwrap();
+    let origin = Url::from_str("https://app.unload.life/").unwrap();
     rsx! { App { origin } }
 }
