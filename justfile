@@ -130,6 +130,7 @@ test:
     just create-db $database &&
     TEST_DATABASE_URL="sqlite:$database" cargo test --all-features
   )
+  test $? = 0
   rm $database
 
   test $error = 0
