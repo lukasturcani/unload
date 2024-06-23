@@ -52,6 +52,7 @@ pub extern "C" fn start_app() {
 
 pub fn main() -> Result<()> {
     init_logging();
+    dioxus_sdk::storage::set_dir!();
     launch(Unload);
     Ok(())
 }
@@ -61,4 +62,3 @@ fn Unload() -> Element {
     let origin = Url::from_str("https://unload.life/").unwrap();
     rsx! { App { origin } }
 }
-

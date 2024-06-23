@@ -6345,6 +6345,7 @@ dependencies = [
  "anyhow",
  "core-foundation",
  "dioxus",
+ "dioxus-sdk",
  "env_logger 0.9.3",
  "frontend",
  "jni",
