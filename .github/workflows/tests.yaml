@@ -9,8 +9,10 @@ jobs:
   cargo-test:
     runs-on: ubuntu-latest
     steps:
-      - run: sudo apt-get update && apt-get install -y libgtk-3-dev
       - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev
       - uses: extractions/setup-just@v2
       - uses: actions/cache@v4
         id: cache
@@ -37,8 +39,10 @@ jobs:
   cargo-check:
     runs-on: ubuntu-latest
     steps:
-      - run: sudo apt-get update && apt-get install -y libgtk-3-dev
       - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev
       - uses: actions/cache@v4
         with:
           path: |
@@ -53,8 +57,10 @@ jobs:
   cargo-clippy:
     runs-on: ubuntu-latest
     steps:
-      - run: sudo apt-get update && apt-get install -y libgtk-3-dev
       - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev
       - uses: actions/cache@v4
         with:
           path: |
