@@ -42,7 +42,8 @@ impl Default for BoardSignals {
 
 pub async fn board(mut signals: BoardSignals) {
     log::info!("sending board data request");
-    if let (Ok(new_users), Ok(new_tasks), Ok(new_tags), Ok(new_quick_add)) = join!(
+    if let (Ok(new_title), Ok(new_users), Ok(new_tasks), Ok(new_tags), Ok(new_quick_add)) = join!(
+        get_title(signals.url, signals.board),
         get_users(signals.url, signals.board),
         get_tasks(signals.url, signals.board),
         get_tags(signals.url, signals.board),
@@ -55,6 +56,7 @@ pub async fn board(mut signals: BoardSignals) {
         let mut tags = signals.tags.write();
         let mut quick_add = signals.quick_add.write();
 
+        board.title = new_title;
         board.to_do = new_tasks.to_do;
         board.in_progress = new_tasks.in_progress;
         board.done = new_tasks.done;
@@ -65,6 +67,20 @@ pub async fn board(mut signals: BoardSignals) {
     } else {
         log::info!("failed to get board data")
     }
+}
+
+async fn get_title(url: Signal<UnloadUrl>, board: Signal<Board>) -> Result<String, anyhow::Error> {
+    let url = {
+        let url = &url.read().0;
+        let board = board.read();
+        url.join(&format!("/api/boards/{}/title", board.board_name))?
+    };
+    Ok(Client::new()
+        .get(url)
+        .send()
+        .await?
+        .json::<String>()
+        .await?)
 }
 
 async fn get_users(

@@ -24,15 +24,21 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let show_themes = use_signal(|| false);
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
             Header {
                 body: rsx!{
                     div {}
-                    h1 {
-                        class: "text-3xl font-extrabold",
-                        "{board_name}"
+                    div {
+                        class: "flex flex-col items-center justify-center",
+                        h1 {
+                            class: "text-3xl font-extrabold",
+                            {board.title.clone()}
+                        }
+                        p { "{board.board_name}" }
                     }
                     div {
                         class: "flex flex-row gap-2",

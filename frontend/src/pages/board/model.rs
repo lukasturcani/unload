@@ -11,6 +11,7 @@ pub struct Dense(pub bool);
 #[derive(Debug)]
 pub struct Board {
     pub board_name: BoardName,
+    pub title: String,
     pub to_do: Vec<TaskId>,
     pub in_progress: Vec<TaskId>,
     pub done: Vec<TaskId>,
@@ -20,6 +21,7 @@ impl Default for Board {
     fn default() -> Self {
         Self {
             board_name: BoardName::from(""),
+            title: String::from(""),
             to_do: Vec::default(),
             in_progress: Vec::default(),
             done: Vec::default(),
