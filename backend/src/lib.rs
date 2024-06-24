@@ -101,6 +101,30 @@ VALUES (?, ?)",
     Ok(Json(board_name))
 }
 
+pub async fn update_board_title(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+    Json(title): Json<String>,
+) -> Result<Json<()>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+UPDATE
+    boards
+SET
+    title = ?
+WHERE
+   name = ?
+",
+        title,
+        board_name,
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(()))
+}
+
 async fn new_unique_board_name(pool: &SqlitePool) -> Result<BoardName> {
     let mut tx = pool.begin().await?;
     let num_boards = sqlx::query!("SELECT COUNT(*) AS count FROM boards")
