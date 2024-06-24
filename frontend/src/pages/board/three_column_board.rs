@@ -24,22 +24,13 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let show_themes = use_signal(|| false);
-    let board = use_context::<Signal<Board>>();
-    let board = board.read();
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
             Header {
                 body: rsx!{
                     div {}
-                    div {
-                        class: "flex flex-col items-center justify-center pb-1",
-                        h1 {
-                            class: "text-3xl font-extrabold",
-                            {board.title.clone()}
-                        }
-                        p { "{board.board_name}" }
-                    }
+                    Title {}
                     div {
                         class: "flex flex-row gap-2",
                         DenseButton {}
@@ -64,6 +55,33 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                 FilterBar {}
             }
             NavBar { board_name }
+        }
+    }
+}
+
+#[component]
+fn Title() -> Element {
+    let editing = use_signal(|| false);
+    rsx! {
+        if editing() {
+        } else {
+            TitleShow { editing }
+        }
+    }
+}
+
+#[component]
+fn TitleShow(editing: Signal<bool>) -> Element {
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
+    rsx! {
+        div {
+            class: "flex flex-col items-center justify-center pb-1",
+            h1 {
+                class: "text-3xl font-extrabold",
+                {board.title.clone()}
+            }
+            p { "{board.board_name}" }
         }
     }
 }
