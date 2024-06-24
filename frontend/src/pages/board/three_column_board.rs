@@ -33,7 +33,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                 body: rsx!{
                     div {}
                     div {
-                        class: "flex flex-col items-center justify-center",
+                        class: "flex flex-col items-center justify-center pb-1",
                         h1 {
                             class: "text-3xl font-extrabold",
                             {board.title.clone()}
