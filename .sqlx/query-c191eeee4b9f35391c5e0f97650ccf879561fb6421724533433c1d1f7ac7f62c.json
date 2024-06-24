@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\nSELECT\n    title\nFROM\n    boards\nWHERE\n    name = ?\nLIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "title",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "c191eeee4b9f35391c5e0f97650ccf879561fb6421724533433c1d1f7ac7f62c"
+}
