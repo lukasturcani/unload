@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_sdk::storage::*;
 use itertools::Itertools;
-use reqwest::Client;
 use shared_models::{BoardName, TaskStatus};
 
 use crate::{
@@ -88,7 +87,7 @@ fn TitleInput(editing: Signal<bool>) -> Element {
             class: "grow flex flex-row gap-2 items-center justify-center",
             onsubmit: move |event| {
                 let title = event.values()["Title"].as_value();
-                spawn_forever(set_board_title(board_signals, title));
+                spawn_forever(requests::set_board_title(board_signals, title));
                 editing.set(false);
             },
             TextInput {
@@ -378,28 +377,4 @@ fn DenseColumnTasks(status: TaskStatus) -> Element {
             }
         }
     }
-}
-
-async fn set_board_title(signals: BoardSignals, title: String) {
-    if send_set_board_title_request(signals, title).await.is_ok() {
-        requests::board(signals).await;
-    }
-}
-
-async fn send_set_board_title_request(
-    signals: BoardSignals,
-    title: String,
-) -> Result<(), anyhow::Error> {
-    let url = {
-        let url = &signals.url.read().0;
-        let board = signals.board.read();
-        url.join(&format!("/api/boards/{}/title", board.board_name))?
-    };
-    Ok(Client::new()
-        .put(url)
-        .json(&title)
-        .send()
-        .await?
-        .json::<()>()
-        .await?)
 }

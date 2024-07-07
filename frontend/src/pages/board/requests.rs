@@ -306,3 +306,27 @@ pub async fn create_task(
         .json::<TaskId>()
         .await?)
 }
+
+pub async fn set_board_title(signals: BoardSignals, title: String) {
+    if send_set_board_title_request(signals, title).await.is_ok() {
+        board(signals).await;
+    }
+}
+
+async fn send_set_board_title_request(
+    signals: BoardSignals,
+    title: String,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let url = &signals.url.read().0;
+        let board = signals.board.read();
+        url.join(&format!("/api/boards/{}/title", board.board_name))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&title)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
