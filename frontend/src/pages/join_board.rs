@@ -12,7 +12,7 @@ pub fn JoinBoard() -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let nav = use_navigator();
-    let mut boards =
+    let boards =
         use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), Vec::default);
     log::info!("Boards: {:?}", boards.read());
     rsx! {
@@ -22,11 +22,8 @@ pub fn JoinBoard() -> Element {
                 class: "w-full flex flex-row flex-wrap items-center gap-2 justify-center",
                 onsubmit: move |event| {
                     let board_name: BoardName = event.values()["Board Name"].as_value().into();
-                    if !boards.read().contains(&board_name) {
-                        boards.write().push(board_name.clone());
-                    }
-                    log::info!("Boards: {:?}", boards.read());
-                    // nav.push(Route::Board { board_name });
+                    spawn_forever(add_board(boards, board_name.clone()));
+                    nav.push(Route::Board { board_name });
                 },
                 TextInput {
                     id: "board_name",
@@ -122,4 +119,11 @@ async fn send_create_board_request(url: Signal<UnloadUrl>) -> Result<BoardName, 
         client.post(url)
     };
     Ok(request.send().await?.json::<BoardName>().await?)
+}
+
+async fn add_board(mut boards: Signal<Vec<BoardName>>, board: BoardName) {
+    if !boards.read().contains(&board) {
+        boards.write().push(board);
+    }
+    log::info!("Boards: {:?}", boards.read());
 }
