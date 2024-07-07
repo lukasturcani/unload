@@ -12,7 +12,6 @@ use crate::{
         },
         input::TextInput,
         nav::NavBar,
-        tooltip::Tooltip,
     },
     pages::board::{
         components::{
