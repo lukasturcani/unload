@@ -5,17 +5,21 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
+        form::{CancelButton, ConfirmButton},
         icons::{
-            BarsIcon, CancelIcon, DoneIcon, ElipsisHorizontalIcon, FilterIcon, InProgressIcon,
-            SparklesIcon, StackIcon, ToDoIcon,
+            BarsIcon, CancelIcon, DoneIcon, EditIcon, ElipsisHorizontalIcon, FilterIcon,
+            InProgressIcon, SparklesIcon, StackIcon, ToDoIcon,
         },
+        input::TextInput,
         nav::NavBar,
+        tooltip::Tooltip,
     },
     pages::board::{
         components::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
         },
         model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
+        requests::{self, BoardSignals},
     },
     themes::Theme,
 };
@@ -57,12 +61,9 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
             Header {
                 body: rsx! {
                     ToggleNavDrawerButton { panel }
-                    h1 {
-                        class: "font-extrabold",
-                        "{board_name}"
-                    }
+                    Title {}
                     div {
-                        class: "flex flex-row gap-2 items-center",
+                        class: "flex flex-row gap-1 items-center justify-end",
                         ToggleFiltersButton { extra_bar }
                         ToggleActionsDrawerButton { panel }
                     }
@@ -92,6 +93,79 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
         match panel() {
             Panel::Actions => rsx! { ActionsSheet { panel, extra_bar } },
             _ => rsx! {},
+        }
+    }
+}
+
+#[component]
+fn Title() -> Element {
+    let editing = use_signal(|| false);
+    rsx! {
+        if editing() {
+            TitleInput { editing }
+        } else {
+            TitleShow { editing }
+        }
+    }
+}
+
+#[component]
+fn TitleInput(editing: Signal<bool>) -> Element {
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
+    let board_signals = BoardSignals::default();
+    rsx! {
+        form {
+            "aria-label": "update board title",
+            class: "grow flex flex-row gap-2 items-center justify-center",
+            onsubmit: move |event| {
+                let title = event.values()["Title"].as_value();
+                spawn_forever(requests::set_board_title(board_signals, title));
+                editing.set(false);
+            },
+            TextInput {
+                id: "board-title-input",
+                label: "Title",
+                value: board.title.clone(),
+            }
+            ConfirmButton { label: "set title" }
+            CancelButton { label: "cancel title update", editing }
+        }
+    }
+}
+
+#[component]
+fn TitleShow(editing: Signal<bool>) -> Element {
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
+    rsx! {
+        div {
+            class: "grow flex flex-col items-center justify-center pb-1",
+            div {
+                class: "flex flex-row items-center justify-center gap-2",
+                h1 {
+                    class: "font-extrabold",
+                    {board.title.clone()}
+                }
+                EditTitleButton { editing }
+            }
+            p { "{board.board_name}" }
+        }
+    }
+}
+
+#[component]
+fn EditTitleButton(editing: Signal<bool>) -> Element {
+    rsx! {
+        div {
+            class: "group relative",
+            button {
+                "aria-label": "edit title",
+                class: "block size-4",
+                onclick: move |_| editing.set(true),
+                EditIcon {}
+            }
+            Tooltip { content: "Edit Title", position: "" }
         }
     }
 }
