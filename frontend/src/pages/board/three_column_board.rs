@@ -29,10 +29,12 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
             class: "flex flex-col h-dvh w-screen {style}",
             Header {
                 body: rsx!{
-                    div {}
+                    div {
+                        class: "w-24"
+                    }
                     Title {}
                     div {
-                        class: "flex flex-row gap-2",
+                        class: "flex flex-row gap-2 w-24",
                         DenseButton {}
                         ToggleThemesButton { show_themes }
                     }
@@ -76,7 +78,7 @@ fn TitleShow(editing: Signal<bool>) -> Element {
     let board = board.read();
     rsx! {
         div {
-            class: "flex flex-col items-center justify-center pb-1",
+            class: "grow flex flex-col items-center justify-center pb-1",
             h1 {
                 class: "text-3xl font-extrabold",
                 {board.title.clone()}
@@ -202,8 +204,9 @@ fn Header(body: Element) -> Element {
     rsx! {
         header {
             class: "
-                flex flex-row items-center justify-around
+                flex flex-row items-center
                 w-full h-14 shrink-0 grow-0
+                px-24
                 {style}
             ",
             {body}
