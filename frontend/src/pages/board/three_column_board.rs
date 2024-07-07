@@ -111,7 +111,7 @@ fn TitleShow(editing: Signal<bool>) -> Element {
             div {
                 class: "flex flex-row items-center justify-center gap-2",
                 h1 {
-                    class: "text-3xl font-extrabold",
+                    class: "text-2xl font-extrabold",
                     {board.title.clone()}
                 }
                 EditTitleButton { editing }
