@@ -5,7 +5,7 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
-        icons::{DoneIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon},
+        icons::{DoneIcon, EditIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon},
         nav::NavBar,
         tooltip::Tooltip,
     },
@@ -79,11 +79,31 @@ fn TitleShow(editing: Signal<bool>) -> Element {
     rsx! {
         div {
             class: "grow flex flex-col items-center justify-center pb-1",
-            h1 {
-                class: "text-3xl font-extrabold",
-                {board.title.clone()}
+            div {
+                class: "flex flex-row items-center justify-center gap-2",
+                h1 {
+                    class: "text-3xl font-extrabold",
+                    {board.title.clone()}
+                }
+                EditTitleButton { editing }
             }
             p { "{board.board_name}" }
+        }
+    }
+}
+
+#[component]
+fn EditTitleButton(editing: Signal<bool>) -> Element {
+    rsx! {
+        div {
+            class: "group relative",
+            button {
+                "aria-label": "edit title",
+                class: "block size-6",
+                onclick: move |_| editing.set(true),
+                EditIcon {}
+            }
+            Tooltip { content: "Edit Title", position: "" }
         }
     }
 }
