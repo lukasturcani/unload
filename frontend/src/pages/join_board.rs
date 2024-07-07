@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::storage::*;
 use reqwest::Client;
 use shared_models::BoardName;
 
@@ -11,14 +12,24 @@ pub fn JoinBoard() -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let nav = use_navigator();
+    let mut boards =
+        use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), move || {
+            log::info!("running");
+            Vec::default()
+        });
+    log::info!("Boards: {:?}", boards.read());
     rsx! {
         div{
-            class: "flex flex-col h-dvh w-screen py-4 px-2 {style}",
+            class: "flex flex-col h-dvh w-screen py-4 px-2 gap-4 {style}",
             form {
                 class: "w-full flex flex-row flex-wrap items-center gap-2 justify-center",
                 onsubmit: move |event| {
-                    let board_name = event.values()["Board Name"].as_value().into();
-                    nav.push(Route::Board { board_name });
+                    let board_name: BoardName = event.values()["Board Name"].as_value().into();
+                    if !boards.read().contains(&board_name) {
+                        boards.write().push(board_name.clone());
+                    }
+                    log::info!("Boards: {:?}", boards.read());
+                    // nav.push(Route::Board { board_name });
                 },
                 TextInput {
                     id: "board_name",
@@ -35,10 +46,11 @@ pub fn JoinBoard() -> Element {
                     "Join Board"
                 }
             }
+            BoardList {}
             div {
                 class: "inline-flex items-center justify-center w-full",
                 hr {
-                    class: "w-64 h-px my-8 border-0 bg-gray-700",
+                    class: "w-64 h-px border-0 bg-gray-700",
                 },
                 span {
                     class: "absolute px-3 font-medium -translate-x-1/2 left-1/2 text-white bg-gray-900",
@@ -57,6 +69,43 @@ pub fn JoinBoard() -> Element {
                     onclick: move |_| create_board(url, nav),
                     "Create New Board",
                 },
+            }
+        }
+    }
+}
+
+#[component]
+pub fn BoardList() -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border rounded-lg {}", theme.border_color);
+    let boards =
+        use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), Vec::default);
+    rsx! {
+        ul {
+            class: "
+                flex flex-col items-center justify-center
+                {style}
+            ",
+            for board in boards.read().clone() {
+                BoardListItem { board }
+            }
+        }
+    }
+}
+
+#[component]
+fn BoardListItem(board: BoardName) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("last:border-none border-b {}", theme.border_color);
+    rsx! {
+        li {
+            class: "w-full px-2 {style}",
+            a {
+                class: "w-full",
+                href: format!("/boards/{}", board),
+                div { class: "w-full", "{board}" },
             }
         }
     }
