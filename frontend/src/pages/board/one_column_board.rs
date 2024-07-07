@@ -116,8 +116,6 @@ fn TitleShow(editing: Signal<bool>) -> Element {
     let board = use_context::<Signal<Board>>();
     let board = board.read();
     rsx! {
-        div {
-            class: "grow flex flex-col items-center justify-center pb-1 truncate",
             div {
                 class: "flex flex-row items-center justify-center gap-2 truncate",
                 h1 {
@@ -129,23 +127,17 @@ fn TitleShow(editing: Signal<bool>) -> Element {
                     EditTitleButton { editing }
                 }
             }
-            p { "{board.board_name}" }
-        }
     }
 }
 
 #[component]
 fn EditTitleButton(editing: Signal<bool>) -> Element {
     rsx! {
-        div {
-            class: "group relative",
-            button {
-                "aria-label": "edit title",
-                class: "block size-4",
-                onclick: move |_| editing.set(true),
-                EditIcon {}
-            }
-            Tooltip { content: "Edit Title", position: "" }
+        button {
+            "aria-label": "edit title",
+            class: "block size-4",
+            onclick: move |_| editing.set(true),
+            EditIcon {}
         }
     }
 }
