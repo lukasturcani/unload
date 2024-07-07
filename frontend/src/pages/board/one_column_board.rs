@@ -60,8 +60,9 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
             class: "flex flex-col h-dvh w-screen {style}",
             Header { panel, status, extra_bar }
             section {
-                class: "grow flex flex-col overflow-y-auto",
+                class: "grow flex flex-col overflow-y-auto gap-1",
                 "aria-label": "{column_label} tasks",
+                ColumnSwitcher { status, panel }
                 Column { status: status_, adding_task }
             }
             AddTaskButton { status: status_, adding_task }
@@ -116,14 +117,17 @@ fn TitleShow(editing: Signal<bool>) -> Element {
     let board = board.read();
     rsx! {
         div {
-            class: "grow flex flex-col items-center justify-center pb-1",
+            class: "grow flex flex-col items-center justify-center pb-1 truncate",
             div {
-                class: "flex flex-row items-center justify-center gap-2",
+                class: "flex flex-row items-center justify-center gap-2 truncate",
                 h1 {
-                    class: "font-extrabold",
+                    class: "font-extrabold truncate",
                     {board.title.clone()}
                 }
-                EditTitleButton { editing }
+                div {
+                    class: "shrink-0",
+                    EditTitleButton { editing }
+                }
             }
             p { "{board.board_name}" }
         }
@@ -218,27 +222,26 @@ fn Header(
 ) -> Element {
     let editing_title = use_signal(|| false);
     let height = if editing_title() {
-        "py-1"
+        ""
     } else {
-        "h-16 shrink-0 grow-0"
+        "h-14 shrink-0 grow-0"
     };
     rsx! {
         header {
             class: "
                 flex flex-row items-center justify-between
-                w-full {height} px-2
+                w-full {height} py-1 px-2 gap-1
             ",
             if editing_title() {
                 TitleInput { editing: editing_title }
             } else {
                 div {
-                    class: "flex flex-col gap-1",
+                    class: "shrink-0",
                     ToggleNavDrawerButton { panel }
-                    ColumnSwitcher { status, panel }
                 }
                 TitleShow { editing: editing_title }
                 div {
-                    class: "flex flex-row gap-1 items-center justify-end",
+                    class: "shrink-0 flex flex-row gap-1 items-center justify-end",
                     ToggleFiltersButton { extra_bar }
                     ToggleActionsDrawerButton { panel }
                 }
@@ -412,7 +415,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
     );
     rsx! {
         div {
-            class: "group relative",
+            class: "group relative px-2",
             button {
                 class: "
                     py-0.5 px-1
