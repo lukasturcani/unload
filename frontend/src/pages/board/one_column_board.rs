@@ -190,6 +190,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                             let new_dense = !dense.read().0;
                             dense.set(Dense(new_dense));
                             dense_storage.set(new_dense);
+                            panel.set(Panel::None);
                         },
                         div { class: "size-5", StackIcon {} }
                         "Toggle dense view"
