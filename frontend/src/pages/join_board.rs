@@ -13,10 +13,7 @@ pub fn JoinBoard() -> Element {
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let nav = use_navigator();
     let mut boards =
-        use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), move || {
-            log::info!("running");
-            Vec::default()
-        });
+        use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), Vec::default);
     log::info!("Boards: {:?}", boards.read());
     rsx! {
         div{
