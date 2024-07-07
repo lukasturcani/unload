@@ -1,11 +1,14 @@
 use dioxus::prelude::*;
 use dioxus_sdk::storage::*;
 use itertools::Itertools;
+use reqwest::Client;
 use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
+        form::{CancelButton, ConfirmButton},
         icons::{DoneIcon, EditIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon},
+        input::TextInput,
         nav::NavBar,
         tooltip::Tooltip,
     },
@@ -14,6 +17,7 @@ use crate::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
         },
         model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
+        requests::{self, BoardSignals},
     },
     themes::Theme,
 };
@@ -66,8 +70,34 @@ fn Title() -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
+            TitleInput { editing }
         } else {
             TitleShow { editing }
+        }
+    }
+}
+
+#[component]
+fn TitleInput(editing: Signal<bool>) -> Element {
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
+    let board_signals = BoardSignals::default();
+    rsx! {
+        form {
+            "aria-label": "update board title",
+            class: "grow flex flex-row gap-2 items-center justify-center",
+            onsubmit: move |event| {
+                let title = event.values()["Title"].as_value();
+                spawn_forever(set_board_title(board_signals, title));
+                editing.set(false);
+            },
+            TextInput {
+                id: "board-title-input",
+                label: "Title",
+                value: board.title.clone(),
+            }
+            ConfirmButton { label: "set title" }
+            CancelButton { label: "cancel title update", editing }
         }
     }
 }
@@ -348,4 +378,28 @@ fn DenseColumnTasks(status: TaskStatus) -> Element {
             }
         }
     }
+}
+
+async fn set_board_title(signals: BoardSignals, title: String) {
+    if send_set_board_title_request(signals, title).await.is_ok() {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_set_board_title_request(
+    signals: BoardSignals,
+    title: String,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let url = &signals.url.read().0;
+        let board = signals.board.read();
+        url.join(&format!("/api/boards/{}/title", board.board_name))?
+    };
+    Ok(Client::new()
+        .put(url)
+        .json(&title)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
 }
