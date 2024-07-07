@@ -116,6 +116,8 @@ fn TitleShow(editing: Signal<bool>) -> Element {
     let board = use_context::<Signal<Board>>();
     let board = board.read();
     rsx! {
+        div {
+            class: "flex flex-col truncate",
             div {
                 class: "flex flex-row items-center justify-center gap-2 truncate",
                 h1 {
@@ -127,6 +129,8 @@ fn TitleShow(editing: Signal<bool>) -> Element {
                     EditTitleButton { editing }
                 }
             }
+            p { class: "text-center", "{board.board_name}" }
+        }
     }
 }
 
