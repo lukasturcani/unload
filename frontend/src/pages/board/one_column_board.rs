@@ -58,28 +58,10 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
         div {
             onclick: move |_| panel.set(Panel::None),
             class: "flex flex-col h-dvh w-screen {style}",
-            Header {
-                body: rsx! {
-                    ToggleNavDrawerButton { panel }
-                    Title {}
-                    div {
-                        class: "flex flex-row gap-1 items-center justify-end",
-                        ToggleFiltersButton { extra_bar }
-                        ToggleActionsDrawerButton { panel }
-                    }
-                }
-            }
+            Header { panel, status, extra_bar }
             section {
                 class: "grow flex flex-col overflow-y-auto",
                 "aria-label": "{column_label} tasks",
-                div {
-                    class: "
-                        w-full shrink-0 grow-0
-                        flex flex-row items-center
-                        pb-1 px-2
-                    ",
-                    ColumnSwitcher { status, panel }
-                }
                 Column { status: status_, adding_task }
             }
             AddTaskButton { status: status_, adding_task }
@@ -98,18 +80,6 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
 }
 
 #[component]
-fn Title() -> Element {
-    let editing = use_signal(|| false);
-    rsx! {
-        if editing() {
-            TitleInput { editing }
-        } else {
-            TitleShow { editing }
-        }
-    }
-}
-
-#[component]
 fn TitleInput(editing: Signal<bool>) -> Element {
     let board = use_context::<Signal<Board>>();
     let board = board.read();
@@ -117,19 +87,25 @@ fn TitleInput(editing: Signal<bool>) -> Element {
     rsx! {
         form {
             "aria-label": "update board title",
-            class: "grow flex flex-row gap-2 items-center justify-center",
+            class: "grow flex flex-col gap-1 items-center justify-center",
             onsubmit: move |event| {
                 let title = event.values()["Title"].as_value();
                 spawn_forever(requests::set_board_title(board_signals, title));
                 editing.set(false);
             },
-            TextInput {
-                id: "board-title-input",
-                label: "Title",
-                value: board.title.clone(),
+            div {
+                class: "flex flex-row gap-1 items-center justify-center",
+                TextInput {
+                    id: "board-title-input",
+                    label: "Title",
+                    value: board.title.clone(),
+                }
             }
-            ConfirmButton { label: "set title" }
-            CancelButton { label: "cancel title update", editing }
+            div {
+                class: "flex flex-row gap-2 items-center justify-center",
+                ConfirmButton { label: "set title" }
+                CancelButton { label: "cancel title update", editing }
+            }
         }
     }
 }
@@ -234,14 +210,38 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
 }
 
 #[component]
-fn Header(body: Element) -> Element {
+fn Header(
+    panel: Signal<Panel>,
+    status: Signal<TaskStatus>,
+    extra_bar: Signal<ExtraBar>,
+) -> Element {
+    let editing_title = use_signal(|| false);
+    let height = if editing_title() {
+        "py-1"
+    } else {
+        "h-16 shrink-0 grow-0"
+    };
     rsx! {
         header {
             class: "
                 flex flex-row items-center justify-between
-                w-full h-10 shrink-0 grow-0 px-2
+                w-full {height} px-2
             ",
-            {body}
+            if editing_title() {
+                TitleInput { editing: editing_title }
+            } else {
+                div {
+                    class: "flex flex-col gap-1",
+                    ToggleNavDrawerButton { panel }
+                    ColumnSwitcher { status, panel }
+                }
+                TitleShow { editing: editing_title }
+                div {
+                    class: "flex flex-row gap-1 items-center justify-end",
+                    ToggleFiltersButton { extra_bar }
+                    ToggleActionsDrawerButton { panel }
+                }
+            }
         }
     }
 }
