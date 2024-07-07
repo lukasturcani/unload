@@ -5,7 +5,9 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
-        icons::{DoneIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon},
+        form::{CancelButton, ConfirmButton},
+        icons::{DoneIcon, EditIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon},
+        input::TextInput,
         nav::NavBar,
         tooltip::Tooltip,
     },
@@ -14,6 +16,7 @@ use crate::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
         },
         model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
+        requests::{self, BoardSignals},
     },
     themes::Theme,
 };
@@ -29,13 +32,12 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
             class: "flex flex-col h-dvh w-screen {style}",
             Header {
                 body: rsx!{
-                    div {}
-                    h1 {
-                        class: "text-3xl font-extrabold",
-                        "{board_name}"
-                    }
                     div {
-                        class: "flex flex-row gap-2",
+                        class: "w-24"
+                    }
+                    Title {}
+                    div {
+                        class: "flex flex-row gap-2 w-24",
                         DenseButton {}
                         ToggleThemesButton { show_themes }
                     }
@@ -58,6 +60,79 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                 FilterBar {}
             }
             NavBar { board_name }
+        }
+    }
+}
+
+#[component]
+fn Title() -> Element {
+    let editing = use_signal(|| false);
+    rsx! {
+        if editing() {
+            TitleInput { editing }
+        } else {
+            TitleShow { editing }
+        }
+    }
+}
+
+#[component]
+fn TitleInput(editing: Signal<bool>) -> Element {
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
+    let board_signals = BoardSignals::default();
+    rsx! {
+        form {
+            "aria-label": "update board title",
+            class: "grow flex flex-row gap-2 items-center justify-center",
+            onsubmit: move |event| {
+                let title = event.values()["Title"].as_value();
+                spawn_forever(requests::set_board_title(board_signals, title));
+                editing.set(false);
+            },
+            TextInput {
+                id: "board-title-input",
+                label: "Title",
+                value: board.title.clone(),
+            }
+            ConfirmButton { label: "set title" }
+            CancelButton { label: "cancel title update", editing }
+        }
+    }
+}
+
+#[component]
+fn TitleShow(editing: Signal<bool>) -> Element {
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
+    rsx! {
+        div {
+            class: "grow flex flex-col items-center justify-center pb-1",
+            div {
+                class: "flex flex-row items-center justify-center gap-2",
+                h1 {
+                    class: "text-2xl font-extrabold",
+                    {board.title.clone()}
+                }
+                EditTitleButton { editing }
+            }
+            p { "{board.board_name}" }
+        }
+    }
+}
+
+#[component]
+fn EditTitleButton(editing: Signal<bool>) -> Element {
+    rsx! {
+        div {
+            class: "group relative",
+            button {
+                "aria-label": "edit title",
+                class: "block size-6",
+                onclick: move |_| editing.set(true),
+                EditIcon {}
+            }
+            Tooltip { content: "Edit Title", position: "" }
         }
     }
 }
@@ -178,8 +253,9 @@ fn Header(body: Element) -> Element {
     rsx! {
         header {
             class: "
-                flex flex-row items-center justify-around
+                flex flex-row items-center
                 w-full h-14 shrink-0 grow-0
+                px-24
                 {style}
             ",
             {body}

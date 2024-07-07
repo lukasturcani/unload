@@ -5,10 +5,12 @@ use shared_models::{BoardName, TaskStatus};
 
 use crate::{
     components::{
+        form::{CancelButton, ConfirmButton},
         icons::{
-            BarsIcon, CancelIcon, DoneIcon, ElipsisHorizontalIcon, FilterIcon, InProgressIcon,
-            SparklesIcon, StackIcon, ToDoIcon,
+            BarsIcon, CancelIcon, DoneIcon, EditIcon, ElipsisHorizontalIcon, FilterIcon,
+            InProgressIcon, SparklesIcon, StackIcon, ToDoIcon,
         },
+        input::TextInput,
         nav::NavBar,
     },
     pages::board::{
@@ -16,6 +18,7 @@ use crate::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
         },
         model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
+        requests::{self, BoardSignals},
     },
     themes::Theme,
 };
@@ -54,31 +57,11 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
         div {
             onclick: move |_| panel.set(Panel::None),
             class: "flex flex-col h-dvh w-screen {style}",
-            Header {
-                body: rsx! {
-                    ToggleNavDrawerButton { panel }
-                    h1 {
-                        class: "font-extrabold",
-                        "{board_name}"
-                    }
-                    div {
-                        class: "flex flex-row gap-2 items-center",
-                        ToggleFiltersButton { extra_bar }
-                        ToggleActionsDrawerButton { panel }
-                    }
-                }
-            }
+            Header { panel, status, extra_bar }
             section {
-                class: "grow flex flex-col overflow-y-auto",
+                class: "grow flex flex-col overflow-y-auto gap-1",
                 "aria-label": "{column_label} tasks",
-                div {
-                    class: "
-                        w-full shrink-0 grow-0
-                        flex flex-row items-center
-                        pb-1 px-2
-                    ",
-                    ColumnSwitcher { status, panel }
-                }
+                ColumnSwitcher { status, panel }
                 Column { status: status_, adding_task }
             }
             AddTaskButton { status: status_, adding_task }
@@ -92,6 +75,72 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
         match panel() {
             Panel::Actions => rsx! { ActionsSheet { panel, extra_bar } },
             _ => rsx! {},
+        }
+    }
+}
+
+#[component]
+fn TitleInput(editing: Signal<bool>) -> Element {
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
+    let board_signals = BoardSignals::default();
+    rsx! {
+        form {
+            "aria-label": "update board title",
+            class: "grow flex flex-col gap-1 items-center justify-center",
+            onsubmit: move |event| {
+                let title = event.values()["Title"].as_value();
+                spawn_forever(requests::set_board_title(board_signals, title));
+                editing.set(false);
+            },
+            div {
+                class: "flex flex-row gap-1 items-center justify-center",
+                TextInput {
+                    id: "board-title-input",
+                    label: "Title",
+                    value: board.title.clone(),
+                }
+            }
+            div {
+                class: "flex flex-row gap-2 items-center justify-center",
+                ConfirmButton { label: "set title" }
+                CancelButton { label: "cancel title update", editing }
+            }
+        }
+    }
+}
+
+#[component]
+fn TitleShow(editing: Signal<bool>) -> Element {
+    let board = use_context::<Signal<Board>>();
+    let board = board.read();
+    rsx! {
+        div {
+            class: "flex flex-col truncate",
+            div {
+                class: "flex flex-row items-center justify-center gap-2 truncate",
+                h1 {
+                    class: "font-extrabold truncate",
+                    {board.title.clone()}
+                }
+                div {
+                    class: "shrink-0",
+                    EditTitleButton { editing }
+                }
+            }
+            p { class: "text-center", "{board.board_name}" }
+        }
+    }
+}
+
+#[component]
+fn EditTitleButton(editing: Signal<bool>) -> Element {
+    rsx! {
+        button {
+            "aria-label": "edit title",
+            class: "block size-4",
+            onclick: move |_| editing.set(true),
+            EditIcon {}
         }
     }
 }
@@ -140,6 +189,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                             let new_dense = !dense.read().0;
                             dense.set(Dense(new_dense));
                             dense_storage.set(new_dense);
+                            panel.set(Panel::None);
                         },
                         div { class: "size-5", StackIcon {} }
                         "Toggle dense view"
@@ -160,14 +210,37 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
 }
 
 #[component]
-fn Header(body: Element) -> Element {
+fn Header(
+    panel: Signal<Panel>,
+    status: Signal<TaskStatus>,
+    extra_bar: Signal<ExtraBar>,
+) -> Element {
+    let editing_title = use_signal(|| false);
+    let height = if editing_title() {
+        ""
+    } else {
+        "h-14 shrink-0 grow-0"
+    };
     rsx! {
         header {
             class: "
                 flex flex-row items-center justify-between
-                w-full h-10 shrink-0 grow-0 px-2
+                w-full {height} py-1 px-2 gap-1
             ",
-            {body}
+            if editing_title() {
+                TitleInput { editing: editing_title }
+            } else {
+                div {
+                    class: "shrink-0",
+                    ToggleNavDrawerButton { panel }
+                }
+                TitleShow { editing: editing_title }
+                div {
+                    class: "shrink-0 flex flex-row gap-1 items-center justify-end",
+                    ToggleFiltersButton { extra_bar }
+                    ToggleActionsDrawerButton { panel }
+                }
+            }
         }
     }
 }
@@ -337,7 +410,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
     );
     rsx! {
         div {
-            class: "group relative",
+            class: "group relative px-2",
             button {
                 class: "
                     py-0.5 px-1
