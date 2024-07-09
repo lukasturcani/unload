@@ -3,7 +3,12 @@ use dioxus_sdk::storage::*;
 use reqwest::Client;
 use shared_models::BoardName;
 
-use crate::{components::input::TextInput, model::UnloadUrl, route::Route, themes::Theme};
+use crate::{
+    components::{icons::TrashIcon, input::TextInput},
+    model::UnloadUrl,
+    route::Route,
+    themes::Theme,
+};
 
 #[component]
 pub fn JoinBoard() -> Element {
@@ -83,25 +88,45 @@ pub fn BoardList() -> Element {
                 {style}
             ",
             for board in boards.read().clone() {
-                BoardListItem { board }
+                BoardListItem { boards, board }
             }
         }
     }
 }
 
 #[component]
-fn BoardListItem(board: BoardName) -> Element {
+fn BoardListItem(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("last:border-none border-b {}", theme.border_color);
     rsx! {
         li {
-            class: "w-full px-2 {style}",
+            class: "
+                w-full px-2
+                flex flex-row justify-between items-center
+                {style}
+            ",
             a {
                 class: "w-full",
                 href: format!("/boards/{}", board),
                 div { class: "w-full", "{board}" },
             }
+            RemoveBoardButton { boards, board: board.clone() }
+        }
+    }
+}
+
+#[component]
+fn RemoveBoardButton(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
+    let style = "stroke-red-600";
+    rsx! {
+        button {
+            "aria-label": "remove board",
+            class: "size-5 {style}",
+            onclick: move |_| {
+                boards.write().retain(|b| b != &board);
+            },
+            TrashIcon {}
         }
     }
 }
