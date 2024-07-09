@@ -8,7 +8,7 @@ use crate::{
         form::{CancelButton, ConfirmButton},
         icons::{
             BarsIcon, CancelIcon, DoneIcon, EditIcon, ElipsisHorizontalIcon, FilterIcon,
-            InProgressIcon, SparklesIcon, StackIcon, ToDoIcon,
+            InProgressIcon, SparklesIcon, StackIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
         nav::NavBar,
@@ -74,6 +74,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
         }
         match panel() {
             Panel::Actions => rsx! { ActionsSheet { panel, extra_bar } },
+            Panel::Navigation => rsx! { NavigationSheet { panel } },
             _ => rsx! {},
         }
     }
@@ -205,6 +206,98 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                     }
                 }
             },
+        }
+    }
+}
+
+#[component]
+fn SideSheet(panel: Signal<Panel>, body: Element) -> Element {
+    rsx! {
+        div {
+            class: "
+                size-full absolute inset-0 z-10
+                flex flex-row
+            ",
+            {body}
+            div {
+                class: "grow backdrop-blur-sm",
+                onclick: move |_| panel.set(Panel::None),
+            }
+        }
+    }
+}
+
+#[component]
+fn NavigationSheet(panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "text-lg {} {} {}",
+        theme.bg_color_1, theme.text_color, theme.border_color
+    );
+    rsx! {
+        SideSheet {
+            panel,
+            body: rsx! {
+                section {
+                    class: style,
+                    "aria-label": "navigation",
+                    BoardList {}
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn BoardList() -> Element {
+    let boards =
+        use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), Vec::default);
+    rsx! {
+        section {
+            h2 { "Boards" }
+            ul {
+                for board in boards.read().clone() {
+                    BoardListItem { boards, board }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn BoardListItem(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("last:border-none border-b {}", theme.border_color);
+    rsx! {
+        li {
+            class: "
+                w-full px-2
+                flex flex-row justify-between items-center
+                {style}
+            ",
+            a {
+                class: "w-full",
+                href: format!("/boards/{}", board),
+                div { class: "w-full", "{board}" },
+            }
+            RemoveBoardButton { boards, board: board.clone() }
+        }
+    }
+}
+
+#[component]
+fn RemoveBoardButton(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
+    let style = "stroke-red-600";
+    rsx! {
+        button {
+            "aria-label": "remove board",
+            class: "size-5 {style}",
+            onclick: move |_| {
+                boards.write().retain(|b| b != &board);
+            },
+            TrashIcon {}
         }
     }
 }
