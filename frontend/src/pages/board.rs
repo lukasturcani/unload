@@ -20,6 +20,11 @@ mod three_column_board;
 
 #[component]
 pub fn Board(board_name: BoardName) -> Element {
+    let mut boards =
+        use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), Vec::default);
+    if !boards.read().contains(&board_name) {
+        boards.write().push(board_name.clone());
+    }
     let dense = use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
     use_context_provider(|| Signal::new(Dense(dense())));
     use_context_provider(|| Signal::new(Board::default()));

@@ -12,17 +12,17 @@ pub fn JoinBoard() -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let nav = use_navigator();
-    let boards =
-        use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), Vec::default);
-    log::info!("Boards: {:?}", boards.read());
     rsx! {
         div{
-            class: "flex flex-col h-dvh w-screen py-4 px-2 gap-4 {style}",
+            class: "
+                flex flex-col items-center
+                h-dvh w-screen py-4 px-2 gap-4
+                {style}
+            ",
             form {
-                class: "w-full flex flex-row flex-wrap items-center gap-2 justify-center",
+                class: "flex flex-row flex-wrap items-center gap-2 justify-center",
                 onsubmit: move |event| {
-                    let board_name: BoardName = event.values()["Board Name"].as_value().into();
-                    spawn_forever(add_board(boards, board_name.clone()));
+                    let board_name = event.values()["Board Name"].as_value().into();
                     nav.push(Route::Board { board_name });
                 },
                 TextInput {
@@ -42,7 +42,7 @@ pub fn JoinBoard() -> Element {
             }
             BoardList {}
             div {
-                class: "inline-flex items-center justify-center w-full",
+                class: "inline-flex items-center justify-center",
                 hr {
                     class: "w-64 h-px border-0 bg-gray-700",
                 },
@@ -52,7 +52,7 @@ pub fn JoinBoard() -> Element {
                 },
             },
             div {
-                class: "inline-flex items-center justify-center w-full",
+                class: "inline-flex items-center justify-center",
                 button {
                     class: "
                         text-white
@@ -79,6 +79,7 @@ pub fn BoardList() -> Element {
         ul {
             class: "
                 flex flex-col items-center justify-center
+                w-full max-w-96
                 {style}
             ",
             for board in boards.read().clone() {
@@ -119,11 +120,4 @@ async fn send_create_board_request(url: Signal<UnloadUrl>) -> Result<BoardName, 
         client.post(url)
     };
     Ok(request.send().await?.json::<BoardName>().await?)
-}
-
-async fn add_board(mut boards: Signal<Vec<BoardName>>, board: BoardName) {
-    if !boards.read().contains(&board) {
-        boards.write().push(board);
-    }
-    log::info!("Boards: {:?}", boards.read());
 }
