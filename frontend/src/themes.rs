@@ -1,3 +1,8 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+pub struct SavedTheme(pub String);
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Theme {
     pub name: &'static str,

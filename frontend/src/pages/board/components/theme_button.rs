@@ -1,15 +1,11 @@
 use dioxus::prelude::*;
-use dioxus_sdk::storage::*;
 
-use crate::themes::Theme;
+use crate::themes::{SavedTheme, Theme};
 
 #[component]
 pub fn ThemeButton(theme: Theme) -> Element {
     let mut app_theme = use_context::<Signal<Theme>>();
-    let mut stored_theme =
-        use_synced_storage::<LocalStorage, String>("theme".to_string(), move || {
-            app_theme.read().name.to_string()
-        });
+    let mut saved_theme = use_context::<Signal<SavedTheme>>();
     let app_theme_ = app_theme.read();
     let style = format!(
         "
@@ -27,7 +23,7 @@ pub fn ThemeButton(theme: Theme) -> Element {
             ",
             "aria-pressed": app_theme_.name == theme.name,
             onclick: move |_| {
-                stored_theme.set(theme.name.into());
+                saved_theme.set(SavedTheme(theme.name.into()));
                 app_theme.set(theme);
             },
             {theme.name}
