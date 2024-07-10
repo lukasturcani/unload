@@ -7,8 +7,8 @@ use crate::{
     components::{
         form::{CancelButton, ConfirmButton},
         icons::{
-            BarsIcon, CancelIcon, DoneIcon, EditIcon, ElipsisHorizontalIcon, FilterIcon,
-            InProgressIcon, SparklesIcon, StackIcon, ToDoIcon, TrashIcon,
+            BarsIcon, BookmarkIcon, CancelIcon, DoneIcon, EditIcon, ElipsisHorizontalIcon,
+            FilterIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
         nav::NavBar,
@@ -257,7 +257,8 @@ fn BoardList() -> Element {
         section {
             class: "px-2 flex flex-col gap-2",
             h2 {
-                class: "font-bold",
+                class: "font-bold flex flex-row gap-1 items-center",
+                div { class: "size-5", BookmarkIcon {} }
                 "Boards"
             }
             ul {
@@ -272,16 +273,28 @@ fn BoardList() -> Element {
 
 #[component]
 fn BoardListItem(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("first:border-t border-b {} text-sm", theme.border_color);
     rsx! {
         li {
             class: "
                 flex flex-row justify-between items-center
-                text-sm
+                text-sm {style}
             ",
             a {
                 class: "w-full",
                 href: format!("/boards/{}", board),
-                div { class: "w-full", "{board}" },
+                div {
+                    class: "w-full flex flex-col",
+                    p {
+                        class: "font-bold",
+                        "{board}"
+                    }
+                    p {
+                        "{board}"
+                    }
+                },
             }
             RemoveBoardButton { boards, board: board.clone() }
         }
