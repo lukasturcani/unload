@@ -240,7 +240,7 @@ fn NavigationSheet(panel: Signal<Panel>) -> Element {
             panel,
             body: rsx! {
                 section {
-                    class: style,
+                    class: "w-10/12 {style}",
                     "aria-label": "navigation",
                     BoardList {}
                 }
@@ -255,8 +255,13 @@ fn BoardList() -> Element {
         use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), Vec::default);
     rsx! {
         section {
-            h2 { "Boards" }
+            class: "px-2 flex flex-col gap-2",
+            h2 {
+                class: "font-bold",
+                "Boards"
+            }
             ul {
+                class: "flex flex-col gap-2",
                 for board in boards.read().clone() {
                     BoardListItem { boards, board }
                 }
@@ -267,15 +272,11 @@ fn BoardList() -> Element {
 
 #[component]
 fn BoardListItem(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("last:border-none border-b {}", theme.border_color);
     rsx! {
         li {
             class: "
-                w-full px-2
                 flex flex-row justify-between items-center
-                {style}
+                text-sm
             ",
             a {
                 class: "w-full",
