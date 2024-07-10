@@ -12,6 +12,9 @@ use crate::{
 
 #[component]
 pub fn JoinBoard() -> Element {
+    let boards =
+        use_synced_storage::<LocalStorage, SavedBoards>("boards".to_string(), SavedBoards::default);
+    use_context_provider(|| boards);
     let url = use_context::<Signal<UnloadUrl>>();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -78,8 +81,7 @@ pub fn BoardList() -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border rounded-lg {}", theme.border_color);
-    let boards =
-        use_synced_storage::<LocalStorage, SavedBoards>("boards".to_string(), SavedBoards::default);
+    let boards = use_context::<Signal<SavedBoards>>();
     rsx! {
         ul {
             class: "
