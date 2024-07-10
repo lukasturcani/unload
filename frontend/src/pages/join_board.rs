@@ -112,12 +112,11 @@ fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
                 class: "w-full",
                 href: format!("/boards/{}", board.name),
                 div {
-                    class: "w-full flex flex-col gap-1",
+                    class: "w-full flex flex-row gap-1",
                     p {
-                        class: "font-bold",
-                        "{board.title}"
+                        b { "{board.title} " }
+                        "({board.name})"
                     }
-                    p { "{board.name}" }
                 },
             }
             RemoveBoardButton { boards, board: board.clone() }

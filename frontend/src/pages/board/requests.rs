@@ -1,3 +1,5 @@
+use crate::model::SavedBoard;
+use crate::model::SavedBoards;
 use crate::model::UnloadUrl;
 use crate::pages::board::model::Board;
 use crate::pages::board::model::QuickAddTasks;
@@ -25,6 +27,7 @@ pub struct BoardSignals {
     pub users: Signal<Users>,
     pub tags: Signal<Tags>,
     pub quick_add: Signal<QuickAddTasks>,
+    pub saved_boards: Signal<SavedBoards>,
 }
 
 impl Default for BoardSignals {
@@ -36,6 +39,7 @@ impl Default for BoardSignals {
             users: use_context::<Signal<Users>>(),
             tags: use_context::<Signal<Tags>>(),
             quick_add: use_context::<Signal<QuickAddTasks>>(),
+            saved_boards: use_context::<Signal<SavedBoards>>(),
         }
     }
 }
@@ -55,6 +59,7 @@ pub async fn board(mut signals: BoardSignals) {
         let mut users = signals.users.write();
         let mut tags = signals.tags.write();
         let mut quick_add = signals.quick_add.write();
+        let mut saved_boards = signals.saved_boards.write();
 
         board.title = new_title;
         board.to_do = new_tasks.to_do;
@@ -64,6 +69,12 @@ pub async fn board(mut signals: BoardSignals) {
         tasks.0 = new_tasks.tasks;
         tags.0 = new_tags;
         quick_add.0 = new_quick_add;
+        if saved_boards.0.iter().all(|b| b.name != board.board_name) {
+            saved_boards.0.push(SavedBoard {
+                name: board.board_name.clone(),
+                title: board.title.clone(),
+            });
+        }
     } else {
         log::info!("failed to get board data")
     }
