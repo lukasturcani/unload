@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use dioxus_sdk::storage::*;
 use itertools::Itertools;
 use shared_models::{BoardName, TaskStatus};
 
@@ -13,6 +12,7 @@ use crate::{
         input::TextInput,
         nav::NavBar,
     },
+    model::{SavedBoard, SavedBoards},
     pages::board::{
         components::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
@@ -248,8 +248,7 @@ fn NavigationSheet(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn BoardList() -> Element {
-    let boards =
-        use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), Vec::default);
+    let boards = use_context::<Signal<SavedBoards>>();
     rsx! {
         section {
             class: "px-2 flex flex-col gap-2",
@@ -260,7 +259,7 @@ fn BoardList() -> Element {
             }
             ul {
                 class: "flex flex-col gap-2",
-                for board in boards.read().clone() {
+                for board in boards.read().0.clone() {
                     BoardListItem { boards, board }
                 }
             }
@@ -269,7 +268,7 @@ fn BoardList() -> Element {
 }
 
 #[component]
-fn BoardListItem(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
+fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("first:border-t border-b {} text-sm", theme.border_color);
@@ -281,15 +280,15 @@ fn BoardListItem(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
             ",
             a {
                 class: "w-full",
-                href: format!("/boards/{}", board),
+                href: format!("/boards/{}", board.name),
                 div {
                     class: "w-full flex flex-col",
                     p {
                         class: "font-bold",
-                        "{board}"
+                        "{board.title}"
                     }
                     p {
-                        "{board}"
+                        "{board.name}"
                     }
                 },
             }
@@ -299,14 +298,14 @@ fn BoardListItem(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
 }
 
 #[component]
-fn RemoveBoardButton(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
+fn RemoveBoardButton(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
     let style = "stroke-red-600";
     rsx! {
         button {
             "aria-label": "remove board",
             class: "size-5 {style}",
             onclick: move |_| {
-                boards.write().retain(|b| b != &board);
+                boards.write().0.retain(|b| b != &board);
             },
             TrashIcon {}
         }
