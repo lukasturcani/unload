@@ -5,7 +5,7 @@ use shared_models::BoardName;
 
 use crate::{
     components::{icons::TrashIcon, input::TextInput},
-    model::UnloadUrl,
+    model::{SavedBoard, SavedBoards, UnloadUrl},
     route::Route,
     themes::Theme,
 };
@@ -79,7 +79,7 @@ pub fn BoardList() -> Element {
     let theme = theme.read();
     let style = format!("border rounded-lg {}", theme.border_color);
     let boards =
-        use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), Vec::default);
+        use_synced_storage::<LocalStorage, SavedBoards>("boards".to_string(), SavedBoards::default);
     rsx! {
         ul {
             class: "
@@ -87,7 +87,7 @@ pub fn BoardList() -> Element {
                 w-full max-w-96
                 {style}
             ",
-            for board in boards.read().clone() {
+            for board in boards.read().0.clone() {
                 BoardListItem { boards, board }
             }
         }
@@ -95,7 +95,7 @@ pub fn BoardList() -> Element {
 }
 
 #[component]
-fn BoardListItem(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
+fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("last:border-none border-b {}", theme.border_color);
@@ -108,8 +108,15 @@ fn BoardListItem(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
             ",
             a {
                 class: "w-full",
-                href: format!("/boards/{}", board),
-                div { class: "w-full", "{board}" },
+                href: format!("/boards/{}", board.name),
+                div {
+                    class: "w-full flex flex-col gap-1",
+                    p {
+                        class: "font-bold",
+                        "{board.title}"
+                    }
+                    p { "{board.name}" }
+                },
             }
             RemoveBoardButton { boards, board: board.clone() }
         }
@@ -117,14 +124,14 @@ fn BoardListItem(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
 }
 
 #[component]
-fn RemoveBoardButton(boards: Signal<Vec<BoardName>>, board: BoardName) -> Element {
+fn RemoveBoardButton(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
     let style = "stroke-red-600";
     rsx! {
         button {
             "aria-label": "remove board",
             class: "size-5 {style}",
             onclick: move |_| {
-                boards.write().retain(|b| b != &board);
+                boards.write().0.retain(|b| b != &board);
             },
             TrashIcon {}
         }

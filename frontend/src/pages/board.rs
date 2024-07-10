@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_sdk::storage::*;
 
+use crate::model::SavedBoards;
 use crate::pages::board::model::{
     Board, Dense, QuickAddTasks, TagFilter, Tags, Tasks, UserFilter, Users,
 };
@@ -21,10 +22,7 @@ mod three_column_board;
 #[component]
 pub fn Board(board_name: BoardName) -> Element {
     let mut boards =
-        use_synced_storage::<LocalStorage, Vec<BoardName>>("boards".to_string(), Vec::default);
-    if !boards.read().contains(&board_name) {
-        boards.write().push(board_name.clone());
-    }
+        use_synced_storage::<LocalStorage, SavedBoards>("boards".to_string(), SavedBoards::default);
     let dense = use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
     use_context_provider(|| Signal::new(Dense(dense())));
     use_context_provider(|| Signal::new(Board::default()));
@@ -34,6 +32,7 @@ pub fn Board(board_name: BoardName) -> Element {
     use_context_provider(|| Signal::new(QuickAddTasks::default()));
     use_context_provider(|| Signal::new(UserFilter::default()));
     use_context_provider(|| Signal::new(TagFilter::default()));
+    use_context_provider(|| boards);
     let window_size = use_window_size()();
     let layout = ResponsiveLayout::from_window_size(window_size);
     eval(&format!(r#"document.title = "{board_name}";"#));
