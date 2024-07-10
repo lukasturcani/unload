@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use dioxus_sdk::storage::*;
 use itertools::Itertools;
 use shared_models::{BoardName, TaskStatus};
 
@@ -197,8 +196,6 @@ fn DenseButton() -> Element {
     let theme = theme.read();
     let style = format!("border-2 rounded {}", theme.button);
     let mut dense = use_context::<Signal<Dense>>();
-    let mut dense_storage =
-        use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
     rsx! {
         div {
             class: "group relative",
@@ -209,7 +206,6 @@ fn DenseButton() -> Element {
                 onclick: move |_| {
                     let new_dense = !dense.read().0;
                     dense.set(Dense(new_dense));
-                    dense_storage.set(new_dense);
                 },
                 StackIcon {}
             }

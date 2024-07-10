@@ -1,11 +1,12 @@
 use std::collections::{HashMap, HashSet};
 
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use shared_models::{
     BoardName, QuickAddData, QuickAddTaskId, TagData, TagId, TaskEntry, TaskId, UserData, UserId,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Default, PartialEq, Eq, Serialize, Deserialize, Clone, Copy)]
 pub struct Dense(pub bool);
 
 #[derive(Debug)]

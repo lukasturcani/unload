@@ -175,8 +175,6 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
         theme.bg_color_1, theme.text_color, theme.border_color
     );
     let mut dense = use_context::<Signal<Dense>>();
-    let mut dense_storage =
-        use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
     rsx! {
         BottomSheet {
             panel
@@ -189,7 +187,6 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                         onclick: move |_| {
                             let new_dense = !dense.read().0;
                             dense.set(Dense(new_dense));
-                            dense_storage.set(new_dense);
                             panel.set(Panel::None);
                         },
                         div { class: "size-5", StackIcon {} }

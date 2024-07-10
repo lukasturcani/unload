@@ -21,10 +21,10 @@ mod three_column_board;
 
 #[component]
 pub fn Board(board_name: BoardName) -> Element {
-    let mut boards =
+    let boards =
         use_synced_storage::<LocalStorage, SavedBoards>("boards".to_string(), SavedBoards::default);
-    let dense = use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
-    use_context_provider(|| Signal::new(Dense(dense())));
+    let dense = use_synced_storage::<LocalStorage, Dense>("dense".to_string(), Dense::default);
+    use_context_provider(|| dense);
     use_context_provider(|| Signal::new(Board::default()));
     use_context_provider(|| Signal::new(Tasks::default()));
     use_context_provider(|| Signal::new(Users::default()));
