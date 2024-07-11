@@ -95,11 +95,19 @@ async fn send_board_data_request(signals: BoardSignals) -> Result<BoardData, any
     let url = {
         let url = &signals.url.read().0;
         let board = signals.board.read();
-        url.join(&format!("/api/boards/{}", board.board_name))?
+        url.join(&format!("/api/boards/{}/read", board.board_name))?
     };
     Ok(Client::new()
-        .get(url)
-        .json(&signals.saved_boards)
+        .post(url)
+        .json(
+            &signals
+                .saved_boards
+                .read()
+                .0
+                .iter()
+                .map(|SavedBoard { name, .. }| name)
+                .collect::<Vec<_>>(),
+        )
         .send()
         .await?
         .json::<BoardData>()

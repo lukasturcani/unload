@@ -107,13 +107,13 @@ VALUES (?, ?)",
 pub async fn show_board(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
-    Json(boards): Json<Vec<BoardName>>,
+    Json(saved_boards): Json<Vec<BoardName>>,
 ) -> Result<Json<BoardData>> {
     let title = get_board_title(&pool, &board_name);
     let users = get_users(&pool, &board_name);
     let tasks = get_tasks(&pool, &board_name);
     let tags = get_tags(&pool, &board_name);
-    let saved_boards = get_saved_boards(&pool, &boards);
+    let saved_boards = get_saved_boards(&pool, &saved_boards);
     match try_join!(title, users, tasks, tags, saved_boards) {
         Ok((title, users, tasks, tags, saved_boards)) => Ok(Json(BoardData {
             title,
