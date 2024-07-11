@@ -80,6 +80,7 @@ pub async fn board(mut signals: BoardSignals) {
                 );
                 tags
             });
+        saved_boards.0 = board_data.saved_boards;
         if saved_boards.0.iter().all(|b| b.name != board.board_name) {
             saved_boards.0.push(SavedBoard {
                 name: board.board_name.clone(),
