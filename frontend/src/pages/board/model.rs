@@ -2,9 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use shared_models::{
-    BoardName, QuickAddData, QuickAddTaskId, TagData, TagId, TaskEntry, TaskId, UserData, UserId,
-};
+use shared_models::{BoardName, QuickAddData, TagData, TagId, TaskEntry, TaskId, UserData, UserId};
 
 #[derive(Debug, Default, PartialEq, Eq, Serialize, Deserialize, Clone, Copy)]
 pub struct Dense(pub bool);
@@ -36,8 +34,6 @@ pub struct Tasks(pub HashMap<TaskId, TaskData>);
 pub struct Users(pub HashMap<UserId, UserData>);
 #[derive(Debug, Default)]
 pub struct Tags(pub HashMap<TagId, TagData>);
-#[derive(Debug, Default)]
-pub struct QuickAddTasks(pub HashMap<QuickAddTaskId, QuickAddData>);
 #[derive(Debug, Default)]
 pub struct UserFilter(pub HashSet<UserId>);
 #[derive(Debug, Default)]

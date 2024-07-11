@@ -2,9 +2,7 @@ use dioxus::prelude::*;
 use dioxus_sdk::storage::*;
 
 use crate::model::SavedBoards;
-use crate::pages::board::model::{
-    Board, Dense, QuickAddTasks, TagFilter, Tags, Tasks, UserFilter, Users,
-};
+use crate::pages::board::model::{Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users};
 use crate::pages::board::one_column_board::OneColumnBoard;
 use crate::pages::board::requests::BoardSignals;
 use crate::pages::board::three_column_board::ThreeColumnBoard;
@@ -29,7 +27,6 @@ pub fn Board(board_name: BoardName) -> Element {
     use_context_provider(|| Signal::new(Tasks::default()));
     use_context_provider(|| Signal::new(Users::default()));
     use_context_provider(|| Signal::new(Tags::default()));
-    use_context_provider(|| Signal::new(QuickAddTasks::default()));
     use_context_provider(|| Signal::new(UserFilter::default()));
     use_context_provider(|| Signal::new(TagFilter::default()));
     use_context_provider(|| boards);
