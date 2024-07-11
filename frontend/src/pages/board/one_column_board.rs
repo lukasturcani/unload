@@ -240,7 +240,7 @@ fn NavigationSheet(panel: Signal<Panel>) -> Element {
                 section {
                     class: "w-10/12 {style}",
                     "aria-label": "navigation",
-                    BoardList {}
+                    BoardList { panel }
                 }
             }
         }
@@ -248,7 +248,7 @@ fn NavigationSheet(panel: Signal<Panel>) -> Element {
 }
 
 #[component]
-fn BoardList() -> Element {
+fn BoardList(panel: Signal<Panel>) -> Element {
     let boards = use_context::<Signal<SavedBoards>>();
     rsx! {
         section {
@@ -263,18 +263,18 @@ fn BoardList() -> Element {
                 for board in boards.read().0.clone() {
                     BoardListItem { boards, board }
                 }
-                JoinBoard {}
+                JoinBoard { panel }
             }
         }
     }
 }
 
 #[component]
-fn JoinBoard() -> Element {
+fn JoinBoard(panel: Signal<Panel>) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
-            JoinBoardForm { editing }
+            JoinBoardForm { panel, editing }
         } else {
             JoinBoardButton { editing }
         }
@@ -296,14 +296,15 @@ fn JoinBoardButton(editing: Signal<bool>) -> Element {
 }
 
 #[component]
-fn JoinBoardForm(editing: Signal<bool>) -> Element {
+fn JoinBoardForm(panel: Signal<Panel>, editing: Signal<bool>) -> Element {
     let nav = use_navigator();
     rsx! {
         form {
             "aria-label": "join board",
-            class: "flex flex-col items-center justify-center",
+            class: "flex flex-col gap-1 items-center justify-center",
             onsubmit: move |event| {
                 let board_name = event.values()["Board Name"].as_value().into();
+                panel.set(Panel::None);
                 nav.push(Route::Board { board_name });
             },
             TextInput {

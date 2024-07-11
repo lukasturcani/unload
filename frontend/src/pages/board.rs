@@ -34,10 +34,11 @@ pub fn Board(board_name: BoardName) -> Element {
     let layout = ResponsiveLayout::from_window_size(window_size);
     eval(&format!(r#"document.title = "{board_name}";"#));
     let mut board_signals = BoardSignals::default();
+    let mut board_future = use_future(move || requests::board(board_signals));
     if board_signals.board.read().board_name != board_name {
         board_signals.board.write().board_name = board_name.clone();
+        board_future.restart();
     }
-    use_future(move || requests::board(board_signals));
     rsx! {
         match layout {
             ResponsiveLayout::Narrow => rsx! {
