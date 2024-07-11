@@ -76,6 +76,7 @@ async fn redirect_to_app(Host(host): Host) -> Redirect {
 fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
     Router::new()
         .route("/api/boards", post(create_board))
+        .route("/api/boards/:board_name", get(show_board))
         .route("/api/boards/:board_name/title", put(update_board_title))
         .route("/api/boards/:board_name/title", get(show_board_title))
         .route("/api/boards/:board_name/tasks/:task_id", get(show_task))

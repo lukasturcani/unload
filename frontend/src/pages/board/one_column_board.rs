@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use itertools::Itertools;
-use shared_models::{BoardName, TaskStatus};
+use shared_models::{BoardName, SavedBoard, TaskStatus};
 
 use crate::{
     components::{
@@ -12,7 +12,7 @@ use crate::{
         input::TextInput,
         nav::NavBar,
     },
-    model::{SavedBoard, SavedBoards},
+    model::SavedBoards,
     pages::board::{
         components::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,

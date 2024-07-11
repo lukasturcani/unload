@@ -1,11 +1,11 @@
 use dioxus::prelude::*;
 use dioxus_sdk::storage::*;
 use reqwest::Client;
-use shared_models::BoardName;
+use shared_models::{BoardName, SavedBoard};
 
 use crate::{
     components::{icons::TrashIcon, input::TextInput},
-    model::{SavedBoard, SavedBoards, UnloadUrl},
+    model::{SavedBoards, UnloadUrl},
     route::Route,
     themes::Theme,
 };

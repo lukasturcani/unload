@@ -1,4 +1,3 @@
-use crate::model::SavedBoard;
 use crate::model::SavedBoards;
 use crate::model::UnloadUrl;
 use crate::pages::board::model::Board;
@@ -12,6 +11,7 @@ use reqwest::Client;
 use shared_models::QuickAddData;
 use shared_models::QuickAddEntry;
 use shared_models::QuickAddTaskId;
+use shared_models::SavedBoard;
 use shared_models::TagData;
 use shared_models::TagEntry;
 use shared_models::TagId;

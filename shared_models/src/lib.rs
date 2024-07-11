@@ -33,6 +33,21 @@ impl FromStr for BoardName {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+pub struct SavedBoard {
+    pub name: BoardName,
+    pub title: String,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+pub struct BoardData {
+    pub title: String,
+    pub users: Vec<UserEntry>,
+    pub tasks: Vec<TaskEntry>,
+    pub tags: Vec<TagEntry>,
+    pub saved_boards: Vec<SavedBoard>,
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]

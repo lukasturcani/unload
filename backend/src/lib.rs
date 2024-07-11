@@ -3,17 +3,20 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
+use shared_models::BoardData;
 use shared_models::QuickAddData;
 use shared_models::QuickAddEntry;
 use shared_models::QuickAddTaskId;
+use shared_models::SavedBoard;
 use shared_models::TagData;
 use shared_models::TagEntry;
 use shared_models::TagId;
 use shared_models::{
     BoardName, Color, TaskData, TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId,
 };
-use sqlx::SqlitePool;
+use sqlx::{QueryBuilder, Row, SqlitePool};
 use std::collections::HashMap;
+use tokio::try_join;
 use tracing::debug_span;
 use tracing::Instrument;
 
@@ -101,6 +104,59 @@ VALUES (?, ?)",
     Ok(Json(board_name))
 }
 
+pub async fn show_board(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+    Json(boards): Json<Vec<BoardName>>,
+) -> Result<Json<BoardData>> {
+    let title = get_board_title(&pool, &board_name);
+    let users = get_users(&pool, &board_name);
+    let tasks = get_tasks(&pool, &board_name);
+    let tags = get_tags(&pool, &board_name);
+    let saved_boards = get_saved_boards(&pool, &boards);
+    match try_join!(title, users, tasks, tags, saved_boards) {
+        Ok((title, users, tasks, tags, saved_boards)) => Ok(Json(BoardData {
+            title,
+            users,
+            tasks,
+            tags,
+            saved_boards,
+        })),
+        Err(err) => Err(err),
+    }
+}
+
+async fn get_saved_boards(pool: &SqlitePool, boards: &Vec<BoardName>) -> Result<Vec<SavedBoard>> {
+    let mut query_builder = QueryBuilder::new(
+        r#"
+        SELECT
+            name, title
+        FROM
+            boards
+        WHERE
+            name IN (
+        "#,
+    );
+    let mut separated = query_builder.separated(",");
+    for board in boards {
+        separated.push_bind(board);
+    }
+    separated.push_unseparated(")");
+    let query = query_builder.build();
+    let mut tx = pool.begin().await?;
+    let saved_boards = query
+        .fetch_all(&mut *tx)
+        .await?
+        .iter()
+        .map(|row| SavedBoard {
+            name: row.get("name"),
+            title: row.get("title"),
+        })
+        .collect();
+    tx.commit().await?;
+    Ok(saved_boards)
+}
+
 pub async fn update_board_title(
     State(pool): State<SqlitePool>,
     Path(board_name): Path<BoardName>,
@@ -125,10 +181,7 @@ WHERE
     Ok(Json(()))
 }
 
-pub async fn show_board_title(
-    State(pool): State<SqlitePool>,
-    Path(board_name): Path<BoardName>,
-) -> Result<Json<String>> {
+async fn get_board_title(pool: &SqlitePool, board_name: &BoardName) -> Result<String> {
     let mut tx = pool.begin().await?;
     let title = sqlx::query!(
         "
@@ -145,7 +198,14 @@ LIMIT 1",
     .await?
     .title;
     tx.commit().await?;
-    Ok(Json(title))
+    Ok(title)
+}
+
+pub async fn show_board_title(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<String>> {
+    Ok(Json(get_board_title(&pool, &board_name).await?))
 }
 
 async fn new_unique_board_name(pool: &SqlitePool) -> Result<BoardName> {
@@ -250,11 +310,8 @@ WHERE
     Ok(Json(task.into_entry(assignees, tags)))
 }
 
-pub async fn show_tasks(
-    State(pool): State<SqlitePool>,
-    Path(board_name): Path<BoardName>,
-) -> Result<Json<Vec<TaskEntry>>> {
-    let span = debug_span!("show_tasks", board_name = %board_name);
+async fn get_tasks(pool: &SqlitePool, board_name: &BoardName) -> Result<Vec<TaskEntry>> {
+    let span = debug_span!("get_tasks", board_name = %board_name);
     async move {
         let mut tx = pool.begin().await?;
         let tasks = sqlx::query_as!(
@@ -355,10 +412,17 @@ WHERE
                 .collect()
         });
         tx.commit().await?;
-        Ok(Json(task_entries))
+        Ok(task_entries)
     }
     .instrument(span)
     .await
+}
+
+pub async fn show_tasks(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<TaskEntry>>> {
+    Ok(Json(get_tasks(&pool, &board_name).await?))
 }
 
 pub async fn create_task(
@@ -542,10 +606,7 @@ LIMIT 1"#,
     Ok(Json(user_entry))
 }
 
-pub async fn show_users(
-    State(pool): State<SqlitePool>,
-    Path(board_name): Path<BoardName>,
-) -> Result<Json<Vec<UserEntry>>> {
+async fn get_users(pool: &SqlitePool, board_name: &BoardName) -> Result<Vec<UserEntry>> {
     let mut tx = pool.begin().await?;
     let users = sqlx::query_as!(
         UserEntry,
@@ -561,7 +622,14 @@ WHERE
     .fetch_all(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(Json(users))
+    Ok(users)
+}
+
+pub async fn show_users(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<UserEntry>>> {
+    Ok(Json(get_users(&pool, &board_name).await?))
 }
 
 pub async fn create_user(
@@ -840,10 +908,7 @@ WHERE
     Ok(Json(()))
 }
 
-pub async fn show_tags(
-    State(pool): State<SqlitePool>,
-    Path(board_name): Path<BoardName>,
-) -> Result<Json<Vec<TagEntry>>> {
+async fn get_tags(pool: &SqlitePool, board_name: &BoardName) -> Result<Vec<TagEntry>> {
     let mut tx = pool.begin().await?;
     let tags = sqlx::query_as!(
         TagEntry,
@@ -860,7 +925,14 @@ WHERE
     .fetch_all(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(Json(tags))
+    Ok(tags)
+}
+
+pub async fn show_tags(
+    State(pool): State<SqlitePool>,
+    Path(board_name): Path<BoardName>,
+) -> Result<Json<Vec<TagEntry>>> {
+    Ok(Json(get_tags(&pool, &board_name).await?))
 }
 
 pub async fn show_archived_tags(
