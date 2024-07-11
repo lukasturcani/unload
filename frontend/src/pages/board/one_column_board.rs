@@ -20,6 +20,7 @@ use crate::{
         model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
         requests::{self, BoardSignals},
     },
+    route::Route,
     themes::Theme,
 };
 
@@ -261,6 +262,60 @@ fn BoardList() -> Element {
                 class: "flex flex-col gap-2",
                 for board in boards.read().0.clone() {
                     BoardListItem { boards, board }
+                }
+                JoinBoard {}
+            }
+        }
+    }
+}
+
+#[component]
+fn JoinBoard() -> Element {
+    let editing = use_signal(|| false);
+    rsx! {
+        if editing() {
+            JoinBoardForm { editing }
+        } else {
+            JoinBoardButton { editing }
+        }
+    }
+}
+
+#[component]
+fn JoinBoardButton(editing: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border rounded-lg {}", theme.button);
+    rsx! {
+        button {
+            class: style,
+            onclick: move |_| editing.set(true),
+            "Join Board"
+        }
+    }
+}
+
+#[component]
+fn JoinBoardForm(editing: Signal<bool>) -> Element {
+    let nav = use_navigator();
+    rsx! {
+        form {
+            "aria-label": "join board",
+            class: "flex flex-col items-center justify-center",
+            onsubmit: move |event| {
+                let board_name = event.values()["Board Name"].as_value().into();
+                nav.push(Route::Board { board_name });
+            },
+            TextInput {
+                id: "join-board-input",
+                label: "Board Name"
+            }
+            div {
+                class: "flex flex-row gap-2 items-center justify-center",
+                ConfirmButton { label: "join board" }
+                CancelButton {
+                    label: "cancel join board",
+                    editing,
                 }
             }
         }
