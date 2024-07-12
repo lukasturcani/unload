@@ -5,11 +5,12 @@ use shared_models::{BoardName, TaskStatus};
 use crate::{
     components::{
         form::{CancelButton, ConfirmButton},
-        icons::{DoneIcon, EditIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon},
+        icons::{BarsIcon, DoneIcon, EditIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon},
         input::TextInput,
         nav::NavBar,
         tooltip::Tooltip,
     },
+    model::SavedBoards,
     pages::board::{
         components::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
@@ -20,19 +21,27 @@ use crate::{
     themes::Theme,
 };
 
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum Panel {
+    None,
+    Boards,
+}
+
 #[component]
 pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let show_themes = use_signal(|| false);
+    let panel = use_signal(|| Panel::None);
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
             Header {
                 body: rsx!{
                     div {
-                        class: "w-24"
+                        class: "flex flex-row gap-2 w-24",
+                        ToggleBoardsPanelButton { panel }
                     }
                     Title {}
                     div {
@@ -59,6 +68,10 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                 FilterBar {}
             }
             NavBar { board_name }
+        }
+        match panel() {
+            Panel::None => rsx! {},
+            Panel::Boards => rsx! { BoardPopup { panel } },
         }
     }
 }
@@ -371,6 +384,44 @@ fn DenseColumnTasks(status: TaskStatus) -> Element {
                 task: tasks.0[task_id].clone(),
                 status,
             }
+        }
+    }
+}
+
+#[component]
+fn ToggleBoardsPanelButton(panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border-2 rounded {}", theme.button);
+    rsx! {
+        button {
+            class: "size-9 p-1 {style}",
+            "aria-pressed": panel() == Panel::Boards,
+            onclick: move |event| {
+                event.stop_propagation();
+                if panel() == Panel::Boards {
+                    panel.set(Panel::None)
+                } else {
+                    panel.set(Panel::Boards)
+                }
+            },
+            BarsIcon {}
+        }
+    }
+}
+
+#[component]
+fn BoardPopup(panel: Signal<Panel>) -> Element {
+    let boards = use_context::<Signal<SavedBoards>>();
+    let boards = boards.read();
+    rsx! {
+        div {
+            class: "
+                backdrop-blur-sm
+                size-full absolute inset-0 z-10
+                flex flex-row
+            ",
+            onclick: move |_| panel.set(Panel::None),
         }
     }
 }
