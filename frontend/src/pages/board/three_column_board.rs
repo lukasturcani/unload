@@ -527,32 +527,32 @@ fn JoinBoardForm(panel: Signal<Panel>, editing: Signal<bool>) -> Element {
 fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!(
-        "first:border-t border-b rounded-lg {} {}",
-        theme.border_color, theme.hover_color
-    );
+    let style = format!("first:border-t border-b {}", theme.border_color);
     rsx! {
         li {
-            class: "
-                flex flex-row justify-between items-center
-                px-2
-                {style}
-            ",
-            a {
-                class: "w-full",
-                href: format!("/boards/{}", board.name),
-                div {
-                    class: "w-full flex flex-col",
-                    p {
-                        class: "font-bold",
-                        "{board.title}"
-                    }
-                    p {
-                        "{board.name}"
-                    }
-                },
+            class: style,
+            div {
+                class: format!("
+                    flex flex-row justify-between items-center
+                    px-2
+                    size-full rounded-lg {}
+                ", theme.hover_color),
+                a {
+                    class: "w-full",
+                    href: format!("/boards/{}", board.name),
+                    div {
+                        class: "w-full flex flex-col",
+                        p {
+                            class: "font-bold",
+                            "{board.title}"
+                        }
+                        p {
+                            "{board.name}"
+                        }
+                    },
+                }
+                RemoveBoardButton { boards, board: board.clone() }
             }
-            RemoveBoardButton { boards, board: board.clone() }
         }
     }
 }
