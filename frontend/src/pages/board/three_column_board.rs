@@ -440,9 +440,10 @@ fn BoardList(panel: Signal<Panel>) -> Element {
     rsx! {
         section {
             onclick: move |event| event.stop_propagation(),
-            class: "p-5 flex flex-col gap-2 w-1/2 {style}",
+            class: "px-3 py-5 flex flex-col gap-2 w-1/2 {style}",
             h2 {
                 class: "
+                    px-2
                     font-bold text-xl
                     flex flex-row gap-1 items-center
                 ",
@@ -527,13 +528,14 @@ fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
-        "first:border-t border-b {} {}",
+        "first:border-t border-b rounded-lg {} {}",
         theme.border_color, theme.hover_color
     );
     rsx! {
         li {
             class: "
                 flex flex-row justify-between items-center
+                px-2
                 {style}
             ",
             a {
