@@ -450,7 +450,7 @@ fn BoardList(panel: Signal<Panel>) -> Element {
                 "Boards"
             }
             ul {
-                class: "flex flex-col gap-2",
+                class: "flex flex-col",
                 for board in boards
                     .read()
                     .0
@@ -459,8 +459,8 @@ fn BoardList(panel: Signal<Panel>) -> Element {
                 {
                     BoardListItem { boards, board: board.clone() }
                 }
-                JoinBoard { panel }
             }
+            JoinBoard { panel }
         }
     }
 }
@@ -526,12 +526,14 @@ fn JoinBoardForm(panel: Signal<Panel>, editing: Signal<bool>) -> Element {
 fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!("first:border-t border-b {} text-sm", theme.border_color);
+    let style = format!(
+        "first:border-t border-b {} {}",
+        theme.border_color, theme.hover_color
+    );
     rsx! {
         li {
             class: "
                 flex flex-row justify-between items-center
-                text-lg
                 {style}
             ",
             a {
