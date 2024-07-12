@@ -297,7 +297,7 @@ fn JoinBoardButton(editing: Signal<bool>) -> Element {
         div {
             class: "flex flex-row items-center justify-center",
             button {
-                class: style,
+                class: "text-sm {style}",
                 onclick: move |_| editing.set(true),
                 "Join Board"
             }
