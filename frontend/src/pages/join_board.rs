@@ -15,7 +15,6 @@ pub fn JoinBoard() -> Element {
     let boards =
         use_synced_storage::<LocalStorage, SavedBoards>("boards".to_string(), SavedBoards::default);
     use_context_provider(|| boards);
-    let url = use_context::<Signal<UnloadUrl>>();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
@@ -27,6 +26,7 @@ pub fn JoinBoard() -> Element {
                 h-dvh w-screen py-4 px-2 gap-4
                 {style}
             ",
+            BoardList {}
             form {
                 class: "flex flex-row flex-wrap items-center gap-2 justify-center",
                 onsubmit: move |event| {
@@ -37,18 +37,8 @@ pub fn JoinBoard() -> Element {
                     id: "board_name",
                     label: "Board Name",
                 }
-                button {
-                    r#type: "submit",
-                    class: "
-                        text-white
-                        font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5
-                        text-center bg-blue-600
-                        active:bg-blue-700 sm:hover:bg-blue-700
-                    ",
-                    "Join Board"
-                }
+                JoinBoardButton {}
             }
-            BoardList {}
             div {
                 class: "inline-flex items-center justify-center",
                 hr {
@@ -61,17 +51,48 @@ pub fn JoinBoard() -> Element {
             },
             div {
                 class: "inline-flex items-center justify-center",
-                button {
-                    class: "
-                        text-white
-                        font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5
-                        text-center bg-blue-600
-                        active:bg-blue-700 sm:hover:bg-blue-700
-                    ",
-                    onclick: move |_| create_board(url, nav),
-                    "Create New Board",
-                },
+                CreateBoardButton {},
             }
+        }
+    }
+}
+
+#[component]
+fn JoinBoardButton() -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded-lg {}", theme.primary_button);
+    rsx! {
+        button {
+            r#type: "submit",
+            class: "
+                w-full sm:w-auto
+                px-5 py-2.5
+                text-sm text-center font-medium
+                {style}
+            ",
+            "Join Board"
+        }
+    }
+}
+
+#[component]
+fn CreateBoardButton() -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let url = use_context::<Signal<UnloadUrl>>();
+    let nav = use_navigator();
+    let style = format!("rounded-lg {}", theme.primary_button);
+    rsx! {
+        button {
+            class: "
+                w-full sm:w-auto
+                px-5 py-2.5
+                text-sm text-center font-medium
+                {style}
+            ",
+            onclick: move |_| create_board(url, nav),
+            "Create New Board"
         }
     }
 }

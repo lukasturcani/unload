@@ -14,6 +14,7 @@ pub struct Theme {
     pub bg_color_2: &'static str,
     pub divide_color: &'static str,
     pub button: &'static str,
+    pub primary_button: &'static str,
     pub color1_button: &'static str,
     pub color1_text: &'static str,
     pub color2_button: &'static str,
@@ -87,6 +88,10 @@ impl Default for Theme {
             button: "
                 aria-pressed:bg-white
                 aria-pressed:text-black aria-pressed:stroke-black
+            ",
+            primary_button: "
+                bg-blue-600
+                active:bg-blue-700 sm:hover:bg-blue-700
             ",
             color1_button: "
                 border-black

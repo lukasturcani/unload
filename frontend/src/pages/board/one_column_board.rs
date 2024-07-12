@@ -285,7 +285,7 @@ fn JoinBoard(panel: Signal<Panel>) -> Element {
 fn JoinBoardButton(editing: Signal<bool>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!("border rounded-lg {}", theme.button);
+    let style = format!("rounded-lg {}", theme.primary_button);
     rsx! {
         button {
             class: style,
