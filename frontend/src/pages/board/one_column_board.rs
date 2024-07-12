@@ -249,6 +249,8 @@ fn NavigationSheet(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn BoardList(panel: Signal<Panel>) -> Element {
+    let current_board = use_context::<Signal<Board>>();
+    let current_board = current_board.read();
     let boards = use_context::<Signal<SavedBoards>>();
     rsx! {
         section {
@@ -260,8 +262,13 @@ fn BoardList(panel: Signal<Panel>) -> Element {
             }
             ul {
                 class: "flex flex-col gap-2",
-                for board in boards.read().0.clone() {
-                    BoardListItem { boards, board }
+                for board in boards
+                    .read()
+                    .0
+                    .iter()
+                    .filter(|board| board.name != current_board.board_name)
+                {
+                    BoardListItem { boards, board: board.clone() }
                 }
                 JoinBoard { panel }
             }
