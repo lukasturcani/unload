@@ -481,12 +481,15 @@ fn JoinBoard(panel: Signal<Panel>) -> Element {
 fn JoinBoardButton(editing: Signal<bool>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!("rounded-lg {}", theme.primary_button);
+    let style = format!("rounded-lg p-2 {}", theme.primary_button);
     rsx! {
-        button {
-            class: style,
-            onclick: move |_| editing.set(true),
-            "Join Board"
+        div {
+            class: "flex flex-row items-center justify-center",
+            button {
+                class: style,
+                onclick: move |_| editing.set(true),
+                "Join Board"
+            }
         }
     }
 }
