@@ -45,16 +45,16 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
         "
         first:border-t
         border-b
-        sm:border
         sm:rounded-lg
         sm:shadow
-        {} {}
+        {} {} {}
         ",
         if is_late && status != TaskStatus::Done {
             theme.late_border_color
         } else {
             theme.border_color
         },
+        if is_late { "sm:border-2" } else { "sm:border" },
         theme.bg_color_2,
     );
     let expanded = use_signal(|| false);
