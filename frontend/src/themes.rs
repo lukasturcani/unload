@@ -54,19 +54,20 @@ pub fn themes() -> Vec<Theme> {
     vec![
         Theme::default(),
         Theme {
-            name: "Pink - Dark",
-            text_color: "text-white stroke-white",
+            name: "Default (Light)",
+            text_color: "text-gray-900 stroke-gray-900",
             late_text_color: "text-red-300 stroke-red-300",
-            border_color: "border-pink-400",
+            border_color: "border-gray-200",
             late_border_color: "
                 border-x border-x-red-300 border-y-pink-400 sm:border-red-300
             ",
-            bg_color_1: "bg-gray-900",
-            bg_color_2: "bg-pink-500",
-            divide_color: "divide-pink-400",
+            bg_color_1: "bg-white",
+            bg_color_2: "bg-gray-100",
+            divide_color: "divide-gray-200",
             button: "
-                aria-pressed:bg-white
-                aria-pressed:text-black aria-pressed:stroke-black
+                border-gray-900
+                aria-pressed:bg-gray-900
+                aria-pressed:text-white aria-pressed:stroke-white
             ",
             ..Default::default()
         },
@@ -76,7 +77,7 @@ pub fn themes() -> Vec<Theme> {
 impl Default for Theme {
     fn default() -> Self {
         Self {
-            name: "Default - Dark",
+            name: "Default (Dark)",
             text_color: "text-white stroke-white",
             late_text_color: "text-red-600 stroke-red-600",
             border_color: "border-gray-700",

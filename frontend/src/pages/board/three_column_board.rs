@@ -268,7 +268,7 @@ fn Header(body: Element) -> Element {
             class: "
                 flex flex-row items-center
                 w-full h-14 shrink-0 grow-0
-                px-24
+                pl-5 pr-24
                 {style}
             ",
             {body}
