@@ -35,7 +35,7 @@ pub fn Users(board_name: BoardName) -> Element {
 fn UsersPage(board_name: BoardName) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!("{} {}", theme.app_style, theme.bg_color_1);
+    let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",

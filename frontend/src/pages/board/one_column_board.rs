@@ -43,7 +43,7 @@ enum ExtraBar {
 pub fn OneColumnBoard(board_name: BoardName) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!("{} {}", theme.app_style, theme.bg_color_1);
+    let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let status = use_signal(|| TaskStatus::ToDo);
     let status_ = status();
     let mut panel = use_signal(|| Panel::None);
@@ -56,30 +56,27 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
     let adding_task = use_signal(|| false);
     rsx! {
         div {
-            class: style,
-            div {
-                onclick: move |_| panel.set(Panel::None),
-                class: "flex flex-col h-dvh w-screen",
-                Header { panel, status, extra_bar }
-                section {
-                    class: "grow flex flex-col overflow-y-auto gap-1",
-                    "aria-label": "{column_label} tasks",
-                    ColumnSwitcher { status, panel }
-                    Column { status: status_, adding_task }
-                }
-                AddTaskButton { status: status_, adding_task }
-                match extra_bar() {
-                    ExtraBar::Filter => rsx! { FilterBar { extra_bar } },
-                    ExtraBar::Themes => rsx! { ThemesBar { extra_bar } },
-                    ExtraBar::None => rsx! {},
-                }
-                NavBar { board_name }
+            onclick: move |_| panel.set(Panel::None),
+            class: "flex flex-col h-dvh w-screen {style}",
+            Header { panel, status, extra_bar }
+            section {
+                class: "grow flex flex-col overflow-y-auto gap-1",
+                "aria-label": "{column_label} tasks",
+                ColumnSwitcher { status, panel }
+                Column { status: status_, adding_task }
             }
-            match panel() {
-                Panel::Actions => rsx! { ActionsSheet { panel, extra_bar } },
-                Panel::Navigation => rsx! { NavigationSheet { panel } },
-                _ => rsx! {},
+            AddTaskButton { status: status_, adding_task }
+            match extra_bar() {
+                ExtraBar::Filter => rsx! { FilterBar { extra_bar } },
+                ExtraBar::Themes => rsx! { ThemesBar { extra_bar } },
+                ExtraBar::None => rsx! {},
             }
+            NavBar { board_name }
+        }
+        match panel() {
+            Panel::Actions => rsx! { ActionsSheet { panel, extra_bar } },
+            Panel::Navigation => rsx! { NavigationSheet { panel } },
+            _ => rsx! {},
         }
     }
 }
@@ -174,9 +171,9 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
     let style = format!(
         "
                 rounded-t-2xl text-lg border-t
-                {} {}
+                {} {} {}
             ",
-        theme.bg_color_1, theme.border_color
+        theme.bg_color_1, theme.text_color, theme.border_color
     );
     let mut dense = use_context::<Signal<Dense>>();
     rsx! {
@@ -232,7 +229,10 @@ fn SideSheet(panel: Signal<Panel>, body: Element) -> Element {
 fn NavigationSheet(panel: Signal<Panel>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!("text-lg {} {}", theme.bg_color_1, theme.border_color);
+    let style = format!(
+        "text-lg {} {} {}",
+        theme.bg_color_1, theme.text_color, theme.border_color
+    );
     rsx! {
         SideSheet {
             panel,
