@@ -35,47 +35,50 @@ enum Panel {
 pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!("{} {}", theme.text_color, theme.bg_color_1);
+    let style = format!("{} {}", theme.app_style, theme.bg_color_1);
     let show_themes = use_signal(|| false);
     let panel = use_signal(|| Panel::None);
     rsx! {
         div {
-            class: "flex flex-col h-dvh w-screen {style}",
-            Header {
-                body: rsx!{
-                    div {
-                        class: "flex flex-row gap-2 w-24",
-                        ToggleBoardsPanelButton { panel }
-                    }
-                    Title {}
-                    div {
-                        class: "flex flex-row gap-2 w-24",
-                        DenseButton {}
-                        ToggleThemesButton { show_themes }
-                    }
-                }
-            }
+            class: style,
             div {
-                class: "grow flex flex-col gap-2 overflow-y-auto p-4 pb-2",
+                class: "flex flex-col h-dvh w-screen",
+                Header {
+                    body: rsx!{
+                        div {
+                            class: "flex flex-row gap-2 w-24",
+                            ToggleBoardsPanelButton { panel }
+                        }
+                        Title {}
+                        div {
+                            class: "flex flex-row gap-2 w-24",
+                            DenseButton {}
+                            ToggleThemesButton { show_themes }
+                        }
+                    }
+                }
                 div {
-                    class: "grow w-full h-full overflow-y-auto",
+                    class: "grow flex flex-col gap-2 overflow-y-auto p-4 pb-2",
                     div {
-                        class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
-                        Column { status: TaskStatus::ToDo }
-                        Column { status: TaskStatus::InProgress }
-                        Column { status: TaskStatus::Done }
-                    },
+                        class: "grow w-full h-full overflow-y-auto",
+                        div {
+                            class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
+                            Column { status: TaskStatus::ToDo }
+                            Column { status: TaskStatus::InProgress }
+                            Column { status: TaskStatus::Done }
+                        },
+                    }
+                    if show_themes() {
+                        ThemesBar {}
+                    }
+                    FilterBar {}
                 }
-                if show_themes() {
-                    ThemesBar {}
-                }
-                FilterBar {}
+                NavBar { board_name }
             }
-            NavBar { board_name }
-        }
-        match panel() {
-            Panel::None => rsx! {},
-            Panel::Boards => rsx! { BoardPopup { panel } },
+            match panel() {
+                Panel::None => rsx! {},
+                Panel::Boards => rsx! { BoardPopup { panel } },
+            }
         }
     }
 }
@@ -433,7 +436,7 @@ fn BoardPopup(panel: Signal<Panel>) -> Element {
 fn BoardList(panel: Signal<Panel>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!("rounded-lg {} {}", theme.text_color, theme.bg_color_2);
+    let style = format!("rounded-lg {}", theme.bg_color_2);
     let current_board = use_context::<Signal<Board>>();
     let current_board = current_board.read();
     let boards = use_context::<Signal<SavedBoards>>();

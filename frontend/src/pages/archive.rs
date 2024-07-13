@@ -45,7 +45,7 @@ pub fn Archive(board_name: BoardName) -> Element {
         sm:hover:aria-selected:no-underline
         aria-selected:border-b border-white
     ";
-    let page_style = format!("{} {}", theme.bg_color_1, theme.text_color);
+    let page_style = format!("{} {}", theme.bg_color_1, theme.app_style);
     rsx! {
         div {
             class: "
