@@ -535,7 +535,9 @@ fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
                 class: format!("
                     flex flex-row justify-between items-center
                     px-2
-                    size-full rounded-lg {}
+                    size-full rounded-lg
+                    group
+                    {}
                 ", theme.hover_color),
                 a {
                     class: "w-full",
@@ -559,7 +561,7 @@ fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
 
 #[component]
 fn RemoveBoardButton(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
-    let style = "stroke-red-600";
+    let style = "stroke-red-600 group-hover:stroke-white";
     rsx! {
         button {
             "aria-label": "remove board",
