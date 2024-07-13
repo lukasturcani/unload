@@ -64,7 +64,7 @@ pub fn themes() -> Vec<Theme> {
                 border-x border-x-red-500 border-y-pink-400 sm:border-red-500
             ",
             bg_color_1: "bg-white",
-            bg_color_2: "bg-gray-100",
+            bg_color_2: "bg-white",
             divide_color: "divide-gray-200",
             button: "
                 border-gray-900
