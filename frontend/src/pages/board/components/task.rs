@@ -724,8 +724,13 @@ fn AddTagListItem(task_id: TaskId) -> Element {
 
 #[component]
 fn ShowSelectionListFormButton(r#for: String, content: String, show_form: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
-    let style = "text-blue-500 sm:hover:underline active:underline";
+    let style = format!(
+        "sm:hover:underline active:underline {}",
+        theme.action_text_color
+    );
     rsx! {
         button {
             class: "px-4 py-2 w-full text-left {style}",
