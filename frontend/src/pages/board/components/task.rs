@@ -350,7 +350,7 @@ fn ToDoButton(task_id: TaskId) -> Element {
 
 #[component]
 fn InProgressButton(task_id: TaskId) -> Element {
-    let style = "active:stroke-yellow-300 sm:hover:stroke-yellow-300";
+    let style = "active:stroke-fuchsia-600 sm:hover:stroke-fuchsia-600";
     let board_signals = BoardSignals::default();
     rsx! {
         div {

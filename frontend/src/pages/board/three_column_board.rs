@@ -299,15 +299,15 @@ fn Column(status: TaskStatus) -> Element {
                 class: "flex items-center gap-2",
                 match status {
                     TaskStatus::ToDo => rsx! {
-                        div { class: "size-8", ToDoIcon {} }
+                        div { class: "size-8 stroke-red-600", ToDoIcon {} }
                         ColumnHeading { value: "To Do" }
                     },
                     TaskStatus::InProgress => rsx! {
-                        div { class: "size-8", InProgressIcon {} }
+                        div { class: "size-8 stroke-fuchsia-600", InProgressIcon {} }
                         ColumnHeading { value: "In Progress" }
                     },
                     TaskStatus::Done => rsx! {
-                        div { class: "size-8", DoneIcon {} }
+                        div { class: "size-8 stroke-green-500", DoneIcon {} }
                         ColumnHeading { value: "Done" }
                     }
                 }
