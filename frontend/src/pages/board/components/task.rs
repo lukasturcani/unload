@@ -219,8 +219,8 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
-        "rounded-lg border {} {}",
-        theme.bg_color_2, theme.border_color
+        "rounded-lg border {} {} {}",
+        theme.bg_color_2, theme.border_color, theme.focus_color
     );
     rsx! {
         form {
