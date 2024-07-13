@@ -1,16 +1,19 @@
 use dioxus::prelude::*;
-use dioxus_sdk::storage::*;
 use itertools::Itertools;
-use shared_models::{BoardName, TaskStatus};
+use shared_models::{BoardName, SavedBoard, TaskStatus};
 
 use crate::{
     components::{
         form::{CancelButton, ConfirmButton},
-        icons::{DoneIcon, EditIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon},
+        icons::{
+            BarsIcon, BookmarkIcon, DoneIcon, EditIcon, InProgressIcon, SparklesIcon, StackIcon,
+            ToDoIcon, TrashIcon,
+        },
         input::TextInput,
         nav::NavBar,
         tooltip::Tooltip,
     },
+    model::SavedBoards,
     pages::board::{
         components::{
             AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
@@ -18,8 +21,15 @@ use crate::{
         model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
         requests::{self, BoardSignals},
     },
+    route::Route,
     themes::Theme,
 };
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum Panel {
+    None,
+    Boards,
+}
 
 #[component]
 pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
@@ -27,13 +37,15 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let show_themes = use_signal(|| false);
+    let panel = use_signal(|| Panel::None);
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
             Header {
                 body: rsx!{
                     div {
-                        class: "w-24"
+                        class: "flex flex-row gap-2 w-24",
+                        ToggleBoardsPanelButton { panel }
                     }
                     Title {}
                     div {
@@ -60,6 +72,10 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                 FilterBar {}
             }
             NavBar { board_name }
+        }
+        match panel() {
+            Panel::None => rsx! {},
+            Panel::Boards => rsx! { BoardPopup { panel } },
         }
     }
 }
@@ -197,8 +213,6 @@ fn DenseButton() -> Element {
     let theme = theme.read();
     let style = format!("border-2 rounded {}", theme.button);
     let mut dense = use_context::<Signal<Dense>>();
-    let mut dense_storage =
-        use_synced_storage::<LocalStorage, bool>("dense".to_string(), move || false);
     rsx! {
         div {
             class: "group relative",
@@ -209,7 +223,6 @@ fn DenseButton() -> Element {
                 onclick: move |_| {
                     let new_dense = !dense.read().0;
                     dense.set(Dense(new_dense));
-                    dense_storage.set(new_dense);
                 },
                 StackIcon {}
             }
@@ -375,6 +388,186 @@ fn DenseColumnTasks(status: TaskStatus) -> Element {
                 task: tasks.0[task_id].clone(),
                 status,
             }
+        }
+    }
+}
+
+#[component]
+fn ToggleBoardsPanelButton(panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border-2 rounded {}", theme.button);
+    rsx! {
+        button {
+            class: "size-9 p-1 {style}",
+            "aria-pressed": panel() == Panel::Boards,
+            onclick: move |event| {
+                event.stop_propagation();
+                if panel() == Panel::Boards {
+                    panel.set(Panel::None)
+                } else {
+                    panel.set(Panel::Boards)
+                }
+            },
+            BarsIcon {}
+        }
+    }
+}
+
+#[component]
+fn BoardPopup(panel: Signal<Panel>) -> Element {
+    rsx! {
+        div {
+            class: "
+                backdrop-blur-sm backdrop-brightness-50
+                size-full absolute inset-0 z-10
+                flex flex-row items-center justify-center
+            ",
+            onclick: move |_| panel.set(Panel::None),
+            BoardList { panel }
+        }
+    }
+}
+
+#[component]
+fn BoardList(panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded-lg {} {}", theme.text_color, theme.bg_color_2);
+    let current_board = use_context::<Signal<Board>>();
+    let current_board = current_board.read();
+    let boards = use_context::<Signal<SavedBoards>>();
+    rsx! {
+        section {
+            onclick: move |event| event.stop_propagation(),
+            class: "px-3 py-5 flex flex-col gap-2 w-1/2 {style}",
+            h2 {
+                class: "
+                    px-2
+                    font-bold text-xl
+                    flex flex-row gap-1 items-center
+                ",
+                div { class: "size-5", BookmarkIcon {} }
+                "Boards"
+            }
+            ul {
+                class: "flex flex-col",
+                for board in boards
+                    .read()
+                    .0
+                    .iter()
+                    .filter(|board| board.name != current_board.board_name)
+                {
+                    BoardListItem { boards, board: board.clone() }
+                }
+            }
+            JoinBoard { panel }
+        }
+    }
+}
+
+#[component]
+fn JoinBoard(panel: Signal<Panel>) -> Element {
+    let editing = use_signal(|| false);
+    rsx! {
+        if editing() {
+            JoinBoardForm { panel, editing }
+        } else {
+            JoinBoardButton { editing }
+        }
+    }
+}
+
+#[component]
+fn JoinBoardButton(editing: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded-lg p-2 {}", theme.primary_button);
+    rsx! {
+        div {
+            class: "flex flex-row items-center justify-center",
+            button {
+                class: style,
+                onclick: move |_| editing.set(true),
+                "Join Board"
+            }
+        }
+    }
+}
+
+#[component]
+fn JoinBoardForm(panel: Signal<Panel>, editing: Signal<bool>) -> Element {
+    let nav = use_navigator();
+    rsx! {
+        form {
+            "aria-label": "join board",
+            class: "flex flex-col gap-1 items-center justify-center",
+            onsubmit: move |event| {
+                let board_name = event.values()["Board Name"].as_value().into();
+                panel.set(Panel::None);
+                nav.push(Route::Board { board_name });
+            },
+            TextInput {
+                id: "join-board-input",
+                label: "Board Name"
+            }
+            div {
+                class: "flex flex-row gap-2 items-center justify-center",
+                ConfirmButton { label: "join board" }
+                CancelButton {
+                    label: "cancel join board",
+                    editing,
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("first:border-t border-b {}", theme.border_color);
+    rsx! {
+        li {
+            class: style,
+            div {
+                class: format!("
+                    flex flex-row justify-between items-center
+                    px-2
+                    size-full rounded-lg {}
+                ", theme.hover_color),
+                a {
+                    class: "w-full",
+                    href: format!("/boards/{}", board.name),
+                    div {
+                        class: "w-full flex flex-col",
+                        p {
+                            class: "font-bold",
+                            "{board.title}"
+                        }
+                        p {
+                            "{board.name}"
+                        }
+                    },
+                }
+                RemoveBoardButton { boards, board: board.clone() }
+            }
+        }
+    }
+}
+
+#[component]
+fn RemoveBoardButton(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
+    let style = "stroke-red-600";
+    rsx! {
+        button {
+            "aria-label": "remove board",
+            class: "size-5 {style}",
+            onclick: move |_| {
+                boards.write().0.retain(|b| b != &board);
+            },
+            TrashIcon {}
         }
     }
 }

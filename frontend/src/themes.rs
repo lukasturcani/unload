@@ -1,3 +1,8 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+pub struct SavedTheme(pub String);
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Theme {
     pub name: &'static str,
@@ -8,7 +13,9 @@ pub struct Theme {
     pub bg_color_1: &'static str,
     pub bg_color_2: &'static str,
     pub divide_color: &'static str,
+    pub hover_color: &'static str,
     pub button: &'static str,
+    pub primary_button: &'static str,
     pub color1_button: &'static str,
     pub color1_text: &'static str,
     pub color2_button: &'static str,
@@ -79,9 +86,14 @@ impl Default for Theme {
             bg_color_1: "bg-gray-900",
             bg_color_2: "bg-gray-800",
             divide_color: "divide-gray-700",
+            hover_color: "hover:bg-blue-600",
             button: "
                 aria-pressed:bg-white
                 aria-pressed:text-black aria-pressed:stroke-black
+            ",
+            primary_button: "
+                bg-blue-600
+                active:bg-blue-700 sm:hover:bg-blue-700
             ",
             color1_button: "
                 border-black
