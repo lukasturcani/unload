@@ -56,10 +56,10 @@ pub fn themes() -> Vec<Theme> {
         Theme {
             name: "Default (Light)",
             text_color: "text-gray-900 stroke-gray-900",
-            late_text_color: "text-red-300 stroke-red-300",
+            late_text_color: "text-red-500 stroke-red-500",
             border_color: "border-gray-200",
             late_border_color: "
-                border-x border-x-red-300 border-y-pink-400 sm:border-red-300
+                border-x border-x-red-500 border-y-pink-400 sm:border-red-500
             ",
             bg_color_1: "bg-white",
             bg_color_2: "bg-gray-100",
@@ -69,6 +69,11 @@ pub fn themes() -> Vec<Theme> {
                 aria-pressed:bg-gray-900
                 aria-pressed:text-white aria-pressed:stroke-white
             ",
+            primary_button: "
+                text-white bg-purple-600
+                active:bg-purple-700 sm:hover:bg-purple-700
+            ",
+            hover_color: "hover:bg-purple-600 hover:text-white",
             ..Default::default()
         },
     ]
