@@ -11,10 +11,9 @@ pub fn TextInput(id: String, label: String, value: Option<String>) -> Element {
         text-base
         rounded-lg
         border
-        focus:ring-blue-500 focus:border-blue-500
-        {} {}
+        {} {} {}
     ",
-        theme.border_color, theme.bg_color_2
+        theme.border_color, theme.bg_color_2, theme.focus_color
     );
     let name = label.clone();
     rsx! {

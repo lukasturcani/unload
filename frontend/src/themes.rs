@@ -7,6 +7,7 @@ pub struct SavedTheme(pub String);
 pub struct Theme {
     pub name: &'static str,
     pub text_color: &'static str,
+    pub focus_color: &'static str,
     pub late_text_color: &'static str,
     pub border_color: &'static str,
     pub late_border_color: &'static str,
@@ -56,6 +57,7 @@ pub fn themes() -> Vec<Theme> {
         Theme {
             name: "Default (Light)",
             text_color: "text-gray-900 stroke-gray-900",
+            focus_color: "focus:ring-purple-600 focus:border-purple-600",
             late_text_color: "text-red-500 stroke-red-500",
             border_color: "border-gray-200",
             late_border_color: "
@@ -84,6 +86,7 @@ impl Default for Theme {
         Self {
             name: "Default (Dark)",
             text_color: "text-white stroke-white",
+            focus_color: "focus:ring-blue-500 focus:border-blue-500",
             late_text_color: "text-red-600 stroke-red-600",
             border_color: "border-gray-700",
             late_border_color: "
