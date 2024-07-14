@@ -54,6 +54,62 @@ pub struct Theme {
 
 pub fn themes() -> Vec<Theme> {
     vec![
+        Theme {
+            name: "Default (Dynamic)",
+            text_color: "
+                text-gray-900 stroke-gray-900 accent-purple-600
+                dark:text-white dark:stroke-white
+            ",
+            focus_color: "
+                focus:ring-purple-600 focus:border-purple-600
+                dark:focus:ring-blue-500 dark:focus:border-blue-500
+            ",
+            late_text_color: "
+                text-red-500 stroke-red-500
+                dark:text-red-600 dark:stroke-red-600
+            ",
+            border_color: "
+                border-gray-400
+                dark:border-gray-700
+            ",
+            late_border_color: "
+                border-x border-x-red-500 border-y-pink-400 sm:border-red-500
+                dark:border-x dark:border-x-red-600 dark:border-y-gray-700 dark:sm:border-red-600
+            ",
+            bg_color_1: "
+                bg-white
+                dark:bg-gray-900
+            ",
+            bg_color_2: "
+                bg-white
+                dark:bg-gray-800
+            ",
+            divide_color: "
+                divide-gray-400
+                dark:divide-gray-700
+            ",
+            button: "
+                border-gray-900
+                aria-pressed:bg-gray-900
+                aria-pressed:text-white aria-pressed:stroke-white
+
+                dark:border-white
+                dark:aria-pressed:bg-white
+                dark:aria-pressed:text-black dark:aria-pressed:stroke-black
+            ",
+            primary_button: "
+                text-white bg-purple-600
+                active:bg-purple-700 sm:hover:bg-purple-700
+
+                dark:bg-blue-600
+                dark:active:bg-blue-700 dark:sm:hover:bg-blue-700
+            ",
+            hover_color: "
+                hover:bg-purple-600 hover:text-white
+                dark:hover:bg-blue-600
+            ",
+            ..Default::default()
+        },
         Theme::default(),
         Theme {
             name: "Default (Light)",
