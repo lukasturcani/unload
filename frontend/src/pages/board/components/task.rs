@@ -538,9 +538,7 @@ fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
     let board_signals = BoardSignals::default();
     let style = "border-2 rounded";
     let button_style = "
-        rounded-md
-        stroke-white
-        sm:hover:border sm:hover:border-white
+        rounded sm:hover:border sm:hover:border-white
     ";
     let color = match user_data.color {
         Color::Black => theme.color1_button,

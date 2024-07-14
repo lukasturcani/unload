@@ -58,7 +58,6 @@ pub fn themes() -> Vec<Theme> {
         Theme {
             name: "Default (Light)",
             text_color: "text-gray-900 stroke-gray-900 accent-purple-600",
-            action_text_color: "text-purple-600",
             focus_color: "focus:ring-purple-600 focus:border-purple-600",
             late_text_color: "text-red-500 stroke-red-500",
             border_color: "border-gray-200",
