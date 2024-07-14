@@ -60,13 +60,13 @@ pub fn themes() -> Vec<Theme> {
             text_color: "text-gray-900 stroke-gray-900 accent-purple-600",
             focus_color: "focus:ring-purple-600 focus:border-purple-600",
             late_text_color: "text-red-500 stroke-red-500",
-            border_color: "border-gray-200",
+            border_color: "border-gray-400",
             late_border_color: "
                 border-x border-x-red-500 border-y-pink-400 sm:border-red-500
             ",
             bg_color_1: "bg-white",
             bg_color_2: "bg-white",
-            divide_color: "divide-gray-200",
+            divide_color: "divide-gray-400",
             button: "
                 border-gray-900
                 aria-pressed:bg-gray-900
