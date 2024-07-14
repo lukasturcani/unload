@@ -1,4 +1,4 @@
-use crate::datetime;
+use crate::{components::icons::UpIcon, datetime};
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use shared_models::{Color, TagData, TagId, TaskEntry, TaskId, TaskStatus, UserData, UserId};
@@ -7,8 +7,7 @@ use crate::{
     commands::ScrollTarget,
     components::{
         icons::{
-            CalendarIcon, DoneIcon, DownIcon, InProgressIcon, RightIcon, ToDoIcon, TrashIcon,
-            UnarchiveIcon,
+            CalendarIcon, DoneIcon, DownIcon, InProgressIcon, ToDoIcon, TrashIcon, UnarchiveIcon,
         },
         tooltip::Tooltip,
     },
@@ -70,7 +69,7 @@ fn Task(task: TaskEntry) -> Element {
                         TaskStatus::ToDo => rsx! {
                             div {
                                 class: "group relative",
-                                div { class: "size-8", ToDoIcon {} }
+                                div { class: "size-8 stroke-red-600", ToDoIcon {} }
                                 Tooltip {
                                     content: "To Do",
                                     position: "",
@@ -81,7 +80,7 @@ fn Task(task: TaskEntry) -> Element {
                         TaskStatus::InProgress => rsx! {
                             div {
                                 class: "group relative",
-                                div { class: "size-8", InProgressIcon {} }
+                                div { class: "size-8 stroke-fuchsia-600", InProgressIcon {} }
                                 Tooltip {
                                     content: "In Progress",
                                     position: "",
@@ -92,7 +91,7 @@ fn Task(task: TaskEntry) -> Element {
                         TaskStatus::Done => rsx! {
                             div {
                                 class: "group relative",
-                                div { class: "size-8", DoneIcon {} }
+                                div { class: "size-8 stroke-green-500", DoneIcon {} }
                                 Tooltip {
                                     content: "Done",
                                     position: "",
@@ -137,9 +136,9 @@ fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -
                 expanded.set(!expanded_);
              },
             if expanded_ {
-                DownIcon {}
+                UpIcon {}
             } else {
-                RightIcon {}
+                DownIcon {}
             }
         }
     }
