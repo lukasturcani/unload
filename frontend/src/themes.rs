@@ -12,6 +12,7 @@ pub struct Theme {
     pub late_text_color: &'static str,
     pub border_color: &'static str,
     pub late_border_color: &'static str,
+    pub active_border_color: &'static str,
     pub bg_color_1: &'static str,
     pub bg_color_2: &'static str,
     pub divide_color: &'static str,
@@ -76,6 +77,10 @@ pub fn themes() -> Vec<Theme> {
                 border-x-2 border-x-red-500 border-y-pink-400 sm:border-red-500
                 dark:border-x-2 dark:border-x-red-600 dark:border-y-gray-700 dark:sm:border-red-600
             ",
+            active_border_color: "
+                border-white
+                dark:border-gray-900
+            ",
             bg_color_1: "
                 bg-white
                 dark:bg-gray-900
@@ -120,6 +125,7 @@ pub fn themes() -> Vec<Theme> {
             late_border_color: "
                 border-x-2 border-x-red-500 border-y-gray-400 sm:border-red-500
             ",
+            active_border_color: "border-gray-900",
             bg_color_1: "bg-white",
             bg_color_2: "bg-white",
             divide_color: "divide-gray-400",
@@ -150,6 +156,7 @@ impl Default for Theme {
             late_border_color: "
                 border-x-2 border-x-red-600 border-y-gray-700 sm:border-red-600
             ",
+            active_border_color: "border-white",
             bg_color_1: "bg-gray-900",
             bg_color_2: "bg-gray-800",
             divide_color: "divide-gray-700",

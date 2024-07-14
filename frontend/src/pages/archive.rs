@@ -40,11 +40,14 @@ pub fn Archive(board_name: BoardName) -> Element {
     let theme = theme.read();
     let mut tab = use_signal(|| Tab::Tasks);
     let tab_ = tab();
-    let style = "
+    let style = format!(
+        "
         sm:hover:underline
         sm:hover:aria-selected:no-underline
-        aria-selected:border-b border-white
-    ";
+        aria-selected:border-b {}
+    ",
+        theme.active_border_color
+    );
     let page_style = format!("{} {}", theme.bg_color_1, theme.text_color);
     rsx! {
         div {
