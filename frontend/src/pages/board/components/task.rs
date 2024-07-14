@@ -74,7 +74,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                     ToggleExpanded { task_id, expanded, size: "size-7" }
                     Title { task_id, title: task.title }
                 }
-                StatusButtons { task_id }
+                StatusButtons { task_id, status }
             }
             div {
                 class: "flex flex-row justify-between items-center",
@@ -151,7 +151,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
             if expanded_ {
                 div {
                     class: "flex flex-row justify-center items-center",
-                    StatusButtons { task_id }
+                    StatusButtons { task_id, status }
                 }
                 Description { task_id, description: task.description }
                 Due {
@@ -316,21 +316,28 @@ fn DeleteTaskButton(task_id: TaskId) -> Element {
 }
 
 #[component]
-fn StatusButtons(task_id: TaskId) -> Element {
+fn StatusButtons(task_id: TaskId, status: TaskStatus) -> Element {
     rsx! {
         section {
             "aria-label": "set task status",
             class: "flex flex-row items-center justify-end gap-1",
-            ToDoButton { task_id }
-            InProgressButton { task_id }
-            DoneButton { task_id }
+            ToDoButton { task_id, status }
+            InProgressButton { task_id, status }
+            DoneButton { task_id, status }
         }
     }
 }
 
 #[component]
-fn ToDoButton(task_id: TaskId) -> Element {
-    let style = "active:stroke-red-600 sm:hover:stroke-red-600";
+fn ToDoButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let style = format!(
+        "active:stroke-red-600 sm:hover:stroke-red-600 {}",
+        if status == TaskStatus::ToDo {
+            "stroke-red-600"
+        } else {
+            ""
+        }
+    );
     let board_signals = BoardSignals::default();
     rsx! {
         div {
@@ -349,8 +356,15 @@ fn ToDoButton(task_id: TaskId) -> Element {
 }
 
 #[component]
-fn InProgressButton(task_id: TaskId) -> Element {
-    let style = "active:stroke-fuchsia-600 sm:hover:stroke-fuchsia-600";
+fn InProgressButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let style = format!(
+        "active:stroke-fuchsia-600 sm:hover:stroke-fuchsia-600 {}",
+        if status == TaskStatus::InProgress {
+            "stroke-fuchsia-600"
+        } else {
+            ""
+        }
+    );
     let board_signals = BoardSignals::default();
     rsx! {
         div {
@@ -369,8 +383,15 @@ fn InProgressButton(task_id: TaskId) -> Element {
 }
 
 #[component]
-fn DoneButton(task_id: TaskId) -> Element {
-    let style = "active:stroke-green-500 sm:hover:stroke-green-500";
+fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let style = format!(
+        "active:stroke-green-500 sm:hover:stroke-green-500 {}",
+        if status == TaskStatus::Done {
+            "stroke-green-500"
+        } else {
+            ""
+        }
+    );
     let board_signals = BoardSignals::default();
     rsx! {
         div {
