@@ -669,7 +669,7 @@ fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
         section {
             class: "
                 flex flex-row gap-2 items-center justify-between
-                py-2
+                p-2
                 {style}
             ",
             "aria-label": "themes",
