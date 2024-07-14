@@ -256,7 +256,7 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
         "p-4 rounded border whitespace-pre-wrap break-words {} {}",
         theme.bg_color_1, theme.border_color
     );
-    let edit_button_style = "rounded border";
+    let edit_button_style = format!("rounded border {}", theme.button);
     rsx! {
         section {
             "aria-label": "description",
