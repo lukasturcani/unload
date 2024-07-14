@@ -4,8 +4,14 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use shared_models::{BoardName, QuickAddData, TagData, TagId, TaskEntry, TaskId, UserData, UserId};
 
-#[derive(Debug, Default, PartialEq, Eq, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone, Copy)]
 pub struct Dense(pub bool);
+
+impl Default for Dense {
+    fn default() -> Self {
+        Self(true)
+    }
+}
 
 #[derive(Debug)]
 pub struct Board {
