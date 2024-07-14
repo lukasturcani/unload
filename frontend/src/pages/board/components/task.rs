@@ -43,8 +43,6 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let is_late = is_late(&task);
     let style = format!(
         "
-        first:border-t
-        border-b
         sm:rounded-lg
         sm:shadow
         {} {} {}
@@ -54,7 +52,11 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
         } else {
             theme.border_color
         },
-        if is_late { "sm:border-2" } else { "sm:border" },
+        if is_late {
+            "first:border-t border-b sm:first:border-t-2 sm:border-2 "
+        } else {
+            "first:border-t border-b sm:border"
+        },
         theme.bg_color_2,
     );
     let expanded = use_signal(|| false);

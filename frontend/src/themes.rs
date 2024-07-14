@@ -73,8 +73,8 @@ pub fn themes() -> Vec<Theme> {
                 dark:border-gray-700
             ",
             late_border_color: "
-                border-x border-x-red-500 border-y-pink-400 sm:border-red-500
-                dark:border-x dark:border-x-red-600 dark:border-y-gray-700 dark:sm:border-red-600
+                border-x-2 border-x-red-500 border-y-pink-400 sm:border-red-500
+                dark:border-x-2 dark:border-x-red-600 dark:border-y-gray-700 dark:sm:border-red-600
             ",
             bg_color_1: "
                 bg-white
@@ -118,7 +118,7 @@ pub fn themes() -> Vec<Theme> {
             late_text_color: "text-red-500 stroke-red-500",
             border_color: "border-gray-400",
             late_border_color: "
-                border-x border-x-red-500 border-y-pink-400 sm:border-red-500
+                border-x-2 border-x-red-500 border-y-gray-400 sm:border-red-500
             ",
             bg_color_1: "bg-white",
             bg_color_2: "bg-white",
@@ -148,7 +148,7 @@ impl Default for Theme {
             late_text_color: "text-red-600 stroke-red-600",
             border_color: "border-gray-700",
             late_border_color: "
-                border-x border-x-red-600 border-y-gray-700 sm:border-red-600
+                border-x-2 border-x-red-600 border-y-gray-700 sm:border-red-600
             ",
             bg_color_1: "bg-gray-900",
             bg_color_2: "bg-gray-800",
