@@ -107,21 +107,21 @@ impl Default for Theme {
                 active:bg-blue-700 sm:hover:bg-blue-700
             ",
             color1_button: "
-                border-black
-                aria-pressed:bg-black
+                border-orange-500
+                aria-pressed:bg-orange-500
                 aria-pressed:text-white aria-pressed:stroke-white
-                group-[.filled]:bg-black
-                group-[.text-colored]:text-black
+                group-[.filled]:bg-orange-500
+                group-[.text-colored]:text-orange-500
             ",
-            color1_text: "text-black",
+            color1_text: "text-orange-500",
             color2_button: "
-                border-white
-                aria-pressed:bg-white
-                aria-pressed:text-black aria-pressed:stroke-black
-                group-[.filled]:bg-white
-                group-[.text-colored]:text-white
+                border-violet-400
+                aria-pressed:bg-violet-400
+                aria-pressed:text-white aria-pressed:stroke-white
+                group-[.filled]:bg-violet-400
+                group-[.text-colored]:text-violet-400
             ",
-            color2_text: "text-white",
+            color2_text: "text-violet-400",
             color3_button: "
                 border-gray-400
                 aria-pressed:bg-gray-400
@@ -197,7 +197,7 @@ impl Default for Theme {
             color12_button: "
                 border-yellow-400
                 aria-pressed:bg-yellow-400
-                aria-pressed:text-white aria-pressed:stroke-white
+                aria-pressed:text-black aria-pressed:stroke-black
                 group-[.filled]:bg-yellow-400
                 group-[.text-colored]:text-yellow-400
             ",
@@ -205,7 +205,7 @@ impl Default for Theme {
             color13_button: "
                 border-amber-200
                 aria-pressed:bg-amber-200
-                aria-pressed:text-white aria-pressed:stroke-white
+                aria-pressed:text-black aria-pressed:stroke-black
                 group-[.filled]:bg-amber-200
                 group-[.text-colored]:text-amber-200
             ",
@@ -221,7 +221,7 @@ impl Default for Theme {
             color15_button: "
                 border-teal-300
                 aria-pressed:bg-teal-300
-                aria-pressed:text-white aria-pressed:stroke-white
+                aria-pressed:text-black aria-pressed:stroke-black
                 group-[.filled]:bg-teal-300
                 group-[.text-colored]:text-teal-300
             ",
