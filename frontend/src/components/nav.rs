@@ -79,7 +79,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
 #[component]
 fn NavLink(to: Route, body: Element) -> Element {
     let shared_css = "
-        group h-full w-full sm:max-w-lg
+        group h-full w-full sm:max-w-44
     ";
     let style = "sm:hover:underline";
     let active_style = "current-page sm:underline";
