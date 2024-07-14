@@ -268,7 +268,7 @@ fn Header(body: Element) -> Element {
             class: "
                 flex flex-row items-center
                 w-full h-14 shrink-0 grow-0
-                px-24
+                pl-5 pr-24
                 {style}
             ",
             {body}
@@ -299,15 +299,15 @@ fn Column(status: TaskStatus) -> Element {
                 class: "flex items-center gap-2",
                 match status {
                     TaskStatus::ToDo => rsx! {
-                        div { class: "size-8", ToDoIcon {} }
+                        div { class: "size-8 stroke-red-600", ToDoIcon {} }
                         ColumnHeading { value: "To Do" }
                     },
                     TaskStatus::InProgress => rsx! {
-                        div { class: "size-8", InProgressIcon {} }
+                        div { class: "size-8 stroke-fuchsia-600", InProgressIcon {} }
                         ColumnHeading { value: "In Progress" }
                     },
                     TaskStatus::Done => rsx! {
-                        div { class: "size-8", DoneIcon {} }
+                        div { class: "size-8 stroke-green-500", DoneIcon {} }
                         ColumnHeading { value: "Done" }
                     }
                 }
@@ -535,7 +535,9 @@ fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
                 class: format!("
                     flex flex-row justify-between items-center
                     px-2
-                    size-full rounded-lg {}
+                    size-full rounded-lg
+                    group
+                    {}
                 ", theme.hover_color),
                 a {
                     class: "w-full",
@@ -559,7 +561,7 @@ fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
 
 #[component]
 fn RemoveBoardButton(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
-    let style = "stroke-red-600";
+    let style = "stroke-red-600 group-hover:stroke-white";
     rsx! {
         button {
             "aria-label": "remove board",

@@ -43,17 +43,19 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let is_late = is_late(&task);
     let style = format!(
         "
-        first:border-t
-        border-b
-        sm:border
         sm:rounded-lg
         sm:shadow
-        {} {}
+        {} {} {}
         ",
         if is_late && status != TaskStatus::Done {
             theme.late_border_color
         } else {
             theme.border_color
+        },
+        if is_late {
+            "first:border-t border-b sm:first:border-t-2 sm:border-2 "
+        } else {
+            "first:border-t border-b sm:border"
         },
         theme.bg_color_2,
     );
@@ -74,7 +76,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                     ToggleExpanded { task_id, expanded, size: "size-7" }
                     Title { task_id, title: task.title }
                 }
-                StatusButtons { task_id }
+                StatusButtons { task_id, status }
             }
             div {
                 class: "flex flex-row justify-between items-center",
@@ -151,7 +153,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
             if expanded_ {
                 div {
                     class: "flex flex-row justify-center items-center",
-                    StatusButtons { task_id }
+                    StatusButtons { task_id, status }
                 }
                 Description { task_id, description: task.description }
                 Due {
@@ -219,8 +221,8 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
-        "rounded-lg border {} {}",
-        theme.bg_color_2, theme.border_color
+        "rounded-lg border {} {} {}",
+        theme.bg_color_2, theme.border_color, theme.focus_color
     );
     rsx! {
         form {
@@ -256,7 +258,7 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
         "p-4 rounded border whitespace-pre-wrap break-words {} {}",
         theme.bg_color_1, theme.border_color
     );
-    let edit_button_style = "rounded border";
+    let edit_button_style = format!("rounded border {}", theme.button);
     rsx! {
         section {
             "aria-label": "description",
@@ -316,21 +318,28 @@ fn DeleteTaskButton(task_id: TaskId) -> Element {
 }
 
 #[component]
-fn StatusButtons(task_id: TaskId) -> Element {
+fn StatusButtons(task_id: TaskId, status: TaskStatus) -> Element {
     rsx! {
         section {
             "aria-label": "set task status",
             class: "flex flex-row items-center justify-end gap-1",
-            ToDoButton { task_id }
-            InProgressButton { task_id }
-            DoneButton { task_id }
+            ToDoButton { task_id, status }
+            InProgressButton { task_id, status }
+            DoneButton { task_id, status }
         }
     }
 }
 
 #[component]
-fn ToDoButton(task_id: TaskId) -> Element {
-    let style = "active:stroke-red-600 sm:hover:stroke-red-600";
+fn ToDoButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let style = format!(
+        "active:stroke-red-600 sm:hover:stroke-red-600 {}",
+        if status == TaskStatus::ToDo {
+            "stroke-red-600"
+        } else {
+            ""
+        }
+    );
     let board_signals = BoardSignals::default();
     rsx! {
         div {
@@ -349,8 +358,15 @@ fn ToDoButton(task_id: TaskId) -> Element {
 }
 
 #[component]
-fn InProgressButton(task_id: TaskId) -> Element {
-    let style = "active:stroke-yellow-300 sm:hover:stroke-yellow-300";
+fn InProgressButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let style = format!(
+        "active:stroke-fuchsia-600 sm:hover:stroke-fuchsia-600 {}",
+        if status == TaskStatus::InProgress {
+            "stroke-fuchsia-600"
+        } else {
+            ""
+        }
+    );
     let board_signals = BoardSignals::default();
     rsx! {
         div {
@@ -369,8 +385,15 @@ fn InProgressButton(task_id: TaskId) -> Element {
 }
 
 #[component]
-fn DoneButton(task_id: TaskId) -> Element {
-    let style = "active:stroke-green-500 sm:hover:stroke-green-500";
+fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let style = format!(
+        "active:stroke-green-500 sm:hover:stroke-green-500 {}",
+        if status == TaskStatus::Done {
+            "stroke-green-500"
+        } else {
+            ""
+        }
+    );
     let board_signals = BoardSignals::default();
     rsx! {
         div {
@@ -537,11 +560,7 @@ fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
     let theme = theme.read();
     let board_signals = BoardSignals::default();
     let style = "border-2 rounded";
-    let button_style = "
-        rounded-md
-        stroke-white
-        sm:hover:border sm:hover:border-white
-    ";
+    let button_style = format!("rounded sm:hover:border {}", theme.border_color);
     let color = match user_data.color {
         Color::Black => theme.color1_button,
         Color::White => theme.color2_button,
@@ -724,8 +743,13 @@ fn AddTagListItem(task_id: TaskId) -> Element {
 
 #[component]
 fn ShowSelectionListFormButton(r#for: String, content: String, show_form: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
-    let style = "text-blue-500 sm:hover:underline active:underline";
+    let style = format!(
+        "sm:hover:underline active:underline {}",
+        theme.action_text_color
+    );
     rsx! {
         button {
             class: "px-4 py-2 w-full text-left {style}",
