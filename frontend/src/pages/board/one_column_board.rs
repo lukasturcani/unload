@@ -568,7 +568,7 @@ fn ToggleFiltersButton(extra_bar: Signal<ExtraBar>) -> Element {
 fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let status_style = "border rounded";
+    let status_style = format!("border rounded {}", theme.button);
     let dropdown_style = format!(
         "
             border divide-y
@@ -587,6 +587,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                     text-sm
                     {status_style}
                 ",
+                "aria-pressed": panel() == Panel::Status,
                 onclick: move |event| {
                     if panel() == Panel::Status {
                         panel.set(Panel::None);
