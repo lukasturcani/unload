@@ -42,20 +42,53 @@ fn App() -> Element {
         }
         body {
             div {
-                class: "font-mono bg-emerald-950 h-screen w-screen flex justify-center items-center",
+                class: "font-mono bg-indigo-600 h-screen w-screen text-white flex flex-col ",
                 div {
-                    class: "grid grid-cols-1 place-items-center gap-4",
-                    h1 {
-                        class: "text-center text-pink-600 text-4xl font-bold",
-                        "Welcome to Unload.Life"
-                    }
-                    a {
-                        href: "/app",
-                        button {
-                            class: "font-mono transition-colors ease-in-out duration-200 animate-bounce hover:bg-pink-600 bg-emerald-950 text-white font-bold py-2 px-4 rounded",
+                    class: "container mx-auto",
+                    nav {
+                        class: "flex flex-row py-5 justify-between items-center",
+                        a {
+                            class: "text-2xl font-bold",
+                            href: "/",
+                            "Unload"
+                        }
+                        a {
+                            class: "
+                                px-5 py-2
+                                bg-[#ff6dff]
+                                rounded-md
+                                transition-all ease-in-out
+                                shadow-xl hover:shadow-md hover:translate-y-1
+                            ",
+                            href: "/app",
                             "Go to app"
                         }
                     }
+                    div {
+                        class: "grid grid-cols-1 place-items-center gap-4",
+                        p {
+                            class: "text-6xl tracking-tight font-extrabold text-center",
+                            "Shared task managment."
+                            br {}
+                            span {
+                                class: "text-[#ff6dff]",
+                                "Simple with no sign ups."
+                            }
+                        }
+                        a {
+                            class: "
+                                text-3xl
+                                p-5
+                                bg-[#ff6dff]
+                                rounded-md
+                                transition-all ease-in-out
+                                shadow-xl hover:shadow-md hover:translate-y-1
+                            ",
+                            href: "/app",
+                            "Go to app"
+                        }
+                    }
+
                 }
             }
         }
