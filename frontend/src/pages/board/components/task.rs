@@ -234,6 +234,9 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
                 editing.set(false);
             },
             textarea {
+                onmounted: move |event| async move {
+                    let _ = event.set_focus(true).await;
+                },
                 id: "task-{task_id}-description-input",
                 rows: 8.max(description.lines().count() as i64),
                 class: "p-2.5 {style}",
