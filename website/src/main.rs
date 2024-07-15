@@ -75,17 +75,34 @@ fn App() -> Element {
                                 "Simple with no sign ups."
                             }
                         }
-                        a {
-                            class: "
-                                text-3xl
-                                p-5
-                                bg-[#ff6dff]
-                                rounded-md
-                                transition-all ease-in-out
-                                shadow-xl hover:shadow-md hover:translate-y-1
-                            ",
-                            href: "/app",
-                            "Go to app"
+                        div {
+                            class: "flex flex-row gap-4",
+                            a {
+                                class: "
+                                    text-3xl font-bold
+                                    p-5
+                                    text-[#ff6dff]
+                                    bg-white
+                                    rounded-md
+                                    transition-all ease-in-out
+                                    shadow-xl hover:shadow-md hover:translate-y-1
+                                ",
+                                href: "/new-board",
+                                "New board"
+
+                            }
+                            a {
+                                class: "
+                                    text-3xl font-bold
+                                    p-5
+                                    bg-[#ff6dff]
+                                    rounded-md
+                                    transition-all ease-in-out
+                                    shadow-xl hover:shadow-md hover:translate-y-1
+                                ",
+                                href: "/app",
+                                "Go to app"
+                            }
                         }
                     }
 
