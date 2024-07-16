@@ -160,6 +160,16 @@ fn App() -> Element {
                                     ",
                                     "Dark"
                                 }
+                                button {
+                                    class: "
+                                        px-2 py-1 rounded-md font-bold
+                                        shadow-md hover:shadow hover:translate-y-1
+                                        bg-white text-[#ff6dff]
+                                        transition-all ease-in-out
+                                        text-3xl
+                                    ",
+                                    "Mobile"
+                                }
                             }
                         }
                     }
