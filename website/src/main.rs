@@ -46,7 +46,7 @@ fn App() -> Element {
                 div {
                     class: "container mx-auto",
                     nav {
-                        class: "flex flex-row py-5 justify-between items-center",
+                        class: "flex flex-row px-3 py-5 justify-between items-center",
                         a {
                             class: "text-2xl font-bold",
                             href: "/",
@@ -67,7 +67,7 @@ fn App() -> Element {
                     div {
                         class: "grid grid-cols-1 place-items-center gap-4",
                         p {
-                            class: "text-6xl tracking-tight font-extrabold text-center",
+                            class: "text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-center",
                             "Shared task managment."
                             br {}
                             span {
@@ -76,11 +76,11 @@ fn App() -> Element {
                             }
                         }
                         div {
-                            class: "flex flex-row gap-4",
+                            class: "flex flex-col sm:flex-row gap-4 w-full sm:w-auto",
                             a {
                                 class: "
-                                    text-3xl font-bold
-                                    p-5
+                                    text-xl sm:text-2xl md:text-3xl font-bold
+                                    px-5 py-3 sm:py-5 mx-auto
                                     text-[#ff6dff]
                                     bg-white
                                     rounded-md
@@ -93,8 +93,8 @@ fn App() -> Element {
                             }
                             a {
                                 class: "
-                                    text-3xl font-bold
-                                    p-5
+                                    text-xl sm:text-2xl md:text-3xl font-bold
+                                    px-5 py-3 sm:py-5 mx-auto
                                     bg-[#ff6dff]
                                     rounded-md
                                     transition-all ease-in-out
