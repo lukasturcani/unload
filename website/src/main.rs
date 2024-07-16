@@ -41,8 +41,9 @@ fn App() -> Element {
             }
         }
         body {
+            class: "bg-indigo-600",
             div {
-                class: "font-mono bg-indigo-600 h-screen w-screen text-white flex flex-col ",
+                class: "font-mono min-h-screen min-w-screen text-white flex flex-col ",
                 div {
                     class: "container mx-auto px-3",
                     nav {
@@ -84,7 +85,7 @@ fn App() -> Element {
                         }
                     }
                     div {
-                        class: "grid grid-cols-1 place-items-center gap-4",
+                        class: "flex flex-col items-center gap-4 pb-5",
                         p {
                             class: "text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-center",
                             "Shared task managment."
@@ -123,6 +124,19 @@ fn App() -> Element {
                                 ",
                                 href: "/app",
                                 "Go to app"
+                            }
+                        }
+                        div {
+                            class: "
+                                rounded-xl overflow-hidden shadow-lg mt-9 px-3 pt-3 pb-10 max-w-5xl
+                                bg-[#ff6dff]
+                            ",
+                            figure {
+                                class: "rounded-xl overflow-hidden pt-3 bg-white",
+                                img {
+                                    alt: "unload large board",
+                                    src: "/board_lg.png",
+                                }
                             }
                         }
                     }
