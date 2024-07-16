@@ -148,16 +148,6 @@ fn App() -> Element {
                                         transition-all ease-in-out
                                         text-3xl
                                     ",
-                                    "Verbose"
-                                }
-                                button {
-                                    class: "
-                                        px-2 py-1 rounded-md font-bold
-                                        shadow-md hover:shadow hover:translate-y-1
-                                        bg-white text-[#ff6dff]
-                                        transition-all ease-in-out
-                                        text-3xl
-                                    ",
                                     "Dense"
                                 }
                                 button {
