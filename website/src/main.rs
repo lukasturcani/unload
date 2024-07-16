@@ -46,16 +46,17 @@ fn App() -> Element {
                 div {
                     class: "container mx-auto px-3",
                     nav {
-                        class: "flex flex-row py-5 justify-between items-center",
+                        class: "flex flex-row py-5 justify-center sm:justify-between items-center",
                         a {
                             class: "text-2xl font-bold",
                             href: "/",
                             "Unload"
                         }
                         div {
-                            class: "flex flex-row gap-4 items-center",
+                            class: "
+                                hidden sm:flex flex-row gap-4 items-center
+                            ",
                             a {
-                                class: "hidden sm:block",
                                 href: "https://github.com/lukasturcani/unload",
                                 target: "_blank",
                                 svg {
