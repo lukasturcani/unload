@@ -131,13 +131,6 @@ fn App() -> Element {
                                 rounded-xl overflow-hidden mt-9 p-3 max-w-5xl
                                 bg-[#ff6dff] flex flex-col gap-4
                             ",
-                            figure {
-                                class: "rounded-xl overflow-hidden pt-3 bg-white shadow-lg",
-                                img {
-                                    alt: "unload large board",
-                                    src: "/board_lg.png",
-                                }
-                            }
                             div {
                                 class: "flex flex-row gap-2 items-center justify-center",
                                 button {
@@ -169,6 +162,13 @@ fn App() -> Element {
                                         text-3xl
                                     ",
                                     "Mobile"
+                                }
+                            }
+                            figure {
+                                class: "rounded-xl overflow-hidden pt-3 bg-white shadow-lg",
+                                img {
+                                    alt: "unload large board",
+                                    src: "/board_lg.png",
                                 }
                             }
                         }
