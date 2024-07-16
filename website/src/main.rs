@@ -128,14 +128,47 @@ fn App() -> Element {
                         }
                         div {
                             class: "
-                                rounded-xl overflow-hidden shadow-lg mt-9 px-3 pt-3 pb-10 max-w-5xl
-                                bg-[#ff6dff]
+                                rounded-xl overflow-hidden mt-9 p-3 max-w-5xl
+                                bg-[#ff6dff] flex flex-col gap-4
                             ",
                             figure {
-                                class: "rounded-xl overflow-hidden pt-3 bg-white",
+                                class: "rounded-xl overflow-hidden pt-3 bg-white shadow-lg",
                                 img {
                                     alt: "unload large board",
                                     src: "/board_lg.png",
+                                }
+                            }
+                            div {
+                                class: "flex flex-row gap-2 items-center justify-center",
+                                button {
+                                    class: "
+                                        px-2 py-1 rounded-md font-bold
+                                        shadow-md hover:shadow hover:translate-y-1
+                                        bg-white text-[#ff6dff]
+                                        transition-all ease-in-out
+                                        text-3xl
+                                    ",
+                                    "Verbose"
+                                }
+                                button {
+                                    class: "
+                                        px-2 py-1 rounded-md font-bold
+                                        shadow-md hover:shadow hover:translate-y-1
+                                        bg-white text-[#ff6dff]
+                                        transition-all ease-in-out
+                                        text-3xl
+                                    ",
+                                    "Dense"
+                                }
+                                button {
+                                    class: "
+                                        px-2 py-1 rounded-md font-bold
+                                        shadow-md hover:shadow hover:translate-y-1
+                                        bg-white text-[#ff6dff]
+                                        transition-all ease-in-out
+                                        text-3xl
+                                    ",
+                                    "Dark"
                                 }
                             }
                         }
