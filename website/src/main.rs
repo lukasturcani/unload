@@ -44,9 +44,9 @@ fn App() -> Element {
             div {
                 class: "font-mono bg-indigo-600 h-screen w-screen text-white flex flex-col ",
                 div {
-                    class: "container mx-auto",
+                    class: "container mx-auto px-3",
                     nav {
-                        class: "flex flex-row px-3 py-5 justify-between items-center",
+                        class: "flex flex-row py-5 justify-between items-center",
                         a {
                             class: "text-2xl font-bold",
                             href: "/",
@@ -79,8 +79,9 @@ fn App() -> Element {
                             class: "flex flex-col sm:flex-row gap-4 w-full sm:w-auto",
                             a {
                                 class: "
-                                    text-xl sm:text-2xl md:text-3xl font-bold
-                                    px-5 py-3 sm:py-5 mx-auto
+                                    text-xl sm:text-2xl md:text-3xl font-bold text-center
+                                    w-full sm:w-auto
+                                    px-5 py-3 sm:py-5
                                     text-[#ff6dff]
                                     bg-white
                                     rounded-md
@@ -93,8 +94,9 @@ fn App() -> Element {
                             }
                             a {
                                 class: "
-                                    text-xl sm:text-2xl md:text-3xl font-bold
-                                    px-5 py-3 sm:py-5 mx-auto
+                                    text-xl sm:text-2xl md:text-3xl font-bold text-center
+                                    w-full sm:w-auto
+                                    px-5 py-3 sm:py-5
                                     bg-[#ff6dff]
                                     rounded-md
                                     transition-all ease-in-out
