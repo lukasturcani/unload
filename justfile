@@ -190,6 +190,7 @@ frontend-release:
 website:
   rm -rf website/dist
   cd website && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
+  cd website && dx build --features web
   cd website && cargo run
 
 # watch the website
