@@ -19,6 +19,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 fn index_page() -> Result<String> {
     let mut vdom = VirtualDom::new(App);
     vdom.rebuild_in_place();
