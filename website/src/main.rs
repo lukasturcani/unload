@@ -1,18 +1,21 @@
 use anyhow::Result;
 use dioxus::prelude::*;
 use dioxus_logger::tracing::{info, Level};
+use dioxus_web::Config;
 use std::fs;
 
 fn main() -> Result<()> {
-    #[cfg(not(feature = "web"))]
+    #[cfg(feature = "prebuild")]
     {
         fs::write("./dist/index.html", index_page()?)?;
     }
-    #[cfg(feature = "web")]
+    #[cfg(not(feature = "prebuild"))]
     {
         dioxus_logger::init(Level::INFO).expect("failed to init logger");
         info!("starting app");
-        launch(App);
+        LaunchBuilder::web()
+            .with_cfg(Config::new().hydrate(true))
+            .launch(App);
     }
     Ok(())
 }

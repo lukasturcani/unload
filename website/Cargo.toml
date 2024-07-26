@@ -9,9 +9,11 @@ edition.workspace = true
 anyhow = "1.0"
 
 dioxus = { version = "0.5", features = ["web", "ssr"] }
+dioxus-web = { version = "0.5", features = ["hydrate"] }
+dioxus-ssr = { version = "0.5" }
 
 # Debug
 dioxus-logger = "0.5.1"
 
 [features]
-web = []
+prebuild = []

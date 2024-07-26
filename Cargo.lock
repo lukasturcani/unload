@@ -6588,6 +6588,8 @@ dependencies = [
  "anyhow",
  "dioxus",
  "dioxus-logger 0.5.1",
+ "dioxus-ssr",
+ "dioxus-web",
 ]
 
 [[package]]
