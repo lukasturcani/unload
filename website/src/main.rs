@@ -1,6 +1,6 @@
 use anyhow::Result;
 use dioxus::prelude::*;
-use dioxus_logger::tracing::{info, Level};
+use dioxus_logger::tracing::Level;
 use dioxus_web::Config;
 use std::fs;
 
@@ -12,7 +12,6 @@ fn main() -> Result<()> {
     #[cfg(not(feature = "prebuild"))]
     {
         dioxus_logger::init(Level::INFO).expect("failed to init logger");
-        info!("starting app");
         LaunchBuilder::web()
             .with_cfg(Config::new().hydrate(true))
             .launch(App);
@@ -29,7 +28,14 @@ fn index_page() -> Result<String> {
 
 #[component]
 fn App() -> Element {
-    info!("rendering app");
+    let scroll = eval(
+        r#"
+            let elementId = await dioxus.recv();
+            if (elementId !== "ignore") {
+                document.getElementById(elementId).scrollIntoView({behavior: "smooth"});
+            }
+        "#,
+    );
     let mut dense = use_signal(|| false);
     let mut dark = use_signal(|| false);
     let mut mobile = use_signal(|| false);
@@ -136,7 +142,10 @@ fn App() -> Element {
                                     text-3xl
                                 ",
                                 "aria-pressed": dense(),
-                                onclick: move |_| dense.set(!dense()),
+                                onclick: move |_| {
+                                    dense.set(!dense());
+                                    scroll.send("board-image".into()).unwrap();
+                                },
                                 "Dense"
                             }
                             button {
@@ -149,7 +158,10 @@ fn App() -> Element {
                                     text-3xl
                                 ",
                                 "aria-pressed": dark(),
-                                onclick: move |_| dark.set(!dark()),
+                                onclick: move |_| {
+                                    dark.set(!dark());
+                                    scroll.send("board-image".into()).unwrap();
+                                },
                                 "Dark"
                             }
                             button {
@@ -162,12 +174,15 @@ fn App() -> Element {
                                     text-3xl
                                 ",
                                 "aria-pressed": mobile(),
-                                onclick: move |_| mobile.set(!mobile()),
+                                onclick: move |_| {
+                                    mobile.set(!mobile());
+                                    scroll.send("board-image".into()).unwrap();
+                                },
                                 "Mobile"
                             }
                         }
                         div {
-                            class: if mobile() { "w-1/2" },
+                            class: if mobile() { "sm:w-1/2" },
                             figure {
                                 class: "rounded-xl overflow-hidden shadow-lg",
                                 img {
@@ -189,7 +204,6 @@ fn App() -> Element {
                         }
                     }
                 }
-
             }
         }
     }
