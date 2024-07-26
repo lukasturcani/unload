@@ -25,12 +25,12 @@ use tracing_subscriber::{layer::SubscriberExt, EnvFilter};
 use unload::{
     add_task_assignee, add_task_tag, clone_task, create_board, create_quick_add_task, create_tag,
     create_task, create_user, delete_quick_add_task, delete_tag, delete_task, delete_task_assignee,
-    delete_task_tag, delete_user, show_archived_tags, show_archived_tasks, show_board,
-    show_board_title, show_quick_add_tasks, show_tag, show_tags, show_task, show_tasks, show_user,
-    show_users, update_board_title, update_tag_archived, update_tag_color, update_tag_name,
-    update_task_archived, update_task_assignees, update_task_description, update_task_due,
-    update_task_status, update_task_tags, update_task_title, update_user_color, update_user_name,
-    Result,
+    delete_task_tag, delete_user, new_board_redirect, show_archived_tags, show_archived_tasks,
+    show_board, show_board_title, show_quick_add_tasks, show_tag, show_tags, show_task, show_tasks,
+    show_user, show_users, update_board_title, update_tag_archived, update_tag_color,
+    update_tag_name, update_task_archived, update_task_assignees, update_task_description,
+    update_task_due, update_task_status, update_task_tags, update_task_title, update_user_color,
+    update_user_name, Result,
 };
 
 #[derive(confique::Config)]
@@ -63,9 +63,10 @@ struct Config {
     environment: String,
 }
 
-fn website_router(serve_dir: impl AsRef<Path>) -> Router {
+fn website_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
     Router::new()
         .route("/app", get(redirect_to_app))
+        .route("/new-board", get(new_board_redirect))
         .nest_service("/", compressed_dir(&serve_dir))
 }
 
@@ -280,7 +281,7 @@ async fn main() -> Result<()> {
     let router = Router::new().layer(middleware::from_fn_with_state(
         Routers {
             app: app_router(config.app_dir).with_state(pool.clone()),
-            website: website_router(config.website_dir),
+            website: website_router(config.website_dir).with_state(pool.clone()),
         },
         delegate_request,
     ));

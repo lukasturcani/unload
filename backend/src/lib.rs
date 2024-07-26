@@ -1,5 +1,7 @@
+use axum::extract::Host;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
+use axum::response::Redirect;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
@@ -88,7 +90,7 @@ where
 
 pub type Result<T> = std::result::Result<T, AppError>;
 
-pub async fn create_board(State(pool): State<SqlitePool>) -> Result<Json<BoardName>> {
+async fn add_board(State(pool): State<SqlitePool>) -> Result<BoardName> {
     let board_name = new_unique_board_name(&pool).await?;
     let mut tx = pool.begin().await?;
     sqlx::query!(
@@ -101,7 +103,19 @@ VALUES (?, ?)",
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(Json(board_name))
+    Ok(board_name)
+}
+
+pub async fn create_board(pool: State<SqlitePool>) -> Result<Json<BoardName>> {
+    Ok(Json(add_board(pool).await?))
+}
+
+pub async fn new_board_redirect(pool: State<SqlitePool>, Host(host): Host) -> Result<Redirect> {
+    let board_name = add_board(pool).await?;
+    Ok(Redirect::to(&format!(
+        "//app.{}/boards/{}",
+        host, board_name
+    )))
 }
 
 pub async fn show_board(
