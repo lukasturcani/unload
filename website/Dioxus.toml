@@ -1,7 +1,7 @@
 [application]
 
 # App (Project) Name
-name = "unload"
+name = "website"
 
 # Dioxus App Default Platform
 # web, desktop, fullstack

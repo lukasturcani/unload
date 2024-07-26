@@ -6,9 +6,12 @@ edition.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.86"
-dioxus = "0.5.1"
-dioxus-ssr = "0.5.1"
+anyhow = "1.0"
+
+dioxus = { version = "0.5", features = ["web", "ssr"] }
+
+# Debug
+dioxus-logger = "0.5.1"
 
 [features]
 web = []

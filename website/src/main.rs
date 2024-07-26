@@ -1,5 +1,6 @@
 use anyhow::Result;
 use dioxus::prelude::*;
+use dioxus_logger::tracing::{info, Level};
 use std::fs;
 
 fn main() -> Result<()> {
@@ -9,6 +10,8 @@ fn main() -> Result<()> {
     }
     #[cfg(feature = "web")]
     {
+        dioxus_logger::init(Level::INFO).expect("failed to init logger");
+        info!("starting app");
         launch(App);
     }
     Ok(())
@@ -18,11 +21,12 @@ fn index_page() -> Result<String> {
     let mut vdom = VirtualDom::new(App);
     vdom.rebuild_in_place();
     Ok(fs::read_to_string("./dist/index.html")?
-        .replace("<!-- REPLACE ME -->", &dioxus_ssr::pre_render(&vdom)))
+        .replace("<!-- REPLACE ME -->", &dioxus::ssr::pre_render(&vdom)))
 }
 
 #[component]
 fn App() -> Element {
+    info!("rendering app");
     let mut dense = use_signal(|| false);
     rsx! {
         div {
@@ -126,7 +130,10 @@ fn App() -> Element {
                                     text-3xl
                                 ",
                                 "aria-pressed": dense(),
-                                onclick: move |_| dense.set(!dense()),
+                                onclick: move |_| {
+                                    info!("dense");
+                                    dense.set(!dense());
+                                },
                                 "Dense"
                             }
                             button {
