@@ -190,8 +190,8 @@ frontend-release:
 website:
   rm -rf website/dist
   cd website && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
-  cd website && dx build
-  cd website && cargo run --features prebuild
+  cd website && dx build --release
+  cd website && cargo run --release --features prebuild
 
 # watch the website
 watch-website:
@@ -199,7 +199,8 @@ watch-website:
   cd website && \
   rm -rf dist && \
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
-  cargo run"
+  dx build && \
+  cargo run --features prebuild"
 
 # build the optimized website
 website-release: website

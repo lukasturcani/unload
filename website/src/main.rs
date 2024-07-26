@@ -31,6 +31,8 @@ fn index_page() -> Result<String> {
 fn App() -> Element {
     info!("rendering app");
     let mut dense = use_signal(|| false);
+    let mut dark = use_signal(|| false);
+    let mut mobile = use_signal(|| false);
     rsx! {
         div {
             class: "font-mono min-h-screen min-w-screen text-white flex flex-col ",
@@ -119,7 +121,8 @@ fn App() -> Element {
                     div {
                         class: "
                             rounded-xl overflow-hidden mt-9 p-3 max-w-5xl
-                            bg-[#ff6dff] flex flex-col gap-4
+                            bg-[#ff6dff]
+                            flex flex-col items-center justify-center gap-4
                         ",
                         div {
                             class: "flex flex-row gap-2 items-center justify-center",
@@ -133,38 +136,55 @@ fn App() -> Element {
                                     text-3xl
                                 ",
                                 "aria-pressed": dense(),
-                                onclick: move |_| {
-                                    info!("dense");
-                                    dense.set(!dense());
-                                },
+                                onclick: move |_| dense.set(!dense()),
                                 "Dense"
                             }
                             button {
                                 class: "
                                     px-2 py-1 rounded-md font-bold
                                     shadow-md hover:shadow hover:translate-y-1
+                                    aria-pressed:shadow aria-pressed:translate-y-1 aria-pressed:bg-[#FFFF00]
                                     bg-white text-[#ff6dff]
                                     transition-all ease-in-out
                                     text-3xl
                                 ",
+                                "aria-pressed": dark(),
+                                onclick: move |_| dark.set(!dark()),
                                 "Dark"
                             }
                             button {
                                 class: "
                                     px-2 py-1 rounded-md font-bold
                                     shadow-md hover:shadow hover:translate-y-1
+                                    aria-pressed:shadow aria-pressed:translate-y-1 aria-pressed:bg-[#FFFF00]
                                     bg-white text-[#ff6dff]
                                     transition-all ease-in-out
                                     text-3xl
                                 ",
+                                "aria-pressed": mobile(),
+                                onclick: move |_| mobile.set(!mobile()),
                                 "Mobile"
                             }
                         }
-                        figure {
-                            class: "rounded-xl overflow-hidden pt-3 bg-white shadow-lg",
-                            img {
-                                alt: "unload large board",
-                                src: "/board_lg.png",
+                        div {
+                            class: if mobile() { "w-1/2" },
+                            figure {
+                                class: "rounded-xl overflow-hidden shadow-lg",
+                                img {
+                                    id: "board-image",
+                                    class: "object-contain",
+                                    alt: "unload large board",
+                                    src: match (dense(), dark(), mobile()) {
+                                        (true, true, true) => "dense_dark_mobile.png",
+                                        (true, true, false) => "dense_dark_nmobile.png",
+                                        (true, false, true) => "dense_ndark_mobile.png",
+                                        (true, false, false) => "dense_ndark_nmobile.png",
+                                        (false, true, true) => "ndense_dark_mobile.png",
+                                        (false, true, false) => "ndense_dark_nmobile.png",
+                                        (false, false, true) => "ndense_ndark_mobile.png",
+                                        (false, false, false) => "ndense_ndark_nmobile.png",
+                                    },
+                                }
                             }
                         }
                     }
