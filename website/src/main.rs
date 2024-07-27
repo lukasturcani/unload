@@ -91,7 +91,7 @@ fn App() -> Element {
                         br {}
                         span {
                             class: "text-[#ff6dff]",
-                            "Simple with no sign ups."
+                            "Simple, with no sign ups."
                         }
                     }
                     div {
