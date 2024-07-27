@@ -21,7 +21,7 @@ RUN cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
 RUN cd frontend && dx build --release
 RUN fdfind . 'frontend/dist' --type file --exec gzip -f -k
 RUN cd website && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
-RUN cd website &&  cargo run
+RUN cd website &&  cargo run --release --features prebuild
 RUN fdfind . 'website/dist' --type file --exec gzip -f -k
 
 FROM gcr.io/distroless/cc-debian12:debug
