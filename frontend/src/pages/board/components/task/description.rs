@@ -147,6 +147,7 @@ fn DescriptionContent(description: String) -> Element {
         "p-4 rounded border whitespace-pre-wrap break-words {} {}",
         theme.bg_color_1, theme.border_color
     );
+    let description_ = use_signal(|| description.clone());
     rsx! {
         div {
             class: style,
@@ -166,7 +167,7 @@ fn DescriptionContent(description: String) -> Element {
                     Block::Checkbox(lines) => rsx!{
                         ul {
                             for line in lines {
-                                Checkbox { line }
+                                Checkbox { line, description: description_ }
                             }
                         }
                     },
@@ -183,7 +184,7 @@ fn Bullet(line: String) -> Element {
 }
 
 #[component]
-fn Checkbox(line: Line) -> Element {
+fn Checkbox(description: Signal<String>, line: Line) -> Element {
     let (head, tail) = line.content.split_once(']').unwrap();
     rsx! {
         li {
