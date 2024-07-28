@@ -94,6 +94,7 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
     }
 }
 
+#[derive(Clone, Eq, PartialEq)]
 struct Line {
     index: usize,
     content: String,
@@ -170,11 +171,27 @@ fn DescriptionContent(description: String) -> Element {
                     Block::Checkbox(lines) => rsx!{
                         ul {
                             for line in lines {
-                                li { {line.content} }
+                                Checkbox { line }
                             }
                         }
                     },
                 }
+            }
+        }
+    }
+}
+
+#[component]
+fn Checkbox(line: Line) -> Element {
+    let (head, tail) = line.content.split_once(']').unwrap();
+    rsx! {
+        li {
+            label {
+                input {
+                    checked: head.ends_with('x'),
+                    r#type: "checkbox",
+                }
+                {tail}
             }
         }
     }
