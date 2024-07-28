@@ -102,7 +102,7 @@ struct Line {
 
 enum Block {
     Text(String),
-    Bullet(Vec<Line>),
+    Bullet(Vec<String>),
     Checkbox(Vec<Line>),
 }
 
@@ -110,17 +110,11 @@ fn parse_blocks(description: &str) -> Vec<Block> {
     let mut blocks = Vec::<Block>::new();
     let mut char_index = 0;
     for line in description.lines() {
-        if line.starts_with('*') {
+        if line.starts_with("* ") {
             if let Some(Block::Bullet(lines)) = blocks.last_mut() {
-                lines.push(Line {
-                    index: char_index,
-                    content: line.into(),
-                });
+                lines.push(line.into());
             } else {
-                blocks.push(Block::Bullet(vec![Line {
-                    index: char_index,
-                    content: line.into(),
-                }]));
+                blocks.push(Block::Bullet(vec![line.into()]));
             };
         } else if line.starts_with("- [ ]") || line.starts_with("- [x]") {
             if let Some(Block::Checkbox(lines)) = blocks.last_mut() {
@@ -163,8 +157,9 @@ fn DescriptionContent(description: String) -> Element {
                     },
                     Block::Bullet(lines) => rsx!{
                         ul {
+                            class:" list-disc list-inside",
                             for line in lines {
-                                li { {line.content} }
+                                Bullet { line }
                             }
                         }
                     },
@@ -179,6 +174,12 @@ fn DescriptionContent(description: String) -> Element {
             }
         }
     }
+}
+
+#[component]
+fn Bullet(line: String) -> Element {
+    line.drain(..2);
+    rsx! { li { {line} } }
 }
 
 #[component]
