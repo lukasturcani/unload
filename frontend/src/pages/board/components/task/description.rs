@@ -66,16 +66,12 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
 fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let style = format!(
-        "p-4 rounded border whitespace-pre-wrap break-words {} {}",
-        theme.bg_color_1, theme.border_color
-    );
     let edit_button_style = format!("rounded border {}", theme.button);
     rsx! {
         section {
             "aria-label": "description",
             class: "flex flex-col gap-1",
-            p { class: style, {description} }
+            DescriptionContent { description }
             div {
                 class: "flex flex-row justify-center",
                 button {
@@ -92,6 +88,92 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
                         div { class: "size-5", EditIcon {} }
                         Tooltip { content: "Edit Description", position: "-top-12 -left-10" }
                     }
+                }
+            }
+        }
+    }
+}
+
+struct Line {
+    index: usize,
+    content: String,
+}
+
+enum Block {
+    Text(String),
+    Bullet(Vec<Line>),
+    Checkbox(Vec<Line>),
+}
+
+fn parse_blocks(description: &str) -> Vec<Block> {
+    let mut blocks = Vec::<Block>::new();
+    let mut char_index = 0;
+    for line in description.lines() {
+        if line.starts_with('*') {
+            if let Some(Block::Bullet(lines)) = blocks.last_mut() {
+                lines.push(Line {
+                    index: char_index,
+                    content: line.into(),
+                });
+            } else {
+                blocks.push(Block::Bullet(vec![Line {
+                    index: char_index,
+                    content: line.into(),
+                }]));
+            };
+        } else if line.starts_with("- [ ]") || line.starts_with("- [x]") {
+            if let Some(Block::Checkbox(lines)) = blocks.last_mut() {
+                lines.push(Line {
+                    index: char_index,
+                    content: line.into(),
+                });
+            } else {
+                blocks.push(Block::Checkbox(vec![Line {
+                    index: char_index,
+                    content: line.into(),
+                }]));
+            };
+        } else if let Some(Block::Text(text)) = blocks.last_mut() {
+            text.push('\n');
+            text.push_str(line);
+        } else {
+            blocks.push(Block::Text(line.into()));
+        };
+        char_index += line.len();
+    }
+    blocks
+}
+
+#[component]
+fn DescriptionContent(description: String) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "p-4 rounded border whitespace-pre-wrap break-words {} {}",
+        theme.bg_color_1, theme.border_color
+    );
+    rsx! {
+        div {
+            class: style,
+            for block in parse_blocks(&description) {
+                match block {
+                    Block::Text(text) => rsx!{
+                        p { {text} }
+                    },
+                    Block::Bullet(lines) => rsx!{
+                        ul {
+                            for line in lines {
+                                li { {line.content} }
+                            }
+                        }
+                    },
+                    Block::Checkbox(lines) => rsx!{
+                        ul {
+                            for line in lines {
+                                li { {line.content} }
+                            }
+                        }
+                    },
                 }
             }
         }
