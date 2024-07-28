@@ -45,7 +45,10 @@ pub fn ColorPicker(selected_color: Option<Color>) -> Element {
                         class: "flex flex-row items-center gap-2",
                         input {
                             value: serde_json::to_string(&color).unwrap(),
-                            class: format!("peer {}", theme.focus_color),
+                            class: format!(
+                                "peer focus:outline-none focus:ring-2 {}",
+                                theme.focus_color,
+                            ),
                             required: true,
                             r#type: "radio",
                             name: "color-picker",
