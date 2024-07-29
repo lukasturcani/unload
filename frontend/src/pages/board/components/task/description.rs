@@ -108,7 +108,7 @@ enum Block {
 
 fn parse_blocks(description: &str) -> Vec<Block> {
     let mut blocks = Vec::<Block>::new();
-    let mut char_index = 0;
+    let mut line_index = 0;
     for line in description.lines() {
         if line.starts_with("* ") {
             if let Some(Block::Bullet(lines)) = blocks.last_mut() {
@@ -119,12 +119,12 @@ fn parse_blocks(description: &str) -> Vec<Block> {
         } else if line.starts_with("- [ ]") || line.starts_with("- [x]") {
             if let Some(Block::Checkbox(lines)) = blocks.last_mut() {
                 lines.push(Line {
-                    index: char_index,
+                    index: line_index,
                     content: line.into(),
                 });
             } else {
                 blocks.push(Block::Checkbox(vec![Line {
-                    index: char_index,
+                    index: line_index,
                     content: line.into(),
                 }]));
             };
@@ -134,7 +134,7 @@ fn parse_blocks(description: &str) -> Vec<Block> {
         } else {
             blocks.push(Block::Text(line.into()));
         };
-        char_index += line.len();
+        line_index += line.len() + 1;
     }
     blocks
 }
@@ -190,6 +190,15 @@ fn Checkbox(description: Signal<String>, line: Line) -> Element {
         li {
             label {
                 input {
+                    onchange: move |event| {
+                        let mut description = description.read().clone();
+                        if event.checked() {
+                            description.replace_range(line.index+3..line.index+4, "x");
+                        } else {
+                            description.replace_range(line.index+3..line.index+4, " ");
+                        };
+                        log::info!("description: {}", description);
+                    },
                     checked: head.ends_with('x'),
                     r#type: "checkbox",
                 }
