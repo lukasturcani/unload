@@ -43,10 +43,26 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
                 editing.set(false);
             },
             textarea {
+                id: "task-{task_id}-description-input",
                 onmounted: move |event| async move {
                     let _ = event.set_focus(true).await;
                 },
-                id: "task-{task_id}-description-input",
+                onkeydown: move |event| async move {
+                    if event.data().key() == Key::Enter {
+                        let mut text_data = eval(&format!(
+                            r#"
+                                    let element = document.getElementById("task-{task_id}-description-input");
+                                    dioxus.send([element.value, element.selectionStart]);
+                            "#,
+                        ));
+                        let text_data = &text_data.recv().await.unwrap();
+                        let [content, position] = &text_data.as_array().unwrap()[..] else {
+                            return;
+                        };
+                        let content = content.as_str().unwrap();
+                        let position = position.as_u64().unwrap();
+                    }
+                },
                 rows: 8.max(description.lines().count() as i64),
                 class: "p-2.5 {style}",
                 name: "Description",
