@@ -147,7 +147,7 @@ fn DescriptionContent(task_id: TaskId, description: String) -> Element {
         "p-4 rounded border whitespace-pre-wrap break-words {} {}",
         theme.bg_color_1, theme.border_color
     );
-    let description_ = use_signal(|| description.clone());
+    let description_ = Signal::new(description.clone());
     rsx! {
         div {
             class: style,
