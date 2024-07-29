@@ -71,7 +71,7 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
         section {
             "aria-label": "description",
             class: "flex flex-col gap-1",
-            DescriptionContent { description }
+            DescriptionContent { task_id, description }
             div {
                 class: "flex flex-row justify-center",
                 button {
@@ -140,7 +140,7 @@ fn parse_blocks(description: &str) -> Vec<Block> {
 }
 
 #[component]
-fn DescriptionContent(description: String) -> Element {
+fn DescriptionContent(task_id: TaskId, description: String) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -167,7 +167,7 @@ fn DescriptionContent(description: String) -> Element {
                     Block::Checkbox(lines) => rsx!{
                         ul {
                             for line in lines {
-                                Checkbox { line, description: description_ }
+                                Checkbox { task_id, line, description: description_ }
                             }
                         }
                     },
@@ -184,7 +184,8 @@ fn Bullet(line: String) -> Element {
 }
 
 #[component]
-fn Checkbox(description: Signal<String>, line: Line) -> Element {
+fn Checkbox(task_id: TaskId, description: Signal<String>, line: Line) -> Element {
+    let board_signals = BoardSignals::default();
     let (head, tail) = line.content.split_once(']').unwrap();
     rsx! {
         li {
@@ -197,7 +198,7 @@ fn Checkbox(description: Signal<String>, line: Line) -> Element {
                         } else {
                             description.replace_range(line.index+3..line.index+4, " ");
                         };
-                        log::info!("description: {}", description);
+                        spawn_forever(set_task_description(board_signals, task_id, description));
                     },
                     checked: head.ends_with('x'),
                     r#type: "checkbox",
