@@ -51,19 +51,23 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
                 div {
                     class: "flex flex-row justify-center items-center gap-2",
                     button {
+                        class: "group",
                         prevent_default: "onclick",
                         onclick: move |_| insert_string(task_id, "\n* "),
                         div {
-                            class: "size-6",
-                            BulletsIcon {}
+                            class: "relative",
+                            div { class: "size-6", BulletsIcon {} }
+                            Tooltip { content: "Bullet Points" }
                         }
                     }
                     button {
+                        class: "group",
                         prevent_default: "onclick",
                         onclick: move |_| insert_string(task_id, "\n- [ ] "),
                         div {
-                            class: "size-6",
-                            CheckboxIcon {}
+                            class: "relative",
+                            div { class: "size-6", CheckboxIcon {} }
+                            Tooltip { content: "Task List" }
                         }
                     }
                 }
