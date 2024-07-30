@@ -33,7 +33,7 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
         "rounded-lg border {} {} {}",
         theme.bg_color_2, theme.border_color, theme.focus_color
     );
-    let enter_pressed = use_signal(|| false);
+    let mut enter_pressed = use_signal(|| false);
     rsx! {
         form {
             "aria-label": "update description",
@@ -48,52 +48,10 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
                 onmounted: move |event| async move {
                     let _ = event.set_focus(true).await;
                 },
-                onkeydown: move |event| async move {
-                    if event.data().key() == Key::Enter {
-                        let mut text_data = eval(&format!(
-                            r#"
-                                let element = document.getElementById("task-{task_id}-description-input");
-                                dioxus.send([element.value, element.selectionStart]);
-                            "#,
-                        ));
-                        let text_data = &text_data.recv().await.unwrap();
-                        let [content, position] = &text_data.as_array().unwrap()[..] else {
-                            return;
-                        };
-                        let content = content.as_str().unwrap();
-                        let position = position.as_u64().unwrap() as usize;
-                        if let Some(start) = content[..position].rfind('\n').map(|i| i+1) {
-                            let content_length = content.len();
-                            let end = if content_length < start+5 {
-                                content.len()
-                            } else {
-                                start+5
-                            };
-                            let prefix = &content[start..end];
-                            if prefix.starts_with("- [ ]") || prefix.starts_with("- [x]") {
-                                let length = position - start;
-                                let edit = eval(&format!(
-                                    r#"
-                                        let content = await dioxus.recv();
-                                        let element = document.getElementById("task-{task_id}-description-input");
-                                        element.value = content;
-                                    "#,
-                                ));
-                                let set_cursor = eval(&format!(
-                                    r#"
-                                        let element = document.getElementById("task-{task_id}-description-input");
-
-                                    "#
-                                ));
-                                let mut content = String::from(content);
-                                if length <= 5 {
-                                    edit.send(content.into()).unwrap();
-                                } else {
-                                    content.insert_str(position+1, "- [ ] ");
-                                    edit.send(content.into()).unwrap();
-                                }
-                            }
-                        }
+                onkeydown: move |event| enter_pressed.set(event.data().key() == Key::Enter),
+                oninput: move |_| {
+                    if enter_pressed() {
+                        spawn(edit_description(task_id, enter_pressed));
                     }
                 },
                 rows: 8.max(description.lines().count() as i64),
@@ -109,6 +67,49 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
             }
         }
     }
+}
+
+async fn edit_description(task_id: TaskId, mut enter_pressed: Signal<bool>) {
+    let mut text_data = eval(&format!(
+        r#"
+            let element = document.getElementById("task-{task_id}-description-input");
+            dioxus.send([element.value, element.selectionStart]);
+        "#,
+    ));
+    let text_data = &text_data.recv().await.unwrap();
+    let [content, position] = &text_data.as_array().unwrap()[..] else {
+        panic!("impossible");
+    };
+    let content = content.as_str().unwrap();
+    let position = position.as_u64().unwrap() as usize;
+    let start = content[..position - 1].rfind('\n').map_or(0, |i| i + 1);
+    let content_length = content.len();
+    let end = if content_length < start + 5 {
+        content.len()
+    } else {
+        start + 5
+    };
+    let prefix = &content[start..end];
+    if prefix.starts_with("- [ ]") || prefix.starts_with("- [x]") {
+        let length = position - start;
+        let mut content = String::from(content);
+        let edit = eval(&format!(
+            r#"
+                let element = document.getElementById("task-{task_id}-description-input");
+                let selectionStart = element.selectionStart + 6;
+                let content = await dioxus.recv();
+                element.value = content;
+                element.selectionStart = selectionStart;
+                element.selectionEnd = selectionStart;
+            "#,
+        ));
+        if length <= 5 {
+        } else {
+            content.insert_str(position, "- [ ] ");
+            edit.send(content.into()).unwrap();
+        }
+    }
+    enter_pressed.set(false);
 }
 
 #[component]
