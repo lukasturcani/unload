@@ -113,6 +113,35 @@ async fn edit_description(task_id: TaskId, mut enter_pressed: Signal<bool>) {
             content.insert_str(position, "- [ ] ");
             edit.send(content.into()).unwrap();
         }
+    } else if line.starts_with('*') {
+        let mut content = String::from(content);
+        if line == "* " {
+            let edit = eval(&format!(
+                r#"
+                    let element = document.getElementById("task-{task_id}-description-input");
+                    let selectionStart = element.selectionStart - 3;
+                    let content = await dioxus.recv();
+                    element.value = content;
+                    element.selectionStart = selectionStart;
+                    element.selectionEnd = selectionStart;
+                "#,
+            ));
+            content.drain(start..position);
+            edit.send(content.into()).unwrap();
+        } else {
+            let edit = eval(&format!(
+                r#"
+                    let element = document.getElementById("task-{task_id}-description-input");
+                    let selectionStart = element.selectionStart + 2;
+                    let content = await dioxus.recv();
+                    element.value = content;
+                    element.selectionStart = selectionStart;
+                    element.selectionEnd = selectionStart;
+                "#,
+            ));
+            content.insert_str(position, "* ");
+            edit.send(content.into()).unwrap();
+        }
     }
     enter_pressed.set(false);
 }
