@@ -83,28 +83,33 @@ async fn edit_description(task_id: TaskId, mut enter_pressed: Signal<bool>) {
     let content = content.as_str().unwrap();
     let position = position.as_u64().unwrap() as usize;
     let start = content[..position - 1].rfind('\n').map_or(0, |i| i + 1);
-    let content_length = content.len();
-    let end = if content_length < start + 5 {
-        content.len()
-    } else {
-        start + 5
-    };
-    let prefix = &content[start..end];
-    if prefix.starts_with("- [ ]") || prefix.starts_with("- [x]") {
-        let length = position - start;
+    let line = &content[start..position - 1];
+    if line.starts_with("- [ ]") || line.starts_with("- [x]") {
         let mut content = String::from(content);
-        let edit = eval(&format!(
-            r#"
-                let element = document.getElementById("task-{task_id}-description-input");
-                let selectionStart = element.selectionStart + 6;
-                let content = await dioxus.recv();
-                element.value = content;
-                element.selectionStart = selectionStart;
-                element.selectionEnd = selectionStart;
-            "#,
-        ));
-        if length <= 5 {
+        if line == "- [ ] " {
+            let edit = eval(&format!(
+                r#"
+                    let element = document.getElementById("task-{task_id}-description-input");
+                    let selectionStart = element.selectionStart - 7;
+                    let content = await dioxus.recv();
+                    element.value = content;
+                    element.selectionStart = selectionStart;
+                    element.selectionEnd = selectionStart;
+                "#,
+            ));
+            content.drain(start..position);
+            edit.send(content.into()).unwrap();
         } else {
+            let edit = eval(&format!(
+                r#"
+                    let element = document.getElementById("task-{task_id}-description-input");
+                    let selectionStart = element.selectionStart + 6;
+                    let content = await dioxus.recv();
+                    element.value = content;
+                    element.selectionStart = selectionStart;
+                    element.selectionEnd = selectionStart;
+                "#,
+            ));
             content.insert_str(position, "- [ ] ");
             edit.send(content.into()).unwrap();
         }
