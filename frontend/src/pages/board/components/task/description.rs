@@ -5,7 +5,7 @@ use shared_models::TaskId;
 use crate::{
     components::{
         form::{CancelButton, ConfirmButton},
-        icons::EditIcon,
+        icons::{BulletsIcon, CheckboxIcon, EditIcon},
         tooltip::Tooltip,
     },
     pages::board::requests::{self, BoardSignals},
@@ -43,22 +43,47 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
                 spawn_forever(set_task_description(board_signals, task_id, description));
                 editing.set(false);
             },
-            textarea {
-                id: "task-{task_id}-description-input",
-                onmounted: move |event| async move {
-                    let _ = event.set_focus(true).await;
-                },
-                onkeydown: move |event| enter_pressed.set(event.data().key() == Key::Enter),
-                oninput: move |_| {
-                    if enter_pressed() {
-                        spawn(edit_description(task_id, enter_pressed));
+            div {
+                class: format!(
+                    "flex flex-col gap-2 border p-2 rounded-lg {}",
+                    theme.border_color,
+                ),
+                div {
+                    class: "flex flex-row justify-center items-center gap-2",
+                    button {
+                        prevent_default: "onclick",
+                        onclick: move |_| insert_string(task_id, "\n* "),
+                        div {
+                            class: "size-6",
+                            BulletsIcon {}
+                        }
                     }
-                },
-                rows: 8.max(description.lines().count() as i64),
-                class: "p-2.5 {style}",
-                name: "Description",
-                required: false,
-                value: description,
+                    button {
+                        prevent_default: "onclick",
+                        onclick: move |_| insert_string(task_id, "\n- [ ] "),
+                        div {
+                            class: "size-6",
+                            CheckboxIcon {}
+                        }
+                    }
+                }
+                textarea {
+                    id: "task-{task_id}-description-input",
+                    onmounted: move |event| async move {
+                        let _ = event.set_focus(true).await;
+                    },
+                    onkeydown: move |event| enter_pressed.set(event.data().key() == Key::Enter),
+                    oninput: move |_| {
+                        if enter_pressed() {
+                            spawn(edit_description(task_id, enter_pressed));
+                        }
+                    },
+                    rows: 8.max(description.lines().count() as i64),
+                    class: "p-2.5 {style}",
+                    name: "Description",
+                    required: false,
+                    value: description,
+                }
             }
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
@@ -67,6 +92,34 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
             }
         }
     }
+}
+
+async fn insert_string(task_id: TaskId, string: impl AsRef<str>) {
+    let mut text_data = eval(&format!(
+        r#"
+            let element = document.getElementById("task-{task_id}-description-input");
+            dioxus.send([element.value, element.selectionStart]);
+        "#,
+    ));
+    let text_data = &text_data.recv().await.unwrap();
+    let [content, position] = &text_data.as_array().unwrap()[..] else {
+        panic!("impossible");
+    };
+    let mut content = String::from(content.as_str().unwrap());
+    content.insert_str(position.as_u64().unwrap() as usize, string.as_ref());
+    let edit = eval(&format!(
+        r#"
+            let element = document.getElementById("task-{task_id}-description-input");
+            let selectionStart = element.selectionStart + {};
+            let content = await dioxus.recv();
+            element.value = content;
+            element.selectionStart = selectionStart;
+            element.selectionEnd = selectionStart;
+            element.focus();
+        "#,
+        string.as_ref().len(),
+    ));
+    edit.send(content.into()).unwrap();
 }
 
 async fn edit_description(task_id: TaskId, mut enter_pressed: Signal<bool>) {
