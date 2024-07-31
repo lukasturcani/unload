@@ -46,7 +46,7 @@ pub fn ColorPicker(selected_color: Option<Color>) -> Element {
                         input {
                             value: serde_json::to_string(&color).unwrap(),
                             class: format!(
-                                "peer focus:outline-none focus:ring-2 {}",
+                                "peer {}",
                                 theme.focus_color,
                             ),
                             required: true,
