@@ -41,11 +41,21 @@ pub async fn board(mut signals: BoardSignals) {
     log::info!("sending board data request");
     if let Ok(board_data) = send_board_data_request(signals).await {
         log::info!("got board data");
-        let mut board = signals.board.write();
-        let mut tasks = signals.tasks.write();
-        let mut users = signals.users.write();
-        let mut tags = signals.tags.write();
-        let mut saved_boards = signals.saved_boards.write();
+        let Ok(mut board) = signals.board.try_write() else {
+            return;
+        };
+        let Ok(mut tasks) = signals.tasks.try_write() else {
+            return;
+        };
+        let Ok(mut users) = signals.users.try_write() else {
+            return;
+        };
+        let Ok(mut tags) = signals.tags.try_write() else {
+            return;
+        };
+        let Ok(mut saved_boards) = signals.saved_boards.try_write() else {
+            return;
+        };
 
         let task_response = TasksResponse::from(board_data.tasks);
 
