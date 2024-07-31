@@ -59,7 +59,7 @@ pub fn themes() -> Vec<Theme> {
             name: "Default (Dynamic)",
             text_color: "
                 text-gray-900 stroke-gray-900 accent-purple-600
-                dark:text-white dark:stroke-white
+                dark:accent-blue-500 dark:text-white dark:stroke-white
             ",
             focus_color: "
                 focus:outline-none focus:ring-2
