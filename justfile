@@ -31,7 +31,7 @@ docker-run-prod mount:
   -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
   -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
   --name unload \
-  registry.fly.io/unload
+  registry.fly.io/unload:$(toml get -r Cargo.toml workspace.package.version)
 
 # run development docker image
 docker-run-dev mount:
