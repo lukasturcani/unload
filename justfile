@@ -32,8 +32,7 @@ docker-run-prod mount:
   -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
   -e UNLOAD_CHAT_GPT_LIMIT=200 \
   --name unload \
-  registry.fly.io/unload:$(toml get -r Cargo.toml workspace.package.version) \
-  unload
+  registry.fly.io/unload:$(toml get -r Cargo.toml workspace.package.version)
 
 # run development docker image
 docker-run-dev mount:
@@ -45,8 +44,7 @@ docker-run-dev mount:
   -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
   -e UNLOAD_CHAT_GPT_LIMIT=200 \
   --name unload-dev \
-  registry.fly.io/unload-dev \
-  unload
+  registry.fly.io/unload-dev
 
 # kill docker container
 docker-kill-prod:

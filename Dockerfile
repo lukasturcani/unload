@@ -34,12 +34,14 @@ RUN cd website &&  cargo run --release --features prebuild
 RUN fdfind . 'website/dist' --type file --exec gzip -f -k
 
 FROM gcr.io/distroless/cc-debian12:debug
+SHELL [ "/busybox/sh", "-c" ]
+RUN ln -s /busybox/sh /bin/sh
 COPY crontab /etc/crontab
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod 755 /usr/local/bin/entrypoint.sh
 COPY --from=builder /usr/local/bin/supercronic /usr/local/bin/supercronic
 COPY --from=builder /usr/local/cargo/bin/unload /usr/local/bin/unload
 COPY --from=builder /usr/local/cargo/bin/reset_chat_gpt_limits /usr/local/bin/reset_chat_gpt_limits
 COPY --from=builder /usr/src/unload/frontend/dist /var/www/app
 COPY --from=builder /usr/src/unload/website/dist /var/www/website
-SHELL [ "/busybox/sh", "-c" ]
-RUN ln -s /busybox/sh /bin/sh
-ENTRYPOINT [ "sh", "-c" ]
+ENTRYPOINT [ "entrypoint.sh" ]
