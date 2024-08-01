@@ -31,7 +31,8 @@ docker-run-prod mount:
   -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
   -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
   --name unload \
-  registry.fly.io/unload:$(toml get -r Cargo.toml workspace.package.version)
+  registry.fly.io/unload:$(toml get -r Cargo.toml workspace.package.version) \
+  unload
 
 # run development docker image
 docker-run-dev mount:
@@ -42,7 +43,8 @@ docker-run-dev mount:
   -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
   -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
   --name unload-dev \
-  registry.fly.io/unload-dev
+  registry.fly.io/unload-dev \
+  unload
 
 # kill docker container
 docker-kill-prod:

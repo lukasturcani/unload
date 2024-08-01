@@ -40,4 +40,4 @@ COPY --from=builder /usr/local/cargo/bin/unload /usr/local/bin/unload
 COPY --from=builder /usr/local/cargo/bin/reset_chat_gpt_limits /usr/local/bin/reset_chat_gpt_limits
 COPY --from=builder /usr/src/unload/frontend/dist /var/www/app
 COPY --from=builder /usr/src/unload/website/dist /var/www/website
-ENTRYPOINT ["unload"]
+ENTRYPOINT [ "sh", "-c" ]
