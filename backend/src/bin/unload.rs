@@ -15,6 +15,7 @@ use sqlx::SqlitePool;
 use std::{
     net::SocketAddr,
     path::{Path, PathBuf},
+    sync::Arc,
 };
 use tokio::net::TcpListener;
 use tower::ServiceExt;
@@ -31,7 +32,7 @@ use unload::{
     show_user, show_users, suggest_tasks, update_board_title, update_tag_archived,
     update_tag_color, update_tag_name, update_task_archived, update_task_assignees,
     update_task_description, update_task_due, update_task_status, update_task_tags,
-    update_task_title, update_user_color, update_user_name, Result,
+    update_task_title, update_user_color, update_user_name, AppState, Result,
 };
 
 #[derive(confique::Config)]
@@ -78,7 +79,7 @@ async fn redirect_to_app(Host(host): Host) -> Redirect {
     Redirect::to(&format!("//app.{}", host))
 }
 
-fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
+fn app_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
     Router::new()
         .route("/api/boards", post(create_board))
         .route("/api/boards/:board_name/read", post(show_board))
@@ -279,14 +280,17 @@ async fn main() -> Result<()> {
     let config = Config::builder().env().load()?;
     init_tracing(&config.otlp_endpoint, config.environment, config.log)?;
     let pool = SqlitePool::connect(&config.database_url).await?;
-    let chat_gpt_client = OpenAIClient::new(config.openai_api_key);
+    let chat_gpt_client = Arc::new(OpenAIClient::new(config.openai_api_key));
     sqlx::migrate!("./migrations")
         .run(&pool)
         .instrument(debug_span!("migrations"))
         .await?;
     let router = Router::new().layer(middleware::from_fn_with_state(
         Routers {
-            app: app_router(config.app_dir).with_state(pool.clone()),
+            app: app_router(config.app_dir).with_state(AppState {
+                pool: pool.clone(),
+                chat_gpt_client,
+            }),
             website: website_router(config.website_dir).with_state(pool.clone()),
         },
         delegate_request,

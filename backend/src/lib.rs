@@ -5,6 +5,7 @@ use axum::response::Redirect;
 use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
+use openai_api_rs::v1::api::OpenAIClient;
 use shared_models::BoardData;
 use shared_models::QuickAddData;
 use shared_models::QuickAddEntry;
@@ -19,6 +20,7 @@ use shared_models::{
 };
 use sqlx::{QueryBuilder, Row, SqlitePool};
 use std::collections::HashMap;
+use std::sync::Arc;
 use tokio::try_join;
 use tracing::debug_span;
 use tracing::Instrument;
@@ -65,6 +67,12 @@ impl QuickAddTaskRow {
             tags,
         }
     }
+}
+
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: SqlitePool,
+    pub chat_gpt_client: Arc<OpenAIClient>,
 }
 
 #[derive(Debug)]
@@ -1552,6 +1560,11 @@ WHERE
     Ok(Json(()))
 }
 
-pub async fn suggest_tasks(Json(prompt): Json<String>) -> Result<Json<Vec<TaskSuggestion>>> {
+pub async fn suggest_tasks(
+    State(AppState {
+        chat_gpt_client, ..
+    }): State<AppState>,
+    Json(prompt): Json<String>,
+) -> Result<Json<Vec<TaskSuggestion>>> {
     Ok(Json(vec![]))
 }
