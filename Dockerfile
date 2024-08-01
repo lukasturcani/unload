@@ -8,9 +8,9 @@ RUN \
   mv upx-"${UPX_VERSION}"-amd64_linux/upx /usr/local/bin
 ENV SUPERCRONIC_VERSION=0.2.30
 RUN \
-  curl -LJO https://github.com/aptible/supercronic/releases/download/v"${SUPERCRONIC_VERSION}"/supercronic_linux_amd64 && \
-  chmod 755 supercronic_linux_amd64 && \
-  mv supercronic_linux_amd64 /usr/local/bin/supercronic
+  curl -LJO https://github.com/aptible/supercronic/releases/download/v"${SUPERCRONIC_VERSION}"/supercronic-linux-amd64 && \
+  chmod 755 supercronic-linux-amd64 && \
+  mv supercronic-linux-amd64 /usr/local/bin/supercronic
 RUN cargo install dioxus-cli
 WORKDIR /usr/src/unload
 COPY Cargo.lock Cargo.toml ./
@@ -40,4 +40,6 @@ COPY --from=builder /usr/local/cargo/bin/unload /usr/local/bin/unload
 COPY --from=builder /usr/local/cargo/bin/reset_chat_gpt_limits /usr/local/bin/reset_chat_gpt_limits
 COPY --from=builder /usr/src/unload/frontend/dist /var/www/app
 COPY --from=builder /usr/src/unload/website/dist /var/www/website
+SHELL [ "/busybox/sh", "-c" ]
+RUN ln -s /busybox/sh /bin/sh
 ENTRYPOINT [ "sh", "-c" ]
