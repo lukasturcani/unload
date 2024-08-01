@@ -1,10 +1,16 @@
 FROM rust:1.80.0 AS builder
 RUN apt-get update && apt-get install -y npm fd-find
 RUN rustup target add wasm32-unknown-unknown
+ENV UPX_VERSION=4.2.4
 RUN \
-  curl -LJO https://github.com/upx/upx/releases/download/v4.2.1/upx-4.2.1-amd64_linux.tar.xz && \
-  tar xf upx-4.2.1-amd64_linux.tar.xz && \
-  mv upx-4.2.1-amd64_linux/upx /usr/local/bin
+  curl -LJO https://github.com/upx/upx/releases/download/v"${UPX_VERSION}"/upx-"${UPX_VERSION}"-amd64_linux.tar.xz && \
+  tar xf upx-"${UPX_VERSION}"-amd64_linux.tar.xz && \
+  mv upx-"${UPX_VERSION}"-amd64_linux/upx /usr/local/bin
+ENV SUPERCRONIC_VERSION=0.2.30
+RUN \
+  curl -LJO https://github.com/aptible/supercronic/releases/download/v"${SUPERCRONIC_VERSION}"/supercronic_linux_amd64 && \
+  chmod 755 supercronic_linux_amd64 && \
+  mv supercronic_linux_amd64 /usr/local/bin/supercronic
 RUN cargo install dioxus-cli
 WORKDIR /usr/src/unload
 COPY Cargo.lock Cargo.toml ./
@@ -28,6 +34,8 @@ RUN cd website &&  cargo run --release --features prebuild
 RUN fdfind . 'website/dist' --type file --exec gzip -f -k
 
 FROM gcr.io/distroless/cc-debian12:debug
+COPY crontab /etc/crontab
+COPY --from=builder /usr/local/bin/supercronic /usr/local/bin/supercronic
 COPY --from=builder /usr/local/cargo/bin/unload /usr/local/bin/unload
 COPY --from=builder /usr/local/cargo/bin/reset_chat_gpt_limits /usr/local/bin/reset_chat_gpt_limits
 COPY --from=builder /usr/src/unload/frontend/dist /var/www/app
