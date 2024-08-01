@@ -13,7 +13,7 @@ use crate::{
         nav::NavBar,
         tooltip::Tooltip,
     },
-    model::SavedBoards,
+    model::{SavedBoards, UnloadUrl},
     pages::board::{
         components::{DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon},
         model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
@@ -456,12 +456,15 @@ fn ChatGptPopup(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn ChatGptPromptInput() -> Element {
+    let board = use_context::<Signal<Board>>();
+    let url = use_context::<Signal<UnloadUrl>>();
     rsx! {
         form {
             id: "chat-gpt-prompt-form",
             "aria-label": "chat gpt prompt",
             onsubmit: move |event| {
-
+                let prompt = event.values()["ChatGPT Prompt"].as_value();
+                spawn_forever(send_chat_gpt_prompt(board, url, prompt));
             },
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
@@ -641,3 +644,5 @@ fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>, panel: Signal<Pa
         }
     }
 }
+
+async fn send_chat_gpt_prompt(board: Signal<Board>, url: Signal<UnloadUrl>, prompt: String) {}
