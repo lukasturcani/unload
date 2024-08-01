@@ -1,1 +1,1 @@
-*/1 * * * * reset_chat_gpt_limits
+*/30 * * * * reset_chat_gpt_limits
