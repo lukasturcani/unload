@@ -29,6 +29,7 @@ primary_region = "lhr"
   UNLOAD_LOG = "unload=trace,[request{}]=trace,sqlx::query=trace"
   UNLOAD_OTLP_ENDPOINT = "http://lt-otel-collector.flycast"
   UNLOAD_ENVIRONMENT = "production"
+  UNLOAD_CHAT_GPT_LIMIT = 15
 
 [mounts]
   source="unload_data"

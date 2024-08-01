@@ -30,6 +30,7 @@ docker-run-prod mount:
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
   -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
   -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
+  -e UNLOAD_CHAT_GPT_LIMIT=200 \
   --name unload \
   registry.fly.io/unload:$(toml get -r Cargo.toml workspace.package.version) \
   unload
@@ -42,6 +43,7 @@ docker-run-dev mount:
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
   -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
   -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
+  -e UNLOAD_CHAT_GPT_LIMIT=200 \
   --name unload-dev \
   registry.fly.io/unload-dev \
   unload
@@ -63,6 +65,7 @@ enter-prod-image mount:
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
   -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
   -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
+  -e UNLOAD_CHAT_GPT_LIMIT=200 \
   registry.fly.io/unload
 
 # enter development image
@@ -74,6 +77,7 @@ enter-dev-image mount:
   -e UNLOAD_DATABASE_URL="/mnt/unload_data/unload.db" \
   -e UNLOAD_APP_SERVE_DIR="/var/www/app" \
   -e UNLOAD_WEBSITE_SERVE_DIR="/var/www/website" \
+  -e UNLOAD_CHAT_GPT_LIMIT=200 \
   registry.fly.io/unload-dev
 
 # create the database
@@ -236,3 +240,8 @@ fly-prod-volume:
 # connect to fly.io development volume
 fly-dev-volume:
   fly --app unload-dev machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
+
+reset-chat-gpt-limits database:
+  UNLOAD_DATABASE_URL="sqlite:{{database}}" \
+  UNLOAD_CHAT_GPT_LIMIT=200 \
+  cargo run --release --bin reset_chat_gpt_limits
