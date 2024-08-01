@@ -458,6 +458,11 @@ fn ChatGptPopup(panel: Signal<Panel>) -> Element {
 fn ChatGptPromptInput() -> Element {
     rsx! {
         form {
+            id: "chat-gpt-prompt-form",
+            "aria-label": "chat gpt prompt",
+            onsubmit: move |event| {
+
+            },
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
                 TextInput {

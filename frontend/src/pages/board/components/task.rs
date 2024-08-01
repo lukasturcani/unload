@@ -691,9 +691,10 @@ fn AddUserListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
                 "aria-label": "add user",
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
-                    let name = event.values()["Name"].as_value();
+                    let values = event.values();
+                    let name = values["Name"].as_value();
                     let color = serde_json::from_str(
-                        &event.values()["color-picker"].as_value()
+                        &values["color-picker"].as_value()
                     ).unwrap();
                     spawn_forever(create_user(board_signals, task_id, UserData{ name, color }));
                     show_form.set(false);
