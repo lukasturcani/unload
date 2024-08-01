@@ -10,7 +10,7 @@ primary_region = "lhr"
 
 [processes]
   app = "unload"
-  cron = "supercronic /etc/crontab"
+  cron = "'supercronic /etc/crontab'"
 
 [http_service]
   internal_port = 8080
