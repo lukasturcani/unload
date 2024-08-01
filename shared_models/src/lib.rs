@@ -238,7 +238,7 @@ pub struct QuickAddEntry {
     pub tags: Vec<TagId>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TaskSuggestion {
     pub title: String,
     pub description: String,

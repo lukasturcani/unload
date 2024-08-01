@@ -27,10 +27,10 @@ use unload::{
     create_task, create_user, delete_quick_add_task, delete_tag, delete_task, delete_task_assignee,
     delete_task_tag, delete_user, new_board_redirect, show_archived_tags, show_archived_tasks,
     show_board, show_board_title, show_quick_add_tasks, show_tag, show_tags, show_task, show_tasks,
-    show_user, show_users, update_board_title, update_tag_archived, update_tag_color,
-    update_tag_name, update_task_archived, update_task_assignees, update_task_description,
-    update_task_due, update_task_status, update_task_tags, update_task_title, update_user_color,
-    update_user_name, Result,
+    show_user, show_users, suggest_tasks, update_board_title, update_tag_archived,
+    update_tag_color, update_tag_name, update_task_archived, update_task_assignees,
+    update_task_description, update_task_due, update_task_status, update_task_tags,
+    update_task_title, update_user_color, update_user_name, Result,
 };
 
 #[derive(confique::Config)]

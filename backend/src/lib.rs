@@ -1552,6 +1552,6 @@ WHERE
     Ok(Json(()))
 }
 
-pub fn suggest_tasks(Json(prompt): Json<String>) -> Result<Json<Vec<TaskSuggestion>>> {
+pub async fn suggest_tasks(Json(prompt): Json<String>) -> Result<Json<Vec<TaskSuggestion>>> {
     Ok(Json(vec![]))
 }
