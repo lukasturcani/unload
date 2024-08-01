@@ -13,6 +13,7 @@ use shared_models::SavedBoard;
 use shared_models::TagData;
 use shared_models::TagEntry;
 use shared_models::TagId;
+use shared_models::TaskSuggestion;
 use shared_models::{
     BoardName, Color, TaskData, TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId,
 };
@@ -1549,4 +1550,8 @@ WHERE
 
     tx.commit().await?;
     Ok(Json(()))
+}
+
+pub fn suggest_tasks(Json(prompt): Json<String>) -> Result<Json<Vec<TaskSuggestion>>> {
+    Ok(Json(vec![]))
 }

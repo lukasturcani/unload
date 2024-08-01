@@ -186,6 +186,7 @@ fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
             "/api/boards/:board_name/archive/tags",
             get(show_archived_tags),
         )
+        .route("/api/chat-gpt/suggest-tasks", post(suggest_tasks))
         .nest_service("/", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/users", compressed_dir(&serve_dir))
