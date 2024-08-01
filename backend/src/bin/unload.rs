@@ -7,6 +7,7 @@ use axum::{
     Router,
 };
 use confique::Config as _;
+use openai_api_rs::v1::api::OpenAIClient;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{trace, Resource};
@@ -61,6 +62,9 @@ struct Config {
 
     #[config(env = "UNLOAD_ENVIRONMENT", default = "development")]
     environment: String,
+
+    #[config(env = "UNLOAD_OPENAI_API_KEY")]
+    openai_api_key: String,
 }
 
 fn website_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
@@ -275,6 +279,7 @@ async fn main() -> Result<()> {
     let config = Config::builder().env().load()?;
     init_tracing(&config.otlp_endpoint, config.environment, config.log)?;
     let pool = SqlitePool::connect(&config.database_url).await?;
+    let chat_gpt_client = OpenAIClient::new(config.openai_api_key);
     sqlx::migrate!("./migrations")
         .run(&pool)
         .instrument(debug_span!("migrations"))
