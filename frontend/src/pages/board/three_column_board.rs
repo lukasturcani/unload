@@ -6,8 +6,8 @@ use crate::{
     components::{
         form::{CancelButton, ConfirmButton},
         icons::{
-            BarsIcon, BookmarkIcon, DoneIcon, EditIcon, InProgressIcon, SparklesIcon, StackIcon,
-            ToDoIcon, TrashIcon,
+            BarsIcon, BookmarkIcon, CircledPlusIcon, DoneIcon, EditIcon, InProgressIcon,
+            SparklesIcon, StackIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
         nav::NavBar,
@@ -15,9 +15,7 @@ use crate::{
     },
     model::SavedBoards,
     pages::board::{
-        components::{
-            AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
-        },
+        components::{DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon},
         model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
         requests::{self, BoardSignals},
     },
@@ -29,6 +27,7 @@ use crate::{
 enum Panel {
     None,
     Boards,
+    ChatGpt,
 }
 
 #[component]
@@ -61,9 +60,9 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                     class: "grow w-full h-full overflow-y-auto",
                     div {
                         class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
-                        Column { status: TaskStatus::ToDo }
-                        Column { status: TaskStatus::InProgress }
-                        Column { status: TaskStatus::Done }
+                        Column { status: TaskStatus::ToDo, panel }
+                        Column { status: TaskStatus::InProgress, panel }
+                        Column { status: TaskStatus::Done, panel }
                     },
                 }
                 if show_themes() {
@@ -76,6 +75,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
         match panel() {
             Panel::None => rsx! {},
             Panel::Boards => rsx! { BoardPopup { panel } },
+            Panel::ChatGpt => rsx! { ChatGptPopup { panel } },
         }
     }
 }
@@ -285,7 +285,7 @@ fn ColumnHeading(value: String) -> Element {
 }
 
 #[component]
-fn Column(status: TaskStatus) -> Element {
+fn Column(status: TaskStatus, panel: Signal<Panel>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border {}", theme.border_color);
@@ -323,7 +323,7 @@ fn Column(status: TaskStatus) -> Element {
                     NewTaskForm { status, adding_task }
                 }
             }
-            AddTaskButton { status, adding_task }
+            AddTaskButton { status, adding_task, panel }
         }
     }
 }
@@ -425,6 +425,46 @@ fn BoardPopup(panel: Signal<Panel>) -> Element {
             ",
             onclick: move |_| panel.set(Panel::None),
             BoardList { panel }
+        }
+    }
+}
+
+#[component]
+fn ChatGptPopup(panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "rounded-lg border {} {}",
+        theme.bg_color_2, theme.border_color
+    );
+    rsx! {
+        div {
+            class: "
+                backdrop-blur-sm backdrop-brightness-50
+                size-full absolute inset-0 z-10
+                flex flex-row items-center justify-center
+            ",
+            onclick: move |_| panel.set(Panel::None),
+            div {
+                class: "p-5 {style}",
+                onclick: |event| event.stop_propagation(),
+                ChatGptPromptInput {}
+            }
+        }
+    }
+}
+
+#[component]
+fn ChatGptPromptInput() -> Element {
+    rsx! {
+        form {
+            div {
+                class: "flex flex-row gap-2 items-center justify-start",
+                TextInput {
+                    id: "chat-gpt-prompt" ,
+                    label: "ChatGPT Prompt",
+                }
+            }
         }
     }
 }
@@ -570,6 +610,29 @@ fn RemoveBoardButton(boards: Signal<SavedBoards>, board: SavedBoard) -> Element 
                 boards.write().0.retain(|b| b != &board);
             },
             TrashIcon {}
+        }
+    }
+}
+
+#[component]
+fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>, panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border-t {}", theme.border_color);
+    rsx! {
+        button {
+            class: "
+                h-10 sm:h-12 shrink-0 grow-0
+                flex flex-row justify-center items-center
+                {style}
+            ",
+            onclick: move |_| {
+                panel.set(Panel::ChatGpt);
+            },
+            div {
+                class: "size-6",
+                CircledPlusIcon {}
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ pub fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>) -> Element {
                 flex flex-row justify-center items-center
                 {style}
             ",
-            onclick: move |_| async move {
+            onclick: move |_| {
                 if adding_task() {
                     focus_target.set(
                         FocusTarget(Some(format!("new-{status:#?}-task-title-input")))
