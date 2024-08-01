@@ -68,7 +68,7 @@ struct Config {
     openai_api_key: String,
 }
 
-fn website_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
+fn website_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
     Router::new()
         .route("/app", get(redirect_to_app))
         .route("/new-board", get(new_board_redirect))
@@ -281,17 +281,18 @@ async fn main() -> Result<()> {
     init_tracing(&config.otlp_endpoint, config.environment, config.log)?;
     let pool = SqlitePool::connect(&config.database_url).await?;
     let chat_gpt_client = Arc::new(OpenAIClient::new(config.openai_api_key));
+    let state = AppState {
+        pool: pool.clone(),
+        chat_gpt_client,
+    };
     sqlx::migrate!("./migrations")
         .run(&pool)
         .instrument(debug_span!("migrations"))
         .await?;
     let router = Router::new().layer(middleware::from_fn_with_state(
         Routers {
-            app: app_router(config.app_dir).with_state(AppState {
-                pool: pool.clone(),
-                chat_gpt_client,
-            }),
-            website: website_router(config.website_dir).with_state(pool.clone()),
+            app: app_router(config.app_dir).with_state(state.clone()),
+            website: website_router(config.website_dir).with_state(state),
         },
         delegate_request,
     ));
@@ -325,7 +326,11 @@ mod tests {
         let pool = SqlitePool::connect(&std::env::var("TEST_DATABASE_URL").unwrap())
             .await
             .unwrap();
-        let app = app_router(PathBuf::from("does_not_matter")).with_state(pool);
+        let state = AppState {
+            pool: pool.clone(),
+            chat_gpt_client: Arc::new(OpenAIClient::new("test".to_string())),
+        };
+        let app = app_router(PathBuf::from("does_not_matter")).with_state(state);
         let server = TestServer::new(app).unwrap();
 
         // Create board

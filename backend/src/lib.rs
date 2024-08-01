@@ -99,7 +99,7 @@ where
 
 pub type Result<T> = std::result::Result<T, AppError>;
 
-async fn add_board(State(pool): State<SqlitePool>) -> Result<BoardName> {
+async fn add_board(State(AppState { pool, .. }): State<AppState>) -> Result<BoardName> {
     let board_name = new_unique_board_name(&pool).await?;
     let mut tx = pool.begin().await?;
     sqlx::query!(
@@ -115,12 +115,12 @@ VALUES (?, ?)",
     Ok(board_name)
 }
 
-pub async fn create_board(pool: State<SqlitePool>) -> Result<Json<BoardName>> {
-    Ok(Json(add_board(pool).await?))
+pub async fn create_board(state: State<AppState>) -> Result<Json<BoardName>> {
+    Ok(Json(add_board(state).await?))
 }
 
-pub async fn new_board_redirect(pool: State<SqlitePool>, Host(host): Host) -> Result<Redirect> {
-    let board_name = add_board(pool).await?;
+pub async fn new_board_redirect(state: State<AppState>, Host(host): Host) -> Result<Redirect> {
+    let board_name = add_board(state).await?;
     Ok(Redirect::to(&format!(
         "//app.{}/boards/{}",
         host, board_name
@@ -128,7 +128,7 @@ pub async fn new_board_redirect(pool: State<SqlitePool>, Host(host): Host) -> Re
 }
 
 pub async fn show_board(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
     Json(saved_boards): Json<Vec<BoardName>>,
 ) -> Result<Json<BoardData>> {
@@ -181,7 +181,7 @@ async fn get_saved_boards(pool: &SqlitePool, boards: &Vec<BoardName>) -> Result<
 }
 
 pub async fn update_board_title(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
     Json(title): Json<String>,
 ) -> Result<Json<()>> {
@@ -225,7 +225,7 @@ LIMIT 1",
 }
 
 pub async fn show_board_title(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<String>> {
     Ok(Json(get_board_title(&pool, &board_name).await?))
@@ -263,7 +263,7 @@ async fn new_unique_board_name(pool: &SqlitePool) -> Result<BoardName> {
 }
 
 pub async fn show_task(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
 ) -> Result<Json<TaskEntry>> {
     let mut tx = pool.begin().await?;
@@ -442,14 +442,14 @@ WHERE
 }
 
 pub async fn show_tasks(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<Vec<TaskEntry>>> {
     Ok(Json(get_tasks(&pool, &board_name).await?))
 }
 
 pub async fn create_task(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
     Json(task_data): Json<TaskData>,
 ) -> Result<Json<TaskId>> {
@@ -501,7 +501,7 @@ VALUES (?, ?, ?)",
 }
 
 pub async fn delete_task(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
 ) -> Result<Json<()>> {
     let mut tx = pool.begin().await?;
@@ -547,7 +547,7 @@ WHERE
 }
 
 pub async fn clone_task(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
 ) -> Result<Json<TaskId>> {
     let mut tx = pool.begin().await?;
@@ -606,7 +606,7 @@ WHERE
 }
 
 pub async fn show_user(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, user_id)): Path<(BoardName, UserId)>,
 ) -> Result<Json<UserEntry>> {
     let mut tx = pool.begin().await?;
@@ -649,14 +649,14 @@ WHERE
 }
 
 pub async fn show_users(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<Vec<UserEntry>>> {
     Ok(Json(get_users(&pool, &board_name).await?))
 }
 
 pub async fn create_user(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
     Json(UserData { name, color }): Json<UserData>,
 ) -> Result<Json<UserId>> {
@@ -678,7 +678,7 @@ VALUES (?, ?, ?)",
 }
 
 pub async fn delete_user(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, user_id)): Path<(BoardName, UserId)>,
 ) -> Result<Json<()>> {
     let mut tx = pool.begin().await?;
@@ -723,7 +723,7 @@ WHERE
 }
 
 pub async fn update_task_status(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
     Json(status): Json<TaskStatus>,
 ) -> Result<Json<()>> {
@@ -748,7 +748,7 @@ WHERE
 }
 
 pub async fn update_task_archived(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
     Json(archived): Json<bool>,
 ) -> Result<Json<()>> {
@@ -773,7 +773,7 @@ WHERE
 }
 
 pub async fn update_task_title(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
     Json(title): Json<String>,
 ) -> Result<Json<()>> {
@@ -798,7 +798,7 @@ WHERE
 }
 
 pub async fn update_task_description(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
     Json(description): Json<String>,
 ) -> Result<Json<()>> {
@@ -823,7 +823,7 @@ WHERE
 }
 
 pub async fn update_task_due(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
     Json(due): Json<Option<DateTime<Utc>>>,
 ) -> Result<Json<()>> {
@@ -848,7 +848,7 @@ WHERE
 }
 
 pub async fn update_task_assignees(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
     Json(assignees): Json<Vec<UserId>>,
 ) -> Result<Json<()>> {
@@ -882,7 +882,7 @@ VALUES (?, ?, ?)",
 }
 
 pub async fn update_user_color(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, user_id)): Path<(BoardName, UserId)>,
     Json(color): Json<Color>,
 ) -> Result<Json<()>> {
@@ -907,7 +907,7 @@ WHERE
 }
 
 pub async fn update_user_name(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, user_id)): Path<(BoardName, UserId)>,
     Json(name): Json<String>,
 ) -> Result<Json<()>> {
@@ -952,14 +952,14 @@ WHERE
 }
 
 pub async fn show_tags(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<Vec<TagEntry>>> {
     Ok(Json(get_tags(&pool, &board_name).await?))
 }
 
 pub async fn show_archived_tags(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<Vec<TagEntry>>> {
     let mut tx = pool.begin().await?;
@@ -982,7 +982,7 @@ WHERE
 }
 
 pub async fn show_archived_tasks(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<Vec<TaskEntry>>> {
     let mut tx = pool.begin().await?;
@@ -1074,7 +1074,7 @@ WHERE
 }
 
 pub async fn create_tag(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
     Json(TagData { name, color }): Json<TagData>,
 ) -> Result<Json<TagId>> {
@@ -1096,7 +1096,7 @@ VALUES (?, ?, ?)",
 }
 
 pub async fn show_tag(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, tag_id)): Path<(BoardName, TagId)>,
 ) -> Result<Json<TagEntry>> {
     let mut tx = pool.begin().await?;
@@ -1120,7 +1120,7 @@ LIMIT 1"#,
 }
 
 pub async fn delete_tag(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, tag_id)): Path<(BoardName, TagId)>,
 ) -> Result<Json<()>> {
     let mut tx = pool.begin().await?;
@@ -1165,7 +1165,7 @@ WHERE
 }
 
 pub async fn update_tag_name(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, tag_id)): Path<(BoardName, TagId)>,
     Json(name): Json<String>,
 ) -> Result<Json<()>> {
@@ -1190,7 +1190,7 @@ WHERE
 }
 
 pub async fn update_tag_color(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, tag_id)): Path<(BoardName, TagId)>,
     Json(color): Json<Color>,
 ) -> Result<Json<()>> {
@@ -1215,7 +1215,7 @@ WHERE
 }
 
 pub async fn update_tag_archived(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, tag_id)): Path<(BoardName, TagId)>,
     Json(archived): Json<bool>,
 ) -> Result<Json<()>> {
@@ -1264,7 +1264,7 @@ WHERE
 }
 
 pub async fn update_task_tags(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
     Json(tags): Json<Vec<TagId>>,
 ) -> Result<Json<()>> {
@@ -1298,7 +1298,7 @@ VALUES (?, ?, ?)",
 }
 
 pub async fn delete_task_tag(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id, tag_id)): Path<(BoardName, TaskId, TagId)>,
 ) -> Result<Json<()>> {
     let mut tx = pool.begin().await?;
@@ -1319,7 +1319,7 @@ WHERE
 }
 
 pub async fn delete_task_assignee(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id, user_id)): Path<(BoardName, TaskId, UserId)>,
 ) -> Result<Json<()>> {
     let mut tx = pool.begin().await?;
@@ -1340,7 +1340,7 @@ WHERE
 }
 
 pub async fn add_task_assignee(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
     Json(assignee): Json<UserId>,
 ) -> Result<Json<()>> {
@@ -1360,7 +1360,7 @@ VALUES (?, ?, ?)",
 }
 
 pub async fn add_task_tag(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, TaskId)>,
     Json(tag_id): Json<TagId>,
 ) -> Result<Json<()>> {
@@ -1380,7 +1380,7 @@ VALUES (?, ?, ?)",
 }
 
 pub async fn create_quick_add_task(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
     Json(task_data): Json<QuickAddData>,
 ) -> Result<Json<QuickAddTaskId>> {
@@ -1428,7 +1428,7 @@ VALUES (?, ?, ?)",
 }
 
 pub async fn show_quick_add_tasks(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
 ) -> Result<Json<Vec<QuickAddEntry>>> {
     let mut tx = pool.begin().await?;
@@ -1516,7 +1516,7 @@ WHERE
 }
 
 pub async fn delete_quick_add_task(
-    State(pool): State<SqlitePool>,
+    State(AppState { pool, .. }): State<AppState>,
     Path((board_name, task_id)): Path<(BoardName, QuickAddTaskId)>,
 ) -> Result<Json<()>> {
     let mut tx = pool.begin().await?;
