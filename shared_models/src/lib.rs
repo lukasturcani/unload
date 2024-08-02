@@ -242,6 +242,27 @@ pub struct QuickAddEntry {
 pub struct TaskSuggestion {
     pub title: String,
     pub description: String,
-    pub tags: Vec<TagId>,
-    pub assignees: Vec<UserId>,
+    pub tags: Vec<String>,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Language {
+    En,
+    Sk,
+}
+
+impl Language {
+    pub fn name(&self) -> &'static str {
+        match self {
+            Language::En => "English",
+            Language::Sk => "Slovak",
+        }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ChatGptRequest {
+    pub board_name: BoardName,
+    pub language: Language,
+    pub prompt: String,
 }

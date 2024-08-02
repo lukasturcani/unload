@@ -10,6 +10,7 @@ use openai_api_rs::v1::chat_completion;
 use openai_api_rs::v1::chat_completion::ChatCompletionRequest;
 use openai_api_rs::v1::common::GPT4_O_MINI;
 use shared_models::BoardData;
+use shared_models::ChatGptRequest;
 use shared_models::QuickAddData;
 use shared_models::QuickAddEntry;
 use shared_models::QuickAddTaskId;
@@ -1565,21 +1566,36 @@ WHERE
 
 pub async fn suggest_tasks(
     State(AppState {
-        chat_gpt_client, ..
+        pool,
+        chat_gpt_client,
+        ..
     }): State<AppState>,
-    Json(prompt): Json<String>,
+    Json(request): Json<ChatGptRequest>,
 ) -> Result<Json<Vec<TaskSuggestion>>> {
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "
+        SELECT * FROM tags
+    "
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    let tags = vec!["one", "two"];
     let request = ChatCompletionRequest::new(
         GPT4_O_MINI.to_string(),
         vec![
             chat_completion::ChatCompletionMessage {
                 role: chat_completion::MessageRole::system,
-                content: chat_completion::Content::Text(String::from(
+                content: chat_completion::Content::Text(format!(
                     "Create tasks for the following prompt, \
                     return them as a JSON array of objects with the following properties: \
                     title, description, tags. \
                     If the description includes subtasks, format them using \"- [ ]\". \
-                    Do not include any other text in the response.",
+                    Use the following tags or create new ones if needed: \
+                    {tags:?}. \
+                    Do not include any other text in the response. \
+                    The prompt and your response should be in {}.",
+                    request.language.name(),
                 )),
                 name: None,
                 tool_calls: None,
@@ -1587,7 +1603,7 @@ pub async fn suggest_tasks(
             },
             chat_completion::ChatCompletionMessage {
                 role: chat_completion::MessageRole::user,
-                content: chat_completion::Content::Text(prompt),
+                content: chat_completion::Content::Text(request.prompt),
                 name: None,
                 tool_calls: None,
                 tool_call_id: None,
@@ -1624,6 +1640,5 @@ fn into_task_suggestion(json: &serde_json::Value) -> TaskSuggestion {
             .unwrap_or("failed to get description")
             .into(),
         tags: vec![],
-        assignees: vec![],
     }
 }
