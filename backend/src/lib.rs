@@ -1592,8 +1592,8 @@ pub async fn suggest_tasks(
                     return them as a JSON array of objects with the following properties: \
                     title, description, tags. \
                     If the description includes subtasks, format them using \"- [ ]\". \
-                    Use the following tags where relevant or create new ones if needed: \
-                    {tags:?}. \
+                    Use the following tags where relevant: {tags:?}. \
+                    Create new tags where relevant. \
                     Do not include any other text in the response. \
                     The prompt and your response should be in {}.",
                     request.language.name(),
