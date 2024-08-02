@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 use itertools::Itertools;
-use shared_models::{BoardName, SavedBoard, TaskStatus};
+use reqwest::Client;
+use shared_models::{BoardName, SavedBoard, TaskStatus, TaskSuggestion};
 
 use crate::{
     components::{
@@ -456,7 +457,6 @@ fn ChatGptPopup(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn ChatGptPromptInput() -> Element {
-    let board = use_context::<Signal<Board>>();
     let url = use_context::<Signal<UnloadUrl>>();
     rsx! {
         form {
@@ -464,7 +464,7 @@ fn ChatGptPromptInput() -> Element {
             "aria-label": "chat gpt prompt",
             onsubmit: move |event| {
                 let prompt = event.values()["ChatGPT Prompt"].as_value();
-                spawn_forever(send_chat_gpt_prompt(board, url, prompt));
+                spawn_forever(send_chat_gpt_prompt(url, prompt));
             },
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
@@ -645,4 +645,23 @@ fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>, panel: Signal<Pa
     }
 }
 
-async fn send_chat_gpt_prompt(board: Signal<Board>, url: Signal<UnloadUrl>, prompt: String) {}
+async fn send_chat_gpt_prompt(url: Signal<UnloadUrl>, prompt: String) {
+    if let Ok(suggestions) = send_chat_gpt_prompt_request(url, prompt).await {
+        log::info!("got suggestions {:#?}", suggestions);
+    }
+}
+
+async fn send_chat_gpt_prompt_request(
+    url: Signal<UnloadUrl>,
+    prompt: String,
+) -> Result<Vec<TaskSuggestion>, anyhow::Error> {
+    let url = &url.read().0;
+    let url = url.join("/api/chat-gpt/suggest-tasks")?;
+    Ok(Client::new()
+        .post(url)
+        .json(&prompt)
+        .send()
+        .await?
+        .json::<Vec<TaskSuggestion>>()
+        .await?)
+}

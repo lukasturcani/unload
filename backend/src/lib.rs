@@ -6,6 +6,9 @@ use axum::response::Response;
 use axum::{extract::Path, extract::State, response::Json};
 use chrono::{DateTime, Utc};
 use openai_api_rs::v1::api::OpenAIClient;
+use openai_api_rs::v1::chat_completion;
+use openai_api_rs::v1::chat_completion::ChatCompletionRequest;
+use openai_api_rs::v1::common::GPT4_O_MINI;
 use shared_models::BoardData;
 use shared_models::QuickAddData;
 use shared_models::QuickAddEntry;
@@ -1566,5 +1569,61 @@ pub async fn suggest_tasks(
     }): State<AppState>,
     Json(prompt): Json<String>,
 ) -> Result<Json<Vec<TaskSuggestion>>> {
-    Ok(Json(vec![]))
+    let request = ChatCompletionRequest::new(
+        GPT4_O_MINI.to_string(),
+        vec![
+            chat_completion::ChatCompletionMessage {
+                role: chat_completion::MessageRole::system,
+                content: chat_completion::Content::Text(String::from(
+                    "Create tasks for the following prompt, \
+                    return them as a JSON array of objects with the following properties: \
+                    title, description, tags. \
+                    If the description includes subtasks, format them using \"- [ ]\". \
+                    Do not include any other text in the response.",
+                )),
+                name: None,
+                tool_calls: None,
+                tool_call_id: None,
+            },
+            chat_completion::ChatCompletionMessage {
+                role: chat_completion::MessageRole::user,
+                content: chat_completion::Content::Text(prompt),
+                name: None,
+                tool_calls: None,
+                tool_call_id: None,
+            },
+        ],
+    );
+    let choices = chat_gpt_client.chat_completion(request).await?.choices;
+    let choice = choices
+        .first()
+        .ok_or(AppError(anyhow::anyhow!("no prompt results")))?;
+    let content = choice
+        .message
+        .content
+        .as_ref()
+        .ok_or(AppError(anyhow::anyhow!("no content")))?;
+    let json: serde_json::Value = serde_json::from_str(content)?;
+    Ok(Json(
+        json.as_array()
+            .ok_or(AppError(anyhow::anyhow!("array of tasks not returned")))?
+            .iter()
+            .map(into_task_suggestion)
+            .collect(),
+    ))
+}
+
+fn into_task_suggestion(json: &serde_json::Value) -> TaskSuggestion {
+    TaskSuggestion {
+        title: json["title"]
+            .as_str()
+            .unwrap_or("failed to get title")
+            .into(),
+        description: json["description"]
+            .as_str()
+            .unwrap_or("failed to get description")
+            .into(),
+        tags: vec![],
+        assignees: vec![],
+    }
 }
