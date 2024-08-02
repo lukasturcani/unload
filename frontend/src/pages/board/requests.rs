@@ -281,7 +281,7 @@ async fn send_chat_gpt_prompt_request(
         .json(&ChatGptRequest {
             board_name,
             prompt,
-            language: Language::En,
+            language: Language::English,
         })
         .send()
         .await?

@@ -247,15 +247,15 @@ pub struct TaskSuggestion {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Language {
-    En,
-    Sk,
+    English,
+    Slovak,
 }
 
 impl Language {
     pub fn name(&self) -> &'static str {
         match self {
-            Language::En => "English",
-            Language::Sk => "Slovak",
+            Language::English => "English",
+            Language::Slovak => "Slovak",
         }
     }
 }
