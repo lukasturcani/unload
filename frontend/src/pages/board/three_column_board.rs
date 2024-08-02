@@ -433,12 +433,16 @@ fn BoardPopup(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn ChatGptPopup(panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = theme.text_color;
     rsx! {
         div {
             class: "
                 backdrop-blur-sm backdrop-brightness-50
                 size-full absolute inset-0 z-10
                 flex flex-row items-center justify-center
+                {style}
             ",
             onclick: move |_| panel.set(Panel::None),
             div {

@@ -117,4 +117,5 @@ impl From<&TaskData> for QuickAddData {
 pub enum ChatGptResponse {
     Suggestions(Vec<TaskSuggestion>),
     Error,
+    Waiting,
 }

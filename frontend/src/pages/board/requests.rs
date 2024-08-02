@@ -258,6 +258,7 @@ pub async fn send_chat_gpt_prompt(
     prompt: String,
     mut chat_gpt_response: Signal<Option<ChatGptResponse>>,
 ) {
+    chat_gpt_response.set(Some(ChatGptResponse::Waiting));
     match send_chat_gpt_prompt_request(url, prompt).await {
         Ok(suggestions) => chat_gpt_response.set(Some(ChatGptResponse::Suggestions(suggestions))),
         Err(_) => chat_gpt_response.set(Some(ChatGptResponse::Error)),
