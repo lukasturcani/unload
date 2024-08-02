@@ -11,6 +11,7 @@ use shared_models::BoardData;
 use shared_models::SavedBoard;
 use shared_models::TagData;
 use shared_models::TagId;
+use shared_models::TaskSuggestion;
 use shared_models::{TaskEntry, TaskId, TaskStatus, UserData, UserId};
 use std::collections::HashMap;
 
@@ -247,5 +248,26 @@ async fn send_set_board_title_request(
         .send()
         .await?
         .json::<()>()
+        .await?)
+}
+
+pub async fn send_chat_gpt_prompt(url: Signal<UnloadUrl>, prompt: String) {
+    if let Ok(suggestions) = send_chat_gpt_prompt_request(url, prompt).await {
+        log::info!("got suggestions {:#?}", suggestions);
+    }
+}
+
+async fn send_chat_gpt_prompt_request(
+    url: Signal<UnloadUrl>,
+    prompt: String,
+) -> Result<Vec<TaskSuggestion>, anyhow::Error> {
+    let url = &url.read().0;
+    let url = url.join("/api/chat-gpt/suggest-tasks")?;
+    Ok(Client::new()
+        .post(url)
+        .json(&prompt)
+        .send()
+        .await?
+        .json::<Vec<TaskSuggestion>>()
         .await?)
 }
