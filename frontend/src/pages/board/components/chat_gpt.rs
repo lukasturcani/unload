@@ -128,7 +128,7 @@ fn ChatGptError(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
             class: "flex flex-col gap-2 items-center justify-center",
             h2 {
                 class: "text-xl font-bold",
-                "Chat GPT Error"
+                "ChatGPT Error"
             },
             p {
                 class: "text-sm",
