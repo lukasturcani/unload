@@ -1573,14 +1573,15 @@ pub async fn suggest_tasks(
     Json(request): Json<ChatGptRequest>,
 ) -> Result<Json<Vec<TaskSuggestion>>> {
     let mut tx = pool.begin().await?;
-    sqlx::query!(
-        "
-        SELECT * FROM tags
-    "
+    let tags: Vec<_> = sqlx::query!(
+        "SELECT name FROM tags WHERE board_name = ?",
+        request.board_name,
     )
     .fetch_all(&mut *tx)
-    .await?;
-    let tags = vec!["one", "two"];
+    .await?
+    .into_iter()
+    .map(|row| row.name)
+    .collect();
     let request = ChatCompletionRequest::new(
         GPT4_O_MINI.to_string(),
         vec![
@@ -1591,7 +1592,7 @@ pub async fn suggest_tasks(
                     return them as a JSON array of objects with the following properties: \
                     title, description, tags. \
                     If the description includes subtasks, format them using \"- [ ]\". \
-                    Use the following tags or create new ones if needed: \
+                    Use the following tags where relevant or create new ones if needed: \
                     {tags:?}. \
                     Do not include any other text in the response. \
                     The prompt and your response should be in {}.",

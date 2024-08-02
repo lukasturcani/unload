@@ -4,7 +4,10 @@ use shared_models::TaskSuggestion;
 use crate::{
     components::input::TextInput,
     model::UnloadUrl,
-    pages::board::{model::ChatGptResponse, requests},
+    pages::board::{
+        model::{Board, ChatGptResponse},
+        requests,
+    },
     themes::Theme,
 };
 
@@ -132,6 +135,7 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
     let theme = theme.read();
     let style = theme.text_color;
     let url = use_context::<Signal<UnloadUrl>>();
+    let board = use_context::<Signal<Board>>();
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center {style}",
@@ -145,7 +149,12 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
                 "aria-label": "chat gpt prompt",
                 onsubmit: move |event| {
                     let prompt = event.values()["Make tasks for:"].as_value();
-                    spawn_forever(requests::send_chat_gpt_prompt(url, prompt, chat_gpt_response));
+                    spawn_forever(requests::send_chat_gpt_prompt(
+                        board.read().board_name.clone(),
+                        url,
+                        prompt,
+                        chat_gpt_response,
+                    ));
                 },
                 div {
                     class: "flex flex-row gap-2 items-center justify-start",
@@ -182,12 +191,18 @@ fn PromptSuggestions(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Elem
 fn PromptSuggestion(prompt: String, chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
     let url = use_context::<Signal<UnloadUrl>>();
     let p = prompt.clone();
+    let board = use_context::<Signal<Board>>();
     rsx! {
         li {
             button {
                 class: "w-full",
                 onclick: move |_| {
-                    spawn_forever(requests::send_chat_gpt_prompt(url, p.clone(), chat_gpt_response));
+                    spawn_forever(requests::send_chat_gpt_prompt(
+                        board.read().board_name.clone(),
+                        url,
+                        p.clone(),
+                        chat_gpt_response,
+                    ));
                 },
                 {prompt}
             }

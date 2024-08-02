@@ -8,6 +8,9 @@ use crate::pages::board::model::Users;
 use dioxus::prelude::*;
 use reqwest::Client;
 use shared_models::BoardData;
+use shared_models::BoardName;
+use shared_models::ChatGptRequest;
+use shared_models::Language;
 use shared_models::SavedBoard;
 use shared_models::TagData;
 use shared_models::TagId;
@@ -254,18 +257,20 @@ async fn send_set_board_title_request(
 }
 
 pub async fn send_chat_gpt_prompt(
+    board_name: BoardName,
     url: Signal<UnloadUrl>,
     prompt: String,
     mut chat_gpt_response: Signal<Option<ChatGptResponse>>,
 ) {
     chat_gpt_response.set(Some(ChatGptResponse::Waiting));
-    match send_chat_gpt_prompt_request(url, prompt).await {
+    match send_chat_gpt_prompt_request(board_name, url, prompt).await {
         Ok(suggestions) => chat_gpt_response.set(Some(ChatGptResponse::Suggestions(suggestions))),
         Err(_) => chat_gpt_response.set(Some(ChatGptResponse::Error)),
     }
 }
 
 async fn send_chat_gpt_prompt_request(
+    board_name: BoardName,
     url: Signal<UnloadUrl>,
     prompt: String,
 ) -> Result<Vec<TaskSuggestion>, anyhow::Error> {
@@ -273,7 +278,11 @@ async fn send_chat_gpt_prompt_request(
     let url = url.join("/api/chat-gpt/suggest-tasks")?;
     Ok(Client::new()
         .post(url)
-        .json(&prompt)
+        .json(&ChatGptRequest {
+            board_name,
+            prompt,
+            language: Language::En,
+        })
         .send()
         .await?
         .json::<Vec<TaskSuggestion>>()
