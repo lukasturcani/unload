@@ -96,19 +96,17 @@ fn ChatGptError(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
 
 #[component]
 fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = theme.text_color;
     let url = use_context::<Signal<UnloadUrl>>();
     rsx! {
         div {
+            class: "flex flex-col gap-2 items-center justify-center {style}",
             p {
-                "Tell Chat GPT to write some tasks for you, or pick one from the suggestions below."
+                "Tell ChatGPT to write some tasks for you, or pick one from the suggestions below:"
             }
-            ul {
-                li {
-                }
-                li {
-
-                }
-            }
+            PromptSuggestions {}
             form {
                 id: "chat-gpt-prompt-form",
                 "aria-label": "chat gpt prompt",
@@ -123,6 +121,37 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
                         label: "Make tasks for:",
                     }
                 }
+            }
+        }
+    }
+}
+
+#[component]
+fn PromptSuggestions() -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "rounded-lg border divide-y {} {}",
+        theme.border_color, theme.divide_color
+    );
+    rsx! {
+        ul {
+            class: "w-full {style}",
+            PromptSuggestion { prompt: "friends over for BBQ" }
+            PromptSuggestion { prompt: "prepare for Rome vacation" }
+            PromptSuggestion { prompt: "house tidy" }
+            PromptSuggestion { prompt: "fix fence" }
+        }
+    }
+}
+
+#[component]
+fn PromptSuggestion(prompt: String) -> Element {
+    rsx! {
+        li {
+            button {
+                class: "w-full",
+                {prompt}
             }
         }
     }
