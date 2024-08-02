@@ -49,7 +49,7 @@ fn ChatGptWaiting() -> Element {
             class: "flex flex-col gap-2 items-center justify-center",
             role: "status",
             p {
-                "Talking to Chat GPT..."
+                "Talking to ChatGPT..."
             }
             svg {
                 xmlns: "http://www.w3.org/2000/svg",
