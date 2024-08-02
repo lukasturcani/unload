@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use itertools::Itertools;
-use shared_models::{BoardName, SavedBoard, TaskStatus, TaskSuggestion};
+use shared_models::{BoardName, SavedBoard, TaskStatus};
 
 use crate::{
     components::{
@@ -13,17 +13,17 @@ use crate::{
         nav::NavBar,
         tooltip::Tooltip,
     },
-    model::{SavedBoards, UnloadUrl},
+    model::SavedBoards,
     pages::board::{
-        components::{DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon},
+        components::{
+            ChatGpt, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
+        },
         model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
         requests::{self, BoardSignals},
     },
     route::Route,
     themes::Theme,
 };
-
-use super::model::ChatGptResponse;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum Panel {
@@ -433,13 +433,6 @@ fn BoardPopup(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn ChatGptPopup(panel: Signal<Panel>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!(
-        "rounded-lg border {} {}",
-        theme.bg_color_2, theme.border_color
-    );
-    let chat_gpt_response = use_signal(|| None);
     rsx! {
         div {
             class: "
@@ -449,99 +442,8 @@ fn ChatGptPopup(panel: Signal<Panel>) -> Element {
             ",
             onclick: move |_| panel.set(Panel::None),
             div {
-                class: "p-5 {style}",
                 onclick: |event| event.stop_propagation(),
-                match &*chat_gpt_response.read() {
-                    Some(ChatGptResponse::Suggestions(suggestions)) => rsx! {
-                        ChatGptSuggestions {
-                            suggestions: suggestions.clone(),
-                            chat_gpt_response,
-                        }
-                    },
-                    Some(ChatGptResponse::Error) => rsx! {
-                        ChatGptError { chat_gpt_response }
-                    },
-                    None => rsx! {
-                        ChatGptPromptInput { chat_gpt_response }
-                    }
-                }
-            }
-        }
-    }
-}
-
-#[component]
-fn ChatGptSuggestions(
-    suggestions: Vec<TaskSuggestion>,
-    chat_gpt_response: Signal<Option<ChatGptResponse>>,
-) -> Element {
-    rsx! {
-        div {
-            class: "flex flex-col gap-2 items-center justify-center",
-            for suggestion in suggestions {
-                TaskSuggestionCard { suggestion }
-            }
-        }
-    }
-}
-
-#[component]
-fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!(
-        "rounded-lg border {} {} {} {}",
-        theme.border_color, theme.bg_color_2, theme.text_color, theme.bg_color_1
-    );
-    rsx! {
-        div {
-            class: "flex flex-col gap-2 p-2 {style}",
-            h2 {
-                class: "text-xl font-bold",
-                {suggestion.title}
-            },
-            p {
-                class: "text-sm",
-                {suggestion.description}
-            },
-        }
-    }
-}
-
-#[component]
-fn ChatGptError(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
-    rsx! {
-        div {
-            class: "flex flex-col gap-2 items-center justify-center",
-            h2 {
-                class: "text-xl font-bold",
-                "Chat GPT Error"
-            },
-            p {
-                class: "text-sm",
-                "An error occurred while trying to connect to Chat GPT. Please try again later."
-            }
-        }
-    }
-}
-
-#[component]
-fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
-    let url = use_context::<Signal<UnloadUrl>>();
-    rsx! {
-        form {
-            id: "chat-gpt-prompt-form",
-            "aria-label": "chat gpt prompt",
-            onsubmit: move |event| {
-                let prompt = event.values()["ChatGPT Prompt"].as_value();
-                spawn_forever(requests::send_chat_gpt_prompt(url, prompt, chat_gpt_response));
-            },
-            div {
-                class: "flex flex-row gap-2 items-center justify-start",
-                TextInput {
-                    id: "chat-gpt-prompt" ,
-                    label: "ChatGPT Prompt",
-                }
+                ChatGpt {}
             }
         }
     }
