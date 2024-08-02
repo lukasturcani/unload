@@ -222,7 +222,7 @@ backend database:
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
   UNLOAD_APP_SERVE_DIR="frontend/dist" \
   UNLOAD_WEBSITE_SERVE_DIR="website/dist" \
-  UNLOAD_OPENAI_API_KEY="test" \
+  UNLOAD_OPENAI_API_KEY="$OPENAI_API_KEY" \
   cargo run --bin unload
 
 # watch the backend
@@ -230,7 +230,7 @@ watch-backend database:
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
   UNLOAD_APP_SERVE_DIR="frontend/dist" \
   UNLOAD_WEBSITE_SERVE_DIR="website/dist" \
-  UNLOAD_OPENAI_API_KEY="test" \
+  UNLOAD_OPENAI_API_KEY=$OPENAI_API_KEY \
   cargo watch -w backend -w shared_models -x 'run -- --bin unload'
 
 # connect to fly.io production volume
