@@ -1640,6 +1640,11 @@ fn into_task_suggestion(json: &serde_json::Value) -> TaskSuggestion {
             .as_str()
             .unwrap_or("failed to get description")
             .into(),
-        tags: vec![],
+        tags: json["tags"]
+            .as_array()
+            .unwrap_or(&Vec::<serde_json::Value>::new())
+            .iter()
+            .map(|tag| tag.as_str().unwrap().into())
+            .collect(),
     }
 }

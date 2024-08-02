@@ -108,6 +108,15 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
                 class: "text-sm",
                 {suggestion.description}
             },
+            div {
+                class: "flex flex-row gap-2 items-center justify-start",
+                for tag in suggestion.tags {
+                    div {
+                        class: "rounded-full bg-gray-200 px-2 py-1 text-xs",
+                        {tag}
+                    }
+                }
+            }
         }
     }
 }
