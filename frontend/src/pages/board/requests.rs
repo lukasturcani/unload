@@ -15,6 +15,8 @@ use shared_models::TaskSuggestion;
 use shared_models::{TaskEntry, TaskId, TaskStatus, UserData, UserId};
 use std::collections::HashMap;
 
+use super::model::ChatGptResponse;
+
 #[derive(Copy, Clone)]
 pub struct BoardSignals {
     pub board: Signal<Board>,
@@ -251,9 +253,14 @@ async fn send_set_board_title_request(
         .await?)
 }
 
-pub async fn send_chat_gpt_prompt(url: Signal<UnloadUrl>, prompt: String) {
-    if let Ok(suggestions) = send_chat_gpt_prompt_request(url, prompt).await {
-        log::info!("got suggestions {:#?}", suggestions);
+pub async fn send_chat_gpt_prompt(
+    url: Signal<UnloadUrl>,
+    prompt: String,
+    mut chat_gpt_response: Signal<Option<ChatGptResponse>>,
+) {
+    match send_chat_gpt_prompt_request(url, prompt).await {
+        Ok(suggestions) => chat_gpt_response.set(Some(ChatGptResponse::Suggestions(suggestions))),
+        Err(_) => chat_gpt_response.set(Some(ChatGptResponse::Error)),
     }
 }
 

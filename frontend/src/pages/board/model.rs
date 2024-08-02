@@ -2,7 +2,9 @@ use std::collections::{HashMap, HashSet};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use shared_models::{BoardName, QuickAddData, TagData, TagId, TaskEntry, TaskId, UserData, UserId};
+use shared_models::{
+    BoardName, QuickAddData, TagData, TagId, TaskEntry, TaskId, TaskSuggestion, UserData, UserId,
+};
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone, Copy)]
 pub struct Dense(pub bool);
@@ -109,4 +111,10 @@ impl From<&TaskData> for QuickAddData {
             tags: value.tags.clone(),
         }
     }
+}
+
+#[derive(Debug)]
+pub enum ChatGptResponse {
+    Suggestions(Vec<TaskSuggestion>),
+    Error,
 }
