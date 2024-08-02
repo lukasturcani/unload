@@ -49,11 +49,11 @@ fn ChatGptWaiting() -> Element {
             class: "flex flex-col gap-2 items-center justify-center",
             role: "status",
             p {
-                "Talking to Chat GPT ..."
+                "Talking to Chat GPT..."
             }
             svg {
                 xmlns: "http://www.w3.org/2000/svg",
-                class: "size-8",
+                class: "size-16",
                 view_box: "0 0 24 24",
                 path {
                     fill: "currentColor",
