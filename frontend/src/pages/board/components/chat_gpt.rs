@@ -104,9 +104,10 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
         div {
             class: "flex flex-col gap-2 items-center justify-center {style}",
             p {
+                class: "text-xl font-bold",
                 "Tell ChatGPT to write some tasks for you, or pick one from the suggestions below:"
             }
-            PromptSuggestions {}
+            PromptSuggestions { chat_gpt_response }
             form {
                 id: "chat-gpt-prompt-form",
                 "aria-label": "chat gpt prompt",
@@ -127,7 +128,7 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
 }
 
 #[component]
-fn PromptSuggestions() -> Element {
+fn PromptSuggestions(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -137,20 +138,25 @@ fn PromptSuggestions() -> Element {
     rsx! {
         ul {
             class: "w-full {style}",
-            PromptSuggestion { prompt: "friends over for BBQ" }
-            PromptSuggestion { prompt: "prepare for Rome vacation" }
-            PromptSuggestion { prompt: "house tidy" }
-            PromptSuggestion { prompt: "fix fence" }
+            PromptSuggestion { prompt: "friends over for BBQ", chat_gpt_response }
+            PromptSuggestion { prompt: "prepare for Rome vacation", chat_gpt_response }
+            PromptSuggestion { prompt: "house tidy", chat_gpt_response }
+            PromptSuggestion { prompt: "fix fence", chat_gpt_response }
         }
     }
 }
 
 #[component]
-fn PromptSuggestion(prompt: String) -> Element {
+fn PromptSuggestion(prompt: String, chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let url = use_context::<Signal<UnloadUrl>>();
+    let p = prompt.clone();
     rsx! {
         li {
             button {
                 class: "w-full",
+                onclick: move |_| {
+                    spawn_forever(requests::send_chat_gpt_prompt(url, p.clone(), chat_gpt_response));
+                },
                 {prompt}
             }
         }
