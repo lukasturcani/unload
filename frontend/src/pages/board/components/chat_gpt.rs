@@ -223,7 +223,11 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
             class: "flex flex-col gap-2 items-center justify-center {style}",
             p {
                 class: "text-xl font-bold",
-                "Tell ChatGPT to write some tasks for you, or pick one from the suggestions below:"
+                "Use ChatGPT"
+            }
+            p {
+                class: "text-sm",
+                "or pick one from the suggestions below:"
             }
             PromptSuggestions { chat_gpt_response }
             form {
