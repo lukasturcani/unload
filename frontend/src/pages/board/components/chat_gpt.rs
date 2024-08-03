@@ -1,12 +1,12 @@
 use dioxus::prelude::*;
-use shared_models::TaskSuggestion;
+use shared_models::{Color, TagData, TagId, TaskSuggestion};
 
 use crate::{
     components::input::TextInput,
     description_parser::{parse_blocks, Block, Line},
     model::UnloadUrl,
     pages::board::{
-        model::{Board, ChatGptResponse},
+        model::{Board, ChatGptResponse, Tags},
         requests,
     },
     themes::Theme,
@@ -107,6 +107,8 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
         theme.border_color, theme.bg_color_2
     );
     let label = suggestion.title.clone();
+    let tags = use_context::<Signal<Tags>>();
+    let tags = &tags.read().0;
     rsx! {
         article {
             aria_label: label,
@@ -124,12 +126,48 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
                 for tag in suggestion.tags {
-                    div {
-                        class: "rounded-full bg-gray-200 px-2 py-1 text-xs",
-                        {tag}
+                    TagIcon {
+                        tag_id: tag,
+                        tag_data: tags.get(&tag).unwrap().clone(),
                     }
                 }
             }
+        }
+    }
+}
+
+#[component]
+fn TagIcon(tag_id: TagId, tag_data: TagData) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let color = match tag_data.color {
+        Color::Black => theme.color1_button,
+        Color::White => theme.color2_button,
+        Color::Gray => theme.color3_button,
+        Color::Silver => theme.color4_button,
+        Color::Maroon => theme.color5_button,
+        Color::Red => theme.color6_button,
+        Color::Purple => theme.color7_button,
+        Color::Fushsia => theme.color8_button,
+        Color::Green => theme.color9_button,
+        Color::Lime => theme.color10_button,
+        Color::Olive => theme.color11_button,
+        Color::Yellow => theme.color12_button,
+        Color::Navy => theme.color13_button,
+        Color::Blue => theme.color14_button,
+        Color::Teal => theme.color15_button,
+        Color::Aqua => theme.color16_button,
+    };
+    let style = "rounded border-2";
+    rsx! {
+        div {
+            class: "
+                group
+                flex flex-row items-center
+                px-1.5 py-0.5
+                {style} {color}
+            ",
+            {tag_data.name}
         }
     }
 }

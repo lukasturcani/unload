@@ -1,10 +1,10 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, name FROM tags WHERE board_name = ?",
+  "query": "SELECT id AS \"id: TagId\", name FROM tags WHERE board_name = ?",
   "describe": {
     "columns": [
       {
-        "name": "id",
+        "name": "id: TagId",
         "ordinal": 0,
         "type_info": "Int64"
       },
@@ -22,5 +22,5 @@
       false
     ]
   },
-  "hash": "8ec49a7524238a6f70df1d636212b1229b787d8085c2d26ad4a9bf0540fc4825"
+  "hash": "40294a73526a6e8e1a10bde18faa2e9174038dddc324cc152abeea64d2b09198"
 }

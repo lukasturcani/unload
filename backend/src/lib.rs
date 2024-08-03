@@ -1574,14 +1574,14 @@ pub async fn suggest_tasks(
 ) -> Result<Json<Vec<TaskSuggestion>>> {
     let mut tx = pool.begin().await?;
     let tags = sqlx::query!(
-        "SELECT id, name FROM tags WHERE board_name = ?",
+        r#"SELECT id AS "id: TagId", name FROM tags WHERE board_name = ?"#,
         request.board_name,
     )
     .fetch_all(&mut *tx)
     .await?
     .into_iter()
     .fold(HashMap::new(), |mut map, row| {
-        map.insert(row.id, row.name);
+        map.insert(row.name, row.id);
         map
     });
     let request = ChatCompletionRequest::new(
@@ -1598,7 +1598,7 @@ pub async fn suggest_tasks(
                     Create new tags where relevant. \
                     Do not include any other text in the response. \
                     The prompt and your response should be in {}.",
-                    tags.values(),
+                    tags.keys(),
                     request.language.name(),
                 )),
                 name: None,
@@ -1628,12 +1628,12 @@ pub async fn suggest_tasks(
         json.as_array()
             .ok_or(AppError(anyhow::anyhow!("array of tasks not returned")))?
             .iter()
-            .map(into_task_suggestion)
+            .map(|suggestion| into_task_suggestion(&tags, suggestion))
             .collect(),
     ))
 }
 
-fn into_task_suggestion(json: &serde_json::Value) -> TaskSuggestion {
+fn into_task_suggestion(tags: &HashMap<String, TagId>, json: &serde_json::Value) -> TaskSuggestion {
     TaskSuggestion {
         title: json["title"]
             .as_str()
@@ -1647,7 +1647,7 @@ fn into_task_suggestion(json: &serde_json::Value) -> TaskSuggestion {
             .as_array()
             .unwrap_or(&Vec::<serde_json::Value>::new())
             .iter()
-            .map(|tag| tag.as_str().unwrap().into())
+            .filter_map(|tag| tags.get(tag.as_str().unwrap()).copied())
             .collect(),
     }
 }
