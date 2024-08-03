@@ -2,7 +2,10 @@ use dioxus::prelude::*;
 use shared_models::{Color, TagData, TagId, TaskSuggestion};
 
 use crate::{
-    components::input::TextInput,
+    components::{
+        icons::{CancelIcon, ConfirmIcon},
+        input::TextInput,
+    },
     description_parser::{parse_blocks, Block, Line},
     model::UnloadUrl,
     pages::board::{
@@ -87,7 +90,10 @@ fn ChatGptSuggestions(
                 max-h-full overflow-y-auto
             ",
             for suggestion in suggestions {
-                TaskSuggestionCard { suggestion }
+                TaskSuggestionCard {
+                    key: "{suggestion.title}",
+                    suggestion
+                }
             }
         }
     }
@@ -113,13 +119,18 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
         article {
             aria_label: label,
             class: "flex flex-col gap-2 p-2.5 {style}",
-            h3 {
-                class: "
-                    text-lg sm:text-xl
-                    font-bold tracking-tight
-                ",
-                {suggestion.title}
-            },
+            div {
+                class: "flex flex-row gap-2 items-center justify-start",
+                h3 {
+                    class: "
+                        text-lg sm:text-xl
+                        font-bold tracking-tight
+                    ",
+                    {suggestion.title}
+                },
+                AddTaskButton {}
+                DeleteTaskButton {}
+            }
             Description {
                 description: suggestion.description,
             },
@@ -132,6 +143,42 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
                     }
                 }
             }
+        }
+    }
+}
+
+#[component]
+fn AddTaskButton() -> Element {
+    let style = "
+        rounded-md
+        border border-green-500
+        stroke-green-500
+        active:bg-green-500
+        sm:hover:bg-green-500 sm:hover:stroke-white
+    ";
+    rsx! {
+        button {
+            aria_label: "add task",
+            class: "size-7 {style}",
+            ConfirmIcon {}
+        }
+    }
+}
+
+#[component]
+fn DeleteTaskButton() -> Element {
+    let style = "
+        rounded-md
+        border border-red-600
+        stroke-red-600
+        active:bg-red-600
+        sm:hover:bg-red-600 sm:hover:stroke-white
+    ";
+    rsx! {
+        button {
+            aria_label: "delete task",
+            class: "size-7 {style}",
+            CancelIcon {}
         }
     }
 }
