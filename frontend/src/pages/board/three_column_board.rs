@@ -446,6 +446,7 @@ fn ChatGptPopup(panel: Signal<Panel>) -> Element {
             ",
             onclick: move |_| panel.set(Panel::None),
             div {
+                class: "w-2/3",
                 onclick: |event| event.stop_propagation(),
                 ChatGpt {}
             }

@@ -18,7 +18,7 @@ pub fn ChatGpt() -> Element {
     let theme = theme.read();
     let style = format!(
         "rounded-lg border {} {}",
-        theme.bg_color_2, theme.border_color
+        theme.bg_color_1, theme.border_color
     );
     let chat_gpt_response = use_signal(|| None);
     rsx! {
@@ -82,7 +82,10 @@ fn ChatGptSuggestions(
 ) -> Element {
     rsx! {
         div {
-            class: "flex flex-col gap-2 items-center justify-center",
+            class: "
+                flex flex-col gap-2 items-center
+                max-h-96 overflow-y-auto
+            ",
             for suggestion in suggestions {
                 TaskSuggestionCard { suggestion }
             }
@@ -99,6 +102,7 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
         sm:rounded-lg
         sm:shadow
         first:border-t border-b sm:border
+        w-full
         {} {}",
         theme.border_color, theme.bg_color_2
     );
@@ -273,7 +277,7 @@ fn PromptSuggestion(prompt: String, chat_gpt_response: Signal<Option<ChatGptResp
     rsx! {
         li {
             button {
-                class: "w-full",
+                class: "w-full text-lg",
                 onclick: move |_| {
                     spawn_forever(requests::send_chat_gpt_prompt(
                         board.read().board_name.clone(),
