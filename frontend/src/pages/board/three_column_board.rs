@@ -440,13 +440,13 @@ fn ChatGptPopup(panel: Signal<Panel>) -> Element {
         div {
             class: "
                 backdrop-blur-sm backdrop-brightness-50
-                size-full absolute inset-0 z-10
+                size-full absolute inset-0 z-10 p-10
                 flex flex-row items-center justify-center
                 {style}
             ",
             onclick: move |_| panel.set(Panel::None),
             div {
-                class: "w-2/3",
+                class: "w-2/3 max-h-full overflow-y-auto",
                 onclick: |event| event.stop_propagation(),
                 ChatGpt {}
             }

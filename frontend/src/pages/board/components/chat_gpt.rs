@@ -17,7 +17,7 @@ pub fn ChatGpt() -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
-        "rounded-lg border {} {}",
+        "rounded-lg border overflow-y-auto {} {}",
         theme.bg_color_1, theme.border_color
     );
     let chat_gpt_response = use_signal(|| None);
@@ -84,7 +84,7 @@ fn ChatGptSuggestions(
         div {
             class: "
                 flex flex-col gap-2 items-center
-                max-h-96 overflow-y-auto
+                overflow-y-auto
             ",
             for suggestion in suggestions {
                 TaskSuggestionCard { suggestion }
