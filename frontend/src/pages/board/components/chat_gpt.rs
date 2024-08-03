@@ -3,6 +3,7 @@ use shared_models::TaskSuggestion;
 
 use crate::{
     components::input::TextInput,
+    description_parser::{parse_blocks, Block, Line},
     model::UnloadUrl,
     pages::board::{
         model::{Board, ChatGptResponse},
@@ -94,19 +95,27 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
-        "rounded-lg border {} {} {} {}",
-        theme.border_color, theme.bg_color_2, theme.text_color, theme.bg_color_1
+        "
+        sm:rounded-lg
+        sm:shadow
+        first:border-t border-b sm:border
+        {} {}",
+        theme.border_color, theme.bg_color_2
     );
+    let label = suggestion.title.clone();
     rsx! {
-        div {
-            class: "flex flex-col gap-2 p-2 {style}",
-            h2 {
-                class: "text-xl font-bold",
+        article {
+            aria_label: label,
+            class: "flex flex-col gap-2 p-2.5 {style}",
+            h3 {
+                class: "
+                    text-lg sm:text-xl
+                    font-bold tracking-tight
+                ",
                 {suggestion.title}
             },
-            p {
-                class: "text-sm",
-                {suggestion.description}
+            Description {
+                description: suggestion.description,
             },
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
@@ -119,6 +128,66 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
             }
         }
     }
+}
+
+#[component]
+fn Description(description: String) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "p-4 rounded border whitespace-pre-wrap break-words {} {}",
+        theme.bg_color_1, theme.border_color
+    );
+    rsx! {
+        div {
+            class: style,
+            for block in parse_blocks(&description) {
+                match block {
+                    Block::Text(text) => rsx!{
+                        p { {text} }
+                    },
+                    Block::Bullet(lines) => rsx!{
+                        ul {
+                            class:" list-disc list-inside",
+                            for line in lines {
+                                Bullet { line }
+                            }
+                        }
+                    },
+                    Block::Checkbox(lines) => rsx!{
+                        ul {
+                            for line in lines {
+                                Checkbox { line }
+                            }
+                        }
+                    },
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn Checkbox(line: Line) -> Element {
+    line.content.drain(..5);
+    rsx! {
+        li {
+            label {
+                input {
+                    disabled: true,
+                    checked: false,
+                    r#type: "checkbox",
+                }
+                {line.content}
+            }
+        }
+    }
+}
+
+#[component]
+fn Bullet(line: String) -> Element {
+    line.drain(..2);
+    rsx! { li { {line} } }
 }
 
 #[component]
