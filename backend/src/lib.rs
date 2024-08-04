@@ -1573,17 +1573,15 @@ pub async fn suggest_tasks(
     Json(request): Json<ChatGptRequest>,
 ) -> Result<Json<Vec<TaskSuggestion>>> {
     let mut tx = pool.begin().await?;
-    let tags = sqlx::query!(
-        r#"SELECT id AS "id: TagId", name FROM tags WHERE board_name = ?"#,
+    let tags: Vec<_> = sqlx::query!(
+        r#"SELECT name FROM tags WHERE board_name = ?"#,
         request.board_name,
     )
     .fetch_all(&mut *tx)
     .await?
     .into_iter()
-    .fold(HashMap::new(), |mut map, row| {
-        map.insert(row.name, row.id);
-        map
-    });
+    .map(|row| row.name)
+    .collect();
     let request = ChatCompletionRequest::new(
         GPT4_O_MINI.to_string(),
         vec![
@@ -1598,7 +1596,7 @@ pub async fn suggest_tasks(
                     Create new tags where relevant. \
                     Do not include any other text in the response. \
                     The prompt and your response should be in {}.",
-                    tags.keys(),
+                    tags,
                     request.language.name(),
                 )),
                 name: None,
@@ -1628,12 +1626,12 @@ pub async fn suggest_tasks(
         json.as_array()
             .ok_or(AppError(anyhow::anyhow!("array of tasks not returned")))?
             .iter()
-            .map(|suggestion| into_task_suggestion(&tags, suggestion))
+            .map(into_task_suggestion)
             .collect(),
     ))
 }
 
-fn into_task_suggestion(tags: &HashMap<String, TagId>, json: &serde_json::Value) -> TaskSuggestion {
+fn into_task_suggestion(json: &serde_json::Value) -> TaskSuggestion {
     TaskSuggestion {
         title: json["title"]
             .as_str()
@@ -1647,7 +1645,7 @@ fn into_task_suggestion(tags: &HashMap<String, TagId>, json: &serde_json::Value)
             .as_array()
             .unwrap_or(&Vec::<serde_json::Value>::new())
             .iter()
-            .filter_map(|tag| tags.get(tag.as_str().unwrap()).copied())
+            .map(|tag| tag.as_str().unwrap().into())
             .collect(),
     }
 }

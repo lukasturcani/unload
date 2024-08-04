@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use dioxus::prelude::*;
-use shared_models::{Color, TagData, TagId, TaskSuggestion};
+use shared_models::{Color, TagData, TaskSuggestion};
 
 use crate::{
     components::{
@@ -78,11 +80,27 @@ fn ChatGptWaiting() -> Element {
     }
 }
 
+#[derive(Default, Clone)]
+struct SuggestedTags(HashMap<String, Color>);
+
+#[derive(Default, Clone)]
+struct CurrentTags(HashMap<String, Color>);
+
 #[component]
 fn ChatGptSuggestions(
     suggestions: Vec<TaskSuggestion>,
     chat_gpt_response: Signal<Option<ChatGptResponse>>,
 ) -> Element {
+    let tags = use_context::<Signal<Tags>>();
+    let tags = &tags.read().0;
+    use_context_provider(|| {
+        let mut map = HashMap::new();
+        for tag in tags.values() {
+            map.insert(tag.name.clone(), tag.color);
+        }
+        Signal::new(CurrentTags(map))
+    });
+    use_context_provider(|| Signal::new(SuggestedTags::default()));
     rsx! {
         div {
             class: "
@@ -113,8 +131,24 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
         theme.border_color, theme.bg_color_2
     );
     let label = suggestion.title.clone();
-    let tags = use_context::<Signal<Tags>>();
-    let tags = &tags.read().0;
+
+    let current_tags = use_context::<Signal<CurrentTags>>();
+    let current_tags = &current_tags.read().0;
+
+    let mut suggested_tags = use_context::<Signal<SuggestedTags>>();
+    let suggested_tags = &mut suggested_tags.write().0;
+
+    let mut task_tags = Vec::with_capacity(suggestion.tags.len());
+
+    for tag in suggestion.tags {
+        if let Some(&color) = current_tags.get(&tag) {
+            task_tags.push(TagData { name: tag, color });
+        } else if let Some(&color) = suggested_tags.get(&tag) {
+            task_tags.push(TagData { name: tag, color });
+        } else {
+            suggested_tags.insert(tag, Color::Aqua);
+        }
+    }
     rsx! {
         article {
             aria_label: label,
@@ -136,10 +170,10 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
             },
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
-                for tag in suggestion.tags {
+                for tag in task_tags {
                     TagIcon {
-                        tag_id: tag,
-                        tag_data: tags.get(&tag).unwrap().clone(),
+                        name: tag.name,
+                        color: tag.color
                     }
                 }
             }
@@ -184,10 +218,10 @@ fn DeleteTaskButton() -> Element {
 }
 
 #[component]
-fn TagIcon(tag_id: TagId, tag_data: TagData) -> Element {
+fn TagIcon(name: String, color: Color) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let color = match tag_data.color {
+    let color = match color {
         Color::Black => theme.color1_button,
         Color::White => theme.color2_button,
         Color::Gray => theme.color3_button,
@@ -214,7 +248,7 @@ fn TagIcon(tag_id: TagId, tag_data: TagData) -> Element {
                 px-1.5 py-0.5
                 {style} {color}
             ",
-            {tag_data.name}
+            {name}
         }
     }
 }
