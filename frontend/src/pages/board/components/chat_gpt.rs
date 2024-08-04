@@ -92,8 +92,8 @@ fn ChatGptSuggestions(
     chat_gpt_response: Signal<Option<ChatGptResponse>>,
 ) -> Element {
     let tags = use_context::<Signal<Tags>>();
-    let tags = &tags.read().0;
     use_context_provider(|| {
+        let tags = &tags.read().0;
         let mut map = HashMap::new();
         for tag in tags.values() {
             map.insert(tag.name.clone(), tag.color);
