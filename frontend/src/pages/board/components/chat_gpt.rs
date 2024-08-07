@@ -353,7 +353,7 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
                 id: "chat-gpt-prompt-form",
                 "aria-label": "chat gpt prompt",
                 onsubmit: move |event| {
-                    let prompt = event.values()["Make tasks for:"].as_value();
+                    let prompt = event.values()["Prompt:"].as_value();
                     spawn_forever(requests::send_chat_gpt_prompt(
                         board.read().board_name.clone(),
                         url,
@@ -365,7 +365,7 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
                     class: "flex flex-row gap-2 items-center justify-start",
                     TextInput {
                         id: "chat-gpt-prompt" ,
-                        label: "Make tasks for:",
+                        label: "Prompt:",
                     }
                 }
             }
@@ -384,6 +384,7 @@ fn PromptSuggestions(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Elem
     rsx! {
         ul {
             class: "w-full {style}",
+            PromptSuggestion { prompt: "suggest cupcake recipe", chat_gpt_response }
             PromptSuggestion { prompt: "friends over for BBQ", chat_gpt_response }
             PromptSuggestion { prompt: "prepare for Rome vacation", chat_gpt_response }
             PromptSuggestion { prompt: "house tidy", chat_gpt_response }
