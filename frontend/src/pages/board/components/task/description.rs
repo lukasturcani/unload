@@ -102,15 +102,27 @@ async fn insert_string(task_id: TaskId, string: impl AsRef<str>) {
     let mut text_data = eval(&format!(
         r#"
             let element = document.getElementById("task-{task_id}-description-input");
-            dioxus.send([element.value, element.selectionStart]);
+            dioxus.send([element.value, element.selectionStart, element.selectionEnd]);
         "#,
     ));
     let text_data = &text_data.recv().await.unwrap();
-    let [content, position] = &text_data.as_array().unwrap()[..] else {
+    let [content, start, end] = &text_data.as_array().unwrap()[..] else {
         panic!("impossible");
     };
+    let start = start.as_u64().unwrap() as usize;
+    let end = end.as_u64().unwrap() as usize;
     let mut content = String::from(content.as_str().unwrap());
-    content.insert_str(position.as_u64().unwrap() as usize, string.as_ref());
+    if start == end {
+        content.insert_str(start, string.as_ref());
+    } else {
+        let start = content[..start].rfind('\n').map_or(0, |i| i + 1);
+        let mut block = String::new();
+        for line in content[start..end].lines() {
+            block.push_str(string.as_ref());
+            block.push_str(line);
+        }
+        content.replace_range(start..end, &block);
+    }
     let edit = eval(&format!(
         r#"
             let element = document.getElementById("task-{task_id}-description-input");
