@@ -106,15 +106,23 @@ async fn insert_string(task_id: TaskId, string: impl AsRef<str>) {
         "#,
     ));
     let text_data = &text_data.recv().await.unwrap();
-    let [content, start, end] = &text_data.as_array().unwrap()[..] else {
+    let [content, start_char_index, end_char_index] = &text_data.as_array().unwrap()[..] else {
         panic!("impossible");
     };
-    let start = start.as_u64().unwrap() as usize;
-    let end = end.as_u64().unwrap() as usize;
+    let start_char_index = start_char_index.as_u64().unwrap() as usize;
+    let end_char_index = end_char_index.as_u64().unwrap() as usize;
     let mut content = String::from(content.as_str().unwrap());
-    if start == end {
+    let mut char_indices = content.char_indices();
+    let start = char_indices
+        .nth(start_char_index)
+        .map_or(content.len(), |(i, _)| i);
+    if start_char_index == end_char_index {
         content.insert_str(start, string.as_ref());
     } else {
+        let end = char_indices
+            .nth(end_char_index - start_char_index - 1)
+            .unwrap()
+            .0;
         let start = content[..start].rfind('\n').map_or(0, |i| i + 1);
         let mut block = String::new();
         for line in content[start..end].lines() {
@@ -122,7 +130,7 @@ async fn insert_string(task_id: TaskId, string: impl AsRef<str>) {
             block.push_str(line);
         }
         content.replace_range(start..end, &block);
-    }
+    };
     let edit = eval(&format!(
         r#"
             let element = document.getElementById("task-{task_id}-description-input");
@@ -146,13 +154,17 @@ async fn edit_description(task_id: TaskId, mut enter_pressed: Signal<bool>) {
         "#,
     ));
     let text_data = &text_data.recv().await.unwrap();
-    let [content, position] = &text_data.as_array().unwrap()[..] else {
+    let [content, char_index] = &text_data.as_array().unwrap()[..] else {
         panic!("impossible");
     };
     let content = content.as_str().unwrap();
-    let position = position.as_u64().unwrap() as usize;
-    let start = content[..position - 1].rfind('\n').map_or(0, |i| i + 1);
-    let line = &content[start..position - 1];
+    let char_index = char_index.as_u64().unwrap() as usize;
+    let byte_index = content
+        .char_indices()
+        .nth(char_index)
+        .map_or(content.len(), |(i, _)| i);
+    let start = content[..byte_index - 1].rfind('\n').map_or(0, |i| i + 1);
+    let line = &content[start..byte_index - 1];
     if line.starts_with("- [ ]") || line.starts_with("- [x]") {
         let mut content = String::from(content);
         if line == "- [ ] " {
@@ -166,7 +178,7 @@ async fn edit_description(task_id: TaskId, mut enter_pressed: Signal<bool>) {
                     element.selectionEnd = selectionStart;
                 "#,
             ));
-            content.drain(start..position);
+            content.drain(start..byte_index);
             edit.send(content.into()).unwrap();
         } else {
             let edit = eval(&format!(
@@ -179,7 +191,7 @@ async fn edit_description(task_id: TaskId, mut enter_pressed: Signal<bool>) {
                     element.selectionEnd = selectionStart;
                 "#,
             ));
-            content.insert_str(position, "- [ ] ");
+            content.insert_str(byte_index, "- [ ] ");
             edit.send(content.into()).unwrap();
         }
     } else if line.starts_with('*') {
@@ -195,7 +207,7 @@ async fn edit_description(task_id: TaskId, mut enter_pressed: Signal<bool>) {
                     element.selectionEnd = selectionStart;
                 "#,
             ));
-            content.drain(start..position);
+            content.drain(start..byte_index);
             edit.send(content.into()).unwrap();
         } else {
             let edit = eval(&format!(
@@ -208,7 +220,7 @@ async fn edit_description(task_id: TaskId, mut enter_pressed: Signal<bool>) {
                     element.selectionEnd = selectionStart;
                 "#,
             ));
-            content.insert_str(position, "* ");
+            content.insert_str(byte_index, "* ");
             edit.send(content.into()).unwrap();
         }
     }
