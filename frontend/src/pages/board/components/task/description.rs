@@ -38,6 +38,7 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
     let mut enter_pressed = use_signal(|| false);
     rsx! {
         form {
+            id: "task-{task_id}-description-form",
             "aria-label": "update description",
             class: "flex flex-col gap-2",
             onsubmit: move |event| {
@@ -77,7 +78,7 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
                     id: "task-{task_id}-description-input",
                     onmounted: move |event| async move {
                         let _ = event.set_focus(true).await;
-                        scroll.set(ScrollTarget(Some(format!("task-{task_id}-description-input"))));
+                        scroll.set(ScrollTarget(Some(format!("task-{task_id}-description-form"))));
                     },
                     onkeydown: move |event| enter_pressed.set(event.data().key() == Key::Enter),
                     oninput: move |_| {
