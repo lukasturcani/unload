@@ -3,6 +3,7 @@ use reqwest::Client;
 use shared_models::TaskId;
 
 use crate::{
+    commands::ScrollTarget,
     components::{
         form::{CancelButton, ConfirmButton},
         icons::{BulletsIcon, CheckboxIcon, EditIcon},
@@ -33,6 +34,7 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
         "rounded-lg border {} {} {}",
         theme.bg_color_2, theme.border_color, theme.focus_color
     );
+    let mut scroll = use_context::<Signal<ScrollTarget>>();
     let mut enter_pressed = use_signal(|| false);
     rsx! {
         form {
@@ -75,6 +77,7 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
                     id: "task-{task_id}-description-input",
                     onmounted: move |event| async move {
                         let _ = event.set_focus(true).await;
+                        scroll.set(ScrollTarget(Some(format!("task-{task_id}-description-input"))));
                     },
                     onkeydown: move |event| enter_pressed.set(event.data().key() == Key::Enter),
                     oninput: move |_| {
