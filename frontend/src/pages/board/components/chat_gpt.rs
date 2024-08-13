@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use dioxus::prelude::*;
 use shared_models::{Color, TagData, TagEntry, TaskStatus, TaskSuggestion};
@@ -134,16 +134,24 @@ fn ChatGptSuggestions(
             new_tags,
         });
     }
+    let resolved_suggestions = use_signal(HashSet::new);
+    let resolved_suggestions_ = &resolved_suggestions.read();
     rsx! {
         div {
             class: "
                 flex flex-col gap-2 items-center
                 max-h-full overflow-y-auto
             ",
-            for suggestion in processed_suggestions {
+            for (suggestion_id, suggestion) in processed_suggestions
+                .into_iter()
+                .enumerate()
+                .filter(|(id, _)| !resolved_suggestions_.contains(id))
+            {
                 TaskSuggestionCard {
                     key: "{suggestion.title}",
-                    suggestion
+                    suggestion_id,
+                    suggestion,
+                    resolved_suggestions,
                 }
             }
         }
@@ -151,7 +159,11 @@ fn ChatGptSuggestions(
 }
 
 #[component]
-fn TaskSuggestionCard(suggestion: ProcessedTaskSuggestion) -> Element {
+fn TaskSuggestionCard(
+    suggestion_id: usize,
+    resolved_suggestions: Signal<HashSet<usize>>,
+    suggestion: ProcessedTaskSuggestion,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -178,7 +190,7 @@ fn TaskSuggestionCard(suggestion: ProcessedTaskSuggestion) -> Element {
                     ",
                     {suggestion.title}
                 },
-                AddTaskButton { suggestion: s }
+                AddTaskButton { suggestion_id, resolved_suggestions, suggestion: s }
                 DeleteTaskButton {}
             }
             Description {
@@ -204,7 +216,11 @@ fn TaskSuggestionCard(suggestion: ProcessedTaskSuggestion) -> Element {
 }
 
 #[component]
-fn AddTaskButton(suggestion: ProcessedTaskSuggestion) -> Element {
+fn AddTaskButton(
+    suggestion_id: usize,
+    resolved_suggestions: Signal<HashSet<usize>>,
+    suggestion: ProcessedTaskSuggestion,
+) -> Element {
     let style = "
         rounded-md
         border border-green-500
@@ -218,6 +234,8 @@ fn AddTaskButton(suggestion: ProcessedTaskSuggestion) -> Element {
             aria_label: "add task",
             class: "size-7 {style}",
             onclick: move |_| {
+                let mut resolved_suggestions = resolved_suggestions.write();
+                resolved_suggestions.insert(suggestion_id);
                 spawn_forever(create_task(board_signals, suggestion.clone()));
             },
             ConfirmIcon {}
