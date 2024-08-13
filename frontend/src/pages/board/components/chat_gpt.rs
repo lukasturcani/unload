@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use dioxus::prelude::*;
-use shared_models::{Color, TagData, TagEntry, TaskSuggestion};
+use shared_models::{Color, TagData, TagEntry, TaskStatus, TaskSuggestion};
 
 use crate::{
     components::{
@@ -12,7 +12,7 @@ use crate::{
     model::UnloadUrl,
     pages::board::{
         model::{Board, ChatGptResponse, Tags},
-        requests,
+        requests::{self, BoardSignals},
     },
     themes::Theme,
 };
@@ -163,8 +163,8 @@ fn TaskSuggestionCard(suggestion: ProcessedTaskSuggestion) -> Element {
         {} {}",
         theme.border_color, theme.bg_color_2
     );
+    let s = suggestion.clone();
     let label = suggestion.title.clone();
-
     rsx! {
         article {
             aria_label: label,
@@ -178,7 +178,7 @@ fn TaskSuggestionCard(suggestion: ProcessedTaskSuggestion) -> Element {
                     ",
                     {suggestion.title}
                 },
-                AddTaskButton {}
+                AddTaskButton { suggestion: s }
                 DeleteTaskButton {}
             }
             Description {
@@ -204,7 +204,7 @@ fn TaskSuggestionCard(suggestion: ProcessedTaskSuggestion) -> Element {
 }
 
 #[component]
-fn AddTaskButton() -> Element {
+fn AddTaskButton(suggestion: ProcessedTaskSuggestion) -> Element {
     let style = "
         rounded-md
         border border-green-500
@@ -212,12 +212,37 @@ fn AddTaskButton() -> Element {
         active:bg-green-500
         sm:hover:bg-green-500 sm:hover:stroke-white
     ";
+    let board_signals = BoardSignals::default();
     rsx! {
         button {
             aria_label: "add task",
             class: "size-7 {style}",
+            onclick: move |_| {
+                spawn_forever(create_task(board_signals, suggestion.clone()));
+            },
             ConfirmIcon {}
         }
+    }
+}
+
+async fn create_task(signals: BoardSignals, suggestion: ProcessedTaskSuggestion) {
+    if let Ok(task_id) = requests::create_task(
+        signals.url,
+        signals.board,
+        &shared_models::NewTaskData {
+            title: suggestion.title,
+            description: suggestion.description,
+            due: None,
+            status: TaskStatus::ToDo,
+            assignees: Vec::new(),
+            tags: suggestion.tags.iter().map(|tag| tag.id).collect(),
+            new_tags: suggestion.new_tags,
+        },
+    )
+    .await
+    {
+        log::info!("created task: {task_id}");
+        requests::board(signals).await;
     }
 }
 
