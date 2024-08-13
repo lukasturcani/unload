@@ -216,7 +216,7 @@ pub async fn create_tag(
 pub async fn create_task(
     url: Signal<UnloadUrl>,
     board: Signal<Board>,
-    task_data: &shared_models::TaskData,
+    task_data: &shared_models::NewTaskData,
 ) -> Result<TaskId, anyhow::Error> {
     let url = {
         let url = &url.read().0;
