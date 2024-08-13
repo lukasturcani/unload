@@ -473,10 +473,18 @@ fn ChatGptContainer(
     let chat_gpt_response = use_signal(|| None);
     rsx! {
         div {
-            class: "p-5 w-full flex flex-col gap-2 items-center justify-center {style}",
+            class: "p-5 w-full flex flex-col gap-5 items-center justify-center {style}",
             onclick: |event| event.stop_propagation(),
             ChatGpt { chat_gpt_response }
             if chat_gpt_response.read().is_none() {
+                div {
+                    class: "inline-flex items-center justify-center",
+                    hr { class: "w-64 h-px border-0 bg-gray-700" }
+                    span {
+                        class: "absolute px-3 font-medium -translate-x-1/2 left-1/2 text-white bg-gray-900",
+                        "or"
+                    }
+                }
                 CustomTaskButton { status, adding_task, panel }
             }
         }
