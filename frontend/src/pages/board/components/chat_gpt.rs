@@ -117,7 +117,6 @@ fn ChatGptSuggestions(
         map.insert(&tag.name, tag.color);
         map
     });
-    let mut new_name_to_color = HashMap::new();
     let mut processed_suggestions = Vec::with_capacity(suggestions.len());
     for suggestion in suggestions {
         let mut tags = Vec::new();
@@ -131,7 +130,6 @@ fn ChatGptSuggestions(
                 None => {
                     let color =
                         colors[(name.bytes().fold(0, |acc, x| acc + (x as u16)) % 16) as usize];
-                    new_name_to_color.insert(name.clone(), color);
                     new_tags.push(TagData { name, color });
                 }
             }
