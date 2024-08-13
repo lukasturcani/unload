@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use dioxus::prelude::*;
-use shared_models::{Color, TagData, TaskSuggestion};
+use shared_models::{Color, TagData, TagEntry, TaskSuggestion};
 
 use crate::{
     components::{
@@ -84,7 +84,7 @@ fn ChatGptWaiting() -> Element {
 struct ProcessedTaskSuggestion {
     title: String,
     description: String,
-    tags: Vec<TagData>,
+    tags: Vec<TagEntry>,
     new_tags: Vec<TagData>,
 }
 
@@ -113,8 +113,15 @@ fn ChatGptSuggestions(
     ];
     let tags = use_context::<Signal<Tags>>();
     let tags = &tags.read().0;
-    let name_to_color = tags.values().fold(HashMap::new(), |mut map, tag| {
-        map.insert(&tag.name, tag.color);
+    let name_to_entry = tags.iter().fold(HashMap::new(), |mut map, (id, tag)| {
+        map.insert(
+            &tag.name,
+            TagEntry {
+                id: *id,
+                name: tag.name.clone(),
+                color: tag.color,
+            },
+        );
         map
     });
     let mut processed_suggestions = Vec::with_capacity(suggestions.len());
@@ -122,11 +129,8 @@ fn ChatGptSuggestions(
         let mut tags = Vec::new();
         let mut new_tags = Vec::new();
         for name in suggestion.tags {
-            match name_to_color.get(&name) {
-                Some(color) => tags.push(TagData {
-                    name,
-                    color: *color,
-                }),
+            match name_to_entry.get(&name) {
+                Some(entry) => tags.push(entry.clone()),
                 None => {
                     let color =
                         colors[(name.bytes().fold(0, |acc, x| acc + (x as u16)) % 16) as usize];
