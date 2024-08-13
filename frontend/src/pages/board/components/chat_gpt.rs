@@ -19,33 +19,23 @@ use crate::{
 
 #[component]
 pub fn ChatGpt() -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!(
-        "rounded-lg border max-h-full overflow-y-auto {} {}",
-        theme.bg_color_1, theme.border_color
-    );
     let chat_gpt_response = use_signal(|| None);
     rsx! {
-        div {
-            class: "p-5 {style}",
-            onclick: |event| event.stop_propagation(),
-            match &*chat_gpt_response.read() {
-                Some(ChatGptResponse::Waiting) => rsx! {
-                    ChatGptWaiting {}
-                },
-                Some(ChatGptResponse::Suggestions(suggestions)) => rsx! {
-                    ChatGptSuggestions {
-                        suggestions: suggestions.clone(),
-                        chat_gpt_response,
-                    }
-                },
-                Some(ChatGptResponse::Error) => rsx! {
-                    ChatGptError { chat_gpt_response }
-                },
-                None => rsx! {
-                    ChatGptPromptInput { chat_gpt_response }
+        match &*chat_gpt_response.read() {
+            Some(ChatGptResponse::Waiting) => rsx! {
+                ChatGptWaiting {}
+            },
+            Some(ChatGptResponse::Suggestions(suggestions)) => rsx! {
+                ChatGptSuggestions {
+                    suggestions: suggestions.clone(),
+                    chat_gpt_response,
                 }
+            },
+            Some(ChatGptResponse::Error) => rsx! {
+                ChatGptError { chat_gpt_response }
+            },
+            None => rsx! {
+                ChatGptPromptInput { chat_gpt_response }
             }
         }
     }

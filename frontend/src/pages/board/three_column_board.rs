@@ -3,6 +3,7 @@ use itertools::Itertools;
 use shared_models::{BoardName, SavedBoard, TaskStatus};
 
 use crate::{
+    commands::FocusTarget,
     components::{
         form::{CancelButton, ConfirmButton},
         icons::{
@@ -29,7 +30,10 @@ use crate::{
 enum Panel {
     None,
     Boards,
-    ChatGpt,
+    ChatGpt {
+        status: TaskStatus,
+        adding_task: Signal<bool>,
+    },
 }
 
 #[component]
@@ -77,7 +81,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
         match panel() {
             Panel::None => rsx! {},
             Panel::Boards => rsx! { BoardPopup { panel } },
-            Panel::ChatGpt => rsx! { ChatGptPopup { panel } },
+            Panel::ChatGpt{status, adding_task} => rsx! { ChatGptPopup { status, adding_task, panel } },
         }
     }
 }
@@ -432,7 +436,7 @@ fn BoardPopup(panel: Signal<Panel>) -> Element {
 }
 
 #[component]
-fn ChatGptPopup(panel: Signal<Panel>) -> Element {
+fn ChatGptPopup(status: TaskStatus, adding_task: Signal<bool>, panel: Signal<Panel>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = theme.text_color;
@@ -448,8 +452,63 @@ fn ChatGptPopup(panel: Signal<Panel>) -> Element {
             div {
                 class: "w-2/3 max-h-full overflow-y-auto",
                 onclick: |event| event.stop_propagation(),
-                ChatGpt {}
+                ChatGptContainer { status, adding_task, panel }
             }
+        }
+    }
+}
+
+#[component]
+fn ChatGptContainer(
+    status: TaskStatus,
+    adding_task: Signal<bool>,
+    panel: Signal<Panel>,
+) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "rounded-lg border max-h-full overflow-y-auto {} {}",
+        theme.bg_color_1, theme.border_color
+    );
+    rsx! {
+        div {
+            class: "p-5 w-full flex flex-col gap-2 items-center justify-center {style}",
+            onclick: |event| event.stop_propagation(),
+            ChatGpt {}
+            CustomTaskButton { status, adding_task, panel }
+        }
+    }
+}
+
+#[component]
+fn CustomTaskButton(
+    status: TaskStatus,
+    adding_task: Signal<bool>,
+    panel: Signal<Panel>,
+) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded-lg {}", theme.primary_button);
+    let mut focus_target = use_context::<Signal<FocusTarget>>();
+    rsx! {
+        button {
+            class: "
+                w-full sm:w-auto
+                px-5 py-2.5
+                text-sm text-center font-medium
+                {style}
+            ",
+            onclick: move |_| {
+                panel.set(Panel::None);
+                if adding_task() {
+                    focus_target.set(
+                        FocusTarget(Some(format!("new-{status:#?}-task-title-input")))
+                    );
+                } else {
+                    adding_task.set(true);
+                }
+            },
+            "Custom Task"
         }
     }
 }
@@ -612,7 +671,7 @@ fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>, panel: Signal<Pa
                 {style}
             ",
             onclick: move |_| {
-                panel.set(Panel::ChatGpt);
+                panel.set(Panel::ChatGpt{status, adding_task});
             },
             div {
                 class: "size-6",
