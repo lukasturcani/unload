@@ -182,6 +182,12 @@ fn TaskSuggestionCard(suggestion: ProcessedTaskSuggestion) -> Element {
                         color: tag.color
                     }
                 }
+                for tag in suggestion.new_tags {
+                    TagIcon {
+                        name: tag.name,
+                        color: tag.color
+                    }
+                }
             }
         }
     }
