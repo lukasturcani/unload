@@ -80,11 +80,13 @@ fn ChatGptWaiting() -> Element {
     }
 }
 
-#[derive(Default, Clone)]
-struct SuggestedTags(HashMap<String, Color>);
-
-#[derive(Default, Clone)]
-struct CurrentTags(HashMap<String, Color>);
+#[derive(Debug, Clone, Eq, PartialEq)]
+struct ProcessedTaskSuggestion {
+    title: String,
+    description: String,
+    tags: Vec<TagData>,
+    new_tags: Vec<TagData>,
+}
 
 #[component]
 fn ChatGptSuggestions(
@@ -92,22 +94,43 @@ fn ChatGptSuggestions(
     chat_gpt_response: Signal<Option<ChatGptResponse>>,
 ) -> Element {
     let tags = use_context::<Signal<Tags>>();
-    use_context_provider(|| {
-        let tags = &tags.read().0;
-        let mut map = HashMap::new();
-        for tag in tags.values() {
-            map.insert(tag.name.clone(), tag.color);
-        }
-        Signal::new(CurrentTags(map))
+    let tags = &tags.read().0;
+    let name_to_color = tags.values().fold(HashMap::new(), |mut map, tag| {
+        map.insert(&tag.name, tag.color);
+        map
     });
-    use_context_provider(|| Signal::new(SuggestedTags::default()));
+    let mut new_name_to_color = HashMap::new();
+    let mut processed_suggestions = Vec::with_capacity(suggestions.len());
+    for suggestion in suggestions {
+        let mut tags = Vec::new();
+        let mut new_tags = Vec::new();
+        for name in suggestion.tags {
+            match name_to_color.get(&name) {
+                Some(color) => tags.push(TagData {
+                    name,
+                    color: *color,
+                }),
+                None => {
+                    let color = Color::Aqua;
+                    new_name_to_color.insert(name.clone(), color);
+                    new_tags.push(TagData { name, color });
+                }
+            }
+        }
+        processed_suggestions.push(ProcessedTaskSuggestion {
+            title: suggestion.title,
+            description: suggestion.description,
+            tags,
+            new_tags,
+        });
+    }
     rsx! {
         div {
             class: "
                 flex flex-col gap-2 items-center
                 max-h-full overflow-y-auto
             ",
-            for suggestion in suggestions {
+            for suggestion in processed_suggestions {
                 TaskSuggestionCard {
                     key: "{suggestion.title}",
                     suggestion
@@ -118,7 +141,7 @@ fn ChatGptSuggestions(
 }
 
 #[component]
-fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
+fn TaskSuggestionCard(suggestion: ProcessedTaskSuggestion) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -132,23 +155,6 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
     );
     let label = suggestion.title.clone();
 
-    let current_tags = use_context::<Signal<CurrentTags>>();
-    let current_tags = &current_tags.read().0;
-
-    let mut suggested_tags = use_context::<Signal<SuggestedTags>>();
-    let suggested_tags = &mut suggested_tags.write().0;
-
-    let mut task_tags = Vec::with_capacity(suggestion.tags.len());
-
-    for tag in suggestion.tags {
-        if let Some(&color) = current_tags.get(&tag) {
-            task_tags.push(TagData { name: tag, color });
-        } else if let Some(&color) = suggested_tags.get(&tag) {
-            task_tags.push(TagData { name: tag, color });
-        } else {
-            suggested_tags.insert(tag, Color::Aqua);
-        }
-    }
     rsx! {
         article {
             aria_label: label,
@@ -170,7 +176,7 @@ fn TaskSuggestionCard(suggestion: TaskSuggestion) -> Element {
             },
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
-                for tag in task_tags {
+                for tag in suggestion.tags {
                     TagIcon {
                         name: tag.name,
                         color: tag.color
