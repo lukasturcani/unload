@@ -1587,7 +1587,7 @@ pub async fn suggest_tasks(
             chat_completion::ChatCompletionMessage {
                 role: chat_completion::MessageRole::system,
                 content: chat_completion::Content::Text(format!(
-                    "Create tasks for the following prompt, \
+                    "Create up to 5 tasks for the following prompt, \
                     return them as a JSON array of objects with the following properties: \
                     title, description, tags. \
                     If the description includes subtasks, start each on a separate line \
