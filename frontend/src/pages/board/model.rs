@@ -113,9 +113,10 @@ impl From<&TaskData> for QuickAddData {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum ChatGptResponse {
     Suggestions(Vec<TaskSuggestion>),
     Error,
     Waiting,
+    Resolved,
 }

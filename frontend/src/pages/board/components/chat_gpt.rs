@@ -33,6 +33,7 @@ pub fn ChatGpt(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
             Some(ChatGptResponse::Error) => rsx! {
                 ChatGptError { chat_gpt_response }
             },
+            Some(ChatGptResponse::Resolved) => rsx! {},
             None => rsx! {
                 ChatGptPromptInput { chat_gpt_response }
             }
@@ -136,6 +137,9 @@ fn ChatGptSuggestions(
     }
     let resolved_suggestions = use_signal(HashSet::new);
     let resolved_suggestions_ = &resolved_suggestions.read();
+    if resolved_suggestions_.len() == processed_suggestions.len() {
+        chat_gpt_response.set(Some(ChatGptResponse::Resolved));
+    }
     rsx! {
         div {
             class: "

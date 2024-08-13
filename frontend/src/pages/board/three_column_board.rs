@@ -19,7 +19,9 @@ use crate::{
         components::{
             ChatGpt, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
         },
-        model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
+        model::{
+            task_filter, Board, ChatGptResponse, Dense, TagFilter, Tags, Tasks, UserFilter, Users,
+        },
         requests::{self, BoardSignals},
     },
     route::Route,
@@ -471,6 +473,9 @@ fn ChatGptContainer(
         theme.bg_color_1, theme.border_color
     );
     let chat_gpt_response = use_signal(|| None);
+    if *chat_gpt_response.read() == Some(ChatGptResponse::Resolved) {
+        panel.set(Panel::None);
+    }
     rsx! {
         div {
             class: "p-5 w-full flex flex-col gap-5 items-center justify-center {style}",
