@@ -93,6 +93,24 @@ fn ChatGptSuggestions(
     suggestions: Vec<TaskSuggestion>,
     chat_gpt_response: Signal<Option<ChatGptResponse>>,
 ) -> Element {
+    let colors = [
+        Color::Black,
+        Color::White,
+        Color::Gray,
+        Color::Silver,
+        Color::Maroon,
+        Color::Red,
+        Color::Purple,
+        Color::Fushsia,
+        Color::Green,
+        Color::Lime,
+        Color::Olive,
+        Color::Yellow,
+        Color::Navy,
+        Color::Blue,
+        Color::Teal,
+        Color::Aqua,
+    ];
     let tags = use_context::<Signal<Tags>>();
     let tags = &tags.read().0;
     let name_to_color = tags.values().fold(HashMap::new(), |mut map, tag| {
@@ -111,7 +129,8 @@ fn ChatGptSuggestions(
                     color: *color,
                 }),
                 None => {
-                    let color = Color::Aqua;
+                    let color =
+                        colors[(name.bytes().fold(0, |acc, x| acc + (x as u16)) % 16) as usize];
                     new_name_to_color.insert(name.clone(), color);
                     new_tags.push(TagData { name, color });
                 }
