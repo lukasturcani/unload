@@ -220,6 +220,18 @@ fn TaskSuggestionCard(
 }
 
 #[component]
+fn Title(title: String) -> Element {
+    let editing = use_signal(|| false);
+    rsx! {
+        if editing() {
+            TitleInput { editing, title }
+        } else {
+            TitleShow { editing, title }
+        }
+    }
+}
+
+#[component]
 fn AddTaskButton(
     suggestion_id: usize,
     resolved_suggestions: Signal<HashSet<usize>>,
