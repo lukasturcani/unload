@@ -11,6 +11,7 @@ use openai_api_rs::v1::chat_completion::ChatCompletionRequest;
 use openai_api_rs::v1::common::GPT4_O_MINI;
 use shared_models::BoardData;
 use shared_models::ChatGptRequest;
+use shared_models::NewTaskData;
 use shared_models::QuickAddData;
 use shared_models::QuickAddEntry;
 use shared_models::QuickAddTaskId;
@@ -19,9 +20,7 @@ use shared_models::TagData;
 use shared_models::TagEntry;
 use shared_models::TagId;
 use shared_models::TaskSuggestion;
-use shared_models::{
-    BoardName, Color, TaskData, TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId,
-};
+use shared_models::{BoardName, Color, TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId};
 use sqlx::{QueryBuilder, Row, SqlitePool};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -455,7 +454,7 @@ pub async fn show_tasks(
 pub async fn create_task(
     State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
-    Json(task_data): Json<TaskData>,
+    Json(task_data): Json<NewTaskData>,
 ) -> Result<Json<TaskId>> {
     let created = Utc::now();
     let mut tx = pool.begin().await?;

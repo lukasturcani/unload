@@ -163,6 +163,17 @@ pub struct TaskData {
     pub tags: Vec<TagId>,
 }
 
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct NewTaskData {
+    pub title: String,
+    pub description: String,
+    pub due: Option<DateTime<Utc>>,
+    pub status: TaskStatus,
+    pub assignees: Vec<UserId>,
+    pub tags: Vec<TagId>,
+    pub new_tags: Vec<TagData>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TaskEntry {
     pub id: TaskId,
