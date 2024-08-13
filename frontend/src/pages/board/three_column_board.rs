@@ -470,12 +470,15 @@ fn ChatGptContainer(
         "rounded-lg border max-h-full overflow-y-auto {} {}",
         theme.bg_color_1, theme.border_color
     );
+    let chat_gpt_response = use_signal(|| None);
     rsx! {
         div {
             class: "p-5 w-full flex flex-col gap-2 items-center justify-center {style}",
             onclick: |event| event.stop_propagation(),
-            ChatGpt {}
-            CustomTaskButton { status, adding_task, panel }
+            ChatGpt { chat_gpt_response }
+            if chat_gpt_response.read().is_none() {
+                CustomTaskButton { status, adding_task, panel }
+            }
         }
     }
 }

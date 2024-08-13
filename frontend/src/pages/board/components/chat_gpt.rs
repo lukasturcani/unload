@@ -18,8 +18,7 @@ use crate::{
 };
 
 #[component]
-pub fn ChatGpt() -> Element {
-    let chat_gpt_response = use_signal(|| None);
+pub fn ChatGpt(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
     rsx! {
         match &*chat_gpt_response.read() {
             Some(ChatGptResponse::Waiting) => rsx! {
