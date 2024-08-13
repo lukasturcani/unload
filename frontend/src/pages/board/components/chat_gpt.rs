@@ -195,7 +195,7 @@ fn TaskSuggestionCard(
                     {suggestion.title}
                 },
                 AddTaskButton { suggestion_id, resolved_suggestions, suggestion: s }
-                DeleteTaskButton {}
+                DeleteTaskButton { suggestion_id, resolved_suggestions }
             }
             Description {
                 description: suggestion.description,
@@ -269,7 +269,7 @@ async fn create_task(signals: BoardSignals, suggestion: ProcessedTaskSuggestion)
 }
 
 #[component]
-fn DeleteTaskButton() -> Element {
+fn DeleteTaskButton(suggestion_id: usize, resolved_suggestions: Signal<HashSet<usize>>) -> Element {
     let style = "
         rounded-md
         border border-red-600
@@ -281,6 +281,10 @@ fn DeleteTaskButton() -> Element {
         button {
             aria_label: "delete task",
             class: "size-7 {style}",
+            onclick: move |_| {
+                let mut resolved_suggestions = resolved_suggestions.write();
+                resolved_suggestions.insert(suggestion_id);
+            },
             CancelIcon {}
         }
     }
