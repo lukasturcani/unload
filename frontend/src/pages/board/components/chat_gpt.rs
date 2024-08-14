@@ -184,17 +184,13 @@ fn TaskSuggestionCard(
     let s = suggestion.clone();
     let label = suggestion.title.clone();
     let title = use_signal(|| suggestion.title);
+    let description = use_signal(|| suggestion.description);
     rsx! {
         article {
             aria_label: label,
             class: "flex flex-col gap-2 p-2.5 {style}",
-            div {
-                class: "flex flex-row gap-2 items-center",
-                Title { title }
-            }
-            Description {
-                description: suggestion.description,
-            },
+            Title { title }
+            Description { description },
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
                 for tag in suggestion.tags {
@@ -277,7 +273,7 @@ fn TitleInput(editing: Signal<bool>, title: Signal<String>) -> Element {
     rsx! {
         form {
             "aria-label": "update title",
-            class: "flex flex-row gap-2 justify-center items-center",
+            class: "flex flex-row gap-2 justify-start items-center",
             onsubmit: move |event| {
                 title.set(event.values()["Title"].as_value());
                 editing.set(false);
@@ -408,7 +404,24 @@ fn TagIcon(name: String, color: Color) -> Element {
 }
 
 #[component]
-fn Description(description: String) -> Element {
+fn Description(description: Signal<String>) -> Element {
+    let editing = use_signal(|| false);
+    rsx! {
+        if editing() {
+            DescriptionInput { editing, description }
+        } else {
+            DescriptionShow { description }
+        }
+    }
+}
+
+#[component]
+fn DescriptionInput(editing: Signal<bool>, description: Signal<String>) -> Element {
+    rsx! {}
+}
+
+#[component]
+fn DescriptionShow(description: String) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
