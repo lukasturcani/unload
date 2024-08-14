@@ -190,7 +190,7 @@ fn TaskSuggestionCard(
             aria_label: label,
             class: "flex flex-col gap-2 p-2.5 {style}",
             Title { title }
-            Description { description },
+            Description { description }
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
                 for tag in suggestion.tags {
@@ -410,7 +410,7 @@ fn Description(description: Signal<String>) -> Element {
         if editing() {
             DescriptionInput { editing, description }
         } else {
-            DescriptionShow { description }
+            DescriptionShow { editing, description }
         }
     }
 }
@@ -421,7 +421,46 @@ fn DescriptionInput(editing: Signal<bool>, description: Signal<String>) -> Eleme
 }
 
 #[component]
-fn DescriptionShow(description: String) -> Element {
+fn DescriptionShow(editing: Signal<bool>, description: Signal<String>) -> Element {
+    rsx! {
+        section {
+            "aria-label": "description",
+            class: "flex flex-col gap-2",
+            DescriptionContent { description }
+            div {
+                class: "flex flex-row justify-center",
+                EditDescriptionButton { editing }
+            }
+        }
+    }
+}
+
+#[component]
+fn EditDescriptionButton(editing: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded border {}", theme.button);
+    rsx! {
+        button {
+            "aria-label": "edit description",
+            class: "
+                group
+                flex flex-row justify-center items-center
+                py-1 px-6
+                {style}
+            ",
+            onclick: move |_| editing.set(true),
+            div {
+                class: "relative",
+                div { class: "size-5", EditIcon {} }
+                Tooltip { content: "Edit Description", position: "-top-12 -left-10" }
+            }
+        }
+    }
+}
+
+#[component]
+fn DescriptionContent(description: String) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
