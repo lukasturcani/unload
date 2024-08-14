@@ -5,8 +5,10 @@ use shared_models::{Color, TagData, TagEntry, TaskStatus, TaskSuggestion};
 
 use crate::{
     components::{
-        icons::{CancelIcon, ConfirmIcon},
+        form::{CancelButton, ConfirmButton},
+        icons::{CancelIcon, ConfirmIcon, EditIcon},
         input::TextInput,
+        tooltip::Tooltip,
     },
     description_parser::{parse_blocks, Block, Line},
     model::UnloadUrl,
@@ -181,20 +183,20 @@ fn TaskSuggestionCard(
     );
     let s = suggestion.clone();
     let label = suggestion.title.clone();
+    let title = use_signal(|| suggestion.title);
     rsx! {
         article {
             aria_label: label,
             class: "flex flex-col gap-2 p-2.5 {style}",
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
-                h3 {
-                    class: "
-                        text-lg sm:text-xl
-                        font-bold tracking-tight
-                    ",
-                    {suggestion.title}
-                },
-                AddTaskButton { suggestion_id, resolved_suggestions, suggestion: s }
+                Title { title }
+                AddTaskButton {
+                    suggestion_id,
+                    resolved_suggestions,
+                    title,
+                    suggestion: s,
+                }
                 DeleteTaskButton { suggestion_id, resolved_suggestions }
             }
             Description {
@@ -220,7 +222,7 @@ fn TaskSuggestionCard(
 }
 
 #[component]
-fn Title(title: String) -> Element {
+fn Title(title: Signal<String>) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
@@ -232,9 +234,73 @@ fn Title(title: String) -> Element {
 }
 
 #[component]
+fn TitleShow(editing: Signal<bool>, title: String) -> Element {
+    rsx! {
+        div {
+            class: "flex flex-row gap-2 pr-2 items-center",
+            h3 {
+                class: "
+                    text-lg sm:text-xl
+                    font-bold tracking-tight
+                ",
+                {title}
+            }
+            EditButton { tooltip: "Edit Title", editing }
+        }
+    }
+}
+
+#[component]
+fn EditButton(tooltip: &'static str, editing: Signal<bool>) -> Element {
+    rsx! {
+        div {
+            class: "group relative",
+            button {
+                "aria-label": "edit title",
+                class: "block size-5",
+                onclick: move |_| editing.set(true),
+                EditIcon {}
+            }
+            Tooltip {
+                content: tooltip,
+                position: "",
+            }
+        }
+    }
+}
+
+#[component]
+fn TitleInput(editing: Signal<bool>, title: Signal<String>) -> Element {
+    rsx! {
+        form {
+            "aria-label": "update title",
+            class: "flex flex-col gap-2 justify-center items-center",
+            onsubmit: move |event| {
+                title.set(event.values()["Title"].as_value());
+                editing.set(false);
+            },
+            div {
+                class: "flex flex-row gap-1 items-center",
+                TextInput {
+                    id: "task-{title}-title-input",
+                    label: "Title",
+                    value: title.read().clone(),
+                }
+            }
+            div {
+                class: "flex flex-row gap-1 items-center",
+                ConfirmButton { label: "set title" }
+                CancelButton { label: "cancel title update", editing }
+            }
+        }
+    }
+}
+
+#[component]
 fn AddTaskButton(
     suggestion_id: usize,
     resolved_suggestions: Signal<HashSet<usize>>,
+    title: Signal<String>,
     suggestion: ProcessedTaskSuggestion,
 ) -> Element {
     let style = "
@@ -252,19 +318,19 @@ fn AddTaskButton(
             onclick: move |_| {
                 let mut resolved_suggestions = resolved_suggestions.write();
                 resolved_suggestions.insert(suggestion_id);
-                spawn_forever(create_task(board_signals, suggestion.clone()));
+                spawn_forever(create_task(board_signals, title.read().clone(), suggestion.clone()));
             },
             ConfirmIcon {}
         }
     }
 }
 
-async fn create_task(signals: BoardSignals, suggestion: ProcessedTaskSuggestion) {
+async fn create_task(signals: BoardSignals, title: String, suggestion: ProcessedTaskSuggestion) {
     if let Ok(task_id) = requests::create_task(
         signals.url,
         signals.board,
         &shared_models::NewTaskData {
-            title: suggestion.title,
+            title,
             description: suggestion.description,
             due: None,
             status: TaskStatus::ToDo,
@@ -470,6 +536,7 @@ fn PromptSuggestions(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Elem
         ul {
             class: "w-full {style}",
             PromptSuggestion { prompt: "suggest cupcake recipe", chat_gpt_response }
+            PromptSuggestion { prompt: "paint bedroom", chat_gpt_response }
             PromptSuggestion { prompt: "friends over for BBQ", chat_gpt_response }
             PromptSuggestion { prompt: "prepare for Rome vacation", chat_gpt_response }
             PromptSuggestion { prompt: "house tidy", chat_gpt_response }
