@@ -421,7 +421,7 @@ fn DescriptionInput(editing: Signal<bool>, description: Signal<String>) -> Eleme
 }
 
 #[component]
-fn DescriptionShow(editing: Signal<bool>, description: Signal<String>) -> Element {
+fn DescriptionShow(editing: Signal<bool>, description: String) -> Element {
     rsx! {
         section {
             "aria-label": "description",
