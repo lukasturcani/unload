@@ -213,6 +213,7 @@ fn TaskSuggestionCard(
                     suggestion_id,
                     resolved_suggestions,
                     title,
+                    description,
                     suggestion: s,
                     }
                     DeleteTaskButton { suggestion_id, resolved_suggestions }
@@ -301,6 +302,7 @@ fn AddTaskButton(
     suggestion_id: usize,
     resolved_suggestions: Signal<HashSet<usize>>,
     title: Signal<String>,
+    description: Signal<String>,
     suggestion: ProcessedTaskSuggestion,
 ) -> Element {
     let style = "
@@ -318,20 +320,25 @@ fn AddTaskButton(
             onclick: move |_| {
                 let mut resolved_suggestions = resolved_suggestions.write();
                 resolved_suggestions.insert(suggestion_id);
-                spawn_forever(create_task(board_signals, title.read().clone(), suggestion.clone()));
+                spawn_forever(create_task(board_signals, title.read().clone(), description.read().clone(), suggestion.clone()));
             },
             ConfirmIcon {}
         }
     }
 }
 
-async fn create_task(signals: BoardSignals, title: String, suggestion: ProcessedTaskSuggestion) {
+async fn create_task(
+    signals: BoardSignals,
+    title: String,
+    description: String,
+    suggestion: ProcessedTaskSuggestion,
+) {
     if let Ok(task_id) = requests::create_task(
         signals.url,
         signals.board,
         &shared_models::NewTaskData {
             title,
-            description: suggestion.description,
+            description,
             due: None,
             status: TaskStatus::ToDo,
             assignees: Vec::new(),
