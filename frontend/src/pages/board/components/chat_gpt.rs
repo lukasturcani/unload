@@ -13,6 +13,7 @@ use crate::{
     description_parser::{parse_blocks, Block, Line},
     model::UnloadUrl,
     pages::board::{
+        components::description_input::DescriptionInput,
         model::{Board, ChatGptResponse, Tags},
         requests::{self, BoardSignals},
     },
@@ -189,8 +190,8 @@ fn TaskSuggestionCard(
         article {
             aria_label: label,
             class: "flex flex-col gap-2 p-2.5 {style}",
-            Title { title }
-            Description { description }
+            Title { suggestion_id, title }
+            Description { suggestion_id description }
             div {
                 class: "flex flex-row gap-2 items-center justify-start",
                 for tag in suggestion.tags {
@@ -221,11 +222,11 @@ fn TaskSuggestionCard(
 }
 
 #[component]
-fn Title(title: Signal<String>) -> Element {
+fn Title(suggestion_id: usize, title: Signal<String>) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
-            TitleInput { editing, title }
+            TitleInput { suggestion_id, editing, title }
         } else {
             TitleShow { editing, title }
         }
@@ -269,7 +270,7 @@ fn EditButton(tooltip: &'static str, editing: Signal<bool>) -> Element {
 }
 
 #[component]
-fn TitleInput(editing: Signal<bool>, title: Signal<String>) -> Element {
+fn TitleInput(suggestion_id: usize, editing: Signal<bool>, title: Signal<String>) -> Element {
     rsx! {
         form {
             "aria-label": "update title",
@@ -281,7 +282,7 @@ fn TitleInput(editing: Signal<bool>, title: Signal<String>) -> Element {
             div {
                 class: "flex flex-row gap-1 items-center",
                 TextInput {
-                    id: "task-{title}-title-input",
+                    id: "suggestion-{suggestion_id}-title-input",
                     label: "Title",
                     value: title.read().clone(),
                 }
@@ -404,11 +405,11 @@ fn TagIcon(name: String, color: Color) -> Element {
 }
 
 #[component]
-fn Description(description: Signal<String>) -> Element {
+fn Description(suggestion_id: usize, description: Signal<String>) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
-            DescriptionInput { editing, description }
+            DescriptionForm { suggestion_id, editing, description }
         } else {
             DescriptionShow { editing, description }
         }
@@ -416,8 +417,31 @@ fn Description(description: Signal<String>) -> Element {
 }
 
 #[component]
-fn DescriptionInput(editing: Signal<bool>, description: Signal<String>) -> Element {
-    rsx! {}
+fn DescriptionForm(
+    suggestion_id: usize,
+    editing: Signal<bool>,
+    description: Signal<String>,
+) -> Element {
+    rsx! {
+        form {
+            "aria-label": "update description",
+            class: "flex flex-col gap-2",
+            onsubmit: move |event| {
+                description.set(event.values()["Description"].as_value());
+                editing.set(false);
+            },
+            DescriptionInput  {
+                id: "suggestion-{suggestion_id}-description-input",
+                editing,
+                description,
+            },
+            div {
+                class: "flex flex-row gap-2 items-center justify-center",
+                ConfirmButton { label: "set description" }
+                CancelButton { label: "cancel description update", editing }
+            }
+        }
+    }
 }
 
 #[component]
