@@ -1,5 +1,6 @@
 mod add_task_button;
 mod chat_gpt;
+mod description_input;
 mod new_task_form;
 mod tag_icon;
 mod task;
