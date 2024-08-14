@@ -189,15 +189,8 @@ fn TaskSuggestionCard(
             aria_label: label,
             class: "flex flex-col gap-2 p-2.5 {style}",
             div {
-                class: "flex flex-row gap-2 items-center justify-start",
+                class: "flex flex-row gap-2 items-center",
                 Title { title }
-                AddTaskButton {
-                    suggestion_id,
-                    resolved_suggestions,
-                    title,
-                    suggestion: s,
-                }
-                DeleteTaskButton { suggestion_id, resolved_suggestions }
             }
             Description {
                 description: suggestion.description,
@@ -217,6 +210,16 @@ fn TaskSuggestionCard(
                     }
                 }
             }
+            div {
+                class: "flex flex-row gap-2 items-center justify-center w-full",
+                AddTaskButton {
+                    suggestion_id,
+                    resolved_suggestions,
+                    title,
+                    suggestion: s,
+                    }
+                    DeleteTaskButton { suggestion_id, resolved_suggestions }
+                }
         }
     }
 }
@@ -274,7 +277,7 @@ fn TitleInput(editing: Signal<bool>, title: Signal<String>) -> Element {
     rsx! {
         form {
             "aria-label": "update title",
-            class: "flex flex-col gap-2 justify-center items-center",
+            class: "flex flex-row gap-2 justify-center items-center",
             onsubmit: move |event| {
                 title.set(event.values()["Title"].as_value());
                 editing.set(false);
