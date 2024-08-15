@@ -11,6 +11,7 @@ use openai_api_rs::v1::chat_completion::ChatCompletionRequest;
 use openai_api_rs::v1::common::GPT4_O_MINI;
 use shared_models::BoardData;
 use shared_models::ChatGptRequest;
+use shared_models::ChatGptResponse;
 use shared_models::NewTaskData;
 use shared_models::QuickAddData;
 use shared_models::QuickAddEntry;
@@ -140,16 +141,31 @@ pub async fn show_board(
     let tasks = get_tasks(&pool, &board_name);
     let tags = get_tags(&pool, &board_name);
     let saved_boards = get_saved_boards(&pool, &saved_boards);
-    match try_join!(title, users, tasks, tags, saved_boards) {
-        Ok((title, users, tasks, tags, saved_boards)) => Ok(Json(BoardData {
+    let num_chat_gpt_calls = get_num_chat_gpt_calls(&pool, &board_name);
+    match try_join!(title, users, tasks, tags, saved_boards, num_chat_gpt_calls) {
+        Ok((title, users, tasks, tags, saved_boards, num_chat_gpt_calls)) => Ok(Json(BoardData {
             title,
             users,
             tasks,
             tags,
             saved_boards,
+            num_chat_gpt_calls,
         })),
         Err(err) => Err(err),
     }
+}
+
+async fn get_num_chat_gpt_calls(pool: &SqlitePool, board_name: &BoardName) -> Result<u8> {
+    let mut tx = pool.begin().await?;
+    let num_chat_gpt_calls = sqlx::query!(
+        "SELECT calls_left FROM chat_gpt_limits WHERE board_name = ?",
+        board_name,
+    )
+    .fetch_one(&mut *tx)
+    .await?
+    .calls_left as u8;
+    tx.commit().await?;
+    Ok(num_chat_gpt_calls)
 }
 
 async fn get_saved_boards(pool: &SqlitePool, boards: &Vec<BoardName>) -> Result<Vec<SavedBoard>> {
@@ -1587,7 +1603,12 @@ pub async fn suggest_tasks(
         ..
     }): State<AppState>,
     Json(request): Json<ChatGptRequest>,
-) -> Result<Json<Vec<TaskSuggestion>>> {
+) -> Result<Json<ChatGptResponse>> {
+    let calls_left = get_num_chat_gpt_calls(&pool, &request.board_name).await?;
+    if calls_left == 0 {
+        return Ok(Json(ChatGptResponse::LimitExceeded));
+    }
+
     let mut tx = pool.begin().await?;
     let tags: Vec<_> = sqlx::query!(
         r#"SELECT name FROM tags WHERE board_name = ?"#,
@@ -1598,7 +1619,7 @@ pub async fn suggest_tasks(
     .into_iter()
     .map(|row| row.name)
     .collect();
-    let request = ChatCompletionRequest::new(
+    let completion_request = ChatCompletionRequest::new(
         GPT4_O_MINI.to_string(),
         vec![
             chat_completion::ChatCompletionMessage {
@@ -1629,7 +1650,10 @@ pub async fn suggest_tasks(
             },
         ],
     );
-    let choices = chat_gpt_client.chat_completion(request).await?.choices;
+    let choices = chat_gpt_client
+        .chat_completion(completion_request)
+        .await?
+        .choices;
     let choice = choices
         .first()
         .ok_or(AppError(anyhow::anyhow!("no prompt results")))?;
@@ -1639,13 +1663,31 @@ pub async fn suggest_tasks(
         .as_ref()
         .ok_or(AppError(anyhow::anyhow!("no content")))?;
     let json: serde_json::Value = serde_json::from_str(content)?;
-    Ok(Json(
+    let suggestions = ChatGptResponse::Suggestions(
         json.as_array()
             .ok_or(AppError(anyhow::anyhow!("array of tasks not returned")))?
             .iter()
             .map(into_task_suggestion)
             .collect(),
-    ))
+    );
+
+    let calls_left = calls_left - 1;
+    sqlx::query!(
+        "
+UPDATE
+    chat_gpt_limits
+SET
+    calls_left = ?
+WHERE
+    board_name = ?
+        ",
+        calls_left,
+        request.board_name,
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Json(suggestions))
 }
 
 fn into_task_suggestion(json: &serde_json::Value) -> TaskSuggestion {

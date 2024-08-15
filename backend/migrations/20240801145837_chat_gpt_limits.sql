@@ -1,4 +1,3 @@
--- Add migration script here
 CREATE TABLE IF NOT EXISTS chat_gpt_limits (
     id INTEGER PRIMARY KEY NOT NULL,
     board_name TEXT NOT NULL,

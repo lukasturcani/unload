@@ -46,6 +46,7 @@ pub struct BoardData {
     pub tasks: Vec<TaskEntry>,
     pub tags: Vec<TagEntry>,
     pub saved_boards: Vec<SavedBoard>,
+    pub num_chat_gpt_calls: u8,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash)]
@@ -254,6 +255,12 @@ pub struct TaskSuggestion {
     pub title: String,
     pub description: String,
     pub tags: Vec<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum ChatGptResponse {
+    Suggestions(Vec<TaskSuggestion>),
+    LimitExceeded,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

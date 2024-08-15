@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT calls_left FROM chat_gpt_limits WHERE board_name = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "calls_left",
+        "ordinal": 0,
+        "type_info": "Int64"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1a31f050070322c75f3f9c294fe258ff0414c983e60e1752b37bedaca0fd6643"
+}

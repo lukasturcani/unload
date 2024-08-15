@@ -17,7 +17,7 @@ use crate::{
             assignee_selection::AssigneeSelection, assignees::Assignees,
             description_input::DescriptionInput, tag_selection::TagSelection, task_tags::TaskTags,
         },
-        model::{Board, ChatGptResponse, Tags, Users},
+        model::{Board, ChatGptResponse, NumChatGptCalls, Tags, Users},
         requests::{self, BoardSignals},
     },
     themes::Theme,
@@ -36,12 +36,32 @@ pub fn ChatGpt(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
                     chat_gpt_response,
                 }
             },
+            Some(ChatGptResponse::LimitExceeded) => rsx! {
+                ChatGptLimitExceeded { chat_gpt_response }
+            },
             Some(ChatGptResponse::Error) => rsx! {
                 ChatGptError { chat_gpt_response }
             },
             Some(ChatGptResponse::Resolved) => rsx! {},
             None => rsx! {
                 ChatGptPromptInput { chat_gpt_response }
+            }
+        }
+    }
+}
+
+#[component]
+fn ChatGptLimitExceeded(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    rsx! {
+        div {
+            class: "flex flex-col gap-2 items-center justify-center",
+            h2 {
+                class: "text-xl font-bold",
+                "ChatGPT Limit Exceeded"
+            },
+            p {
+                class: "text-sm",
+                "You have reached the limit of ChatGPT calls. Please try again later."
             }
         }
     }
@@ -635,12 +655,14 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
     let style = theme.text_color;
     let url = use_context::<Signal<UnloadUrl>>();
     let board = use_context::<Signal<Board>>();
+    let num_calls_left = use_context::<Signal<NumChatGptCalls>>();
+    let num_calls_left = num_calls_left.read().0;
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center {style}",
             p {
                 class: "text-xl font-bold",
-                "Use ChatGPT"
+                "Use ChatGPT ({num_calls_left} daily attempts left)"
             }
             p {
                 class: "text-sm",

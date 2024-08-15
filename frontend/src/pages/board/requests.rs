@@ -14,11 +14,11 @@ use shared_models::Language;
 use shared_models::SavedBoard;
 use shared_models::TagData;
 use shared_models::TagId;
-use shared_models::TaskSuggestion;
 use shared_models::{TaskEntry, TaskId, TaskStatus, UserData, UserId};
 use std::collections::HashMap;
 
 use super::model::ChatGptResponse;
+use super::model::NumChatGptCalls;
 
 #[derive(Copy, Clone)]
 pub struct BoardSignals {
@@ -28,6 +28,7 @@ pub struct BoardSignals {
     pub users: Signal<Users>,
     pub tags: Signal<Tags>,
     pub saved_boards: Signal<SavedBoards>,
+    pub num_chat_gpt_calls: Signal<NumChatGptCalls>,
 }
 
 impl Default for BoardSignals {
@@ -39,6 +40,7 @@ impl Default for BoardSignals {
             users: use_context::<Signal<Users>>(),
             tags: use_context::<Signal<Tags>>(),
             saved_boards: use_context::<Signal<SavedBoards>>(),
+            num_chat_gpt_calls: use_context::<Signal<NumChatGptCalls>>(),
         }
     }
 }
@@ -60,6 +62,9 @@ pub async fn board(mut signals: BoardSignals) {
             return;
         };
         let Ok(mut saved_boards) = signals.saved_boards.try_write() else {
+            return;
+        };
+        let Ok(mut num_chat_gpt_calls) = signals.num_chat_gpt_calls.try_write() else {
             return;
         };
 
@@ -97,6 +102,7 @@ pub async fn board(mut signals: BoardSignals) {
                 tags
             });
         saved_boards.0 = board_data.saved_boards;
+        num_chat_gpt_calls.0 = board_data.num_chat_gpt_calls;
     } else {
         log::info!("failed to get board data")
     }
@@ -264,7 +270,12 @@ pub async fn send_chat_gpt_prompt(
 ) {
     chat_gpt_response.set(Some(ChatGptResponse::Waiting));
     match send_chat_gpt_prompt_request(board_name, url, prompt).await {
-        Ok(suggestions) => chat_gpt_response.set(Some(ChatGptResponse::Suggestions(suggestions))),
+        Ok(shared_models::ChatGptResponse::Suggestions(suggestions)) => {
+            chat_gpt_response.set(Some(ChatGptResponse::Suggestions(suggestions)))
+        }
+        Ok(shared_models::ChatGptResponse::LimitExceeded) => {
+            chat_gpt_response.set(Some(ChatGptResponse::LimitExceeded))
+        }
         Err(_) => chat_gpt_response.set(Some(ChatGptResponse::Error)),
     }
 }
@@ -273,7 +284,7 @@ async fn send_chat_gpt_prompt_request(
     board_name: BoardName,
     url: Signal<UnloadUrl>,
     prompt: String,
-) -> Result<Vec<TaskSuggestion>, anyhow::Error> {
+) -> Result<shared_models::ChatGptResponse, anyhow::Error> {
     let url = &url.read().0;
     let url = url.join("/api/chat-gpt/suggest-tasks")?;
     Ok(Client::new()
@@ -285,7 +296,7 @@ async fn send_chat_gpt_prompt_request(
         })
         .send()
         .await?
-        .json::<Vec<TaskSuggestion>>()
+        .json::<shared_models::ChatGptResponse>()
         .await?)
 }
 

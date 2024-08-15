@@ -116,7 +116,11 @@ impl From<&TaskData> for QuickAddData {
 #[derive(Debug, Eq, PartialEq)]
 pub enum ChatGptResponse {
     Suggestions(Vec<TaskSuggestion>),
+    LimitExceeded,
     Error,
     Waiting,
     Resolved,
 }
+
+#[derive(Debug, Default)]
+pub struct NumChatGptCalls(pub u8);
