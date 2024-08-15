@@ -70,7 +70,7 @@ pub fn TaskTags(
                     tag_id,
                     tag_data: tag_data.clone(),
                     on_unassign_tag: move |tag_id| {
-                        new_tags.write().retain(|&id| id != tag_id);
+                        new_tags.write().swap_remove(tag_id);
                     },
                 }
             }
