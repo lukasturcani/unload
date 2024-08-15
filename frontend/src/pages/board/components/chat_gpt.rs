@@ -211,11 +211,11 @@ fn TaskSuggestionCard(
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
     let label = suggestion.title.clone();
-    let title = use_signal(|| suggestion.title);
-    let description = use_signal(|| suggestion.description);
-    let mut assignees = use_signal(Vec::new);
-    let mut tags = use_signal(|| suggestion.tags.into_iter().map(|tag| tag.id).collect());
-    let new_tags = use_signal(|| suggestion.new_tags);
+    let title = Signal::new(suggestion.title);
+    let description = Signal::new(suggestion.description);
+    let mut assignees = Signal::new(Vec::new());
+    let mut tags = Signal::new(suggestion.tags.into_iter().map(|tag| tag.id).collect());
+    let new_tags = Signal::new(suggestion.new_tags);
     rsx! {
         article {
             aria_label: label,
