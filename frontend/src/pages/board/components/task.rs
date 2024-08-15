@@ -70,6 +70,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let label = task.title.clone();
     let assignees = Signal::new(task.assignees);
     let board_signals = BoardSignals::default();
+    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         article {
             id: "task-{task_id}-article",
@@ -86,7 +87,18 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             }
             div {
                 class: "flex flex-row justify-between items-center",
-                Assignees { task_id, assignees, select_assignees }
+                Assignees {
+                    id: "task-{task_id}-assignees",
+                    assignees,
+                    select_assignees
+                    on_toggle_selector: move |show| {
+                        if show {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                        } else {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-assignees"))));
+                        }
+                    },
+                }
                 TaskActions { task_id }
             }
             if select_assignees() {
@@ -146,6 +158,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
     let is_late = is_late(&task);
     let board_signals = BoardSignals::default();
     let assignees = Signal::new(task.assignees);
+    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         article {
             id: "task-{task_id}-article",
@@ -159,12 +172,19 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     DenseTitle { task_id, title: task.title, is_late, expanded: expanded_ }
                 }
                 Assignees {
-                    task_id,
+                    id: "task-{task_id}-assignees",
                     assignees,
                     select_assignees,
                     icon_size: if expanded_ { "size-6" } else { "size-5" },
                     tooltip_position: "",
                     dir: "rtl",
+                    on_toggle_selector: move |show| {
+                        if show {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                        } else {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-assignees"))));
+                        }
+                    },
                 }
             }
             if select_assignees() {
@@ -362,19 +382,20 @@ fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
 
 #[component]
 fn Assignees(
-    task_id: TaskId,
+    id: String,
     assignees: Signal<Vec<UserId>>,
     select_assignees: Signal<bool>,
     icon_size: Option<&'static str>,
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
+    on_toggle_selector: EventHandler<bool>,
 ) -> Element {
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     let size = icon_size.unwrap_or("size-6");
     rsx! {
         section {
-            id: "task-{task_id}-assignees",
+            id,
             "aria-label": "assignees",
             class: "flex flex-row flex-wrap items-center gap-2",
             for &user_id in assignees.read().iter() {
@@ -387,14 +408,13 @@ fn Assignees(
                 }
             }
             ToggleSelector {
-                task_id,
-                r#for: "task-{task_id}-assignees",
                 show_selector: select_assignees,
                 aria_label: "toggle assignee selection",
                 tooltip: "Assign User",
                 size,
                 tooltip_position,
                 dir,
+                on_toggle_selector,
             }
         }
     }
@@ -402,19 +422,17 @@ fn Assignees(
 
 #[component]
 fn ToggleSelector(
-    task_id: TaskId,
-    r#for: String,
     show_selector: Signal<bool>,
     aria_label: String,
     tooltip: String,
     size: &'static str,
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
+    on_toggle_selector: EventHandler<bool>,
 ) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded border-2 {}", theme.button);
-    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         div {
             class: "group relative",
@@ -424,11 +442,7 @@ fn ToggleSelector(
                 "aria-pressed": show_selector(),
                 onclick: move |_| {
                     let show = show_selector();
-                    if show {
-                        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
-                    } else {
-                        scroll_target.set(ScrollTarget(Some(r#for.clone())));
-                    }
+                    on_toggle_selector.call(show);
                     show_selector.set(!show);
                 },
                 PlusIcon {}
