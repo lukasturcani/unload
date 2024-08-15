@@ -66,6 +66,9 @@ struct Config {
 
     #[config(env = "UNLOAD_OPENAI_API_KEY")]
     openai_api_key: String,
+
+    #[config(env = "UNLOAD_CHAT_GPT_LIMIT", default = 20)]
+    chat_gpt_limit: u8,
 }
 
 fn website_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
@@ -284,6 +287,7 @@ async fn main() -> Result<()> {
     let state = AppState {
         pool: pool.clone(),
         chat_gpt_client,
+        chat_gpt_limit: config.chat_gpt_limit,
     };
     sqlx::migrate!("./migrations")
         .run(&pool)
@@ -330,6 +334,7 @@ mod tests {
         let state = AppState {
             pool: pool.clone(),
             chat_gpt_client: Arc::new(OpenAIClient::new("test".to_string())),
+            chat_gpt_limit: 20,
         };
         let app = app_router(PathBuf::from("does_not_matter")).with_state(state);
         let server = TestServer::new(app).unwrap();

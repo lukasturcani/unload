@@ -77,6 +77,7 @@ impl QuickAddTaskRow {
 pub struct AppState {
     pub pool: SqlitePool,
     pub chat_gpt_client: Arc<OpenAIClient>,
+    pub chat_gpt_limit: u8,
 }
 
 #[derive(Debug)]
@@ -103,7 +104,13 @@ where
 
 pub type Result<T> = std::result::Result<T, AppError>;
 
-async fn add_board(State(AppState { pool, .. }): State<AppState>) -> Result<BoardName> {
+async fn add_board(
+    State(AppState {
+        pool,
+        chat_gpt_limit,
+        ..
+    }): State<AppState>,
+) -> Result<BoardName> {
     let board_name = new_unique_board_name(&pool).await?;
     let mut tx = pool.begin().await?;
     sqlx::query!(
@@ -112,6 +119,15 @@ INSERT INTO boards (name, title)
 VALUES (?, ?)",
         board_name,
         board_name,
+    )
+    .execute(&mut *tx)
+    .await?;
+    sqlx::query!(
+        "
+INSERT INTO chat_gpt_limits (board_name, calls_left)
+VALUES (?, ?)",
+        board_name,
+        chat_gpt_limit,
     )
     .execute(&mut *tx)
     .await?;

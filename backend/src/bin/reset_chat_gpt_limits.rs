@@ -11,7 +11,7 @@ struct Config {
     database_url: String,
 
     #[config(env = "UNLOAD_CHAT_GPT_LIMIT", default = 20)]
-    limit: u16,
+    limit: u8,
 }
 
 #[tokio::main]
