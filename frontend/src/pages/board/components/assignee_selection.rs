@@ -18,7 +18,7 @@ use crate::{
 };
 
 #[component]
-fn AssigneeSelection(
+pub fn AssigneeSelection(
     id: String,
     assignees: Signal<Vec<UserId>>,
     on_assign_user: EventHandler<UserId>,

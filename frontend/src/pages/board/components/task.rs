@@ -17,6 +17,7 @@ use crate::{
     model::UnloadUrl,
     pages::board::{
         components::{
+            assignee_selection::AssigneeSelection,
             task::{
                 description::Description,
                 due::{Due, DueOptions},
@@ -66,6 +67,8 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
     let label = task.title.clone();
+    let assignees = use_signal(|| task.assignees.clone());
+    let board_signals = BoardSignals::default();
     rsx! {
         article {
             id: "task-{task_id}-article",
@@ -82,11 +85,23 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             }
             div {
                 class: "flex flex-row justify-between items-center",
-                Assignees { task_id, assignees: task.assignees.clone(), select_assignees }
+                Assignees { task_id, assignees: task.assignees, select_assignees }
                 TaskActions { task_id }
             }
             if select_assignees() {
-                AssigneeSelection { task_id, assignees: task.assignees }
+                AssigneeSelection {
+                    id: "task-{task_id}-assignees",
+                    assignees,
+                    on_assign_user: move |user_id| {
+                        spawn_forever(add_task_assignee(board_signals, task_id, user_id));
+                    },
+                    on_unassign_user: move |user_id| {
+                        spawn_forever(delete_task_assignee(board_signals, task_id, user_id));
+                    },
+                    on_add_user: move |user_id| {
+                        spawn_forever(add_task_assignee(board_signals, task_id, user_id));
+                    },
+                }
             }
             TaskTags { task_id, tags: task.tags.clone(), select_tags }
             if select_tags() {
@@ -128,6 +143,8 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
     let select_assignees = use_signal(|| false);
     let label = task.title.clone();
     let is_late = is_late(&task);
+    let board_signals = BoardSignals::default();
+    let assignees = use_signal(|| task.assignees.clone());
     rsx! {
         article {
             id: "task-{task_id}-article",
@@ -142,7 +159,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                 }
                 Assignees {
                     task_id,
-                    assignees: task.assignees.clone(),
+                    assignees: task.assignees,
                     select_assignees,
                     icon_size: if expanded_ { "size-6" } else { "size-5" },
                     tooltip_position: "",
@@ -150,7 +167,19 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                 }
             }
             if select_assignees() {
-                AssigneeSelection { task_id, assignees: task.assignees }
+                AssigneeSelection {
+                    id: "task-{task_id}-assignees",
+                    assignees,
+                    on_assign_user: move |user_id| {
+                        spawn_forever(add_task_assignee(board_signals, task_id, user_id));
+                    },
+                    on_unassign_user: move |user_id| {
+                        spawn_forever(delete_task_assignee(board_signals, task_id, user_id));
+                    },
+                    on_add_user: move |user_id| {
+                        spawn_forever(add_task_assignee(board_signals, task_id, user_id));
+                    },
+                }
             }
             if expanded_ {
                 div {
@@ -408,32 +437,32 @@ fn ToggleSelector(
     }
 }
 
-#[component]
-fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("rounded-lg border {}", theme.border_color);
-    let users = use_context::<Signal<Users>>();
-    let users = &users.read().0;
-    let mut assignee_data = Vec::with_capacity(assignees.len());
-    let mut unassigned = Vec::with_capacity(users.len() - assignees.len());
-    for (user_id, user) in users.iter() {
-        if assignees.contains(user_id) {
-            assignee_data.push((*user_id, user.clone()));
-        } else {
-            unassigned.push((*user_id, user.clone()));
-        }
-    }
-    unassigned.sort_by_key(|(_, user)| user.name.to_lowercase());
-    rsx! {
-        section {
-            "aria-label": "assignee selection",
-            class: "flex flex-col gap-2 p-2 {style}",
-            UserBadges { task_id, assignees: assignee_data }
-            UserList { task_id, unassigned }
-        }
-    }
-}
+// #[component]
+// fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
+//     let theme = use_context::<Signal<Theme>>();
+//     let theme = theme.read();
+//     let style = format!("rounded-lg border {}", theme.border_color);
+//     let users = use_context::<Signal<Users>>();
+//     let users = &users.read().0;
+//     let mut assignee_data = Vec::with_capacity(assignees.len());
+//     let mut unassigned = Vec::with_capacity(users.len() - assignees.len());
+//     for (user_id, user) in users.iter() {
+//         if assignees.contains(user_id) {
+//             assignee_data.push((*user_id, user.clone()));
+//         } else {
+//             unassigned.push((*user_id, user.clone()));
+//         }
+//     }
+//     unassigned.sort_by_key(|(_, user)| user.name.to_lowercase());
+//     rsx! {
+//         section {
+//             "aria-label": "assignee selection",
+//             class: "flex flex-col gap-2 p-2 {style}",
+//             UserBadges { task_id, assignees: assignee_data }
+//             UserList { task_id, unassigned }
+//         }
+//     }
+// }
 
 #[component]
 fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
