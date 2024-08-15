@@ -5,11 +5,15 @@ use crate::{components::icons::CancelIcon, pages::board::model::TagFilter, theme
 
 #[component]
 pub fn FilterBarTagIcon(tag_id: TagId, tag_data: TagData) -> Element {
+    let tag_filter = use_context::<Signal<TagFilter>>();
+    let aria_pressed = tag_filter.read().0.contains(&tag_id);
     rsx! {
         TagIcon {
+            aria_pressed,
             color: tag_data.color,
             body: rsx!{
                 FilterButton {
+                    aria_pressed,
                     aria_label: "toggle {tag_data.name} filter",
                     content: "# {tag_data.name}",
                     tag_id,
@@ -20,9 +24,8 @@ pub fn FilterBarTagIcon(tag_id: TagId, tag_data: TagData) -> Element {
 }
 
 #[component]
-fn FilterButton(aria_label: String, content: String, tag_id: TagId) -> Element {
+fn FilterButton(aria_pressed: bool, aria_label: String, content: String, tag_id: TagId) -> Element {
     let mut tag_filter = use_context::<Signal<TagFilter>>();
-    let aria_pressed = tag_filter.read().0.contains(&tag_id);
     rsx! {
         button {
             class: "text-sm pr-1",
@@ -30,7 +33,7 @@ fn FilterButton(aria_label: String, content: String, tag_id: TagId) -> Element {
             aria_pressed,
             onclick: move |_| {
                 let mut tag_filter = tag_filter.write();
-                if tag_filter.0.contains(&tag_id) {
+                if aria_pressed {
                     tag_filter.0.remove(&tag_id);
                 } else {
                     tag_filter.0.insert(tag_id);
@@ -52,7 +55,7 @@ fn IconBody(content: String) -> Element {
 }
 
 #[component]
-pub fn TagIcon(color: Color, body: Element) -> Element {
+pub fn TagIcon(aria_pressed: Option<bool>, color: Color, body: Element) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let color = match color {
@@ -76,6 +79,7 @@ pub fn TagIcon(color: Color, body: Element) -> Element {
     let style = "rounded border-2";
     rsx! {
         div {
+            aria_pressed,
             class: "
                 group
                 flex flex-row items-center
@@ -131,11 +135,15 @@ pub fn FilteringTaskTagIcon(
     tag_data: TagData,
     on_unassign_tag: EventHandler<TagId>,
 ) -> Element {
+    let tag_filter = use_context::<Signal<TagFilter>>();
+    let aria_pressed = tag_filter.read().0.contains(&tag_id);
     rsx! {
         TagIcon {
+            aria_pressed,
             color: tag_data.color,
             body: rsx! {
                 FilterButton {
+                    aria_pressed,
                     aria_label: "toggle {tag_data.name} filter",
                     content: "# {tag_data.name}",
                     tag_id,
