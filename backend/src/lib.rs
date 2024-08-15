@@ -21,7 +21,7 @@ use shared_models::TagEntry;
 use shared_models::TagId;
 use shared_models::TaskSuggestion;
 use shared_models::{BoardName, Color, TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId};
-use sqlx::{Executor, QueryBuilder, Row, SqlitePool};
+use sqlx::{QueryBuilder, Row, SqlitePool};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::try_join;
