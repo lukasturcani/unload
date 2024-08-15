@@ -68,7 +68,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
     let label = task.title.clone();
-    let assignees = Signal::new(task.assignees.clone());
+    let assignees = Signal::new(task.assignees);
     let board_signals = BoardSignals::default();
     rsx! {
         article {
@@ -86,7 +86,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             }
             div {
                 class: "flex flex-row justify-between items-center",
-                Assignees { task_id, assignees: task.assignees, select_assignees }
+                Assignees { task_id, assignees, select_assignees }
                 TaskActions { task_id }
             }
             if select_assignees() {
@@ -145,7 +145,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
     let label = task.title.clone();
     let is_late = is_late(&task);
     let board_signals = BoardSignals::default();
-    let assignees = Signal::new(task.assignees.clone());
+    let assignees = Signal::new(task.assignees);
     rsx! {
         article {
             id: "task-{task_id}-article",
@@ -160,7 +160,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                 }
                 Assignees {
                     task_id,
-                    assignees: task.assignees,
+                    assignees,
                     select_assignees,
                     icon_size: if expanded_ { "size-6" } else { "size-5" },
                     tooltip_position: "",
@@ -363,7 +363,7 @@ fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
 #[component]
 fn Assignees(
     task_id: TaskId,
-    assignees: Vec<UserId>,
+    assignees: Signal<Vec<UserId>>,
     select_assignees: Signal<bool>,
     icon_size: Option<&'static str>,
     tooltip_position: Option<&'static str>,
@@ -377,7 +377,7 @@ fn Assignees(
             id: "task-{task_id}-assignees",
             "aria-label": "assignees",
             class: "flex flex-row flex-wrap items-center gap-2",
-            for user_id in assignees {
+            for &user_id in assignees.read().iter() {
                 UserIcon {
                     user_id,
                     user_data: users[&user_id].clone(),
