@@ -116,7 +116,19 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                     },
                 }
             }
-            TaskTags { task_id, tags: task.tags.clone(), select_tags }
+            TaskTags {
+                id: "task-{task_id}-tags",
+                task_id,
+                tags: task.tags.clone(),
+                select_tags,
+                on_toggle_selector: move |show| {
+                    if show {
+                        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                    } else {
+                        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-tags"))));
+                    }
+                },
+            }
             if select_tags() {
                 TagSelection { task_id, tags: task.tags }
             }
@@ -220,7 +232,19 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     class: "flex flex row justify-center items-center",
                     TaskActions { task_id }
                 }
-                TaskTags { task_id, tags: task.tags.clone(), select_tags }
+                TaskTags {
+                    id: "task-{task_id}-tags",
+                    task_id,
+                    tags: task.tags.clone(),
+                    select_tags,
+                    on_toggle_selector: move |show| {
+                        if show {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                        } else {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-tags"))));
+                        }
+                    },
+                }
                 if select_tags() {
                     TagSelection { task_id, tags: task.tags }
                 }
@@ -549,24 +573,29 @@ fn AddTagListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
 }
 
 #[component]
-fn TaskTags(task_id: TaskId, tags: Vec<TagId>, select_tags: Signal<bool>) -> Element {
+fn TaskTags(
+    id: String,
+    task_id: TaskId,
+    tags: Vec<TagId>,
+    select_tags: Signal<bool>,
+    on_toggle_selector: EventHandler<bool>,
+) -> Element {
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
     rsx! {
         section {
-            id: "task-{task_id}-tags",
+            id,
             "aria-label": "tags",
             class: "flex flex-row flex-wrap gap-2 items-center",
             for tag_id in tags {
                 TaskTagIcon { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
             }
             ToggleSelector {
-                task_id,
-                r#for: "task-{task_id}-tags",
                 show_selector: select_tags,
                 aria_label: "toggle tag selection",
                 tooltip: "Add Tag",
                 size: "size-6",
+                on_toggle_selector,
             }
         }
     }
