@@ -656,13 +656,13 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
     let url = use_context::<Signal<UnloadUrl>>();
     let board = use_context::<Signal<Board>>();
     let num_calls_left = use_context::<Signal<NumChatGptCalls>>();
-    let num_calls_left = num_calls_left.read().0;
+    let num_calls_left_ = num_calls_left.read().0;
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center {style}",
             p {
                 class: "text-xl font-bold",
-                "Use ChatGPT ({num_calls_left} daily attempts left)"
+                "Use ChatGPT ({num_calls_left_} daily attempts left)"
             }
             p {
                 class: "text-sm",
@@ -679,6 +679,7 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
                         url,
                         prompt,
                         chat_gpt_response,
+                        num_calls_left,
                     ));
                 },
                 div {
@@ -719,6 +720,7 @@ fn PromptSuggestion(prompt: String, chat_gpt_response: Signal<Option<ChatGptResp
     let url = use_context::<Signal<UnloadUrl>>();
     let p = prompt.clone();
     let board = use_context::<Signal<Board>>();
+    let num_calls_left = use_context::<Signal<NumChatGptCalls>>();
     rsx! {
         li {
             button {
@@ -729,6 +731,7 @@ fn PromptSuggestion(prompt: String, chat_gpt_response: Signal<Option<ChatGptResp
                         url,
                         p.clone(),
                         chat_gpt_response,
+                        num_calls_left,
                     ));
                 },
                 {prompt}

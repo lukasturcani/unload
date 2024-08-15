@@ -267,14 +267,16 @@ pub async fn send_chat_gpt_prompt(
     url: Signal<UnloadUrl>,
     prompt: String,
     mut chat_gpt_response: Signal<Option<ChatGptResponse>>,
+    mut num_calls_left: Signal<NumChatGptCalls>,
 ) {
     chat_gpt_response.set(Some(ChatGptResponse::Waiting));
     match send_chat_gpt_prompt_request(board_name, url, prompt).await {
         Ok(shared_models::ChatGptResponse::Suggestions(suggestions)) => {
-            chat_gpt_response.set(Some(ChatGptResponse::Suggestions(suggestions)))
+            chat_gpt_response.set(Some(ChatGptResponse::Suggestions(suggestions)));
+            num_calls_left.write().0 -= 1;
         }
         Ok(shared_models::ChatGptResponse::LimitExceeded) => {
-            chat_gpt_response.set(Some(ChatGptResponse::LimitExceeded))
+            chat_gpt_response.set(Some(ChatGptResponse::LimitExceeded));
         }
         Err(_) => chat_gpt_response.set(Some(ChatGptResponse::Error)),
     }
