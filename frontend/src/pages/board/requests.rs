@@ -1,5 +1,6 @@
 use crate::model::SavedBoards;
 use crate::model::UnloadUrl;
+use crate::model::Welcome;
 use crate::pages::board::model::Board;
 use crate::pages::board::model::Tags;
 use crate::pages::board::model::TaskData;
@@ -29,6 +30,7 @@ pub struct BoardSignals {
     pub tags: Signal<Tags>,
     pub saved_boards: Signal<SavedBoards>,
     pub num_chat_gpt_calls: Signal<NumChatGptCalls>,
+    pub welcome: Signal<Welcome>,
 }
 
 impl Default for BoardSignals {
@@ -41,6 +43,7 @@ impl Default for BoardSignals {
             tags: use_context::<Signal<Tags>>(),
             saved_boards: use_context::<Signal<SavedBoards>>(),
             num_chat_gpt_calls: use_context::<Signal<NumChatGptCalls>>(),
+            welcome: use_context::<Signal<Welcome>>(),
         }
     }
 }
@@ -65,6 +68,9 @@ pub async fn board(mut signals: BoardSignals) {
             return;
         };
         let Ok(mut num_chat_gpt_calls) = signals.num_chat_gpt_calls.try_write() else {
+            return;
+        };
+        let Ok(mut welcome) = signals.welcome.try_write() else {
             return;
         };
 
@@ -103,6 +109,11 @@ pub async fn board(mut signals: BoardSignals) {
             });
         saved_boards.0 = board_data.saved_boards;
         num_chat_gpt_calls.0 = board_data.num_chat_gpt_calls;
+        *welcome = if *welcome == Welcome::Pending && tasks.0.is_empty() {
+            Welcome::True
+        } else {
+            Welcome::False
+        };
     } else {
         log::info!("failed to get board data")
     }

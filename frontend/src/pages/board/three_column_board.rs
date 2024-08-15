@@ -14,7 +14,7 @@ use crate::{
         nav::NavBar,
         tooltip::Tooltip,
     },
-    model::SavedBoards,
+    model::{SavedBoards, Welcome},
     pages::board::{
         components::{
             ChatGpt, DenseTask, FilterBarTagIcon, FilteringUserIcon, NewTaskForm, Task, ThemeButton,
@@ -300,8 +300,9 @@ fn Column(status: TaskStatus, panel: Signal<Panel>) -> Element {
     let dense = use_context::<Signal<Dense>>().read().0;
     let gap = if dense { "" } else { "gap-2" };
     let adding_task = use_signal(|| false);
-    let tasks = use_context::<Signal<Tasks>>();
-    if tasks.read().0.is_empty() {
+    let mut welcome = use_context::<Signal<Welcome>>();
+    if status == TaskStatus::ToDo && *welcome.read() == Welcome::True {
+        welcome.set(Welcome::False);
         panel.set(Panel::ChatGpt {
             status: TaskStatus::ToDo,
             adding_task,
