@@ -1648,6 +1648,7 @@ pub async fn suggest_tasks(
                     beginning with \"- [ ]\". \
                     Use the following tags where relevant: {:?}. \
                     Create new tags where relevant. \
+                    All tasks must share at least one tag. \
                     Do not include any other text in the response. \
                     The prompt and your response should be in {}.",
                     tags,
