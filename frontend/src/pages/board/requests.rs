@@ -288,3 +288,33 @@ async fn send_chat_gpt_prompt_request(
         .json::<Vec<TaskSuggestion>>()
         .await?)
 }
+
+pub async fn delete_task_tag(signals: BoardSignals, task_id: TaskId, tag_id: TagId) {
+    if send_delete_task_tag_request(signals, task_id, tag_id)
+        .await
+        .is_ok()
+    {
+        board(signals).await;
+    }
+}
+
+async fn send_delete_task_tag_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+    tag_id: TagId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let url = &signals.url.read().0;
+        let board = signals.board.read();
+        url.join(&format!(
+            "/api/boards/{}/tasks/{}/tags/{}",
+            board.board_name, task_id, tag_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .delete(url)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}

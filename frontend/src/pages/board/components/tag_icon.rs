@@ -1,14 +1,7 @@
 use dioxus::prelude::*;
-use shared_models::{Color, TagData, TagId, TaskId};
+use shared_models::{Color, TagData, TagId};
 
-use crate::{
-    components::icons::CancelIcon,
-    pages::board::{
-        model::TagFilter,
-        requests::{self, BoardSignals},
-    },
-    themes::Theme,
-};
+use crate::{components::icons::CancelIcon, pages::board::model::TagFilter, themes::Theme};
 
 #[component]
 pub fn FilterBarTagIcon(tag_id: TagId, tag_data: TagData) -> Element {
@@ -63,10 +56,13 @@ pub fn FilterBarTagIcon(tag_id: TagId, tag_data: TagData) -> Element {
 }
 
 #[component]
-pub fn TaskTagIcon(task_id: TaskId, tag_id: TagId, tag_data: TagData) -> Element {
+pub fn TaskTagIcon(
+    tag_id: TagId,
+    tag_data: TagData,
+    on_delete_tag: EventHandler<TagId>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let board_signals = BoardSignals::default();
     let mut tag_filter = use_context::<Signal<TagFilter>>();
     let color = match tag_data.color {
         Color::Black => theme.color1_button,
@@ -115,41 +111,9 @@ pub fn TaskTagIcon(task_id: TaskId, tag_id: TagId, tag_data: TagData) -> Element
             button {
                 "aria-label": "remove tag {tag_data.name} from task",
                 class: "size-5 p-0.5 {delete_tag_button_style}",
-                onclick: move |_| {
-                    spawn_forever(delete_task_tag(board_signals, task_id, tag_id));
-                },
+                onclick: move |_| on_delete_tag.call(tag_id),
                 CancelIcon {}
             }
         }
     }
-}
-
-async fn delete_task_tag(signals: BoardSignals, task_id: TaskId, tag_id: TagId) {
-    if send_delete_task_tag_request(signals, task_id, tag_id)
-        .await
-        .is_ok()
-    {
-        requests::board(signals).await;
-    }
-}
-
-async fn send_delete_task_tag_request(
-    signals: BoardSignals,
-    task_id: TaskId,
-    tag_id: TagId,
-) -> Result<(), anyhow::Error> {
-    let url = {
-        let url = &signals.url.read().0;
-        let board = signals.board.read();
-        url.join(&format!(
-            "/api/boards/{}/tasks/{}/tags/{}",
-            board.board_name, task_id, tag_id
-        ))?
-    };
-    Ok(reqwest::Client::new()
-        .delete(url)
-        .send()
-        .await?
-        .json::<()>()
-        .await?)
 }

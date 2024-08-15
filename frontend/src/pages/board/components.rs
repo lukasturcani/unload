@@ -8,6 +8,7 @@ mod new_task_form;
 mod selector_toggle;
 mod tag_icon;
 mod task;
+mod task_tags;
 mod theme_button;
 mod user_icon;
 

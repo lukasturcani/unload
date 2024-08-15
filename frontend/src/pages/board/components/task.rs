@@ -19,13 +19,12 @@ use crate::{
             assignee_selection::AssigneeSelection,
             assignees::Assignees,
             assignment_list::{AssignmentList, AssignmentListItem, ShowSelectionListFormButton},
-            selector_toggle::SelectorToggle,
             task::{
                 description::Description,
                 due::{Due, DueOptions},
                 title::{DenseTitle, Title},
             },
-            TaskTagIcon,
+            task_tags::TaskTags,
         },
         model::{Board, Tags, TaskData},
         requests::{self, BoardSignals},
@@ -70,6 +69,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let select_tags = use_signal(|| false);
     let label = task.title.clone();
     let assignees = Signal::new(task.assignees);
+    let tags = Signal::new(task.tags);
     let board_signals = BoardSignals::default();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
@@ -119,9 +119,11 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             }
             TaskTags {
                 id: "task-{task_id}-tags",
-                task_id,
-                tags: task.tags.clone(),
+                tags,
                 select_tags,
+                on_delete_tag: move |tag_id| {
+                    spawn_forever(requests::delete_task_tag(board_signals, task_id, tag_id));
+                },
                 on_toggle_selector: move |show| {
                     if show {
                         scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
@@ -131,7 +133,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                 },
             }
             if select_tags() {
-                TagSelection { task_id, tags: task.tags }
+                TagSelection { task_id, tags }
             }
             if expanded_ || (is_late && status != TaskStatus::Done) {
                 Due {
@@ -171,6 +173,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
     let is_late = is_late(&task);
     let board_signals = BoardSignals::default();
     let assignees = Signal::new(task.assignees);
+    let tags = Signal::new(task.tags);
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         article {
@@ -235,9 +238,11 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                 }
                 TaskTags {
                     id: "task-{task_id}-tags",
-                    task_id,
-                    tags: task.tags.clone(),
+                    tags,
                     select_tags,
+                    on_delete_tag: move |tag_id| {
+                        spawn_forever(requests::delete_task_tag(board_signals, task_id, tag_id));
+                    },
                     on_toggle_selector: move |show| {
                         if show {
                             scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
@@ -247,7 +252,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     },
                 }
                 if select_tags() {
-                    TagSelection { task_id, tags: task.tags }
+                    TagSelection { task_id, tags }
                 }
                 SpecialActions { task_id }
             }
@@ -406,10 +411,11 @@ fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
 }
 
 #[component]
-fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
+fn TagSelection(task_id: TaskId, tags: Signal<Vec<TagId>>) -> Element {
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
     let mut unassigned = Vec::with_capacity(tag_data.len() - tags.len());
+    let tags = tags.read();
     for (user_id, user) in tag_data.iter() {
         if !tags.contains(user_id) {
             unassigned.push((*user_id, user.clone()));
@@ -496,35 +502,6 @@ fn AddTagListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
                         editing: show_form,
                     }
                 }
-            }
-        }
-    }
-}
-
-#[component]
-fn TaskTags(
-    id: String,
-    task_id: TaskId,
-    tags: Vec<TagId>,
-    select_tags: Signal<bool>,
-    on_toggle_selector: EventHandler<bool>,
-) -> Element {
-    let tag_data = use_context::<Signal<Tags>>();
-    let tag_data = &tag_data.read().0;
-    rsx! {
-        section {
-            id,
-            "aria-label": "tags",
-            class: "flex flex-row flex-wrap gap-2 items-center",
-            for tag_id in tags {
-                TaskTagIcon { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
-            }
-            SelectorToggle {
-                show_selector: select_tags,
-                aria_label: "toggle tag selection",
-                tooltip: "Add Tag",
-                size: "size-6",
-                on_toggle_selector,
             }
         }
     }
