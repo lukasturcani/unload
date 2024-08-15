@@ -2,7 +2,6 @@ use dioxus::prelude::*;
 use shared_models::{Color, UserData, UserId};
 
 use crate::{
-    commands::ScrollTarget,
     components::{
         color_picker::ColorPicker,
         form::{CancelButton, ConfirmButton},
@@ -10,7 +9,9 @@ use crate::{
         input::TextInput,
     },
     pages::board::{
-        components::assignment_list::{AssignmentList, AssignmentListItem},
+        components::assignment_list::{
+            AssignmentList, AssignmentListItem, ShowSelectionListFormButton,
+        },
         model::Users,
         requests::{self, BoardSignals},
     },
@@ -198,27 +199,6 @@ fn AddUserListForm(
                     }
                 }
             }
-        }
-    }
-}
-
-#[component]
-fn ShowSelectionListFormButton(r#for: String, content: String, show_form: Signal<bool>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
-    let style = format!(
-        "sm:hover:underline active:underline {}",
-        theme.action_text_color
-    );
-    rsx! {
-        button {
-            class: "px-4 py-2 w-full text-left {style}",
-            onclick: move |_| {
-                scroll_target.set(ScrollTarget(Some(r#for.clone())));
-                show_form.set(true)
-            },
-            {content}
         }
     }
 }

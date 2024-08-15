@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use reqwest::Client;
-use shared_models::{Color, TagData, TagId, TaskId, TaskStatus, UserData, UserId};
+use shared_models::{TagData, TagId, TaskId, TaskStatus, UserId};
 
 use crate::{
     commands::ScrollTarget,
@@ -8,8 +8,8 @@ use crate::{
         color_picker::ColorPicker,
         form::{CancelButton, ConfirmButton},
         icons::{
-            ArchiveIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, InProgressIcon, PlusIcon,
-            ToDoIcon, TrashIcon, UpIcon,
+            ArchiveIcon, CopyIcon, DoneIcon, DownIcon, InProgressIcon, PlusIcon, ToDoIcon,
+            TrashIcon, UpIcon,
         },
         input::TextInput,
         tooltip::Tooltip,
@@ -18,6 +18,7 @@ use crate::{
     pages::board::{
         components::{
             assignee_selection::AssigneeSelection,
+            assignment_list::{AssignmentList, AssignmentListItem, ShowSelectionListFormButton},
             task::{
                 description::Description,
                 due::{Due, DueOptions},
@@ -437,33 +438,6 @@ fn ToggleSelector(
     }
 }
 
-// #[component]
-// fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
-//     let theme = use_context::<Signal<Theme>>();
-//     let theme = theme.read();
-//     let style = format!("rounded-lg border {}", theme.border_color);
-//     let users = use_context::<Signal<Users>>();
-//     let users = &users.read().0;
-//     let mut assignee_data = Vec::with_capacity(assignees.len());
-//     let mut unassigned = Vec::with_capacity(users.len() - assignees.len());
-//     for (user_id, user) in users.iter() {
-//         if assignees.contains(user_id) {
-//             assignee_data.push((*user_id, user.clone()));
-//         } else {
-//             unassigned.push((*user_id, user.clone()));
-//         }
-//     }
-//     unassigned.sort_by_key(|(_, user)| user.name.to_lowercase());
-//     rsx! {
-//         section {
-//             "aria-label": "assignee selection",
-//             class: "flex flex-col gap-2 p-2 {style}",
-//             UserBadges { task_id, assignees: assignee_data }
-//             UserList { task_id, unassigned }
-//         }
-//     }
-// }
-
 #[component]
 fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
     let tag_data = use_context::<Signal<Tags>>();
@@ -491,153 +465,6 @@ fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
 }
 
 #[component]
-fn UserBadges(task_id: TaskId, assignees: Vec<(UserId, UserData)>) -> Element {
-    rsx! {
-       div {
-            class: "flex flex-row gap-2 flex-wrap group text-colored",
-            for (user_id, user_data) in assignees {
-                UserBadge { task_id, user_id, user_data }
-            }
-        }
-    }
-}
-
-#[component]
-fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let board_signals = BoardSignals::default();
-    let style = "border-2 rounded";
-    let button_style = format!("rounded sm:hover:border {}", theme.border_color);
-    let color = match user_data.color {
-        Color::Black => theme.color1_button,
-        Color::White => theme.color2_button,
-        Color::Gray => theme.color3_button,
-        Color::Silver => theme.color4_button,
-        Color::Maroon => theme.color5_button,
-        Color::Red => theme.color6_button,
-        Color::Purple => theme.color7_button,
-        Color::Fushsia => theme.color8_button,
-        Color::Green => theme.color9_button,
-        Color::Lime => theme.color10_button,
-        Color::Olive => theme.color11_button,
-        Color::Yellow => theme.color12_button,
-        Color::Navy => theme.color13_button,
-        Color::Blue => theme.color14_button,
-        Color::Teal => theme.color15_button,
-        Color::Aqua => theme.color16_button,
-    };
-    let unassign_label = format!("unassign {} from task", user_data.name);
-    rsx! {
-        div {
-            class: "
-                flex flex-row items-center gap-2
-                text-sm py-1 px-2 {style} {color}
-            ",
-            {user_data.name}
-            button {
-                "aria-label": unassign_label,
-                class: "size-5 p-0.5 {button_style}",
-                onclick: move |_| {
-                    spawn_forever(delete_task_assignee(board_signals, task_id, user_id));
-                },
-                CancelIcon {}
-            }
-        }
-    }
-}
-
-#[component]
-fn AssignmentList(body: Element) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!(
-        "
-        rounded-lg shadow
-        border
-        divide-y
-        {} {}
-    ",
-        theme.border_color, theme.divide_color
-    );
-    rsx! {
-        ul {
-            class: "text-sm {style}",
-            {body}
-        }
-    }
-}
-
-#[component]
-fn AssignmentListItem(
-    content: String,
-    color: Color,
-    aria_label: String,
-    onclick: EventHandler<MouseEvent>,
-) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = "sm:hover:underline";
-    let color = match color {
-        Color::Black => theme.color1_text,
-        Color::White => theme.color2_text,
-        Color::Gray => theme.color3_text,
-        Color::Silver => theme.color4_text,
-        Color::Maroon => theme.color5_text,
-        Color::Red => theme.color6_text,
-        Color::Purple => theme.color7_text,
-        Color::Fushsia => theme.color8_text,
-        Color::Green => theme.color9_text,
-        Color::Lime => theme.color10_text,
-        Color::Olive => theme.color11_text,
-        Color::Yellow => theme.color12_text,
-        Color::Navy => theme.color13_text,
-        Color::Blue => theme.color14_text,
-        Color::Teal => theme.color15_text,
-        Color::Aqua => theme.color16_text,
-    };
-    rsx! {
-        li {
-            button {
-                class: "px-4 py-2 w-full text-left {style} {color}",
-                onclick: move |event| onclick.call(event),
-                {content}
-            }
-        }
-    }
-}
-
-#[component]
-fn UserList(task_id: TaskId, unassigned: Vec<(UserId, UserData)>) -> Element {
-    rsx! {
-        AssignmentList {
-            body: rsx! {
-                for (user_id, user) in unassigned {
-                    UserListItem { key: "{user_id}", task_id, user_id, user }
-                }
-                AddUserListItem { key: "{\"add-user\"}", task_id, }
-            }
-        }
-    }
-}
-
-#[component]
-fn UserListItem(task_id: TaskId, user_id: UserId, user: UserData) -> Element {
-    let board_signals = BoardSignals::default();
-    let label = format!("assign {} to task", user.name);
-    rsx! {
-        AssignmentListItem {
-            content: user.name,
-            color: user.color,
-            aria_label: label,
-            onclick: move |_| {
-                spawn_forever(add_task_assignee(board_signals, task_id, user_id));
-            },
-        }
-    }
-}
-
-#[component]
 fn TagListItem(task_id: TaskId, tag_id: TagId, tag: TagData) -> Element {
     let board_signals = BoardSignals::default();
     let label = format!("assign {} to task", tag.name);
@@ -654,24 +481,6 @@ fn TagListItem(task_id: TaskId, tag_id: TagId, tag: TagData) -> Element {
 }
 
 #[component]
-fn AddUserListItem(task_id: TaskId) -> Element {
-    let show_form = use_signal(|| false);
-    rsx! {
-        li {
-            if show_form() {
-                AddUserListForm { task_id, show_form }
-            } else {
-                ShowSelectionListFormButton {
-                    r#for: "task-{task_id}-new-user-form",
-                    content: "Add User",
-                    show_form ,
-                }
-            }
-        }
-    }
-}
-
-#[component]
 fn AddTagListItem(task_id: TaskId) -> Element {
     let show_form = use_signal(|| false);
     rsx! {
@@ -683,63 +492,6 @@ fn AddTagListItem(task_id: TaskId) -> Element {
                     r#for: "task-{task_id}-new-tag-form",
                     content: "Add Tag",
                     show_form,
-                }
-            }
-        }
-    }
-}
-
-#[component]
-fn ShowSelectionListFormButton(r#for: String, content: String, show_form: Signal<bool>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
-    let style = format!(
-        "sm:hover:underline active:underline {}",
-        theme.action_text_color
-    );
-    rsx! {
-        button {
-            class: "px-4 py-2 w-full text-left {style}",
-            onclick: move |_| {
-                scroll_target.set(ScrollTarget(Some(r#for.clone())));
-                show_form.set(true)
-            },
-            {content}
-        }
-    }
-}
-
-#[component]
-fn AddUserListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
-    let board_signals = BoardSignals::default();
-    rsx! {
-        li {
-            form {
-                id: "task-{task_id}-new-user-form",
-                "aria-label": "add user",
-                class: "flex flex-col gap-2 p-2",
-                onsubmit: move |event| {
-                    let values = event.values();
-                    let name = values["Name"].as_value();
-                    let color = serde_json::from_str(
-                        &values["color-picker"].as_value()
-                    ).unwrap();
-                    spawn_forever(create_user(board_signals, task_id, UserData{ name, color }));
-                    show_form.set(false);
-                },
-                TextInput {
-                    id: "task-{task_id}-new-user-name-input",
-                    label: "Name",
-                }
-                ColorPicker { }
-                div {
-                    class: "flex flex-row gap-2 items-center justify-center",
-                    ConfirmButton { label: "add user" }
-                    CancelButton {
-                        label: "cancel adding user",
-                        editing: show_form,
-                    }
                 }
             }
         }
@@ -994,17 +746,6 @@ async fn send_add_task_assignee_request(
         .await?
         .json::<()>()
         .await?)
-}
-
-async fn create_user(signals: BoardSignals, task_id: TaskId, user_data: UserData) {
-    match requests::create_user(signals.url, signals.board, user_data).await {
-        Ok((user_id, _)) => {
-            add_task_assignee(signals, task_id, user_id).await;
-        }
-        Err(e) => {
-            log::info!("Error creating user: {:?}", e);
-        }
-    }
 }
 
 async fn create_tag(signals: BoardSignals, task_id: TaskId, tag_data: TagData) {
