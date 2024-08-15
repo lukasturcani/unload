@@ -67,7 +67,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
     let label = task.title.clone();
-    let assignees = use_signal(|| task.assignees.clone());
+    let assignees = Signal::new(task.assignees.clone());
     let board_signals = BoardSignals::default();
     rsx! {
         article {
@@ -144,7 +144,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
     let label = task.title.clone();
     let is_late = is_late(&task);
     let board_signals = BoardSignals::default();
-    let assignees = use_signal(|| task.assignees.clone());
+    let assignees = Signal::new(task.assignees.clone());
     rsx! {
         article {
             id: "task-{task_id}-article",
