@@ -318,7 +318,8 @@ mod tests {
     use axum_test::TestServer;
     use chrono::Utc;
     use shared_models::{
-        BoardName, Color, TagData, TagEntry, TaskData, TaskEntry, TaskStatus, UserData, UserEntry,
+        BoardName, Color, NewTaskData, TagData, TagEntry, TaskEntry, TaskStatus, UserData,
+        UserEntry,
     };
 
     #[tokio::test]
@@ -441,13 +442,14 @@ mod tests {
         // Create tasks
 
         let mut task_ids = Vec::new();
-        let task1 = TaskData {
+        let task1 = NewTaskData {
             title: "first".to_string(),
             description: "first description".to_string(),
             due: Some(Utc::now()),
             status: TaskStatus::ToDo,
             assignees: user_ids.clone(),
             tags: Vec::new(),
+            new_tags: Vec::new(),
         };
         task_ids.push(
             server
@@ -456,13 +458,14 @@ mod tests {
                 .await
                 .json(),
         );
-        let task2 = TaskData {
+        let task2 = NewTaskData {
             title: "second".to_string(),
             description: "second description".to_string(),
             due: Some(Utc::now()),
             status: TaskStatus::InProgress,
             assignees: user_ids.clone(),
             tags: vec![tag_ids[0]],
+            new_tags: Vec::new(),
         };
         task_ids.push(
             server
@@ -471,13 +474,14 @@ mod tests {
                 .await
                 .json(),
         );
-        let task3 = TaskData {
+        let task3 = NewTaskData {
             title: "third".to_string(),
             description: "third description".to_string(),
             due: None,
             status: TaskStatus::Done,
             assignees: user_ids.clone(),
             tags: vec![tag_ids[0], tag_ids[1]],
+            new_tags: Vec::new(),
         };
         task_ids.push(
             server
