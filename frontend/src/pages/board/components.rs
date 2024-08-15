@@ -5,6 +5,7 @@ mod assignment_list;
 mod chat_gpt;
 mod description_input;
 mod new_task_form;
+mod selector_toggle;
 mod tag_icon;
 mod task;
 mod theme_button;

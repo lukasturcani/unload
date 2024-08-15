@@ -8,8 +8,7 @@ use crate::{
         color_picker::ColorPicker,
         form::{CancelButton, ConfirmButton},
         icons::{
-            ArchiveIcon, CopyIcon, DoneIcon, DownIcon, InProgressIcon, PlusIcon, ToDoIcon,
-            TrashIcon, UpIcon,
+            ArchiveIcon, CopyIcon, DoneIcon, DownIcon, InProgressIcon, ToDoIcon, TrashIcon, UpIcon,
         },
         input::TextInput,
         tooltip::Tooltip,
@@ -18,15 +17,17 @@ use crate::{
     pages::board::{
         components::{
             assignee_selection::AssigneeSelection,
+            assignees::Assignees,
             assignment_list::{AssignmentList, AssignmentListItem, ShowSelectionListFormButton},
+            selector_toggle::SelectorToggle,
             task::{
                 description::Description,
                 due::{Due, DueOptions},
                 title::{DenseTitle, Title},
             },
-            TaskTagIcon, UserIcon,
+            TaskTagIcon,
         },
-        model::{Board, Tags, TaskData, Users},
+        model::{Board, Tags, TaskData},
         requests::{self, BoardSignals},
     },
     themes::Theme,
@@ -405,78 +406,6 @@ fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
 }
 
 #[component]
-fn Assignees(
-    id: String,
-    assignees: Signal<Vec<UserId>>,
-    select_assignees: Signal<bool>,
-    icon_size: Option<&'static str>,
-    tooltip_position: Option<&'static str>,
-    dir: Option<&'static str>,
-    on_toggle_selector: EventHandler<bool>,
-) -> Element {
-    let users = use_context::<Signal<Users>>();
-    let users = &users.read().0;
-    let size = icon_size.unwrap_or("size-6");
-    rsx! {
-        section {
-            id,
-            "aria-label": "assignees",
-            class: "flex flex-row flex-wrap items-center gap-2",
-            for &user_id in assignees.read().iter() {
-                UserIcon {
-                    user_id,
-                    user_data: users[&user_id].clone(),
-                    size,
-                    tooltip_position,
-                    dir
-                }
-            }
-            ToggleSelector {
-                show_selector: select_assignees,
-                aria_label: "toggle assignee selection",
-                tooltip: "Assign User",
-                size,
-                tooltip_position,
-                dir,
-                on_toggle_selector,
-            }
-        }
-    }
-}
-
-#[component]
-fn ToggleSelector(
-    show_selector: Signal<bool>,
-    aria_label: String,
-    tooltip: String,
-    size: &'static str,
-    tooltip_position: Option<&'static str>,
-    dir: Option<&'static str>,
-    on_toggle_selector: EventHandler<bool>,
-) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("rounded border-2 {}", theme.button);
-    rsx! {
-        div {
-            class: "group relative",
-            button {
-                "aria-label": aria_label,
-                class: "block {size} {style}",
-                "aria-pressed": show_selector(),
-                onclick: move |_| {
-                    let show = show_selector();
-                    on_toggle_selector.call(show);
-                    show_selector.set(!show);
-                },
-                PlusIcon {}
-            }
-            Tooltip { content: tooltip, position: tooltip_position, dir }
-        }
-    }
-}
-
-#[component]
 fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
@@ -590,7 +519,7 @@ fn TaskTags(
             for tag_id in tags {
                 TaskTagIcon { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
             }
-            ToggleSelector {
+            SelectorToggle {
                 show_selector: select_tags,
                 aria_label: "toggle tag selection",
                 tooltip: "Add Tag",
