@@ -22,12 +22,12 @@ pub fn FilterBarTagIcon(tag_id: TagId, tag_data: TagData) -> Element {
 #[component]
 fn FilterButton(aria_label: String, content: String, tag_id: TagId) -> Element {
     let mut tag_filter = use_context::<Signal<TagFilter>>();
-    let pressed = tag_filter.read().0.contains(&tag_id);
+    let aria_pressed = tag_filter.read().0.contains(&tag_id);
     rsx! {
         button {
             class: "text-sm pr-1",
             aria_label,
-            "aria-pressed": pressed,
+            aria_pressed,
             onclick: move |_| {
                 let mut tag_filter = tag_filter.write();
                 if tag_filter.0.contains(&tag_id) {
@@ -36,7 +36,17 @@ fn FilterButton(aria_label: String, content: String, tag_id: TagId) -> Element {
                     tag_filter.0.insert(tag_id);
                 }
             },
-            content
+            {content}
+        }
+    }
+}
+
+#[component]
+fn IconBody(content: String) -> Element {
+    rsx! {
+        div {
+            class: "text-sm pr-1",
+            {content}
         }
     }
 }
@@ -90,6 +100,27 @@ fn RemoveTagButton(
             class: "size-5 p-0.5 {style}",
             onclick: move |_| on_unassign_tag.call(tag_id),
             CancelIcon {}
+        }
+    }
+}
+
+#[component]
+pub fn TaskTagIcon(
+    tag_id: TagId,
+    tag_data: TagData,
+    on_unassign_tag: EventHandler<TagId>,
+) -> Element {
+    rsx! {
+        TagIcon {
+            color: tag_data.color,
+            body: rsx! {
+                IconBody { content: "# {tag_data.name}" }
+                RemoveTagButton {
+                    aria_label: "remove tag {tag_data.name} from task",
+                    tag_id,
+                    on_unassign_tag,
+                }
+            }
         }
     }
 }
