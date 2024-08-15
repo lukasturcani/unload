@@ -241,7 +241,7 @@ fly-prod-volume:
 fly-dev-volume:
   fly --app unload-dev machine run "debian:bookworm" --volume "unload_data:/mnt/unload_data" --shell
 
-reset-chat-gpt-limits database:
+reset-chat-gpt-limits database limit:
   UNLOAD_DATABASE_URL="sqlite:{{database}}" \
-  UNLOAD_CHAT_GPT_LIMIT=200 \
+  UNLOAD_CHAT_GPT_LIMIT={{limit}} \
   cargo run --release --bin reset_chat_gpt_limits
