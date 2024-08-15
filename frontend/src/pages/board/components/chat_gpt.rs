@@ -178,7 +178,7 @@ fn ChatGptSuggestions(
                 .filter(|(id, _)| !resolved_suggestions_.contains(id))
             {
                 TaskSuggestionCard {
-                    key: "{suggestion_id}",
+                    key: "{suggestion.title}",
                     suggestion_id,
                     suggestion,
                     resolved_suggestions,
