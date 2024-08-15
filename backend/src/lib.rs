@@ -21,7 +21,7 @@ use shared_models::TagEntry;
 use shared_models::TagId;
 use shared_models::TaskSuggestion;
 use shared_models::{BoardName, Color, TaskEntry, TaskId, TaskStatus, UserData, UserEntry, UserId};
-use sqlx::{QueryBuilder, Row, SqlitePool};
+use sqlx::{Executor, QueryBuilder, Row, SqlitePool};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::try_join;
@@ -454,10 +454,27 @@ pub async fn show_tasks(
 pub async fn create_task(
     State(AppState { pool, .. }): State<AppState>,
     Path(board_name): Path<BoardName>,
-    Json(task_data): Json<NewTaskData>,
+    Json(mut task_data): Json<NewTaskData>,
 ) -> Result<Json<TaskId>> {
     let created = Utc::now();
     let mut tx = pool.begin().await?;
+    task_data.tags.reserve(task_data.new_tags.len());
+    for tag in task_data.new_tags {
+        let tag_id = sqlx::query!(
+            "
+INSERT INTO tags (board_name, name, color)
+VALUES (?, ?, ?)",
+            board_name,
+            tag.name,
+            tag.color,
+        )
+        .execute(&mut *tx)
+        .await?
+        .last_insert_rowid()
+        .into();
+        task_data.tags.push(tag_id);
+    }
+
     let task_id = sqlx::query!(
         "
 INSERT INTO tasks (board_name, title, description, created, updated, due, status)
@@ -474,7 +491,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)",
     .await?
     .last_insert_rowid()
     .into();
-    for assignee in task_data.assignees.iter() {
+    for assignee in task_data.assignees {
         sqlx::query!(
             "
 INSERT INTO task_assignments (board_name, user_id, task_id)
@@ -486,7 +503,7 @@ VALUES (?, ?, ?)",
         .execute(&mut *tx)
         .await?;
     }
-    for tag_id in task_data.tags.iter() {
+    for tag_id in task_data.tags {
         sqlx::query!(
             "
 INSERT INTO task_tags (board_name, task_id, tag_id)
