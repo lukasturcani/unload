@@ -147,9 +147,9 @@ fn ChatGptSuggestions(
             }
         }
         processed_suggestions.push(SuggestionData {
-            title: Signal::new(suggestion.title),
-            description: Signal::new(suggestion.description),
-            assignees: Signal::new(Vec::new()),
+            title: use_signal(|| suggestion.title),
+            description: use_signal(|| suggestion.description),
+            assignees: use_signal(Vec::new),
             tags: Signal::new(tags),
             new_tags: Signal::new(new_tags),
         });
