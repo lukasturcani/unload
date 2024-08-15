@@ -96,14 +96,6 @@ fn ChatGptWaiting() -> Element {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-struct ProcessedTaskSuggestion {
-    title: String,
-    description: String,
-    tags: Vec<TagEntry>,
-    new_tags: Vec<TagData>,
-}
-
 #[component]
 fn ChatGptSuggestions(
     suggestions: Vec<TaskSuggestion>,
@@ -146,7 +138,7 @@ fn ChatGptSuggestions(
         let mut new_tags = Vec::new();
         for name in suggestion.tags {
             match name_to_entry.get(&name) {
-                Some(entry) => tags.push(entry.clone()),
+                Some(entry) => tags.push(entry.id),
                 None => {
                     let color =
                         colors[(name.bytes().fold(0, |acc, x| acc + (x as u16)) % 16) as usize];
@@ -154,11 +146,12 @@ fn ChatGptSuggestions(
                 }
             }
         }
-        processed_suggestions.push(ProcessedTaskSuggestion {
-            title: suggestion.title,
-            description: suggestion.description,
-            tags,
-            new_tags,
+        processed_suggestions.push(SuggestionData {
+            title: Signal::new(suggestion.title),
+            description: Signal::new(suggestion.description),
+            assignees: Signal::new(Vec::new()),
+            tags: Signal::new(tags),
+            new_tags: Signal::new(new_tags),
         });
     }
     let resolved_suggestions = use_signal(HashSet::new);
@@ -188,11 +181,20 @@ fn ChatGptSuggestions(
     }
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Copy)]
+struct SuggestionData {
+    title: Signal<String>,
+    description: Signal<String>,
+    assignees: Signal<Vec<UserId>>,
+    tags: Signal<Vec<TagId>>,
+    new_tags: Signal<Vec<TagData>>,
+}
+
 #[component]
 fn TaskSuggestionCard(
     suggestion_id: usize,
     resolved_suggestions: Signal<HashSet<usize>>,
-    suggestion: ProcessedTaskSuggestion,
+    suggestion: SuggestionData,
 ) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -210,39 +212,33 @@ fn TaskSuggestionCard(
     let board_signals = BoardSignals::default();
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
-    let label = suggestion.title.clone();
-    let title = use_signal(|| suggestion.title);
-    let description = use_signal(|| suggestion.description);
-    let mut assignees = use_signal(Vec::new);
-    let mut tags = use_signal(|| suggestion.tags.into_iter().map(|tag| tag.id).collect());
-    let new_tags = use_signal(|| suggestion.new_tags);
     rsx! {
         article {
-            aria_label: label,
+            aria_label: "{suggestion.title}",
             class: "flex flex-col gap-2 p-2.5 {style}",
-            Title { suggestion_id, title }
-            Description { suggestion_id description }
+            Title { suggestion_id, title: suggestion.title }
+            Description { suggestion_id description: suggestion.description }
             Assignees {
                 id: "suggestion-{suggestion_id}-assignees",
-                assignees,
+                assignees: suggestion.assignees,
                 select_assignees,
                 on_toggle_selector: move |_| {},
             }
             if select_assignees() {
                 AssigneeSelection {
                     id: "suggestion-{suggestion_id}-assignee-selection",
-                    assignees,
+                    assignees: suggestion.assignees,
                     on_assign_user: move |user_id| {
-                        assignees.write().push(user_id);
+                        suggestion.assignees.write().push(user_id);
                     },
                     on_unassign_user: move |user_id| {
-                        assignees.write().retain(|&id| id != user_id);
+                        suggestion.assignees.write().retain(|&id| id != user_id);
                     },
                     on_add_user: move |user_id| {
                         spawn_forever(add_suggestion_assignee(
                             board_signals,
                             users,
-                            assignees,
+                            suggestion.assignees,
                             user_id,
                         ));
                     },
@@ -250,26 +246,26 @@ fn TaskSuggestionCard(
             }
             TaskTags {
                 id: "suggestion-{suggestion_id}-tags",
-                tags,
-                new_tags,
+                tags: suggestion.tags,
+                new_tags: suggestion.new_tags,
                 select_tags,
                 on_unassign_tag: move |tag_id| {
-                    tags.write().retain(|&id| id != tag_id);
+                    suggestion.tags.write().retain(|&id| id != tag_id);
                 },
                 on_toggle_selector: move |_| {},
             }
             if select_tags() {
                 TagSelection {
                     id: "suggestion-{suggestion_id}-tag-selection",
-                    tags,
+                    tags: suggestion.tags,
                     on_assign_tag: move |tag_id| {
-                        tags.write().push(tag_id);
+                        suggestion.tags.write().push(tag_id);
                     },
                     on_add_tag: move |tag_id| {
                         spawn_forever(add_suggestion_tag(
                             board_signals,
                             all_tags,
-                            tags,
+                            suggestion.tags,
                             tag_id,
                         ));
                     },
@@ -280,11 +276,7 @@ fn TaskSuggestionCard(
                 AddTaskButton {
                     suggestion_id,
                     resolved_suggestions,
-                    title,
-                    description,
-                    assignees,
-                    tags,
-                    new_tags,
+                    suggestion,
                 }
                 DeleteTaskButton { suggestion_id, resolved_suggestions }
             }
@@ -371,11 +363,7 @@ fn TitleInput(suggestion_id: usize, editing: Signal<bool>, title: Signal<String>
 fn AddTaskButton(
     suggestion_id: usize,
     resolved_suggestions: Signal<HashSet<usize>>,
-    title: Signal<String>,
-    description: Signal<String>,
-    assignees: Signal<Vec<UserId>>,
-    tags: Signal<Vec<TagId>>,
-    new_tags: Signal<Vec<TagData>>,
+    suggestion: SuggestionData,
 ) -> Element {
     let style = "
         rounded-md
@@ -392,39 +380,25 @@ fn AddTaskButton(
             onclick: move |_| {
                 let mut resolved_suggestions = resolved_suggestions.write();
                 resolved_suggestions.insert(suggestion_id);
-                spawn_forever(create_task(
-                    board_signals,
-                    title.read().clone(),
-                    description.read().clone(),
-                    assignees.read().clone(),
-                    tags.read().clone(),
-                    new_tags.read().clone(),
-                ));
+                spawn_forever(create_task(board_signals, suggestion));
             },
             ConfirmIcon {}
         }
     }
 }
 
-async fn create_task(
-    signals: BoardSignals,
-    title: String,
-    description: String,
-    assignees: Vec<UserId>,
-    tags: Vec<TagId>,
-    new_tags: Vec<TagData>,
-) {
+async fn create_task(signals: BoardSignals, suggestion: SuggestionData) {
     if let Ok(task_id) = requests::create_task(
         signals.url,
         signals.board,
         &shared_models::NewTaskData {
-            title,
-            description,
+            title: suggestion.title.read().clone(),
+            description: suggestion.description.read().clone(),
             due: None,
             status: TaskStatus::ToDo,
-            assignees,
-            tags,
-            new_tags,
+            assignees: suggestion.assignees.read().clone(),
+            tags: suggestion.tags.read().clone(),
+            new_tags: suggestion.new_tags.read().clone(),
         },
     )
     .await
