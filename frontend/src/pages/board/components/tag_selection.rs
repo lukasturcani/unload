@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
-use reqwest::Client;
-use shared_models::{TagData, TagId, TaskId};
+use shared_models::{TagData, TagId};
 
 use crate::{
     components::{
