@@ -1,4 +1,6 @@
 mod add_task_button;
+mod assignee_selection;
+mod assignment_list;
 mod chat_gpt;
 mod description_input;
 mod new_task_form;
