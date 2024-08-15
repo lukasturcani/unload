@@ -7,6 +7,7 @@ mod description_input;
 mod new_task_form;
 mod selector_toggle;
 mod tag_icon;
+mod tag_selection;
 mod task;
 mod task_tags;
 mod theme_button;
