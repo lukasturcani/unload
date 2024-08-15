@@ -2,12 +2,12 @@ use dioxus::prelude::*;
 use shared_models::TagId;
 
 use crate::pages::board::{
-    components::{selector_toggle::SelectorToggle, TaskTagIcon},
+    components::{selector_toggle::SelectorToggle, FilteringTaskTagIcon},
     model::Tags,
 };
 
 #[component]
-pub fn TaskTags(
+pub fn FilteringTaskTags(
     id: String,
     tags: Signal<Vec<TagId>>,
     select_tags: Signal<bool>,
@@ -22,7 +22,7 @@ pub fn TaskTags(
             "aria-label": "tags",
             class: "flex flex-row flex-wrap gap-2 items-center",
             for &tag_id in tags.read().iter() {
-                TaskTagIcon {
+                FilteringTaskTagIcon {
                     tag_id,
                     tag_data: tag_data[&tag_id].clone(),
                     on_unassign_tag,

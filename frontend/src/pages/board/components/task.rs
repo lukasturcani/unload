@@ -21,7 +21,7 @@ use crate::{
                 due::{Due, DueOptions},
                 title::{DenseTitle, Title},
             },
-            task_tags::TaskTags,
+            task_tags::FilteringTaskTags,
         },
         model::{Board, TaskData},
         requests::{self, BoardSignals},
@@ -114,7 +114,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                     },
                 }
             }
-            TaskTags {
+            FilteringTaskTags {
                 id: "task-{task_id}-tags",
                 tags,
                 select_tags,
@@ -242,7 +242,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     class: "flex flex row justify-center items-center",
                     TaskActions { task_id }
                 }
-                TaskTags {
+                FilteringTaskTags {
                     id: "task-{task_id}-tags",
                     tags,
                     select_tags,
