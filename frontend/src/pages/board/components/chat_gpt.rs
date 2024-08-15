@@ -178,7 +178,7 @@ fn ChatGptSuggestions(
                 .filter(|(id, _)| !resolved_suggestions_.contains(id))
             {
                 TaskSuggestionCard {
-                    key: "{suggestion.title}",
+                    key: "{suggestion_id}",
                     suggestion_id,
                     suggestion,
                     resolved_suggestions,
@@ -213,9 +213,9 @@ fn TaskSuggestionCard(
     let label = suggestion.title.clone();
     let title = use_signal(|| suggestion.title);
     let description = use_signal(|| suggestion.description);
-    let mut assignees = Signal::new(Vec::new());
-    let mut tags = Signal::new(suggestion.tags.into_iter().map(|tag| tag.id).collect());
-    let new_tags = Signal::new(suggestion.new_tags);
+    let mut assignees = use_signal(Vec::new);
+    let mut tags = use_signal(|| suggestion.tags.into_iter().map(|tag| tag.id).collect());
+    let new_tags = use_signal(|| suggestion.new_tags);
     rsx! {
         article {
             aria_label: label,
