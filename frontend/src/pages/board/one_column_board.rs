@@ -15,7 +15,8 @@ use crate::{
     model::SavedBoards,
     pages::board::{
         components::{
-            AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
+            AddTaskButton, DenseTask, FilterBarTagIcon, FilteringUserIcon, NewTaskForm, Task,
+            ThemeButton,
         },
         model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
         requests::{self, BoardSignals},
@@ -725,7 +726,7 @@ fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
                 class: "flex flex-row gap-1 flex-wrap items-center justify-center",
                 for user_id in users.keys().sorted_by_key(|user_id| users[user_id].name.to_lowercase())
                 {
-                    UserIcon {
+                    FilteringUserIcon {
                         user_id: *user_id,
                         user_data: users[user_id].clone(),
                         size: "size-6",

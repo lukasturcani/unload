@@ -14,7 +14,7 @@ use crate::{
     pages::board::{
         components::{
             assignee_selection::AssigneeSelection,
-            assignees::Assignees,
+            assignees::FilteringAssignees,
             tag_selection::TagSelection,
             task::{
                 description::Description,
@@ -85,7 +85,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             }
             div {
                 class: "flex flex-row justify-between items-center",
-                Assignees {
+                FilteringAssignees {
                     id: "task-{task_id}-assignees",
                     assignees,
                     select_assignees
@@ -193,7 +193,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     ToggleExpanded { task_id, expanded, size: "size-5" }
                     DenseTitle { task_id, title: task.title, is_late, expanded: expanded_ }
                 }
-                Assignees {
+                FilteringAssignees {
                     id: "task-{task_id}-assignees",
                     assignees,
                     select_assignees,

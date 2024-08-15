@@ -17,7 +17,7 @@ use crate::{
     model::SavedBoards,
     pages::board::{
         components::{
-            ChatGpt, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
+            ChatGpt, DenseTask, FilterBarTagIcon, FilteringUserIcon, NewTaskForm, Task, ThemeButton,
         },
         model::{
             task_filter, Board, ChatGptResponse, Dense, TagFilter, Tags, Tasks, UserFilter, Users,
@@ -202,7 +202,7 @@ fn FilterBar() -> Element {
                 class: "col-span-1 flex flex-row flex-wrap items-center gap-1",
                 for user_id in users.keys().sorted_by_key(|user_id| users[user_id].name.to_lowercase())
                 {
-                    UserIcon {
+                    FilteringUserIcon {
                         user_id: *user_id,
                         user_data: users[user_id].clone(),
                         size: "size-6",

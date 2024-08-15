@@ -19,4 +19,4 @@ pub use new_task_form::NewTaskForm;
 pub use tag_icon::FilterBarTagIcon;
 pub use task::{DenseTask, Task};
 pub use theme_button::ThemeButton;
-pub use user_icon::UserIcon;
+pub use user_icon::FilteringUserIcon;
