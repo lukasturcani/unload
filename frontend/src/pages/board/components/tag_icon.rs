@@ -109,6 +109,23 @@ fn RemoveTagButton(
 }
 
 #[component]
+fn RemoveNewTagButton(
+    aria_label: String,
+    tag_id: usize,
+    on_unassign_tag: EventHandler<usize>,
+) -> Element {
+    let style = "rounded active:border sm:hover:border";
+    rsx! {
+        button {
+            aria_label,
+            class: "size-5 p-0.5 {style}",
+            onclick: move |_| on_unassign_tag.call(tag_id),
+            CancelIcon {}
+        }
+    }
+}
+
+#[component]
 pub fn TaskTagIcon(
     tag_id: TagId,
     tag_data: TagData,
@@ -120,6 +137,27 @@ pub fn TaskTagIcon(
             body: rsx! {
                 IconBody { content: "# {tag_data.name}" }
                 RemoveTagButton {
+                    aria_label: "remove tag {tag_data.name} from task",
+                    tag_id,
+                    on_unassign_tag,
+                }
+            }
+        }
+    }
+}
+
+#[component]
+pub fn TaskNewTagIcon(
+    tag_id: usize,
+    tag_data: TagData,
+    on_unassign_tag: EventHandler<usize>,
+) -> Element {
+    rsx! {
+        TagIcon {
+            color: tag_data.color,
+            body: rsx! {
+                IconBody { content: "# {tag_data.name}" }
+                RemoveNewTagButton {
                     aria_label: "remove tag {tag_data.name} from task",
                     tag_id,
                     on_unassign_tag,

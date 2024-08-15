@@ -1,10 +1,10 @@
 use dioxus::prelude::*;
-use shared_models::TagId;
+use shared_models::{TagData, TagId};
 
 use crate::pages::board::{
     components::{
         selector_toggle::SelectorToggle,
-        tag_icon::{FilteringTaskTagIcon, TaskTagIcon},
+        tag_icon::{FilteringTaskTagIcon, TaskNewTagIcon, TaskTagIcon},
     },
     model::Tags,
 };
@@ -46,6 +46,7 @@ pub fn FilteringTaskTags(
 pub fn TaskTags(
     id: String,
     tags: Signal<Vec<TagId>>,
+    new_tags: Signal<Vec<TagData>>,
     select_tags: Signal<bool>,
     on_unassign_tag: EventHandler<TagId>,
     on_toggle_selector: EventHandler<bool>,
@@ -62,6 +63,15 @@ pub fn TaskTags(
                     tag_id,
                     tag_data: tag_data[&tag_id].clone(),
                     on_unassign_tag,
+                }
+            }
+            for (tag_id, tag_data) in new_tags.read().iter().enumerate() {
+                TaskNewTagIcon {
+                    tag_id,
+                    tag_data: tag_data.clone(),
+                    on_unassign_tag: move |tag_id| {
+                        new_tags.write().retain(|&id| id != tag_id);
+                    },
                 }
             }
             SelectorToggle {

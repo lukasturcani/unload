@@ -231,6 +231,7 @@ fn TaskSuggestionCard(
             TaskTags {
                 id: "suggestion-{suggestion_id}-tags",
                 tags,
+                new_tags,
                 select_tags,
                 on_unassign_tag: move |tag_id| {
                     tags.write().retain(|&id| id != tag_id);
