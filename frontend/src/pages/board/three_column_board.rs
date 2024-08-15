@@ -300,6 +300,13 @@ fn Column(status: TaskStatus, panel: Signal<Panel>) -> Element {
     let dense = use_context::<Signal<Dense>>().read().0;
     let gap = if dense { "" } else { "gap-2" };
     let adding_task = use_signal(|| false);
+    let tasks = use_context::<Signal<Tasks>>();
+    if tasks.read().0.is_empty() {
+        panel.set(Panel::ChatGpt {
+            status: TaskStatus::ToDo,
+            adding_task,
+        });
+    }
     rsx! {
         section {
             class: "flex flex-col overflow-y-auto px-2 pt-2 gap-2 {style}",
