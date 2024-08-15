@@ -34,19 +34,22 @@ pub fn FilterBarTagIcon(tag_id: TagId, tag_data: TagData) -> Element {
                 px-1.5 py-0.5
                 {style} {color}
             ",
-            FilterButton { tag_id, tag_data }
+            FilterButton {
+                aria_label: "toggle {tag_data.name} filter",
+                content: "# {tag_data.name}",
+                tag_id,
+            }
         }
     }
 }
 
 #[component]
-fn FilterButton(arial_label: String, content: String, tag_id: TagId) -> Element {
+fn FilterButton(aria_label: String, content: String, tag_id: TagId) -> Element {
     let mut tag_filter = use_context::<Signal<TagFilter>>();
     let pressed = tag_filter.read().0.contains(&tag_id);
     rsx! {
         button {
             class: "text-sm pr-1",
-            "aria-label": "toggle {tag_data.name} filter",
             aria_label,
             "aria-pressed": pressed,
             onclick: move |_| {
@@ -57,21 +60,16 @@ fn FilterButton(arial_label: String, content: String, tag_id: TagId) -> Element 
                     tag_filter.0.insert(tag_id);
                 }
             },
-            "# {tag_data.name}"
+            content
         }
     }
 }
 
 #[component]
-pub fn TagIcon(
-    tag_id: TagId,
-    remove_tag_label: String,
-    on_unassign_tag: EventHandler<TagId>,
-    body: Element,
-) -> Element {
+pub fn TagIcon(color: Color, on_unassign_tag: EventHandler<TagId>, body: Element) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let color = match tag_data.color {
+    let color = match color {
         Color::Black => theme.color1_button,
         Color::White => theme.color2_button,
         Color::Gray => theme.color3_button,
@@ -90,7 +88,6 @@ pub fn TagIcon(
         Color::Aqua => theme.color16_button,
     };
     let style = "rounded border-2";
-    let delete_tag_button_style = "rounded active:border sm:hover:border";
     rsx! {
         div {
             class: "
@@ -100,12 +97,23 @@ pub fn TagIcon(
                 {style} {color}
             ",
             {body}
-            button {
-                aria_label: remove_tag_label,
-                class: "size-5 p-0.5 {delete_tag_button_style}",
-                onclick: move |_| on_unassign_tag.call(tag_id),
-                CancelIcon {}
-            }
+        }
+    }
+}
+
+#[component]
+fn RemoveTagButton(
+    aria_label: String,
+    tag_id: TagId,
+    on_unassign_tag: EventHandler<TagId>,
+) -> Element {
+    let style = "rounded active:border sm:hover:border";
+    rsx! {
+        button {
+            aria_label,
+            class: "size-5 p-0.5 {style}",
+            onclick: move |_| on_unassign_tag.call(tag_id),
+            CancelIcon {}
         }
     }
 }
@@ -118,11 +126,19 @@ pub fn FilteringTaskTagIcon(
 ) -> Element {
     rsx! {
         TagIcon {
-            tag_id,
-            tag_data,
+            color: tag_data.color,
             on_unassign_tag,
             body: rsx! {
-                FilterButton { tag_id, tag_data }
+                FilterButton {
+                    aria_label: "toggle {tag_data.name} filter",
+                    content: "# {tag_data.name}",
+                    tag_id,
+                }
+                RemoveTagButton {
+                    aria_label: "remove tag {tag_data.name} from task",
+                    tag_id,
+                    on_unassign_tag,
+                }
             }
         }
     }
