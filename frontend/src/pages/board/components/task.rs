@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use reqwest::Client;
-use shared_models::{TaskId, TaskStatus, UserId};
+use shared_models::{TagId, TaskId, TaskStatus, UserId};
 
 use crate::{
     commands::ScrollTarget,
@@ -10,6 +10,7 @@ use crate::{
         },
         tooltip::Tooltip,
     },
+    model::UnloadUrl,
     pages::board::{
         components::{
             assignee_selection::AssigneeSelection,
@@ -22,7 +23,7 @@ use crate::{
             },
             task_tags::TaskTags,
         },
-        model::TaskData,
+        model::{Board, TaskData},
         requests::{self, BoardSignals},
     },
     themes::Theme,
@@ -100,7 +101,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             }
             if select_assignees() {
                 AssigneeSelection {
-                    id: "task-{task_id}-assignees",
+                    id: "task-{task_id}-assignee-selection",
                     assignees,
                     on_assign_user: move |user_id| {
                         spawn_forever(add_task_assignee(board_signals, task_id, user_id));
@@ -117,7 +118,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                 id: "task-{task_id}-tags",
                 tags,
                 select_tags,
-                on_delete_tag: move |tag_id| {
+                on_unassign_tag: move |tag_id| {
                     spawn_forever(requests::delete_task_tag(board_signals, task_id, tag_id));
                 },
                 on_toggle_selector: move |show| {
@@ -129,7 +130,16 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                 },
             }
             if select_tags() {
-                TagSelection { task_id, tags }
+                TagSelection {
+                    id: "task-{task_id}-tag-selection",
+                    tags,
+                    on_assign_tag: move |tag_id| {
+                        spawn_forever(add_task_tag(board_signals, task_id, tag_id));
+                    },
+                    on_add_tag: move |tag_id| {
+                        spawn_forever(add_task_tag(board_signals, task_id, tag_id));
+                    },
+                }
             }
             if expanded_ || (is_late && status != TaskStatus::Done) {
                 Due {
@@ -201,7 +211,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
             }
             if select_assignees() {
                 AssigneeSelection {
-                    id: "task-{task_id}-assignees",
+                    id: "task-{task_id}-assignee-selection",
                     assignees,
                     on_assign_user: move |user_id| {
                         spawn_forever(add_task_assignee(board_signals, task_id, user_id));
@@ -236,7 +246,7 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     id: "task-{task_id}-tags",
                     tags,
                     select_tags,
-                    on_delete_tag: move |tag_id| {
+                    on_unassign_tag: move |tag_id| {
                         spawn_forever(requests::delete_task_tag(board_signals, task_id, tag_id));
                     },
                     on_toggle_selector: move |show| {
@@ -248,7 +258,16 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     },
                 }
                 if select_tags() {
-                    TagSelection { task_id, tags }
+                    TagSelection {
+                        id: "task-{task_id}-tag-selection",
+                        tags,
+                        on_assign_tag: move |tag_id| {
+                            spawn_forever(add_task_tag(board_signals, task_id, tag_id));
+                        },
+                        on_add_tag: move |tag_id| {
+                            spawn_forever(add_task_tag(board_signals, task_id, tag_id));
+                        },
+                    }
                 }
                 SpecialActions { task_id }
             }
@@ -616,6 +635,38 @@ async fn send_delete_task_request(
     };
     Ok(reqwest::Client::new()
         .delete(url)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
+}
+
+async fn add_task_tag(signals: BoardSignals, task_id: TaskId, tag_id: TagId) {
+    if send_add_task_tag_request(signals.url, signals.board, task_id, tag_id)
+        .await
+        .is_ok()
+    {
+        requests::board(signals).await;
+    }
+}
+
+async fn send_add_task_tag_request(
+    url: Signal<UnloadUrl>,
+    board: Signal<Board>,
+    task_id: TaskId,
+    tag_id: TagId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let url = &url.read().0;
+        let board = board.read();
+        url.join(&format!(
+            "/api/boards/{}/tasks/{}/tags",
+            board.board_name, task_id
+        ))?
+    };
+    Ok(Client::new()
+        .post(url)
+        .json(&tag_id)
         .send()
         .await?
         .json::<()>()

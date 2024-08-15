@@ -59,7 +59,7 @@ pub fn FilterBarTagIcon(tag_id: TagId, tag_data: TagData) -> Element {
 pub fn TaskTagIcon(
     tag_id: TagId,
     tag_data: TagData,
-    on_delete_tag: EventHandler<TagId>,
+    on_unassign_tag: EventHandler<TagId>,
 ) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -111,7 +111,7 @@ pub fn TaskTagIcon(
             button {
                 "aria-label": "remove tag {tag_data.name} from task",
                 class: "size-5 p-0.5 {delete_tag_button_style}",
-                onclick: move |_| on_delete_tag.call(tag_id),
+                onclick: move |_| on_unassign_tag.call(tag_id),
                 CancelIcon {}
             }
         }

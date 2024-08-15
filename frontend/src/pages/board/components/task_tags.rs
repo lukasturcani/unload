@@ -11,7 +11,7 @@ pub fn TaskTags(
     id: String,
     tags: Signal<Vec<TagId>>,
     select_tags: Signal<bool>,
-    on_delete_tag: EventHandler<TagId>,
+    on_unassign_tag: EventHandler<TagId>,
     on_toggle_selector: EventHandler<bool>,
 ) -> Element {
     let tag_data = use_context::<Signal<Tags>>();
@@ -25,7 +25,7 @@ pub fn TaskTags(
                 TaskTagIcon {
                     tag_id,
                     tag_data: tag_data[&tag_id].clone(),
-                    on_delete_tag,
+                    on_unassign_tag,
                 }
             }
             SelectorToggle {
