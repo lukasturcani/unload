@@ -102,18 +102,20 @@ fn ChatGptSuggestions(
     chat_gpt_response: Signal<Option<ChatGptResponse>>,
 ) -> Element {
     let tags = use_context::<Signal<Tags>>();
-    let tags = &tags.read().0;
-    let name_to_entry = Signal::new(tags.iter().fold(HashMap::new(), |mut map, (id, tag)| {
-        map.insert(
-            tag.name.clone(),
-            TagEntry {
-                id: *id,
-                name: tag.name.clone(),
-                color: tag.color,
-            },
-        );
-        map
-    }));
+    let name_to_entry = use_memo(move || {
+        let tags = &tags.read().0;
+        tags.iter().fold(HashMap::new(), |mut map, (id, tag)| {
+            map.insert(
+                tag.name.clone(),
+                TagEntry {
+                    id: *id,
+                    name: tag.name.clone(),
+                    color: tag.color,
+                },
+            );
+            map
+        })
+    });
     let resolved_suggestions = use_signal(HashSet::new);
     let resolved_suggestions_ = &resolved_suggestions.read();
     if resolved_suggestions_.len() == suggestions.len() {
@@ -147,7 +149,7 @@ fn TaskSuggestionCard(
     suggestion_id: usize,
     resolved_suggestions: Signal<HashSet<usize>>,
     suggestion: TaskSuggestion,
-    name_to_entry: Signal<HashMap<String, TagEntry>>,
+    name_to_entry: ReadOnlySignal<HashMap<String, TagEntry>>,
 ) -> Element {
     let colors = [
         Color::Black,
