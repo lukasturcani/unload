@@ -53,7 +53,7 @@ async fn create_task(
     if let Ok(task_id) = requests::create_task(
         signals.url,
         signals.board,
-        &shared_models::NewTaskData {
+        shared_models::NewTaskData {
             title,
             description: String::new(),
             due: None,
