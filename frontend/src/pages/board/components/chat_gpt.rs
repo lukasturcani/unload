@@ -399,7 +399,7 @@ async fn create_task(signals: BoardSignals, suggestion: SuggestionSignals) {
     if let Ok(task_id) = requests::create_task(
         signals.url,
         signals.board,
-        &shared_models::NewTaskData {
+        shared_models::NewTaskData {
             title: suggestion.title.read().clone(),
             description: suggestion.description.read().clone(),
             due: None,
