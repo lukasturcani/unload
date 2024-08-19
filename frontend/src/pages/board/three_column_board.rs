@@ -44,7 +44,18 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let show_themes = use_signal(|| false);
-    let panel = use_signal(|| Panel::None);
+    let mut panel = use_signal(|| Panel::None);
+    let adding_to_do = use_signal(|| false);
+    let adding_in_progress = use_signal(|| false);
+    let adding_done = use_signal(|| false);
+    let mut welcome = use_context::<Signal<Welcome>>();
+    if *welcome.read() == Welcome::True {
+        welcome.set(Welcome::False);
+        panel.set(Panel::ChatGpt {
+            status: TaskStatus::ToDo,
+            adding_task: adding_to_do,
+        });
+    }
     rsx! {
         div {
             class: "flex flex-col h-dvh w-screen {style}",
@@ -68,9 +79,9 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                     class: "grow w-full h-full overflow-y-auto",
                     div {
                         class: "w-full h-full grid grid-cols-3 gap-2 overflow-y-auto",
-                        Column { status: TaskStatus::ToDo, panel }
-                        Column { status: TaskStatus::InProgress, panel }
-                        Column { status: TaskStatus::Done, panel }
+                        Column { adding_task: adding_to_do, status: TaskStatus::ToDo, panel }
+                        Column { adding_task: adding_in_progress, status: TaskStatus::InProgress, panel }
+                        Column { adding_task: adding_done, status: TaskStatus::Done, panel }
                     },
                 }
                 if show_themes() {
@@ -293,21 +304,12 @@ fn ColumnHeading(value: String) -> Element {
 }
 
 #[component]
-fn Column(status: TaskStatus, panel: Signal<Panel>) -> Element {
+fn Column(adding_task: Signal<bool>, status: TaskStatus, panel: Signal<Panel>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border {}", theme.border_color);
     let dense = use_context::<Signal<Dense>>().read().0;
     let gap = if dense { "" } else { "gap-2" };
-    let adding_task = use_signal(|| false);
-    let mut welcome = use_context::<Signal<Welcome>>();
-    if status == TaskStatus::ToDo && *welcome.read() == Welcome::True {
-        welcome.set(Welcome::False);
-        panel.set(Panel::ChatGpt {
-            status: TaskStatus::ToDo,
-            adding_task,
-        });
-    }
     rsx! {
         section {
             class: "flex flex-col overflow-y-auto px-2 pt-2 gap-2 {style}",
