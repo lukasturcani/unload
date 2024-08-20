@@ -79,7 +79,7 @@ pub fn Task(
     rsx! {
         article {
             id: "task-{task_id}-article",
-            aria_label: "{title}",
+            aria_label: title,
             class: "flex flex-col gap-2 p-2.5 {style}",
             div {
                 class: "flex flex-row justify-between items-center",
@@ -196,7 +196,7 @@ pub fn DenseTask(
     rsx! {
         article {
             id: "task-{task_id}-article",
-            aria_label: "{title}",
+            aria_label: title,
             class: "flex flex-col gap-2 p-1 {style}",
             div {
                 class: "flex flex-row justify-between",
