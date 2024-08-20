@@ -19,14 +19,14 @@ use crate::{
 #[component]
 pub fn TagSelection(
     id: String,
-    tags: Signal<Vec<TagId>>,
+    tags: ReadOnlySignal<Vec<TagId>>,
     on_assign_tag: EventHandler<TagId>,
     on_add_tag: EventHandler<TagId>,
 ) -> Element {
+    let tags = tags.read();
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
     let mut unassigned = Vec::with_capacity(tag_data.len() - tags.len());
-    let tags = tags.read();
     for (user_id, user) in tag_data.iter() {
         if !tags.contains(user_id) {
             unassigned.push((*user_id, user.clone()));

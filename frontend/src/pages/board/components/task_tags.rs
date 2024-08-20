@@ -12,7 +12,7 @@ use crate::pages::board::{
 #[component]
 pub fn FilteringTaskTags(
     id: String,
-    tags: Signal<Vec<TagId>>,
+    tags: ReadOnlySignal<Vec<TagId>>,
     select_tags: Signal<bool>,
     on_unassign_tag: EventHandler<TagId>,
     on_toggle_selector: EventHandler<bool>,
@@ -45,7 +45,7 @@ pub fn FilteringTaskTags(
 #[component]
 pub fn TaskTags(
     id: String,
-    tags: Signal<Vec<TagId>>,
+    tags: ReadOnlySignal<Vec<TagId>>,
     new_tags: Signal<Vec<TagData>>,
     select_tags: Signal<bool>,
     on_unassign_tag: EventHandler<TagId>,

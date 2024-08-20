@@ -12,7 +12,7 @@ use crate::pages::board::{
 #[component]
 pub fn Assignees(
     id: String,
-    assignees: Signal<Vec<UserId>>,
+    assignees: ReadOnlySignal<Vec<UserId>>,
     select_assignees: Signal<bool>,
     icon_size: Option<&'static str>,
     tooltip_position: Option<&'static str>,
@@ -52,7 +52,7 @@ pub fn Assignees(
 #[component]
 pub fn FilteringAssignees(
     id: String,
-    assignees: Signal<Vec<UserId>>,
+    assignees: ReadOnlySignal<Vec<UserId>>,
     select_assignees: Signal<bool>,
     icon_size: Option<&'static str>,
     tooltip_position: Option<&'static str>,

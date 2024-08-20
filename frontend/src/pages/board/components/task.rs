@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use reqwest::Client;
 use shared_models::{TagId, TaskId, TaskStatus, UserId};
@@ -23,7 +24,7 @@ use crate::{
             },
             task_tags::FilteringTaskTags,
         },
-        model::{Board, TaskData},
+        model::Board,
         requests::{self, BoardSignals},
     },
     themes::Theme,
@@ -33,15 +34,23 @@ mod description;
 mod due;
 mod title;
 
-fn is_late(task: &TaskData) -> bool {
-    task.due.map_or(false, |due| due < chrono::Utc::now())
+fn is_late(due: &Option<DateTime<Utc>>) -> bool {
+    due.map_or(false, |due| due < chrono::Utc::now())
 }
 
 #[component]
-pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
+pub fn Task(
+    task_id: TaskId,
+    title: ReadOnlySignal<String>,
+    description: ReadOnlySignal<String>,
+    status: TaskStatus,
+    assignees: ReadOnlySignal<Vec<UserId>>,
+    tags: ReadOnlySignal<Vec<TagId>>,
+    due: Option<DateTime<Utc>>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let is_late = is_late(&task);
+    let is_late = is_late(&due);
     let style = format!(
         "
         sm:rounded-lg
@@ -64,22 +73,20 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let expanded_ = expanded();
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
-    let label = task.title.clone();
-    let assignees = Signal::new(task.assignees);
-    let tags = Signal::new(task.tags);
+
     let board_signals = BoardSignals::default();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         article {
             id: "task-{task_id}-article",
-            "aria-label": label,
+            aria_label: "{title}",
             class: "flex flex-col gap-2 p-2.5 {style}",
             div {
                 class: "flex flex-row justify-between items-center",
                 div {
                     class: "flex flex-row items-center gap-1",
                     ToggleExpanded { task_id, expanded, size: "size-7" }
-                    Title { task_id, title: task.title }
+                    Title { task_id, title }
                 }
                 StatusButtons { task_id, status }
             }
@@ -144,7 +151,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
             if expanded_ || (is_late && status != TaskStatus::Done) {
                 Due {
                     task_id,
-                    due: task.due.map(|due| DueOptions {
+                    due: due.map(|due| DueOptions {
                         due,
                         show_time_left: status != TaskStatus::Done,
                         is_late,
@@ -152,7 +159,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                 }
             }
             if expanded() {
-                Description { task_id, description: task.description }
+                Description { task_id, description }
                 SpecialActions { task_id }
             }
         }
@@ -160,7 +167,15 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
 }
 
 #[component]
-pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
+pub fn DenseTask(
+    task_id: TaskId,
+    title: ReadOnlySignal<String>,
+    description: ReadOnlySignal<String>,
+    status: TaskStatus,
+    assignees: ReadOnlySignal<Vec<UserId>>,
+    tags: ReadOnlySignal<Vec<TagId>>,
+    due: Option<DateTime<Utc>>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -175,23 +190,20 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
     let expanded_ = expanded();
     let select_tags = use_signal(|| false);
     let select_assignees = use_signal(|| false);
-    let label = task.title.clone();
-    let is_late = is_late(&task);
+    let is_late = is_late(&due);
     let board_signals = BoardSignals::default();
-    let assignees = Signal::new(task.assignees);
-    let tags = Signal::new(task.tags);
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         article {
             id: "task-{task_id}-article",
-            "aria-label": label,
+            aria_label: "{title}",
             class: "flex flex-col gap-2 p-1 {style}",
             div {
                 class: "flex flex-row justify-between",
                 div {
                     class: "flex flex-row items-center gap-1",
                     ToggleExpanded { task_id, expanded, size: "size-5" }
-                    DenseTitle { task_id, title: task.title, is_late, expanded: expanded_ }
+                    DenseTitle { task_id, title, is_late, expanded: expanded_ }
                 }
                 FilteringAssignees {
                     id: "task-{task_id}-assignees",
@@ -229,10 +241,10 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     class: "flex flex-row justify-center items-center",
                     StatusButtons { task_id, status }
                 }
-                Description { task_id, description: task.description }
+                Description { task_id, description }
                 Due {
                     task_id,
-                    due: task.due.map(|due| DueOptions {
+                    due: due.map(|due| DueOptions {
                         due,
                         show_time_left: status != TaskStatus::Done,
                         is_late,

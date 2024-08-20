@@ -349,30 +349,35 @@ fn Column(adding_task: Signal<bool>, status: TaskStatus, panel: Signal<Panel>) -
 #[component]
 fn ColumnTasks(status: TaskStatus) -> Element {
     let tasks = use_context::<Signal<Tasks>>();
-    let tasks = tasks.read();
+    let tasks = &tasks.read().0;
     let board = use_context::<Signal<Board>>();
     let board = board.read();
     let user_filter = use_context::<Signal<UserFilter>>();
-    let user_filter = user_filter.read();
+    let user_filter = &user_filter.read().0;
     let tag_filter = use_context::<Signal<TagFilter>>();
-    let tag_filter = tag_filter.read();
+    let tag_filter = &tag_filter.read().0;
     let column_tasks = match status {
         TaskStatus::ToDo => &board.to_do,
         TaskStatus::InProgress => &board.in_progress,
         TaskStatus::Done => &board.done,
     };
     rsx! {
-        for task_id in column_tasks
+        for (task_id, task) in column_tasks
             .iter()
             .filter(|task_id| {
-                task_filter(task_id, &tasks.0, &user_filter.0, &tag_filter.0)
+                task_filter(task_id, tasks, user_filter, tag_filter)
             })
+            .map(|task_id| (*task_id, &tasks[task_id]))
         {
             Task {
                 key: "{task_id}",
-                task_id: *task_id,
-                task: tasks.0[task_id].clone(),
+                task_id,
+                title: task.title.clone(),
+                description: task.description.clone(),
                 status,
+                assignees: task.assignees.clone(),
+                tags: task.tags.clone(),
+                due: task.due,
             }
         }
     }
@@ -381,30 +386,35 @@ fn ColumnTasks(status: TaskStatus) -> Element {
 #[component]
 fn DenseColumnTasks(status: TaskStatus) -> Element {
     let tasks = use_context::<Signal<Tasks>>();
-    let tasks = tasks.read();
+    let tasks = &tasks.read().0;
     let board = use_context::<Signal<Board>>();
     let board = board.read();
     let user_filter = use_context::<Signal<UserFilter>>();
-    let user_filter = user_filter.read();
+    let user_filter = &user_filter.read().0;
     let tag_filter = use_context::<Signal<TagFilter>>();
-    let tag_filter = tag_filter.read();
+    let tag_filter = &tag_filter.read().0;
     let column_tasks = match status {
         TaskStatus::ToDo => &board.to_do,
         TaskStatus::InProgress => &board.in_progress,
         TaskStatus::Done => &board.done,
     };
     rsx! {
-        for task_id in column_tasks
+        for (task_id, task) in column_tasks
             .iter()
             .filter(|task_id| {
-                task_filter(task_id, &tasks.0, &user_filter.0, &tag_filter.0)
+                task_filter(task_id, tasks, user_filter, tag_filter)
             })
+            .map(|task_id| (*task_id, &tasks[task_id]))
         {
             DenseTask {
                 key: "{task_id}",
-                task_id: *task_id,
-                task: tasks.0[task_id].clone(),
+                task_id,
+                title: task.title.clone(),
+                description: task.description.clone(),
                 status,
+                assignees: task.assignees.clone(),
+                tags: task.tags.clone(),
+                due: task.due,
             }
         }
     }

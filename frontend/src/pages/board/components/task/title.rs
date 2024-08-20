@@ -15,7 +15,7 @@ use crate::{
 };
 
 #[component]
-pub fn Title(task_id: TaskId, title: String) -> Element {
+pub fn Title(task_id: TaskId, title: ReadOnlySignal<String>) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
@@ -27,7 +27,12 @@ pub fn Title(task_id: TaskId, title: String) -> Element {
 }
 
 #[component]
-pub fn DenseTitle(task_id: TaskId, title: String, is_late: bool, expanded: bool) -> Element {
+pub fn DenseTitle(
+    task_id: TaskId,
+    title: ReadOnlySignal<String>,
+    is_late: bool,
+    expanded: bool,
+) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {

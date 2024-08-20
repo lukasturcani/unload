@@ -21,7 +21,7 @@ use crate::{
 #[component]
 pub fn AssigneeSelection(
     id: String,
-    assignees: Signal<Vec<UserId>>,
+    assignees: ReadOnlySignal<Vec<UserId>>,
     on_assign_user: EventHandler<UserId>,
     on_unassign_user: EventHandler<UserId>,
     on_add_user: EventHandler<UserId>,
@@ -31,11 +31,11 @@ pub fn AssigneeSelection(
     let style = format!("rounded-lg border {}", theme.border_color);
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
-    let assignees_ = assignees.read();
+    let assignees = assignees.read();
     let mut assignee_data = Vec::with_capacity(assignees.len());
     let mut unassigned = Vec::with_capacity(users.len() - assignees.len());
     for (user_id, user) in users.iter() {
-        if assignees_.contains(user_id) {
+        if assignees.contains(user_id) {
             assignee_data.push((*user_id, user.clone()));
         } else {
             unassigned.push((*user_id, user.clone()));
