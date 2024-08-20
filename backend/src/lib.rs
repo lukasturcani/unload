@@ -1680,7 +1680,13 @@ pub async fn suggest_tasks(
         .content
         .as_ref()
         .ok_or(AppError(anyhow::anyhow!("no content")))?;
-    let json: serde_json::Value = serde_json::from_str(content)?;
+    let content = content.strip_prefix("```json\n").unwrap_or(content);
+    let content = content.strip_suffix("\n```").unwrap_or(content);
+    let json: serde_json::Value = serde_json::from_str(content).map_err(|err| {
+        AppError(anyhow::anyhow!(
+            "failed to parse JSON response:\n{content}\n{err}"
+        ))
+    })?;
     let suggestions = ChatGptResponse::Suggestions(
         json.as_array()
             .ok_or(AppError(anyhow::anyhow!("array of tasks not returned")))?
