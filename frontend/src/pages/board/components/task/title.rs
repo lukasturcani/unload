@@ -76,7 +76,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<Stri
 fn DenseTitleShow(
     task_id: TaskId,
     editing: Signal<bool>,
-    title: String,
+    title: ReadOnlySignal<String>,
     is_late: bool,
     expanded: bool,
 ) -> Element {
@@ -101,7 +101,7 @@ fn DenseTitleShow(
 }
 
 #[component]
-fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
+fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
     rsx! {
         div {
             class: "flex flex-row gap-2 pr-2 items-center",
