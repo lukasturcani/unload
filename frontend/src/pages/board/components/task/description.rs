@@ -17,7 +17,7 @@ use crate::{
 };
 
 #[component]
-pub fn Description(task_id: TaskId, description: String) -> Element {
+pub fn Description(task_id: TaskId, description: ReadOnlySignal<String>) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
@@ -55,7 +55,11 @@ fn DescriptionForm(task_id: TaskId, editing: Signal<bool>, description: String) 
 }
 
 #[component]
-fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) -> Element {
+fn DescriptionShow(
+    task_id: TaskId,
+    description: ReadOnlySignal<String>,
+    editing: Signal<bool>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let edit_button_style = format!("rounded border {}", theme.button);
@@ -87,18 +91,17 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
 }
 
 #[component]
-fn DescriptionContent(task_id: TaskId, description: String) -> Element {
+fn DescriptionContent(task_id: TaskId, description: ReadOnlySignal<String>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
         "p-4 rounded border whitespace-pre-wrap break-words {} {}",
         theme.bg_color_1, theme.border_color
     );
-    let description_ = Signal::new(description.clone());
     rsx! {
         div {
             class: style,
-            for block in parse_blocks(&description) {
+            for block in parse_blocks(&description.read()) {
                 match block {
                     Block::Text(text) => rsx!{
                         p { {text} }
@@ -114,7 +117,7 @@ fn DescriptionContent(task_id: TaskId, description: String) -> Element {
                     Block::Checkbox(lines) => rsx!{
                         ul {
                             for line in lines {
-                                Checkbox { task_id, line, description: description_ }
+                                Checkbox { task_id, line, description }
                             }
                         }
                     },
@@ -131,7 +134,7 @@ fn Bullet(line: String) -> Element {
 }
 
 #[component]
-fn Checkbox(task_id: TaskId, description: Signal<String>, line: Line) -> Element {
+fn Checkbox(task_id: TaskId, description: ReadOnlySignal<String>, line: Line) -> Element {
     let board_signals = BoardSignals::default();
     let (head, tail) = line.content.split_once(']').unwrap();
     rsx! {
