@@ -188,23 +188,46 @@ fn TaskSuggestionCard(
     let title = use_signal(|| suggestion.title);
     let description = use_signal(|| suggestion.description);
     let mut assignees = use_signal(Vec::new);
-    let name_to_entry = name_to_entry.read();
-    let (tags, new_tags) = suggestion.tags.into_iter().fold(
-        (Vec::new(), Vec::new()),
-        |(mut tags, mut new_tags), name| {
-            match name_to_entry.get(&name) {
-                Some(entry) => tags.push(entry.id),
-                None => {
-                    let color = colors
-                        [(name.bytes().fold(0, |acc, byte| acc + (byte as u16)) % 16) as usize];
-                    new_tags.push(TagData { name, color });
-                }
+    let mut tags = use_signal(|| {
+        let name_to_entry = name_to_entry.read();
+        suggestion
+            .tags
+            .iter()
+            .filter_map(|name| name_to_entry.get(name))
+            .map(|entry| entry.id)
+            .collect::<Vec<_>>()
+    });
+    let mut new_tags = use_signal(|| {
+        let name_to_entry = name_to_entry.read();
+        suggestion
+            .tags
+            .iter()
+            .filter_map(|name| match name_to_entry.get(name) {
+                Some(_) => None,
+                None => Some(TagData {
+                    name: name.clone(),
+                    color: colors
+                        [(name.bytes().fold(0, |acc, byte| acc + (byte as u16)) % 16) as usize],
+                }),
+            })
+            .collect::<Vec<_>>()
+    });
+    use_memo(move || {
+        let all_tags = &all_tags.read().0;
+        let name_to_entry = name_to_entry.read();
+        let mut tags = tags.write();
+        let mut new_tags = new_tags.write();
+
+        tags.retain(|tag| all_tags.contains_key(tag));
+        new_tags.retain(|tag| {
+            if let Some(entry) = name_to_entry.get(&tag.name) {
+                tags.push(entry.id);
+                false
+            } else {
+                true
             }
-            (tags, new_tags)
-        },
-    );
-    let mut tags = Signal::new(tags);
-    let new_tags = Signal::new(new_tags);
+        });
+    });
     rsx! {
         article {
             aria_label: "{title}",
@@ -396,21 +419,16 @@ fn AddTaskButton(
 }
 
 async fn create_task(signals: BoardSignals, suggestion: SuggestionSignals) {
-    if let Ok(task_id) = requests::create_task(
-        signals.url,
-        signals.board,
-        shared_models::NewTaskData {
-            title: suggestion.title.read().clone(),
-            description: suggestion.description.read().clone(),
-            due: None,
-            status: TaskStatus::ToDo,
-            assignees: suggestion.assignees.read().clone(),
-            tags: suggestion.tags.read().clone(),
-            new_tags: suggestion.new_tags.read().clone(),
-        },
-    )
-    .await
-    {
+    let task_data = shared_models::NewTaskData {
+        title: suggestion.title.read().clone(),
+        description: suggestion.description.read().clone(),
+        due: None,
+        status: TaskStatus::ToDo,
+        assignees: suggestion.assignees.read().clone(),
+        tags: suggestion.tags.read().clone(),
+        new_tags: suggestion.new_tags.read().clone(),
+    };
+    if let Ok(task_id) = requests::create_task(signals.url, signals.board, task_data).await {
         log::info!("created task: {task_id}");
         requests::board(signals).await;
     }
