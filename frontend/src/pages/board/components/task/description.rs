@@ -29,7 +29,11 @@ pub fn Description(task_id: TaskId, description: ReadOnlySignal<String>) -> Elem
 }
 
 #[component]
-fn DescriptionForm(task_id: TaskId, editing: Signal<bool>, description: String) -> Element {
+fn DescriptionForm(
+    task_id: TaskId,
+    editing: Signal<bool>,
+    description: ReadOnlySignal<String>,
+) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
         form {
@@ -65,13 +69,13 @@ fn DescriptionShow(
     let edit_button_style = format!("rounded border {}", theme.button);
     rsx! {
         section {
-            "aria-label": "description",
+            aria_label: "description",
             class: "flex flex-col gap-1",
             DescriptionContent { task_id, description }
             div {
                 class: "flex flex-row justify-center",
                 button {
-                    "aria-label": "edit description",
+                    aria_label: "edit description",
                     class: "
                         group
                         flex flex-row justify-center items-center

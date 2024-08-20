@@ -9,7 +9,11 @@ use crate::{
 };
 
 #[component]
-pub fn DescriptionInput(id: String, editing: Signal<bool>, description: String) -> Element {
+pub fn DescriptionInput(
+    id: String,
+    editing: Signal<bool>,
+    description: ReadOnlySignal<String>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -58,7 +62,7 @@ pub fn DescriptionInput(id: String, editing: Signal<bool>, description: String) 
                         spawn(edit_description(id, enter_pressed));
                     }
                 },
-                rows: 8.max(description.lines().count() as i64),
+                rows: 8.max(description.read().lines().count() as i64),
                 class: "p-2.5 {style}",
                 name: "Description",
                 required: false,
