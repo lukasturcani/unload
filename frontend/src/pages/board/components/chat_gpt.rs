@@ -148,7 +148,7 @@ fn ChatGptSuggestions(
 fn TaskSuggestionCard(
     suggestion_id: usize,
     resolved_suggestions: Signal<HashSet<usize>>,
-    suggestion: TaskSuggestion,
+    suggestion: ReadOnlySignal<TaskSuggestion>,
     name_to_entry: ReadOnlySignal<HashMap<String, TagEntry>>,
 ) -> Element {
     let colors = [
@@ -185,12 +185,21 @@ fn TaskSuggestionCard(
     let board_signals = BoardSignals::default();
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
-    let title = use_signal(|| suggestion.title);
-    let description = use_signal(|| suggestion.description);
+    let mut title = use_signal(String::new);
+    use_memo(move || {
+        let suggestion = suggestion.read();
+        title.set(suggestion.title.clone());
+    });
+    let mut description = use_signal(String::new);
+    use_memo(move || {
+        let suggestion = suggestion.read();
+        description.set(suggestion.description.clone());
+    });
     let mut assignees = use_signal(Vec::new);
     let mut tags = use_signal(|| {
         let name_to_entry = name_to_entry.read();
         suggestion
+            .read()
             .tags
             .iter()
             .filter_map(|name| name_to_entry.get(name))
@@ -200,6 +209,7 @@ fn TaskSuggestionCard(
     let mut new_tags = use_signal(|| {
         let name_to_entry = name_to_entry.read();
         suggestion
+            .read()
             .tags
             .iter()
             .filter_map(|name| match name_to_entry.get(name) {
