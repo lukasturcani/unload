@@ -44,7 +44,7 @@ pub fn DenseTitle(
 }
 
 #[component]
-fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
+fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
         form {

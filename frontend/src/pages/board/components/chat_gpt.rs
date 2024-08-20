@@ -186,12 +186,12 @@ fn TaskSuggestionCard(
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
     let mut title = use_signal(String::new);
-    use_memo(move || {
+    use_effect(move || {
         let suggestion = suggestion.read();
         title.set(suggestion.title.clone());
     });
     let mut description = use_signal(String::new);
-    use_memo(move || {
+    use_effect(move || {
         let suggestion = suggestion.read();
         description.set(suggestion.description.clone());
     });
@@ -222,7 +222,7 @@ fn TaskSuggestionCard(
             })
             .collect::<Vec<_>>()
     });
-    use_memo(move || {
+    use_effect(move || {
         let all_tags = &all_tags.read().0;
         let name_to_entry = name_to_entry.read();
         let mut tags = tags.write();
@@ -366,6 +366,7 @@ fn EditButton(tooltip: &'static str, editing: Signal<bool>) -> Element {
 
 #[component]
 fn TitleInput(suggestion_id: usize, editing: Signal<bool>, title: Signal<String>) -> Element {
+    let read_only_title = ReadOnlySignal::from(title);
     rsx! {
         form {
             "aria-label": "update title",
@@ -379,7 +380,7 @@ fn TitleInput(suggestion_id: usize, editing: Signal<bool>, title: Signal<String>
                 TextInput {
                     id: "suggestion-{suggestion_id}-title-input",
                     label: "Title",
-                    value: title.read().clone(),
+                    value: read_only_title,
                 }
             }
             div {

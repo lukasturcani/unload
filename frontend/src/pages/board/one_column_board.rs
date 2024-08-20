@@ -85,8 +85,13 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
 #[component]
 fn TitleInput(editing: Signal<bool>) -> Element {
     let board = use_context::<Signal<Board>>();
-    let board = board.read();
     let board_signals = BoardSignals::default();
+
+    let title = use_memo(move || {
+        let board = board.read();
+        board.title.clone()
+    });
+    let title = ReadOnlySignal::from(title);
     rsx! {
         form {
             "aria-label": "update board title",
@@ -101,7 +106,7 @@ fn TitleInput(editing: Signal<bool>) -> Element {
                 TextInput {
                     id: "board-title-input",
                     label: "Title",
-                    value: board.title.clone(),
+                    value: title,
                 }
             }
             div {
