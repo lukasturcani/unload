@@ -1,7 +1,7 @@
 use crate::{components::icons::UpIcon, datetime};
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
-use shared_models::{Color, TagData, TagId, TaskEntry, TaskId, TaskStatus, UserData, UserId};
+use shared_models::{Color, TagId, TaskId, TaskStatus, UserId};
 
 use crate::{
     commands::ScrollTarget,
@@ -28,17 +28,33 @@ pub fn TaskList() -> Element {
                 flex flex-col sm:gap-2
             ",
             for task in tasks.read().0.iter() {
-                Task { task: task.clone() }
+                Task {
+                    key: "{task.id}",
+                    task_id: task.id,
+                    title: task.title.clone(),
+                    description: task.description.clone(),
+                    status: task.status,
+                    assignees: task.assignees.clone(),
+                    tags: task.tags.clone(),
+                    due: task.due,
+                }
             }
         }
     }
 }
 
 #[component]
-fn Task(task: TaskEntry) -> Element {
+fn Task(
+    task_id: TaskId,
+    title: ReadOnlySignal<String>,
+    description: ReadOnlySignal<String>,
+    status: TaskStatus,
+    assignees: ReadOnlySignal<Vec<UserId>>,
+    tags: ReadOnlySignal<Vec<TagId>>,
+    due: Option<DateTime<Utc>>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let label = task.title.clone();
     let expanded = use_signal(|| false);
     let style = format!(
         "
@@ -53,19 +69,19 @@ fn Task(task: TaskEntry) -> Element {
     );
     rsx! {
         article {
-            id: "task-{task.id}-article",
-            "aria-label": label,
+            id: "task-{task_id}-article",
+            aria_label: title,
             class: "flex flex-col gap-2 p-2.5 {style}",
             div {
                 class: "flex flex-row justify-between",
                 div {
                     class: "flex flex-row items-center gap-1",
-                    ToggleExpanded { task_id: task.id, expanded, size: "size-7" }
-                    Title { title: task.title }
+                    ToggleExpanded { task_id, expanded, size: "size-7" }
+                    Title { title }
                 }
                 section {
                     "aria-label": "task status",
-                    match task.status {
+                    match status {
                         TaskStatus::ToDo => rsx! {
                             div {
                                 class: "group relative",
@@ -104,16 +120,16 @@ fn Task(task: TaskEntry) -> Element {
             }
             div {
                 class: "flex flex-row justify-between items-center",
-                Assignees { task_id: task.id, assignees: task.assignees.clone() }
-                TaskActions { task_id: task.id }
+                Assignees { task_id,  assignees }
+                TaskActions { task_id }
             }
-            TaskTags { task_id: task.id, tags: task.tags.clone() }
-            if task.due.is_some() {
-                ShowDue { due: task.due }
+            TaskTags { task_id, tags }
+            if due.is_some() {
+                ShowDue { due }
             }
             if expanded() {
-                Description { description: task.description }
-                SpecialActions { task_id: task.id }
+                Description { description }
+                SpecialActions { task_id }
             }
         }
     }
@@ -145,7 +161,7 @@ fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -
 }
 
 #[component]
-fn Title(title: String) -> Element {
+fn Title(title: ReadOnlySignal<String>) -> Element {
     rsx! {
         h3 {
             class: "
@@ -160,7 +176,7 @@ fn Title(title: String) -> Element {
 #[component]
 fn Assignees(
     task_id: TaskId,
-    assignees: Vec<UserId>,
+    assignees: ReadOnlySignal<Vec<UserId>>,
     icon_size: Option<&'static str>,
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
@@ -171,12 +187,17 @@ fn Assignees(
     rsx! {
         section {
             id: "task-{task_id}-assignees",
-            "aria-label": "assignees",
+            aria_label: "assignees",
             class: "flex flex-row flex-wrap items-center gap-2",
-            for user_id in assignees {
+            for (&user_id, user) in assignees
+                .read()
+                .iter()
+                .map(|id| (id, &users[id]))
+            {
                 UserIcon {
                     user_id,
-                    user_data: users[&user_id].clone(),
+                    name: user.name.clone(),
+                    color: user.color,
                     size,
                     tooltip_position,
                     dir
@@ -189,14 +210,15 @@ fn Assignees(
 #[component]
 pub fn UserIcon(
     user_id: UserId,
-    user_data: UserData,
+    name: ReadOnlySignal<String>,
+    color: Color,
     size: &'static str,
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let color = match user_data.color {
+    let color = match color {
         Color::Black => theme.color1_button,
         Color::White => theme.color2_button,
         Color::Gray => theme.color3_button,
@@ -223,11 +245,11 @@ pub fn UserIcon(
             class: "group relative",
             div {
                 class: "block {size} {style} {color}",
-                "aria-label": user_data.name,
+                aria_label: name,
                 div { class: "size-full" }
             }
             Tooltip {
-                content: user_data.name.clone(),
+                content: name,
                 position: tooltip_position,
                 dir,
             }
@@ -273,26 +295,40 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
 }
 
 #[component]
-fn TaskTags(task_id: TaskId, tags: Vec<TagId>) -> Element {
+fn TaskTags(task_id: TaskId, tags: ReadOnlySignal<Vec<TagId>>) -> Element {
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
     rsx! {
         section {
             id: "task-{task_id}-tags",
-            "aria-label": "tags",
+            aria_label: "tags",
             class: "flex flex-row flex-wrap gap-2 items-center",
-            for tag_id in tags {
-                TaskTagIcon { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
+            for (&tag_id, tag) in tags
+                .read()
+                .iter()
+                .map(|id| (id, &tag_data[id]))
+            {
+                TaskTagIcon {
+                    task_id,
+                    tag_id,
+                    name: tag.name.clone(),
+                    color: tag.color,
+                }
             }
         }
     }
 }
 
 #[component]
-pub fn TaskTagIcon(task_id: TaskId, tag_id: TagId, tag_data: TagData) -> Element {
+pub fn TaskTagIcon(
+    task_id: TaskId,
+    tag_id: TagId,
+    name: ReadOnlySignal<String>,
+    color: Color,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let color = match tag_data.color {
+    let color = match color {
         Color::Black => theme.color1_button,
         Color::White => theme.color2_button,
         Color::Gray => theme.color3_button,
@@ -321,15 +357,15 @@ pub fn TaskTagIcon(task_id: TaskId, tag_id: TagId, tag_data: TagData) -> Element
             ",
             div {
                 class: "text-sm pr-1",
-                "aria-label": tag_data.name,
-                "# {tag_data.name}"
+                aria_label: name,
+                "# {name}"
             }
         }
     }
 }
 
 #[component]
-fn Description(description: String) -> Element {
+fn Description(description: ReadOnlySignal<String>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -338,7 +374,7 @@ fn Description(description: String) -> Element {
     );
     rsx! {
         section {
-            "aria-label": "description",
+            aria_label: "description",
             class: "flex flex-col gap-1",
             p { class: style, {description} }
         }
@@ -381,7 +417,7 @@ fn DeleteTaskButton(task_id: TaskId) -> Element {
 fn ShowDue(due: Option<DateTime<Utc>>) -> Element {
     rsx! {
         section {
-            "aria-label": "due date",
+            aria_label: "due date",
             class: "flex flex-row gap-2 items-center",
             div { class: "size-8", CalendarIcon {} }
             if let Some(due_value) = due {
