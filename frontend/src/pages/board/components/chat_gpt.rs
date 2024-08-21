@@ -544,7 +544,7 @@ fn DescriptionForm(
 }
 
 #[component]
-fn DescriptionShow(editing: Signal<bool>, description: ReadOnlySignal<String>) -> Element {
+fn DescriptionShow(editing: Signal<bool>, description: Signal<String>) -> Element {
     rsx! {
         section {
             aria_label: "description",
@@ -583,7 +583,7 @@ fn EditDescriptionButton(editing: Signal<bool>) -> Element {
 }
 
 #[component]
-fn DescriptionContent(description: ReadOnlySignal<String>) -> Element {
+fn DescriptionContent(description: Signal<String>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -609,7 +609,7 @@ fn DescriptionContent(description: ReadOnlySignal<String>) -> Element {
                     Block::Checkbox(lines) => rsx!{
                         ul {
                             for line in lines {
-                                Checkbox { line }
+                                Checkbox { line, description }
                             }
                         }
                     },
@@ -620,17 +620,16 @@ fn DescriptionContent(description: ReadOnlySignal<String>) -> Element {
 }
 
 #[component]
-fn Checkbox(line: Line) -> Element {
-    line.content.drain(..5);
+fn Checkbox(line: Line, description: Signal<String>) -> Element {
+    let (head, tail) = line.content.split_once(']').unwrap();
     rsx! {
         li {
             label {
                 input {
-                    disabled: true,
-                    checked: false,
+                    checked: head.ends_with('x'),
                     r#type: "checkbox",
                 }
-                {line.content}
+                {tail}
             }
         }
     }
