@@ -240,7 +240,7 @@ fn TaskSuggestionCard(
     });
     rsx! {
         article {
-            aria_label: "{title}",
+            aria_label: title,
             class: "flex flex-col gap-2 p-2.5 {style}",
             Title { suggestion_id, title }
             Description { suggestion_id description }
@@ -329,7 +329,7 @@ fn Title(suggestion_id: usize, title: Signal<String>) -> Element {
 }
 
 #[component]
-fn TitleShow(editing: Signal<bool>, title: String) -> Element {
+fn TitleShow(editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
     rsx! {
         div {
             class: "flex flex-row gap-2 pr-2 items-center",
@@ -523,7 +523,7 @@ fn DescriptionForm(
 ) -> Element {
     rsx! {
         form {
-            "aria-label": "update description",
+            aria_label: "update description",
             class: "flex flex-col gap-2",
             onsubmit: move |event| {
                 description.set(event.values()["Description"].as_value());
@@ -544,10 +544,10 @@ fn DescriptionForm(
 }
 
 #[component]
-fn DescriptionShow(editing: Signal<bool>, description: String) -> Element {
+fn DescriptionShow(editing: Signal<bool>, description: ReadOnlySignal<String>) -> Element {
     rsx! {
         section {
-            "aria-label": "description",
+            aria_label: "description",
             class: "flex flex-col gap-2",
             DescriptionContent { description }
             div {
@@ -565,7 +565,7 @@ fn EditDescriptionButton(editing: Signal<bool>) -> Element {
     let style = format!("rounded border {}", theme.button);
     rsx! {
         button {
-            "aria-label": "edit description",
+            aria_label: "edit description",
             class: "
                 group
                 flex flex-row justify-center items-center
@@ -583,7 +583,7 @@ fn EditDescriptionButton(editing: Signal<bool>) -> Element {
 }
 
 #[component]
-fn DescriptionContent(description: String) -> Element {
+fn DescriptionContent(description: ReadOnlySignal<String>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -593,7 +593,7 @@ fn DescriptionContent(description: String) -> Element {
     rsx! {
         div {
             class: style,
-            for block in parse_blocks(&description) {
+            for block in parse_blocks(&description.read()) {
                 match block {
                     Block::Text(text) => rsx!{
                         p { {text} }

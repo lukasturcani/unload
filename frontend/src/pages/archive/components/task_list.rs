@@ -1,4 +1,8 @@
-use crate::{components::icons::UpIcon, datetime};
+use crate::{
+    components::icons::UpIcon,
+    datetime,
+    description_parser::{parse_blocks, Block, Line},
+};
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use shared_models::{Color, TagId, TaskId, TaskStatus, UserId};
@@ -366,6 +370,17 @@ pub fn TaskTagIcon(
 
 #[component]
 fn Description(description: ReadOnlySignal<String>) -> Element {
+    rsx! {
+        section {
+            aria_label: "description",
+            class: "flex flex-col gap-1",
+            DescriptionContent { description }
+        }
+    }
+}
+
+#[component]
+fn DescriptionContent(description: ReadOnlySignal<String>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -373,12 +388,55 @@ fn Description(description: ReadOnlySignal<String>) -> Element {
         theme.bg_color_1, theme.border_color
     );
     rsx! {
-        section {
-            aria_label: "description",
-            class: "flex flex-col gap-1",
-            p { class: style, {description} }
+        div {
+            class: style,
+            for block in parse_blocks(&description.read()) {
+                match block {
+                    Block::Text(text) => rsx!{
+                        p { {text} }
+                    },
+                    Block::Bullet(lines) => rsx!{
+                        ul {
+                            class:" list-disc list-inside",
+                            for line in lines {
+                                Bullet { line }
+                            }
+                        }
+                    },
+                    Block::Checkbox(lines) => rsx!{
+                        ul {
+                            for line in lines {
+                                Checkbox { line }
+                            }
+                        }
+                    },
+                }
+            }
         }
     }
+}
+
+#[component]
+fn Checkbox(line: Line) -> Element {
+    let (head, tail) = line.content.split_once(']').unwrap();
+    rsx! {
+        li {
+            label {
+                input {
+                    disabled: true,
+                    checked: head.ends_with('x'),
+                    r#type: "checkbox",
+                }
+                {tail}
+            }
+        }
+    }
+}
+
+#[component]
+fn Bullet(line: String) -> Element {
+    line.drain(..2);
+    rsx! { li { {line} } }
 }
 
 #[component]
