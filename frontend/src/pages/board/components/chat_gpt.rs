@@ -626,6 +626,14 @@ fn Checkbox(line: Line, description: Signal<String>) -> Element {
         li {
             label {
                 input {
+                    onchange: move |event| {
+                        let mut description = description.write();
+                        if event.checked() {
+                            description.replace_range(line.index+3..line.index+4, "x");
+                        } else {
+                            description.replace_range(line.index+3..line.index+4, " ");
+                        };
+                    },
                     checked: head.ends_with('x'),
                     r#type: "checkbox",
                 }
