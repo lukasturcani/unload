@@ -7,3 +7,4 @@ website/assets/tailwind.css
 website/dist
 website/node_modules
 /target
+*.br
