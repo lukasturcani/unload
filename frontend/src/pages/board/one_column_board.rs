@@ -3,6 +3,7 @@ use itertools::Itertools;
 use shared_models::{BoardName, SavedBoard, TaskStatus};
 
 use crate::{
+    commands::FocusTarget,
     components::{
         form::{CancelButton, ConfirmButton},
         icons::{
@@ -222,10 +223,54 @@ fn ChatGptSheet(status: TaskStatus, panel: Signal<Panel>, adding_task: Signal<bo
             body: rsx! {
                 section {
                     aria_label: "chat gpt",
-                    class: "flex flex-col gap-2 pt-2 pb-20 {style}",
+                    class: "flex flex-col gap-5 pt-2 pb-20 {style}",
                     ChatGpt { chat_gpt_response }
+                    if chat_gpt_response.read().is_none() {
+                        div {
+                            class: "inline-flex items-center justify-center",
+                            hr { class: "w-64 h-px border-0 bg-gray-700" }
+                            span {
+                                class: "absolute px-3 font-medium -translate-x-1/2 left-1/2 text-white bg-gray-900",
+                                "or"
+                            }
+                        }
+                        CustomTaskButton { status, adding_task, panel }
+                    }
                 }
             }
+        }
+    }
+}
+
+#[component]
+fn CustomTaskButton(
+    status: TaskStatus,
+    adding_task: Signal<bool>,
+    panel: Signal<Panel>,
+) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded-lg {}", theme.primary_button);
+    let mut focus_target = use_context::<Signal<FocusTarget>>();
+    rsx! {
+        button {
+            class: "
+                w-full sm:w-auto
+                px-5 py-2.5
+                text-sm text-center font-medium
+                {style}
+            ",
+            onclick: move |_| {
+                panel.set(Panel::None);
+                if adding_task() {
+                    focus_target.set(
+                        FocusTarget(Some(format!("new-{status:#?}-task-title-input")))
+                    );
+                } else {
+                    adding_task.set(true);
+                }
+            },
+            "Custom Task"
         }
     }
 }
