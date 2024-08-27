@@ -124,7 +124,7 @@ fn ChatGptSuggestions(
     rsx! {
         div {
             class: "
-                flex flex-col gap-2 items-center
+                flex flex-col sm:gap-2 items-center
                 max-h-full overflow-y-auto
             ",
             for (suggestion_id, suggestion) in suggestions
