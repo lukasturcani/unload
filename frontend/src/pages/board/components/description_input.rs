@@ -95,8 +95,7 @@ async fn insert_string(id: Signal<String>, string: impl AsRef<str>) {
     } else {
         let end = char_indices
             .nth(end_char_index - start_char_index - 1)
-            .unwrap()
-            .0;
+            .map_or(content.len(), |(i, _)| i);
         let start = content[..start].rfind('\n').map_or(0, |i| i + 1);
         let mut block = String::new();
         for line in content[start..end].lines() {
