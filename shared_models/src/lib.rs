@@ -46,6 +46,7 @@ pub struct BoardData {
     pub tasks: Vec<TaskEntry>,
     pub tags: Vec<TagEntry>,
     pub saved_boards: Vec<SavedBoard>,
+    pub num_chat_gpt_calls: u8,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash)]
@@ -163,6 +164,17 @@ pub struct TaskData {
     pub tags: Vec<TagId>,
 }
 
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct NewTaskData {
+    pub title: String,
+    pub description: String,
+    pub due: Option<DateTime<Utc>>,
+    pub status: TaskStatus,
+    pub assignees: Vec<UserId>,
+    pub tags: Vec<TagId>,
+    pub new_tags: Vec<TagData>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TaskEntry {
     pub id: TaskId,
@@ -236,4 +248,39 @@ pub struct QuickAddEntry {
     pub description: String,
     pub assignees: Vec<UserId>,
     pub tags: Vec<TagId>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct TaskSuggestion {
+    pub title: String,
+    pub description: String,
+    pub tags: Vec<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum ChatGptResponse {
+    Suggestions(Vec<TaskSuggestion>),
+    LimitExceeded,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Language {
+    English,
+    Slovak,
+}
+
+impl Language {
+    pub fn name(&self) -> &'static str {
+        match self {
+            Language::English => "English",
+            Language::Slovak => "Slovak",
+        }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ChatGptRequest {
+    pub board_name: BoardName,
+    pub language: Language,
+    pub prompt: String,
 }

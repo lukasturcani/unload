@@ -7,6 +7,7 @@ use axum::{
     Router,
 };
 use confique::Config as _;
+use openai_api_rs::v1::api::OpenAIClient;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{trace, Resource};
@@ -14,6 +15,7 @@ use sqlx::SqlitePool;
 use std::{
     net::SocketAddr,
     path::{Path, PathBuf},
+    sync::Arc,
 };
 use tokio::net::TcpListener;
 use tower::ServiceExt;
@@ -27,10 +29,10 @@ use unload::{
     create_task, create_user, delete_quick_add_task, delete_tag, delete_task, delete_task_assignee,
     delete_task_tag, delete_user, new_board_redirect, show_archived_tags, show_archived_tasks,
     show_board, show_board_title, show_quick_add_tasks, show_tag, show_tags, show_task, show_tasks,
-    show_user, show_users, update_board_title, update_tag_archived, update_tag_color,
-    update_tag_name, update_task_archived, update_task_assignees, update_task_description,
-    update_task_due, update_task_status, update_task_tags, update_task_title, update_user_color,
-    update_user_name, Result,
+    show_user, show_users, suggest_tasks, update_board_title, update_tag_archived,
+    update_tag_color, update_tag_name, update_task_archived, update_task_assignees,
+    update_task_description, update_task_due, update_task_status, update_task_tags,
+    update_task_title, update_user_color, update_user_name, AppState, Result,
 };
 
 #[derive(confique::Config)]
@@ -61,9 +63,15 @@ struct Config {
 
     #[config(env = "UNLOAD_ENVIRONMENT", default = "development")]
     environment: String,
+
+    #[config(env = "UNLOAD_OPENAI_API_KEY")]
+    openai_api_key: String,
+
+    #[config(env = "UNLOAD_CHAT_GPT_LIMIT", default = 20)]
+    chat_gpt_limit: u8,
 }
 
-fn website_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
+fn website_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
     Router::new()
         .route("/app", get(redirect_to_app))
         .route("/new-board", get(new_board_redirect))
@@ -74,7 +82,7 @@ async fn redirect_to_app(Host(host): Host) -> Redirect {
     Redirect::to(&format!("//app.{}", host))
 }
 
-fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
+fn app_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
     Router::new()
         .route("/api/boards", post(create_board))
         .route("/api/boards/:board_name/read", post(show_board))
@@ -186,6 +194,7 @@ fn app_router(serve_dir: impl AsRef<Path>) -> Router<SqlitePool> {
             "/api/boards/:board_name/archive/tags",
             get(show_archived_tags),
         )
+        .route("/api/chat-gpt/suggest-tasks", post(suggest_tasks))
         .nest_service("/", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/users", compressed_dir(&serve_dir))
@@ -274,14 +283,20 @@ async fn main() -> Result<()> {
     let config = Config::builder().env().load()?;
     init_tracing(&config.otlp_endpoint, config.environment, config.log)?;
     let pool = SqlitePool::connect(&config.database_url).await?;
+    let chat_gpt_client = Arc::new(OpenAIClient::new(config.openai_api_key));
+    let state = AppState {
+        pool: pool.clone(),
+        chat_gpt_client,
+        chat_gpt_limit: config.chat_gpt_limit,
+    };
     sqlx::migrate!("./migrations")
         .run(&pool)
         .instrument(debug_span!("migrations"))
         .await?;
     let router = Router::new().layer(middleware::from_fn_with_state(
         Routers {
-            app: app_router(config.app_dir).with_state(pool.clone()),
-            website: website_router(config.website_dir).with_state(pool.clone()),
+            app: app_router(config.app_dir).with_state(state.clone()),
+            website: website_router(config.website_dir).with_state(state),
         },
         delegate_request,
     ));
@@ -307,7 +322,8 @@ mod tests {
     use axum_test::TestServer;
     use chrono::Utc;
     use shared_models::{
-        BoardName, Color, TagData, TagEntry, TaskData, TaskEntry, TaskStatus, UserData, UserEntry,
+        BoardName, Color, NewTaskData, TagData, TagEntry, TaskEntry, TaskStatus, UserData,
+        UserEntry,
     };
 
     #[tokio::test]
@@ -315,7 +331,12 @@ mod tests {
         let pool = SqlitePool::connect(&std::env::var("TEST_DATABASE_URL").unwrap())
             .await
             .unwrap();
-        let app = app_router(PathBuf::from("does_not_matter")).with_state(pool);
+        let state = AppState {
+            pool: pool.clone(),
+            chat_gpt_client: Arc::new(OpenAIClient::new("test".to_string())),
+            chat_gpt_limit: 20,
+        };
+        let app = app_router(PathBuf::from("does_not_matter")).with_state(state);
         let server = TestServer::new(app).unwrap();
 
         // Create board
@@ -426,13 +447,14 @@ mod tests {
         // Create tasks
 
         let mut task_ids = Vec::new();
-        let task1 = TaskData {
+        let task1 = NewTaskData {
             title: "first".to_string(),
             description: "first description".to_string(),
             due: Some(Utc::now()),
             status: TaskStatus::ToDo,
             assignees: user_ids.clone(),
             tags: Vec::new(),
+            new_tags: Vec::new(),
         };
         task_ids.push(
             server
@@ -441,13 +463,14 @@ mod tests {
                 .await
                 .json(),
         );
-        let task2 = TaskData {
+        let task2 = NewTaskData {
             title: "second".to_string(),
             description: "second description".to_string(),
             due: Some(Utc::now()),
             status: TaskStatus::InProgress,
             assignees: user_ids.clone(),
             tags: vec![tag_ids[0]],
+            new_tags: Vec::new(),
         };
         task_ids.push(
             server
@@ -456,13 +479,14 @@ mod tests {
                 .await
                 .json(),
         );
-        let task3 = TaskData {
+        let task3 = NewTaskData {
             title: "third".to_string(),
             description: "third description".to_string(),
             due: None,
             status: TaskStatus::Done,
             assignees: user_ids.clone(),
             tags: vec![tag_ids[0], tag_ids[1]],
+            new_tags: Vec::new(),
         };
         task_ids.push(
             server

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nUPDATE\n    chat_gpt_limits\nSET\n    calls_left = ?\nWHERE\n    board_name = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "d59bd7800028ea7cf69a1582edbe89817fff4c61178ab04c5a7e173309f9f67a"
+}

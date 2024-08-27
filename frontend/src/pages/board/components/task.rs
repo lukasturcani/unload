@@ -1,30 +1,30 @@
+use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use reqwest::Client;
-use shared_models::{Color, TagData, TagId, TaskId, TaskStatus, UserData, UserId};
+use shared_models::{TagId, TaskId, TaskStatus, UserId};
 
 use crate::{
     commands::ScrollTarget,
     components::{
-        color_picker::ColorPicker,
-        form::{CancelButton, ConfirmButton},
         icons::{
-            ArchiveIcon, CancelIcon, CopyIcon, DoneIcon, DownIcon, InProgressIcon, PlusIcon,
-            ToDoIcon, TrashIcon, UpIcon,
+            ArchiveIcon, CopyIcon, DoneIcon, DownIcon, InProgressIcon, ToDoIcon, TrashIcon, UpIcon,
         },
-        input::TextInput,
         tooltip::Tooltip,
     },
     model::UnloadUrl,
     pages::board::{
         components::{
+            assignee_selection::AssigneeSelection,
+            assignees::FilteringAssignees,
+            tag_selection::TagSelection,
             task::{
                 description::Description,
                 due::{Due, DueOptions},
                 title::{DenseTitle, Title},
             },
-            TaskTagIcon, UserIcon,
+            task_tags::FilteringTaskTags,
         },
-        model::{Board, Tags, TaskData, Users},
+        model::Board,
         requests::{self, BoardSignals},
     },
     themes::Theme,
@@ -34,15 +34,23 @@ mod description;
 mod due;
 mod title;
 
-fn is_late(task: &TaskData) -> bool {
-    task.due.map_or(false, |due| due < chrono::Utc::now())
+fn is_late(due: &Option<DateTime<Utc>>) -> bool {
+    due.map_or(false, |due| due < chrono::Utc::now())
 }
 
 #[component]
-pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
+pub fn Task(
+    task_id: TaskId,
+    title: ReadOnlySignal<String>,
+    description: ReadOnlySignal<String>,
+    status: TaskStatus,
+    assignees: ReadOnlySignal<Vec<UserId>>,
+    tags: ReadOnlySignal<Vec<TagId>>,
+    due: Option<DateTime<Utc>>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
-    let is_late = is_late(&task);
+    let is_late = is_late(&due);
     let style = format!(
         "
         sm:rounded-lg
@@ -65,37 +73,85 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
     let expanded_ = expanded();
     let select_assignees = use_signal(|| false);
     let select_tags = use_signal(|| false);
-    let label = task.title.clone();
+
+    let board_signals = BoardSignals::default();
+    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         article {
             id: "task-{task_id}-article",
-            "aria-label": label,
+            aria_label: title,
             class: "flex flex-col gap-2 p-2.5 {style}",
             div {
                 class: "flex flex-row justify-between items-center",
                 div {
                     class: "flex flex-row items-center gap-1",
                     ToggleExpanded { task_id, expanded, size: "size-7" }
-                    Title { task_id, title: task.title }
+                    Title { task_id, title }
                 }
                 StatusButtons { task_id, status }
             }
             div {
                 class: "flex flex-row justify-between items-center",
-                Assignees { task_id, assignees: task.assignees.clone(), select_assignees }
+                FilteringAssignees {
+                    id: "task-{task_id}-assignees",
+                    assignees,
+                    select_assignees
+                    on_toggle_selector: move |show| {
+                        if show {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                        } else {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-assignees"))));
+                        }
+                    },
+                }
                 TaskActions { task_id }
             }
             if select_assignees() {
-                AssigneeSelection { task_id, assignees: task.assignees }
+                AssigneeSelection {
+                    id: "task-{task_id}-assignee-selection",
+                    assignees,
+                    on_assign_user: move |user_id| {
+                        spawn_forever(add_task_assignee(board_signals, task_id, user_id));
+                    },
+                    on_unassign_user: move |user_id| {
+                        spawn_forever(delete_task_assignee(board_signals, task_id, user_id));
+                    },
+                    on_add_user: move |user_id| {
+                        spawn_forever(add_task_assignee(board_signals, task_id, user_id));
+                    },
+                }
             }
-            TaskTags { task_id, tags: task.tags.clone(), select_tags }
+            FilteringTaskTags {
+                id: "task-{task_id}-tags",
+                tags,
+                select_tags,
+                on_unassign_tag: move |tag_id| {
+                    spawn_forever(requests::delete_task_tag(board_signals, task_id, tag_id));
+                },
+                on_toggle_selector: move |show| {
+                    if show {
+                        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                    } else {
+                        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-tags"))));
+                    }
+                },
+            }
             if select_tags() {
-                TagSelection { task_id, tags: task.tags }
+                TagSelection {
+                    id: "task-{task_id}-tag-selection",
+                    tags,
+                    on_assign_tag: move |tag_id| {
+                        spawn_forever(add_task_tag(board_signals, task_id, tag_id));
+                    },
+                    on_add_tag: move |tag_id| {
+                        spawn_forever(add_task_tag(board_signals, task_id, tag_id));
+                    },
+                }
             }
             if expanded_ || (is_late && status != TaskStatus::Done) {
                 Due {
                     task_id,
-                    due: task.due.map(|due| DueOptions {
+                    due: due.map(|due| DueOptions {
                         due,
                         show_time_left: status != TaskStatus::Done,
                         is_late,
@@ -103,7 +159,7 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
                 }
             }
             if expanded() {
-                Description { task_id, description: task.description }
+                Description { task_id, description }
                 SpecialActions { task_id }
             }
         }
@@ -111,7 +167,15 @@ pub fn Task(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
 }
 
 #[component]
-pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element {
+pub fn DenseTask(
+    task_id: TaskId,
+    title: ReadOnlySignal<String>,
+    description: ReadOnlySignal<String>,
+    status: TaskStatus,
+    assignees: ReadOnlySignal<Vec<UserId>>,
+    tags: ReadOnlySignal<Vec<TagId>>,
+    due: Option<DateTime<Utc>>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -126,41 +190,61 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
     let expanded_ = expanded();
     let select_tags = use_signal(|| false);
     let select_assignees = use_signal(|| false);
-    let label = task.title.clone();
-    let is_late = is_late(&task);
+    let is_late = is_late(&due);
+    let board_signals = BoardSignals::default();
+    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         article {
             id: "task-{task_id}-article",
-            "aria-label": label,
+            aria_label: title,
             class: "flex flex-col gap-2 p-1 {style}",
             div {
                 class: "flex flex-row justify-between",
                 div {
                     class: "flex flex-row items-center gap-1",
                     ToggleExpanded { task_id, expanded, size: "size-5" }
-                    DenseTitle { task_id, title: task.title, is_late, expanded: expanded_ }
+                    DenseTitle { task_id, title, is_late, expanded: expanded_ }
                 }
-                Assignees {
-                    task_id,
-                    assignees: task.assignees.clone(),
+                FilteringAssignees {
+                    id: "task-{task_id}-assignees",
+                    assignees,
                     select_assignees,
                     icon_size: if expanded_ { "size-6" } else { "size-5" },
                     tooltip_position: "",
                     dir: "rtl",
+                    on_toggle_selector: move |show| {
+                        if show {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                        } else {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-assignees"))));
+                        }
+                    },
                 }
             }
             if select_assignees() {
-                AssigneeSelection { task_id, assignees: task.assignees }
+                AssigneeSelection {
+                    id: "task-{task_id}-assignee-selection",
+                    assignees,
+                    on_assign_user: move |user_id| {
+                        spawn_forever(add_task_assignee(board_signals, task_id, user_id));
+                    },
+                    on_unassign_user: move |user_id| {
+                        spawn_forever(delete_task_assignee(board_signals, task_id, user_id));
+                    },
+                    on_add_user: move |user_id| {
+                        spawn_forever(add_task_assignee(board_signals, task_id, user_id));
+                    },
+                }
             }
             if expanded_ {
                 div {
                     class: "flex flex-row justify-center items-center",
                     StatusButtons { task_id, status }
                 }
-                Description { task_id, description: task.description }
+                Description { task_id, description }
                 Due {
                     task_id,
-                    due: task.due.map(|due| DueOptions {
+                    due: due.map(|due| DueOptions {
                         due,
                         show_time_left: status != TaskStatus::Done,
                         is_late,
@@ -170,9 +254,32 @@ pub fn DenseTask(task_id: TaskId, task: TaskData, status: TaskStatus) -> Element
                     class: "flex flex row justify-center items-center",
                     TaskActions { task_id }
                 }
-                TaskTags { task_id, tags: task.tags.clone(), select_tags }
+                FilteringTaskTags {
+                    id: "task-{task_id}-tags",
+                    tags,
+                    select_tags,
+                    on_unassign_tag: move |tag_id| {
+                        spawn_forever(requests::delete_task_tag(board_signals, task_id, tag_id));
+                    },
+                    on_toggle_selector: move |show| {
+                        if show {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
+                        } else {
+                            scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-tags"))));
+                        }
+                    },
+                }
                 if select_tags() {
-                    TagSelection { task_id, tags: task.tags }
+                    TagSelection {
+                        id: "task-{task_id}-tag-selection",
+                        tags,
+                        on_assign_tag: move |tag_id| {
+                            spawn_forever(add_task_tag(board_signals, task_id, tag_id));
+                        },
+                        on_add_tag: move |tag_id| {
+                            spawn_forever(add_task_tag(board_signals, task_id, tag_id));
+                        },
+                    }
                 }
                 SpecialActions { task_id }
             }
@@ -326,451 +433,6 @@ fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
                 DoneIcon {}
             }
             Tooltip { content: "Done", position: "", dir: "rtl" }
-        }
-    }
-}
-
-#[component]
-fn Assignees(
-    task_id: TaskId,
-    assignees: Vec<UserId>,
-    select_assignees: Signal<bool>,
-    icon_size: Option<&'static str>,
-    tooltip_position: Option<&'static str>,
-    dir: Option<&'static str>,
-) -> Element {
-    let users = use_context::<Signal<Users>>();
-    let users = &users.read().0;
-    let size = icon_size.unwrap_or("size-6");
-    rsx! {
-        section {
-            id: "task-{task_id}-assignees",
-            "aria-label": "assignees",
-            class: "flex flex-row flex-wrap items-center gap-2",
-            for user_id in assignees {
-                UserIcon {
-                    user_id,
-                    user_data: users[&user_id].clone(),
-                    size,
-                    tooltip_position,
-                    dir
-                }
-            }
-            ToggleSelector {
-                task_id,
-                r#for: "task-{task_id}-assignees",
-                show_selector: select_assignees,
-                aria_label: "toggle assignee selection",
-                tooltip: "Assign User",
-                size,
-                tooltip_position,
-                dir,
-            }
-        }
-    }
-}
-
-#[component]
-fn ToggleSelector(
-    task_id: TaskId,
-    r#for: String,
-    show_selector: Signal<bool>,
-    aria_label: String,
-    tooltip: String,
-    size: &'static str,
-    tooltip_position: Option<&'static str>,
-    dir: Option<&'static str>,
-) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("rounded border-2 {}", theme.button);
-    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
-    rsx! {
-        div {
-            class: "group relative",
-            button {
-                "aria-label": aria_label,
-                class: "block {size} {style}",
-                "aria-pressed": show_selector(),
-                onclick: move |_| {
-                    let show = show_selector();
-                    if show {
-                        scroll_target.set(ScrollTarget(Some(format!("task-{task_id}-article"))));
-                    } else {
-                        scroll_target.set(ScrollTarget(Some(r#for.clone())));
-                    }
-                    show_selector.set(!show);
-                },
-                PlusIcon {}
-            }
-            Tooltip { content: tooltip, position: tooltip_position, dir }
-        }
-    }
-}
-
-#[component]
-fn AssigneeSelection(task_id: TaskId, assignees: Vec<UserId>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!("rounded-lg border {}", theme.border_color);
-    let users = use_context::<Signal<Users>>();
-    let users = &users.read().0;
-    let mut assignee_data = Vec::with_capacity(assignees.len());
-    let mut unassigned = Vec::with_capacity(users.len() - assignees.len());
-    for (user_id, user) in users.iter() {
-        if assignees.contains(user_id) {
-            assignee_data.push((*user_id, user.clone()));
-        } else {
-            unassigned.push((*user_id, user.clone()));
-        }
-    }
-    unassigned.sort_by_key(|(_, user)| user.name.to_lowercase());
-    rsx! {
-        section {
-            "aria-label": "assignee selection",
-            class: "flex flex-col gap-2 p-2 {style}",
-            UserBadges { task_id, assignees: assignee_data }
-            UserList { task_id, unassigned }
-        }
-    }
-}
-
-#[component]
-fn TagSelection(task_id: TaskId, tags: Vec<TagId>) -> Element {
-    let tag_data = use_context::<Signal<Tags>>();
-    let tag_data = &tag_data.read().0;
-    let mut unassigned = Vec::with_capacity(tag_data.len() - tags.len());
-    for (user_id, user) in tag_data.iter() {
-        if !tags.contains(user_id) {
-            unassigned.push((*user_id, user.clone()));
-        }
-    }
-    unassigned.sort_by_key(|(_, tag)| tag.name.to_lowercase());
-    rsx! {
-        section {
-            "aria-label": "tag selection",
-            AssignmentList {
-                body: rsx! {
-                    for (tag_id, tag) in unassigned {
-                        TagListItem { key: "{tag_id}", task_id, tag_id, tag }
-                    }
-                    AddTagListItem { key: "{\"add-tag\"}", task_id, }
-                }
-            }
-        }
-    }
-}
-
-#[component]
-fn UserBadges(task_id: TaskId, assignees: Vec<(UserId, UserData)>) -> Element {
-    rsx! {
-       div {
-            class: "flex flex-row gap-2 flex-wrap group text-colored",
-            for (user_id, user_data) in assignees {
-                UserBadge { task_id, user_id, user_data }
-            }
-        }
-    }
-}
-
-#[component]
-fn UserBadge(task_id: TaskId, user_id: UserId, user_data: UserData) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let board_signals = BoardSignals::default();
-    let style = "border-2 rounded";
-    let button_style = format!("rounded sm:hover:border {}", theme.border_color);
-    let color = match user_data.color {
-        Color::Black => theme.color1_button,
-        Color::White => theme.color2_button,
-        Color::Gray => theme.color3_button,
-        Color::Silver => theme.color4_button,
-        Color::Maroon => theme.color5_button,
-        Color::Red => theme.color6_button,
-        Color::Purple => theme.color7_button,
-        Color::Fushsia => theme.color8_button,
-        Color::Green => theme.color9_button,
-        Color::Lime => theme.color10_button,
-        Color::Olive => theme.color11_button,
-        Color::Yellow => theme.color12_button,
-        Color::Navy => theme.color13_button,
-        Color::Blue => theme.color14_button,
-        Color::Teal => theme.color15_button,
-        Color::Aqua => theme.color16_button,
-    };
-    let unassign_label = format!("unassign {} from task", user_data.name);
-    rsx! {
-        div {
-            class: "
-                flex flex-row items-center gap-2
-                text-sm py-1 px-2 {style} {color}
-            ",
-            {user_data.name}
-            button {
-                "aria-label": unassign_label,
-                class: "size-5 p-0.5 {button_style}",
-                onclick: move |_| {
-                    spawn_forever(delete_task_assignee(board_signals, task_id, user_id));
-                },
-                CancelIcon {}
-            }
-        }
-    }
-}
-
-#[component]
-fn AssignmentList(body: Element) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!(
-        "
-        rounded-lg shadow
-        border
-        divide-y
-        {} {}
-    ",
-        theme.border_color, theme.divide_color
-    );
-    rsx! {
-        ul {
-            class: "text-sm {style}",
-            {body}
-        }
-    }
-}
-
-#[component]
-fn AssignmentListItem(
-    content: String,
-    color: Color,
-    aria_label: String,
-    onclick: EventHandler<MouseEvent>,
-) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = "sm:hover:underline";
-    let color = match color {
-        Color::Black => theme.color1_text,
-        Color::White => theme.color2_text,
-        Color::Gray => theme.color3_text,
-        Color::Silver => theme.color4_text,
-        Color::Maroon => theme.color5_text,
-        Color::Red => theme.color6_text,
-        Color::Purple => theme.color7_text,
-        Color::Fushsia => theme.color8_text,
-        Color::Green => theme.color9_text,
-        Color::Lime => theme.color10_text,
-        Color::Olive => theme.color11_text,
-        Color::Yellow => theme.color12_text,
-        Color::Navy => theme.color13_text,
-        Color::Blue => theme.color14_text,
-        Color::Teal => theme.color15_text,
-        Color::Aqua => theme.color16_text,
-    };
-    rsx! {
-        li {
-            button {
-                class: "px-4 py-2 w-full text-left {style} {color}",
-                onclick: move |event| onclick.call(event),
-                {content}
-            }
-        }
-    }
-}
-
-#[component]
-fn UserList(task_id: TaskId, unassigned: Vec<(UserId, UserData)>) -> Element {
-    rsx! {
-        AssignmentList {
-            body: rsx! {
-                for (user_id, user) in unassigned {
-                    UserListItem { key: "{user_id}", task_id, user_id, user }
-                }
-                AddUserListItem { key: "{\"add-user\"}", task_id, }
-            }
-        }
-    }
-}
-
-#[component]
-fn UserListItem(task_id: TaskId, user_id: UserId, user: UserData) -> Element {
-    let board_signals = BoardSignals::default();
-    let label = format!("assign {} to task", user.name);
-    rsx! {
-        AssignmentListItem {
-            content: user.name,
-            color: user.color,
-            aria_label: label,
-            onclick: move |_| {
-                spawn_forever(add_task_assignee(board_signals, task_id, user_id));
-            },
-        }
-    }
-}
-
-#[component]
-fn TagListItem(task_id: TaskId, tag_id: TagId, tag: TagData) -> Element {
-    let board_signals = BoardSignals::default();
-    let label = format!("assign {} to task", tag.name);
-    rsx! {
-        AssignmentListItem {
-            content: tag.name,
-            color: tag.color,
-            aria_label: label,
-            onclick: move |_| {
-                spawn_forever(add_task_tag(board_signals, task_id, tag_id));
-            },
-        }
-    }
-}
-
-#[component]
-fn AddUserListItem(task_id: TaskId) -> Element {
-    let show_form = use_signal(|| false);
-    rsx! {
-        li {
-            if show_form() {
-                AddUserListForm { task_id, show_form }
-            } else {
-                ShowSelectionListFormButton {
-                    r#for: "task-{task_id}-new-user-form",
-                    content: "Add User",
-                    show_form ,
-                }
-            }
-        }
-    }
-}
-
-#[component]
-fn AddTagListItem(task_id: TaskId) -> Element {
-    let show_form = use_signal(|| false);
-    rsx! {
-        li {
-            if show_form() {
-                AddTagListForm { task_id, show_form }
-            } else {
-                ShowSelectionListFormButton {
-                    r#for: "task-{task_id}-new-tag-form",
-                    content: "Add Tag",
-                    show_form,
-                }
-            }
-        }
-    }
-}
-
-#[component]
-fn ShowSelectionListFormButton(r#for: String, content: String, show_form: Signal<bool>) -> Element {
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let mut scroll_target = use_context::<Signal<ScrollTarget>>();
-    let style = format!(
-        "sm:hover:underline active:underline {}",
-        theme.action_text_color
-    );
-    rsx! {
-        button {
-            class: "px-4 py-2 w-full text-left {style}",
-            onclick: move |_| {
-                scroll_target.set(ScrollTarget(Some(r#for.clone())));
-                show_form.set(true)
-            },
-            {content}
-        }
-    }
-}
-
-#[component]
-fn AddUserListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
-    let board_signals = BoardSignals::default();
-    rsx! {
-        li {
-            form {
-                id: "task-{task_id}-new-user-form",
-                "aria-label": "add user",
-                class: "flex flex-col gap-2 p-2",
-                onsubmit: move |event| {
-                    let name = event.values()["Name"].as_value();
-                    let color = serde_json::from_str(
-                        &event.values()["color-picker"].as_value()
-                    ).unwrap();
-                    spawn_forever(create_user(board_signals, task_id, UserData{ name, color }));
-                    show_form.set(false);
-                },
-                TextInput {
-                    id: "task-{task_id}-new-user-name-input",
-                    label: "Name",
-                }
-                ColorPicker { }
-                div {
-                    class: "flex flex-row gap-2 items-center justify-center",
-                    ConfirmButton { label: "add user" }
-                    CancelButton {
-                        label: "cancel adding user",
-                        editing: show_form,
-                    }
-                }
-            }
-        }
-    }
-}
-
-#[component]
-fn AddTagListForm(task_id: TaskId, show_form: Signal<bool>) -> Element {
-    let board_signals = BoardSignals::default();
-    rsx! {
-        li {
-            form {
-                id: "task-{task_id}-new-tag-form",
-                "aria-label": "add tag",
-                class: "flex flex-col gap-2 p-2",
-                onsubmit: move |event| {
-                    let name = event.values()["Name"].as_value();
-                    let color = serde_json::from_str(
-                        &event.values()["color-picker"].as_value()
-                    ).unwrap();
-                    spawn_forever(create_tag(board_signals, task_id, TagData{ name, color }));
-                    show_form.set(false);
-                },
-                TextInput {
-                    id: "task-{task_id}-new-tag-name-input",
-                    label: "Name",
-                }
-                ColorPicker { }
-                div {
-                    class: "flex flex-row gap-2 items-center justify-center",
-                    ConfirmButton { label: "add tag" }
-                    CancelButton {
-                        label: "cancel adding tag",
-                        editing: show_form,
-                    }
-                }
-            }
-        }
-    }
-}
-
-#[component]
-fn TaskTags(task_id: TaskId, tags: Vec<TagId>, select_tags: Signal<bool>) -> Element {
-    let tag_data = use_context::<Signal<Tags>>();
-    let tag_data = &tag_data.read().0;
-    rsx! {
-        section {
-            id: "task-{task_id}-tags",
-            "aria-label": "tags",
-            class: "flex flex-row flex-wrap gap-2 items-center",
-            for tag_id in tags {
-                TaskTagIcon { task_id, tag_id, tag_data: tag_data[&tag_id].clone() }
-            }
-            ToggleSelector {
-                task_id,
-                r#for: "task-{task_id}-tags",
-                show_selector: select_tags,
-                aria_label: "toggle tag selection",
-                tooltip: "Add Tag",
-                size: "size-6",
-            }
         }
     }
 }
@@ -965,26 +627,30 @@ async fn send_add_task_assignee_request(
         .await?)
 }
 
-async fn create_user(signals: BoardSignals, task_id: TaskId, user_data: UserData) {
-    match requests::create_user(signals.url, signals.board, user_data).await {
-        Ok((user_id, _)) => {
-            add_task_assignee(signals, task_id, user_id).await;
-        }
-        Err(e) => {
-            log::info!("Error creating user: {:?}", e);
-        }
+async fn delete_task(signals: BoardSignals, task_id: TaskId) {
+    if send_delete_task_request(signals, task_id).await.is_ok() {
+        requests::board(signals).await;
     }
 }
 
-async fn create_tag(signals: BoardSignals, task_id: TaskId, tag_data: TagData) {
-    match requests::create_tag(signals.url, signals.board, tag_data).await {
-        Ok((tag_id, _)) => {
-            add_task_tag(signals, task_id, tag_id).await;
-        }
-        Err(e) => {
-            log::info!("Error creating tag: {:?}", e);
-        }
-    }
+async fn send_delete_task_request(
+    signals: BoardSignals,
+    task_id: TaskId,
+) -> Result<(), anyhow::Error> {
+    let url = {
+        let url = &signals.url.read().0;
+        let board = signals.board.read();
+        url.join(&format!(
+            "/api/boards/{}/tasks/{}",
+            board.board_name, task_id
+        ))?
+    };
+    Ok(reqwest::Client::new()
+        .delete(url)
+        .send()
+        .await?
+        .json::<()>()
+        .await?)
 }
 
 async fn add_task_tag(signals: BoardSignals, task_id: TaskId, tag_id: TagId) {
@@ -1013,32 +679,6 @@ async fn send_add_task_tag_request(
     Ok(Client::new()
         .post(url)
         .json(&tag_id)
-        .send()
-        .await?
-        .json::<()>()
-        .await?)
-}
-
-async fn delete_task(signals: BoardSignals, task_id: TaskId) {
-    if send_delete_task_request(signals, task_id).await.is_ok() {
-        requests::board(signals).await;
-    }
-}
-
-async fn send_delete_task_request(
-    signals: BoardSignals,
-    task_id: TaskId,
-) -> Result<(), anyhow::Error> {
-    let url = {
-        let url = &signals.url.read().0;
-        let board = signals.board.read();
-        url.join(&format!(
-            "/api/boards/{}/tasks/{}",
-            board.board_name, task_id
-        ))?
-    };
-    Ok(reqwest::Client::new()
-        .delete(url)
         .send()
         .await?
         .json::<()>()

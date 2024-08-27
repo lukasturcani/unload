@@ -3,11 +3,13 @@ use itertools::Itertools;
 use shared_models::{BoardName, SavedBoard, TaskStatus};
 
 use crate::{
+    commands::FocusTarget,
     components::{
         form::{CancelButton, ConfirmButton},
         icons::{
-            BarsIcon, BookmarkIcon, CancelIcon, DoneIcon, EditIcon, ElipsisHorizontalIcon,
-            FilterIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon, TrashIcon,
+            BarsIcon, BookmarkIcon, CancelIcon, CircledPlusIcon, DoneIcon, EditIcon,
+            ElipsisHorizontalIcon, FilterIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon,
+            TrashIcon,
         },
         input::TextInput,
         nav::NavBar,
@@ -15,21 +17,27 @@ use crate::{
     model::SavedBoards,
     pages::board::{
         components::{
-            AddTaskButton, DenseTask, FilterBarTagIcon, NewTaskForm, Task, ThemeButton, UserIcon,
+            ChatGpt, DenseTask, FilterBarTagIcon, FilteringUserIcon, NewTaskForm, Task, ThemeButton,
         },
-        model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
+        model::{
+            task_filter, Board, ChatGptResponse, Dense, TagFilter, Tags, Tasks, UserFilter, Users,
+        },
         requests::{self, BoardSignals},
     },
     route::Route,
     themes::Theme,
 };
 
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 enum Panel {
     None,
     Actions,
     Navigation,
     Status,
+    ChatGpt {
+        status: TaskStatus,
+        adding_task: Signal<bool>,
+    },
 }
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -65,7 +73,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
                 ColumnSwitcher { status, panel }
                 Column { status: status_, adding_task }
             }
-            AddTaskButton { status: status_, adding_task }
+            AddTaskButton { status: status_, adding_task, panel }
             match extra_bar() {
                 ExtraBar::Filter => rsx! { FilterBar { extra_bar } },
                 ExtraBar::Themes => rsx! { ThemesBar { extra_bar } },
@@ -76,7 +84,32 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
         match panel() {
             Panel::Actions => rsx! { ActionsSheet { panel, extra_bar } },
             Panel::Navigation => rsx! { NavigationSheet { panel } },
-            _ => rsx! {},
+            Panel::ChatGpt{status, adding_task} => rsx! { ChatGptSheet { status, adding_task, panel } },
+            Panel::None | Panel::Status => rsx! {},
+        }
+    }
+}
+
+#[component]
+fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>, panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border-t {}", theme.border_color);
+    rsx! {
+        button {
+            class: "
+                h-10 sm:h-12 shrink-0 grow-0
+                flex flex-row justify-center items-center
+                {style}
+            ",
+            onclick: move |event| {
+                event.stop_propagation();
+                panel.set(Panel::ChatGpt{status, adding_task});
+            },
+            div {
+                class: "size-6",
+                CircledPlusIcon {}
+            }
         }
     }
 }
@@ -84,8 +117,13 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
 #[component]
 fn TitleInput(editing: Signal<bool>) -> Element {
     let board = use_context::<Signal<Board>>();
-    let board = board.read();
     let board_signals = BoardSignals::default();
+
+    let title = use_memo(move || {
+        let board = board.read();
+        board.title.clone()
+    });
+    let title = ReadOnlySignal::from(title);
     rsx! {
         form {
             "aria-label": "update board title",
@@ -100,7 +138,7 @@ fn TitleInput(editing: Signal<bool>) -> Element {
                 TextInput {
                     id: "board-title-input",
                     label: "Title",
-                    value: board.title.clone(),
+                    value: title,
                 }
             }
             div {
@@ -165,6 +203,79 @@ fn BottomSheet(panel: Signal<Panel>, body: Element) -> Element {
 }
 
 #[component]
+fn ChatGptSheet(status: TaskStatus, panel: Signal<Panel>, adding_task: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
+                rounded-t-2xl text-lg border-t overflow-hidden
+                {} {} {}
+            ",
+        theme.bg_color_1, theme.text_color, theme.border_color
+    );
+    let chat_gpt_response = use_signal(|| None);
+    if *chat_gpt_response.read() == Some(ChatGptResponse::Resolved) {
+        panel.set(Panel::None);
+    }
+    rsx! {
+        BottomSheet {
+            panel,
+            body: rsx! {
+                section {
+                    aria_label: "chat gpt",
+                    class: "flex flex-col gap-5 h-5/6 {style}",
+                    ChatGpt { chat_gpt_response }
+                    if chat_gpt_response.read().is_none() {
+                        div {
+                            class: "inline-flex items-center justify-center",
+                            hr { class: "w-64 h-px border-0 bg-gray-700" }
+                            span {
+                                class: "absolute px-3 font-medium -translate-x-1/2 left-1/2 text-white bg-gray-900",
+                                "or"
+                            }
+                        }
+                        CustomTaskButton { status, adding_task, panel }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn CustomTaskButton(
+    status: TaskStatus,
+    adding_task: Signal<bool>,
+    panel: Signal<Panel>,
+) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded-lg {}", theme.primary_button);
+    let mut focus_target = use_context::<Signal<FocusTarget>>();
+    rsx! {
+        button {
+            class: "
+                w-full sm:w-auto
+                px-5 py-2.5
+                text-sm text-center font-medium
+                {style}
+            ",
+            onclick: move |_| {
+                panel.set(Panel::None);
+                if adding_task() {
+                    focus_target.set(
+                        FocusTarget(Some(format!("new-{status:#?}-task-title-input")))
+                    );
+                } else {
+                    adding_task.set(true);
+                }
+            },
+            "Custom Task"
+        }
+    }
+}
+
+#[component]
 fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -181,7 +292,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
             panel
             body: rsx! {
                 section {
-                    "aria-label": "actions",
+                    aria_label: "actions",
                     class: "flex flex-col gap-2 pt-2 pb-20 {style}",
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
@@ -435,30 +546,35 @@ fn Column(status: TaskStatus, adding_task: Signal<bool>) -> Element {
 #[component]
 fn ColumnTasks(status: TaskStatus) -> Element {
     let tasks = use_context::<Signal<Tasks>>();
-    let tasks = tasks.read();
+    let tasks = &tasks.read().0;
     let board = use_context::<Signal<Board>>();
     let board = board.read();
     let user_filter = use_context::<Signal<UserFilter>>();
-    let user_filter = user_filter.read();
+    let user_filter = &user_filter.read().0;
     let tag_filter = use_context::<Signal<TagFilter>>();
-    let tag_filter = tag_filter.read();
+    let tag_filter = &tag_filter.read().0;
     let column_tasks = match status {
         TaskStatus::ToDo => &board.to_do,
         TaskStatus::InProgress => &board.in_progress,
         TaskStatus::Done => &board.done,
     };
     rsx! {
-        for task_id in column_tasks
+        for (task_id, task) in column_tasks
             .iter()
             .filter(|task_id| {
-                task_filter(task_id, &tasks.0, &user_filter.0, &tag_filter.0)
+                task_filter(task_id, tasks, user_filter, tag_filter)
             })
+            .map(|task_id| (*task_id, &tasks[task_id]))
         {
             Task {
                 key: "{task_id}",
-                task_id: *task_id,
-                task: tasks.0[task_id].clone(),
+                task_id,
+                title: task.title.clone(),
+                description: task.description.clone(),
                 status,
+                assignees: task.assignees.clone(),
+                tags: task.tags.clone(),
+                due: task.due,
             }
         }
     }
@@ -467,30 +583,35 @@ fn ColumnTasks(status: TaskStatus) -> Element {
 #[component]
 fn DenseColumnTasks(status: TaskStatus) -> Element {
     let tasks = use_context::<Signal<Tasks>>();
-    let tasks = tasks.read();
+    let tasks = &tasks.read().0;
     let board = use_context::<Signal<Board>>();
     let board = board.read();
     let user_filter = use_context::<Signal<UserFilter>>();
-    let user_filter = user_filter.read();
+    let user_filter = &user_filter.read().0;
     let tag_filter = use_context::<Signal<TagFilter>>();
-    let tag_filter = tag_filter.read();
+    let tag_filter = &tag_filter.read().0;
     let column_tasks = match status {
         TaskStatus::ToDo => &board.to_do,
         TaskStatus::InProgress => &board.in_progress,
         TaskStatus::Done => &board.done,
     };
     rsx! {
-        for task_id in column_tasks
+        for (task_id, task) in column_tasks
             .iter()
             .filter(|task_id| {
-                task_filter(task_id, &tasks.0, &user_filter.0, &tag_filter.0)
+                task_filter(task_id, tasks, user_filter, tag_filter)
             })
+            .map(|task_id| (*task_id, &tasks[task_id]))
         {
             DenseTask {
                 key: "{task_id}",
-                task_id: *task_id,
-                task: tasks.0[task_id].clone(),
+                task_id,
+                title: task.title.clone(),
+                description: task.description.clone(),
                 status,
+                assignees: task.assignees.clone(),
+                tags: task.tags.clone(),
+                due: task.due,
             }
         }
     }
@@ -725,7 +846,7 @@ fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
                 class: "flex flex-row gap-1 flex-wrap items-center justify-center",
                 for user_id in users.keys().sorted_by_key(|user_id| users[user_id].name.to_lowercase())
                 {
-                    UserIcon {
+                    FilteringUserIcon {
                         user_id: *user_id,
                         user_data: users[user_id].clone(),
                         size: "size-6",

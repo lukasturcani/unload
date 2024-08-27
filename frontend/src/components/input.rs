@@ -3,7 +3,11 @@ use dioxus::prelude::*;
 use crate::themes::Theme;
 
 #[component]
-pub fn TextInput(id: String, label: String, value: Option<String>) -> Element {
+pub fn TextInput(
+    id: String,
+    label: &'static str,
+    value: Option<ReadOnlySignal<String>>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -15,7 +19,6 @@ pub fn TextInput(id: String, label: String, value: Option<String>) -> Element {
     ",
         theme.border_color, theme.bg_color_2, theme.focus_color
     );
-    let name = label.clone();
     rsx! {
         label {
             class: "text-sm",
@@ -25,7 +28,7 @@ pub fn TextInput(id: String, label: String, value: Option<String>) -> Element {
         input {
             id: id.clone(),
             class: "p-2.5 {style}",
-            name,
+            name: label,
             required: true,
             value,
             onmounted: move |event| async move {

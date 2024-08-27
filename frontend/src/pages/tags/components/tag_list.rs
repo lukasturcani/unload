@@ -179,7 +179,7 @@ fn ColorShow(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
 }
 
 #[component]
-fn NameInput(tag_id: TagId, name: String, state: Signal<State>) -> Element {
+fn NameInput(tag_id: TagId, name: ReadOnlySignal<String>, state: Signal<State>) -> Element {
     let url = use_context::<Signal<TagsUrl>>();
     let tags = use_context::<Signal<TagEntries>>();
     rsx! {

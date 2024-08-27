@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_sdk::storage::*;
+use model::NumChatGptCalls;
 
 use crate::model::SavedBoards;
 use crate::pages::board::model::{Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users};
@@ -31,6 +32,7 @@ pub fn Board(board_name: BoardName) -> Element {
             title: board.read().title.clone(),
         });
     }
+    use_context_provider(|| Signal::new(NumChatGptCalls::default()));
     use_context_provider(|| Signal::new(Tasks::default()));
     use_context_provider(|| Signal::new(Users::default()));
     use_context_provider(|| Signal::new(Tags::default()));

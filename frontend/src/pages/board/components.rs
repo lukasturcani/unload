@@ -1,13 +1,20 @@
-mod add_task_button;
+mod assignee_selection;
+mod assignees;
+mod assignment_list;
+mod chat_gpt;
+mod description_input;
 mod new_task_form;
+mod selector_toggle;
 mod tag_icon;
+mod tag_selection;
 mod task;
+mod task_tags;
 mod theme_button;
 mod user_icon;
 
-pub use add_task_button::AddTaskButton;
+pub use chat_gpt::ChatGpt;
 pub use new_task_form::NewTaskForm;
-pub use tag_icon::{FilterBarTagIcon, TaskTagIcon};
+pub use tag_icon::FilterBarTagIcon;
 pub use task::{DenseTask, Task};
 pub use theme_button::ThemeButton;
-pub use user_icon::UserIcon;
+pub use user_icon::FilteringUserIcon;

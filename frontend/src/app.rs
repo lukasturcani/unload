@@ -1,5 +1,5 @@
 use crate::commands::{FocusCommand, FocusTarget, ScrollCommand, ScrollTarget};
-use crate::model::UnloadUrl;
+use crate::model::{UnloadUrl, Welcome};
 use crate::route::Route;
 use crate::themes::{themes, SavedTheme};
 use dioxus::prelude::*;
@@ -28,6 +28,7 @@ pub fn App(origin: Url) -> Element {
     use_context_provider(|| Signal::new(UnloadUrl(origin)));
     use_context_provider(|| Signal::new(ScrollTarget::default()));
     use_context_provider(|| Signal::new(FocusTarget::default()));
+    use_context_provider(|| Signal::new(Welcome::default()));
     rsx! {
         Router::<Route>{}
         ScrollCommand {}

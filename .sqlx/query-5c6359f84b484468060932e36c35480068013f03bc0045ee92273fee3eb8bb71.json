@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO chat_gpt_limits(board_name, calls_left)\n            SELECT name AS board_name, ? FROM boards WHERE TRUE\n            ON CONFLICT(board_name)\n            DO UPDATE SET calls_left = ?\n            WHERE board_name = board_name\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "5c6359f84b484468060932e36c35480068013f03bc0045ee92273fee3eb8bb71"
+}

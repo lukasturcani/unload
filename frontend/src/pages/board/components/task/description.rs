@@ -5,19 +5,23 @@ use shared_models::TaskId;
 use crate::{
     components::{
         form::{CancelButton, ConfirmButton},
-        icons::{BulletsIcon, CheckboxIcon, EditIcon},
+        icons::EditIcon,
         tooltip::Tooltip,
     },
-    pages::board::requests::{self, BoardSignals},
+    description_parser::{parse_blocks, Block, Line},
+    pages::board::{
+        components::description_input::DescriptionInput,
+        requests::{self, BoardSignals},
+    },
     themes::Theme,
 };
 
 #[component]
-pub fn Description(task_id: TaskId, description: String) -> Element {
+pub fn Description(task_id: TaskId, description: ReadOnlySignal<String>) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
-            DescriptionInput { task_id, editing, description }
+            DescriptionForm { task_id, editing, description }
         } else {
             DescriptionShow { task_id, editing, description }
         }
@@ -25,15 +29,12 @@ pub fn Description(task_id: TaskId, description: String) -> Element {
 }
 
 #[component]
-fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String) -> Element {
+fn DescriptionForm(
+    task_id: TaskId,
+    editing: Signal<bool>,
+    description: ReadOnlySignal<String>,
+) -> Element {
     let board_signals = BoardSignals::default();
-    let theme = use_context::<Signal<Theme>>();
-    let theme = theme.read();
-    let style = format!(
-        "rounded-lg border {} {} {}",
-        theme.bg_color_2, theme.border_color, theme.focus_color
-    );
-    let mut enter_pressed = use_signal(|| false);
     rsx! {
         form {
             "aria-label": "update description",
@@ -43,52 +44,11 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
                 spawn_forever(set_task_description(board_signals, task_id, description));
                 editing.set(false);
             },
-            div {
-                class: format!(
-                    "flex flex-col gap-2 border p-2 rounded-lg {}",
-                    theme.border_color,
-                ),
-                div {
-                    class: "flex flex-row justify-center items-center gap-2",
-                    button {
-                        class: "group",
-                        prevent_default: "onclick",
-                        onclick: move |_| insert_string(task_id, "\n* "),
-                        div {
-                            class: "relative",
-                            div { class: "size-6", BulletsIcon {} }
-                            Tooltip { content: "Bullet Points" }
-                        }
-                    }
-                    button {
-                        class: "group",
-                        prevent_default: "onclick",
-                        onclick: move |_| insert_string(task_id, "\n- [ ] "),
-                        div {
-                            class: "relative",
-                            div { class: "size-6", CheckboxIcon {} }
-                            Tooltip { content: "Task List" }
-                        }
-                    }
-                }
-                textarea {
-                    id: "task-{task_id}-description-input",
-                    onmounted: move |event| async move {
-                        let _ = event.set_focus(true).await;
-                    },
-                    onkeydown: move |event| enter_pressed.set(event.data().key() == Key::Enter),
-                    oninput: move |_| {
-                        if enter_pressed() {
-                            spawn(edit_description(task_id, enter_pressed));
-                        }
-                    },
-                    rows: 8.max(description.lines().count() as i64),
-                    class: "p-2.5 {style}",
-                    name: "Description",
-                    required: false,
-                    value: description,
-                }
-            }
+            DescriptionInput  {
+                id: "task-{task_id}-description-input",
+                editing,
+                description,
+            },
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
                 ConfirmButton { label: "set description" }
@@ -98,149 +58,24 @@ fn DescriptionInput(task_id: TaskId, editing: Signal<bool>, description: String)
     }
 }
 
-async fn insert_string(task_id: TaskId, string: impl AsRef<str>) {
-    let mut text_data = eval(&format!(
-        r#"
-            let element = document.getElementById("task-{task_id}-description-input");
-            dioxus.send([element.value, element.selectionStart, element.selectionEnd]);
-        "#,
-    ));
-    let text_data = &text_data.recv().await.unwrap();
-    let [content, start_char_index, end_char_index] = &text_data.as_array().unwrap()[..] else {
-        panic!("impossible");
-    };
-    let start_char_index = start_char_index.as_u64().unwrap() as usize;
-    let end_char_index = end_char_index.as_u64().unwrap() as usize;
-    let mut content = String::from(content.as_str().unwrap());
-    let mut char_indices = content.char_indices();
-    let start = char_indices
-        .nth(start_char_index)
-        .map_or(content.len(), |(i, _)| i);
-    if start_char_index == end_char_index {
-        content.insert_str(start, string.as_ref());
-    } else {
-        let end = char_indices
-            .nth(end_char_index - start_char_index - 1)
-            .unwrap()
-            .0;
-        let start = content[..start].rfind('\n').map_or(0, |i| i + 1);
-        let mut block = String::new();
-        for line in content[start..end].lines() {
-            block.push_str(string.as_ref());
-            block.push_str(line);
-        }
-        content.replace_range(start..end, &block);
-    };
-    let edit = eval(&format!(
-        r#"
-            let element = document.getElementById("task-{task_id}-description-input");
-            let selectionStart = element.selectionStart + {};
-            let content = await dioxus.recv();
-            element.value = content;
-            element.selectionStart = selectionStart;
-            element.selectionEnd = selectionStart;
-            element.focus();
-        "#,
-        string.as_ref().len(),
-    ));
-    edit.send(content.into()).unwrap();
-}
-
-async fn edit_description(task_id: TaskId, mut enter_pressed: Signal<bool>) {
-    let mut text_data = eval(&format!(
-        r#"
-            let element = document.getElementById("task-{task_id}-description-input");
-            dioxus.send([element.value, element.selectionStart]);
-        "#,
-    ));
-    let text_data = &text_data.recv().await.unwrap();
-    let [content, char_index] = &text_data.as_array().unwrap()[..] else {
-        panic!("impossible");
-    };
-    let content = content.as_str().unwrap();
-    let char_index = char_index.as_u64().unwrap() as usize;
-    let byte_index = content
-        .char_indices()
-        .nth(char_index)
-        .map_or(content.len(), |(i, _)| i);
-    let start = content[..byte_index - 1].rfind('\n').map_or(0, |i| i + 1);
-    let line = &content[start..byte_index - 1];
-    if line.starts_with("- [ ]") || line.starts_with("- [x]") {
-        let mut content = String::from(content);
-        if line == "- [ ] " {
-            let edit = eval(&format!(
-                r#"
-                    let element = document.getElementById("task-{task_id}-description-input");
-                    let selectionStart = element.selectionStart - 7;
-                    let content = await dioxus.recv();
-                    element.value = content;
-                    element.selectionStart = selectionStart;
-                    element.selectionEnd = selectionStart;
-                "#,
-            ));
-            content.drain(start..byte_index);
-            edit.send(content.into()).unwrap();
-        } else {
-            let edit = eval(&format!(
-                r#"
-                    let element = document.getElementById("task-{task_id}-description-input");
-                    let selectionStart = element.selectionStart + 6;
-                    let content = await dioxus.recv();
-                    element.value = content;
-                    element.selectionStart = selectionStart;
-                    element.selectionEnd = selectionStart;
-                "#,
-            ));
-            content.insert_str(byte_index, "- [ ] ");
-            edit.send(content.into()).unwrap();
-        }
-    } else if line.starts_with('*') {
-        let mut content = String::from(content);
-        if line == "* " {
-            let edit = eval(&format!(
-                r#"
-                    let element = document.getElementById("task-{task_id}-description-input");
-                    let selectionStart = element.selectionStart - 3;
-                    let content = await dioxus.recv();
-                    element.value = content;
-                    element.selectionStart = selectionStart;
-                    element.selectionEnd = selectionStart;
-                "#,
-            ));
-            content.drain(start..byte_index);
-            edit.send(content.into()).unwrap();
-        } else {
-            let edit = eval(&format!(
-                r#"
-                    let element = document.getElementById("task-{task_id}-description-input");
-                    let selectionStart = element.selectionStart + 2;
-                    let content = await dioxus.recv();
-                    element.value = content;
-                    element.selectionStart = selectionStart;
-                    element.selectionEnd = selectionStart;
-                "#,
-            ));
-            content.insert_str(byte_index, "* ");
-            edit.send(content.into()).unwrap();
-        }
-    }
-    enter_pressed.set(false);
-}
-
 #[component]
-fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) -> Element {
+fn DescriptionShow(
+    task_id: TaskId,
+    description: ReadOnlySignal<String>,
+    editing: Signal<bool>,
+) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let edit_button_style = format!("rounded border {}", theme.button);
     rsx! {
         section {
-            "aria-label": "description",
+            aria_label: "description",
             class: "flex flex-col gap-1",
             DescriptionContent { task_id, description }
             div {
                 class: "flex flex-row justify-center",
                 button {
-                    "aria-label": "edit description",
+                    aria_label: "edit description",
                     class: "
                         group
                         flex flex-row justify-center items-center
@@ -259,64 +94,18 @@ fn DescriptionShow(task_id: TaskId, description: String, editing: Signal<bool>) 
     }
 }
 
-#[derive(Clone, Eq, PartialEq)]
-struct Line {
-    index: usize,
-    content: String,
-}
-
-enum Block {
-    Text(String),
-    Bullet(Vec<String>),
-    Checkbox(Vec<Line>),
-}
-
-fn parse_blocks(description: &str) -> Vec<Block> {
-    let mut blocks = Vec::<Block>::new();
-    let mut line_index = 0;
-    for line in description.lines() {
-        if line.starts_with("* ") {
-            if let Some(Block::Bullet(lines)) = blocks.last_mut() {
-                lines.push(line.into());
-            } else {
-                blocks.push(Block::Bullet(vec![line.into()]));
-            };
-        } else if line.starts_with("- [ ]") || line.starts_with("- [x]") {
-            if let Some(Block::Checkbox(lines)) = blocks.last_mut() {
-                lines.push(Line {
-                    index: line_index,
-                    content: line.into(),
-                });
-            } else {
-                blocks.push(Block::Checkbox(vec![Line {
-                    index: line_index,
-                    content: line.into(),
-                }]));
-            };
-        } else if let Some(Block::Text(text)) = blocks.last_mut() {
-            text.push('\n');
-            text.push_str(line);
-        } else {
-            blocks.push(Block::Text(line.into()));
-        };
-        line_index += line.len() + 1;
-    }
-    blocks
-}
-
 #[component]
-fn DescriptionContent(task_id: TaskId, description: String) -> Element {
+fn DescriptionContent(task_id: TaskId, description: ReadOnlySignal<String>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
         "p-4 rounded border whitespace-pre-wrap break-words {} {}",
         theme.bg_color_1, theme.border_color
     );
-    let description_ = Signal::new(description.clone());
     rsx! {
         div {
             class: style,
-            for block in parse_blocks(&description) {
+            for block in parse_blocks(&description.read()) {
                 match block {
                     Block::Text(text) => rsx!{
                         p { {text} }
@@ -332,7 +121,7 @@ fn DescriptionContent(task_id: TaskId, description: String) -> Element {
                     Block::Checkbox(lines) => rsx!{
                         ul {
                             for line in lines {
-                                Checkbox { task_id, line, description: description_ }
+                                Checkbox { task_id, line, description }
                             }
                         }
                     },
@@ -349,7 +138,7 @@ fn Bullet(line: String) -> Element {
 }
 
 #[component]
-fn Checkbox(task_id: TaskId, description: Signal<String>, line: Line) -> Element {
+fn Checkbox(task_id: TaskId, description: ReadOnlySignal<String>, line: Line) -> Element {
     let board_signals = BoardSignals::default();
     let (head, tail) = line.content.split_once(']').unwrap();
     rsx! {

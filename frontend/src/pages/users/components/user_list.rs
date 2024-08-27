@@ -178,7 +178,7 @@ fn ColorShow(user_id: UserId, color: Color, state: Signal<State>) -> Element {
 }
 
 #[component]
-fn NameInput(user_id: UserId, name: String, state: Signal<State>) -> Element {
+fn NameInput(user_id: UserId, name: ReadOnlySignal<String>, state: Signal<State>) -> Element {
     let url = use_context::<Signal<UsersUrl>>();
     let users = use_context::<Signal<UserEntries>>();
     rsx! {

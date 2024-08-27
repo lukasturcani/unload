@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nINSERT INTO chat_gpt_limits (board_name, calls_left)\nVALUES (?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "098e3c1755869b572dc87d14f509c726ac1d113e9575baa3abd17bcc77d2b314"
+}

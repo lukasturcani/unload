@@ -15,7 +15,7 @@ use crate::{
 };
 
 #[component]
-pub fn Title(task_id: TaskId, title: String) -> Element {
+pub fn Title(task_id: TaskId, title: ReadOnlySignal<String>) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
@@ -27,7 +27,12 @@ pub fn Title(task_id: TaskId, title: String) -> Element {
 }
 
 #[component]
-pub fn DenseTitle(task_id: TaskId, title: String, is_late: bool, expanded: bool) -> Element {
+pub fn DenseTitle(
+    task_id: TaskId,
+    title: ReadOnlySignal<String>,
+    is_late: bool,
+    expanded: bool,
+) -> Element {
     let editing = use_signal(|| false);
     rsx! {
         if editing() {
@@ -39,7 +44,7 @@ pub fn DenseTitle(task_id: TaskId, title: String, is_late: bool, expanded: bool)
 }
 
 #[component]
-fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
+fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
     let board_signals = BoardSignals::default();
     rsx! {
         form {
@@ -71,7 +76,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: String) -> Element 
 fn DenseTitleShow(
     task_id: TaskId,
     editing: Signal<bool>,
-    title: String,
+    title: ReadOnlySignal<String>,
     is_late: bool,
     expanded: bool,
 ) -> Element {
@@ -96,7 +101,7 @@ fn DenseTitleShow(
 }
 
 #[component]
-fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: String) -> Element {
+fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
     rsx! {
         div {
             class: "flex flex-row gap-2 pr-2 items-center",
