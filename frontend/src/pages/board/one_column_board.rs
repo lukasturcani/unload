@@ -208,7 +208,7 @@ fn ChatGptSheet(status: TaskStatus, panel: Signal<Panel>, adding_task: Signal<bo
     let theme = theme.read();
     let style = format!(
         "
-                rounded-t-2xl text-lg border-t
+                rounded-t-2xl text-lg border-t overflow-hidden
                 {} {} {}
             ",
         theme.bg_color_1, theme.text_color, theme.border_color
@@ -223,7 +223,7 @@ fn ChatGptSheet(status: TaskStatus, panel: Signal<Panel>, adding_task: Signal<bo
             body: rsx! {
                 section {
                     aria_label: "chat gpt",
-                    class: "flex flex-col gap-5 pt-2 pb-2 h-5/6 {style}",
+                    class: "flex flex-col gap-5 h-5/6 {style}",
                     ChatGpt { chat_gpt_response }
                     if chat_gpt_response.read().is_none() {
                         div {
