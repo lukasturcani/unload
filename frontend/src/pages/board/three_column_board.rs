@@ -476,7 +476,8 @@ fn ChatGptPopup(status: TaskStatus, adding_task: Signal<bool>, panel: Signal<Pan
                 {style}
             ",
             onclick: move |_| panel.set(Panel::None),
-            div {
+            section {
+                aria_label: "chat gpt",
                 class: "w-2/3 max-h-full overflow-y-auto",
                 onclick: |event| event.stop_propagation(),
                 ChatGptContainer { status, adding_task, panel }

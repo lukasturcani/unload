@@ -6,8 +6,9 @@ use crate::{
     components::{
         form::{CancelButton, ConfirmButton},
         icons::{
-            BarsIcon, BookmarkIcon, CancelIcon, DoneIcon, EditIcon, ElipsisHorizontalIcon,
-            FilterIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon, TrashIcon,
+            BarsIcon, BookmarkIcon, CancelIcon, CircledPlusIcon, DoneIcon, EditIcon,
+            ElipsisHorizontalIcon, FilterIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon,
+            TrashIcon,
         },
         input::TextInput,
         nav::NavBar,
@@ -15,22 +16,27 @@ use crate::{
     model::SavedBoards,
     pages::board::{
         components::{
-            AddTaskButton, DenseTask, FilterBarTagIcon, FilteringUserIcon, NewTaskForm, Task,
-            ThemeButton,
+            ChatGpt, DenseTask, FilterBarTagIcon, FilteringUserIcon, NewTaskForm, Task, ThemeButton,
         },
-        model::{task_filter, Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users},
+        model::{
+            task_filter, Board, ChatGptResponse, Dense, TagFilter, Tags, Tasks, UserFilter, Users,
+        },
         requests::{self, BoardSignals},
     },
     route::Route,
     themes::Theme,
 };
 
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 enum Panel {
     None,
     Actions,
     Navigation,
     Status,
+    ChatGpt {
+        status: TaskStatus,
+        adding_task: Signal<bool>,
+    },
 }
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -66,7 +72,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
                 ColumnSwitcher { status, panel }
                 Column { status: status_, adding_task }
             }
-            AddTaskButton { status: status_, adding_task }
+            AddTaskButton { status: status_, adding_task, panel }
             match extra_bar() {
                 ExtraBar::Filter => rsx! { FilterBar { extra_bar } },
                 ExtraBar::Themes => rsx! { ThemesBar { extra_bar } },
@@ -77,7 +83,32 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
         match panel() {
             Panel::Actions => rsx! { ActionsSheet { panel, extra_bar } },
             Panel::Navigation => rsx! { NavigationSheet { panel } },
-            _ => rsx! {},
+            Panel::ChatGpt{status, adding_task} => rsx! { ChatGptSheet { status, adding_task, panel } },
+            Panel::None | Panel::Status => rsx! {},
+        }
+    }
+}
+
+#[component]
+fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>, panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border-t {}", theme.border_color);
+    rsx! {
+        button {
+            class: "
+                h-10 sm:h-12 shrink-0 grow-0
+                flex flex-row justify-center items-center
+                {style}
+            ",
+            onclick: move |event| {
+                event.stop_propagation();
+                panel.set(Panel::ChatGpt{status, adding_task});
+            },
+            div {
+                class: "size-6",
+                CircledPlusIcon {}
+            }
         }
     }
 }
@@ -171,6 +202,35 @@ fn BottomSheet(panel: Signal<Panel>, body: Element) -> Element {
 }
 
 #[component]
+fn ChatGptSheet(status: TaskStatus, panel: Signal<Panel>, adding_task: Signal<bool>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
+                rounded-t-2xl text-lg border-t
+                {} {} {}
+            ",
+        theme.bg_color_1, theme.text_color, theme.border_color
+    );
+    let chat_gpt_response = use_signal(|| None);
+    if *chat_gpt_response.read() == Some(ChatGptResponse::Resolved) {
+        panel.set(Panel::None);
+    }
+    rsx! {
+        BottomSheet {
+            panel,
+            body: rsx! {
+                section {
+                    aria_label: "chat gpt",
+                    class: "flex flex-col gap-2 pt-2 pb-20 {style}",
+                    ChatGpt { chat_gpt_response }
+                }
+            }
+        }
+    }
+}
+
+#[component]
 fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -187,7 +247,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
             panel
             body: rsx! {
                 section {
-                    "aria-label": "actions",
+                    aria_label: "actions",
                     class: "flex flex-col gap-2 pt-2 pb-20 {style}",
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
