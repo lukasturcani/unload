@@ -223,7 +223,7 @@ fn ChatGptSheet(status: TaskStatus, panel: Signal<Panel>, adding_task: Signal<bo
             body: rsx! {
                 section {
                     aria_label: "chat gpt",
-                    class: "flex flex-col gap-5 pt-2 pb-20 {style}",
+                    class: "flex flex-col gap-5 pt-2 pb-2 h-5/6 {style}",
                     ChatGpt { chat_gpt_response }
                     if chat_gpt_response.read().is_none() {
                         div {
