@@ -1,4 +1,3 @@
-mod add_task_button;
 mod assignee_selection;
 mod assignees;
 mod assignment_list;
@@ -13,7 +12,6 @@ mod task_tags;
 mod theme_button;
 mod user_icon;
 
-pub use add_task_button::AddTaskButton;
 pub use chat_gpt::ChatGpt;
 pub use new_task_form::NewTaskForm;
 pub use tag_icon::FilterBarTagIcon;
