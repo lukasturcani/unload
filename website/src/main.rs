@@ -189,7 +189,7 @@ fn App() -> Element {
                                 img {
                                     id: "board-image",
                                     class: "object-contain",
-                                    alt: "unload large board",
+                                    alt: "unload board",
                                     src: match (dense(), dark(), mobile()) {
                                         (true, true, true) => "dense_dark_mobile.png",
                                         (true, true, false) => "dense_dark_nmobile.png",
