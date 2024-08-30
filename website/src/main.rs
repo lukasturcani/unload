@@ -145,7 +145,7 @@ fn App() -> Element {
                                 "aria-pressed": dense(),
                                 onclick: move |_| {
                                     dense.set(!dense());
-                                    scroll.send("board-image".into()).unwrap();
+                                    let _ = scroll.send("board-image".into());
                                 },
                                 "Dense"
                             }
@@ -161,7 +161,7 @@ fn App() -> Element {
                                 "aria-pressed": dark(),
                                 onclick: move |_| {
                                     dark.set(!dark());
-                                    scroll.send("board-image".into()).unwrap();
+                                    let _ = scroll.send("board-image".into());
                                 },
                                 "Dark"
                             }
@@ -177,7 +177,7 @@ fn App() -> Element {
                                 "aria-pressed": mobile(),
                                 onclick: move |_| {
                                     mobile.set(!mobile());
-                                    scroll.send("board-image".into()).unwrap();
+                                    let _ = scroll.send("board-image".into());
                                 },
                                 "Mobile"
                             }

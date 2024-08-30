@@ -16,9 +16,9 @@ pub fn ScrollCommand() -> Element {
         "#,
     );
     if let Some(scroll_target) = scroll_target {
-        scroll.send(scroll_target.clone().into()).unwrap();
+        let _ = scroll.send(scroll_target.clone().into());
     } else {
-        scroll.send("ignore".into()).unwrap();
+        let _ = scroll.send("ignore".into());
     }
     rsx! {}
 }
@@ -39,9 +39,9 @@ pub fn FocusCommand() -> Element {
         "#,
     );
     if let Some(focus_target) = focus_target {
-        focus.send(focus_target.clone().into()).unwrap();
+        let _ = focus.send(focus_target.clone().into());
     } else {
-        focus.send("ignore".into()).unwrap();
+        let _ = focus.send("ignore".into());
     }
     rsx! {}
 }

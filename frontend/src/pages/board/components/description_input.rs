@@ -116,7 +116,7 @@ async fn insert_string(id: Signal<String>, string: impl AsRef<str>) {
         "#,
         string.as_ref().len(),
     ));
-    edit.send(content.into()).unwrap();
+    let _ = edit.send(content.into());
 }
 
 async fn edit_description(id: Signal<String>, mut enter_pressed: Signal<bool>) {
@@ -152,7 +152,7 @@ async fn edit_description(id: Signal<String>, mut enter_pressed: Signal<bool>) {
                 "#,
             ));
             content.drain(start..byte_index);
-            edit.send(content.into()).unwrap();
+            let _ = edit.send(content.into());
         } else {
             let edit = eval(&format!(
                 r#"
@@ -165,7 +165,7 @@ async fn edit_description(id: Signal<String>, mut enter_pressed: Signal<bool>) {
                 "#,
             ));
             content.insert_str(byte_index, "- [ ] ");
-            edit.send(content.into()).unwrap();
+            let _ = edit.send(content.into());
         }
     } else if line.starts_with('*') {
         let mut content = String::from(content);
@@ -181,7 +181,7 @@ async fn edit_description(id: Signal<String>, mut enter_pressed: Signal<bool>) {
                 "#,
             ));
             content.drain(start..byte_index);
-            edit.send(content.into()).unwrap();
+            let _ = edit.send(content.into());
         } else {
             let edit = eval(&format!(
                 r#"
@@ -194,7 +194,7 @@ async fn edit_description(id: Signal<String>, mut enter_pressed: Signal<bool>) {
                 "#,
             ));
             content.insert_str(byte_index, "* ");
-            edit.send(content.into()).unwrap();
+            let _ = edit.send(content.into());
         }
     }
     enter_pressed.set(false);
