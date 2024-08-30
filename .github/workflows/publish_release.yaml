@@ -32,6 +32,8 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       - run: >
           curl -X POST "https://api.cloudflare.com/client/v4/zones/054b43e2b14a23c52faf8a36251603fb/purge_cache"
-          -H "Authorization: Bearer 5_5sH8qmEShfWGLg4rfKweN6trfOGHtWyU3nuRUi"
+          -H "Authorization: Bearer $CLOUDFLARE_PURGE_TOKEN"
           -H "Content-Type:application/json"
           --data '{"purge_everything":true}'
+        env:
+          CLOUDFLARE_PURGE_TOKEN: ${{ secrets.CLOUDFLARE_PURGE_TOKEN }}
