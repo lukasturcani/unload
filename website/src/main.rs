@@ -133,53 +133,29 @@ fn App() -> Element {
                         ",
                         div {
                             class: "flex flex-row gap-2 items-center justify-center",
-                            button {
-                                class: "
-                                    px-2 py-1 rounded-md font-bold
-                                    shadow-md hover:shadow hover:translate-y-1
-                                    aria-pressed:shadow aria-pressed:translate-y-1 aria-pressed:bg-[#FFFF00]
-                                    bg-white text-[#ff6dff]
-                                    transition-all ease-in-out
-                                    text-3xl
-                                ",
-                                "aria-pressed": dense(),
+                            ToggleButton {
+                                aria_pressed: dense(),
                                 onclick: move |_| {
                                     dense.set(!dense());
                                     let _ = scroll.send("board-image".into());
                                 },
-                                "Dense"
+                                label: "Dense"
                             }
-                            button {
-                                class: "
-                                    px-2 py-1 rounded-md font-bold
-                                    shadow-md hover:shadow hover:translate-y-1
-                                    aria-pressed:shadow aria-pressed:translate-y-1 aria-pressed:bg-[#FFFF00]
-                                    bg-white text-[#ff6dff]
-                                    transition-all ease-in-out
-                                    text-3xl
-                                ",
-                                "aria-pressed": dark(),
+                            ToggleButton {
+                                aria_pressed: dark(),
                                 onclick: move |_| {
                                     dark.set(!dark());
                                     let _ = scroll.send("board-image".into());
                                 },
-                                "Dark"
+                                label: "Dark"
                             }
-                            button {
-                                class: "
-                                    px-2 py-1 rounded-md font-bold
-                                    shadow-md hover:shadow hover:translate-y-1
-                                    aria-pressed:shadow aria-pressed:translate-y-1 aria-pressed:bg-[#FFFF00]
-                                    bg-white text-[#ff6dff]
-                                    transition-all ease-in-out
-                                    text-3xl
-                                ",
-                                "aria-pressed": mobile(),
+                            ToggleButton {
+                                aria_pressed: mobile(),
                                 onclick: move |_| {
                                     mobile.set(!mobile());
                                     let _ = scroll.send("board-image".into());
                                 },
-                                "Mobile"
+                                label: "Mobile"
                             }
                         }
                         div {
@@ -206,6 +182,29 @@ fn App() -> Element {
                     }
                 }
             }
+        }
+    }
+}
+
+#[component]
+fn ToggleButton(
+    onclick: EventHandler<MouseEvent>,
+    aria_pressed: bool,
+    label: &'static str,
+) -> Element {
+    rsx! {
+        button {
+            class: "
+                px-2 py-1 rounded-md font-bold
+                shadow-md hover:shadow hover:translate-y-1
+                aria-pressed:shadow aria-pressed:translate-y-1 aria-pressed:bg-[#07fc03]
+                bg-white text-[#ff6dff]
+                transition-all ease-in-out
+                text-3xl
+            ",
+            aria_pressed,
+            onclick: move |event| onclick.call(event),
+            {label}
         }
     }
 }
