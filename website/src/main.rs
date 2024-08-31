@@ -60,7 +60,7 @@ fn App() -> Element {
                             href: "https://github.com/lukasturcani/unload",
                             target: "_blank",
                             svg {
-                                class: "stroke-white fill-white hover:stroke-[#FFFF00] hover:fill-[#FFFF00]",
+                                class: "stroke-white fill-white hover:stroke-[#07fc03] hover:fill-[#07fc03]",
                                 height: "36",
                                 width: "37",
                                 "viewBox": "0 0 37 36",
