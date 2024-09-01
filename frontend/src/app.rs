@@ -9,7 +9,7 @@ use dioxus_sdk::storage::*;
 use reqwest::Url;
 
 #[component]
-pub fn App(origin: Url) -> Element {
+pub fn App(origin: Url, default_language: BoardLanguage) -> Element {
     let themes = use_context_provider(|| Signal::new(themes()));
     let saved_theme =
         use_synced_storage::<LocalStorage, SavedTheme>("theme".to_string(), move || {
@@ -26,10 +26,10 @@ pub fn App(origin: Url) -> Element {
             None => Signal::new(themes[0]),
         }
     });
-    let language = use_synced_storage::<LocalStorage, BoardLanguage>(
-        "language".to_string(),
-        BoardLanguage::default,
-    );
+    let language =
+        use_synced_storage::<LocalStorage, BoardLanguage>("language".to_string(), || {
+            default_language
+        });
     let language_ = language.read();
     use_init_i18n(
         language_.0.parse().unwrap(),

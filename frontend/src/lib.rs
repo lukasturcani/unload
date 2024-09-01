@@ -11,3 +11,4 @@ mod themes;
 mod translations;
 mod window;
 
+pub use model::BoardLanguage;

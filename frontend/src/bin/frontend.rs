@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use frontend::app::App;
+use frontend::{app::App, BoardLanguage};
 use log::LevelFilter;
 use reqwest::Url;
 use std::str::FromStr;
@@ -12,6 +12,10 @@ fn main() {
 
 #[component]
 fn Unload() -> Element {
-    let origin = Url::from_str(&web_sys::window().unwrap().origin()).unwrap();
-    rsx! { App { origin } }
+    let window = web_sys::window().unwrap();
+    let origin = Url::from_str(&window.origin()).unwrap();
+    let default_language =
+        BoardLanguage(window.navigator().language().unwrap_or(String::from("en")));
+    log::info!("default language: {}", default_language.0);
+    rsx! { App { origin, default_language } }
 }

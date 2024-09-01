@@ -5,12 +5,6 @@ use shared_models::SavedBoard;
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct BoardLanguage(pub String);
 
-impl Default for BoardLanguage {
-    fn default() -> Self {
-        Self("en".to_string())
-    }
-}
-
 #[derive(Debug)]
 pub struct UnloadUrl(pub Url);
 
