@@ -37,6 +37,7 @@ enum Panel {
         status: TaskStatus,
         adding_task: Signal<bool>,
     },
+    LanguagePicker,
 }
 
 #[component]
@@ -69,6 +70,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
                     Title {}
                     div {
                         class: "flex flex-row gap-2 w-24",
+                        LanguageButton { panel }
                         DenseButton {}
                         ToggleThemesButton { show_themes }
                     }
@@ -96,6 +98,7 @@ pub fn ThreeColumnBoard(board_name: BoardName) -> Element {
             Panel::None => rsx! {},
             Panel::Boards => rsx! { BoardPopup { panel } },
             Panel::ChatGpt{status, adding_task} => rsx! { ChatGptPopup { status, adding_task, panel } },
+            Panel::LanguagePicker => rsx! { LanguagePickerPopup { panel } },
         }
     }
 }
@@ -228,6 +231,41 @@ fn FilterBar() -> Element {
                     }
                 }
             }
+        }
+    }
+}
+
+#[component]
+fn LanguageButton(panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("border-2 rounded {}", theme.button);
+    rsx! {
+        div {
+            class: "group relative",
+            button {
+                aria_label: "toggle language picker",
+                class: "size-9 p-1 {style}",
+                aria_pressed: panel() == Panel::LanguagePicker,
+                onclick: move |_| panel.set(Panel::LanguagePicker),
+                StackIcon {}
+            }
+            Tooltip { content: "Pick Language", position: "-left-10" }
+        }
+    }
+}
+
+#[component]
+fn LanguagePickerPopup(panel: Signal<Panel>) -> Element {
+    rsx! {
+        div {
+            class: "
+                backdrop-blur-sm backdrop-brightness-50
+                size-full absolute inset-0 z-10
+                flex flex-row items-center justify-center
+            ",
+            onclick: move |_| panel.set(Panel::None),
+            BoardList { panel }
         }
     }
 }
@@ -459,7 +497,44 @@ fn BoardPopup(panel: Signal<Panel>) -> Element {
                 flex flex-row items-center justify-center
             ",
             onclick: move |_| panel.set(Panel::None),
-            BoardList { panel }
+            LanguageList { panel }
+        }
+    }
+}
+
+#[component]
+fn LanguageList(panel: Signal<Panel>) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded-lg {} {}", theme.text_color, theme.bg_color_2);
+    let current_board = use_context::<Signal<Board>>();
+    let current_board = current_board.read();
+    let boards = use_context::<Signal<SavedBoards>>();
+    rsx! {
+        section {
+            onclick: move |event| event.stop_propagation(),
+            class: "px-3 py-5 flex flex-col gap-2 w-1/2 {style}",
+            h2 {
+                class: "
+                    px-2
+                    font-bold text-xl
+                    flex flex-row gap-1 items-center
+                ",
+                div { class: "size-5", BookmarkIcon {} }
+                "Languages"
+            }
+            ul {
+                class: "flex flex-col",
+                for board in boards
+                    .read()
+                    .0
+                    .iter()
+                    .filter(|board| board.name != current_board.board_name)
+                {
+                    BoardListItem { boards, board: board.clone() }
+                }
+            }
+            JoinBoard { panel }
         }
     }
 }
