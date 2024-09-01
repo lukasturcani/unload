@@ -6,6 +6,7 @@ use std::str::FromStr;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Translation {
     id: &'static str,
+    pub name: &'static str,
     to_do_column_title: &'static str,
     in_progress_column_title: &'static str,
     done_column_title: &'static str,
@@ -15,10 +16,11 @@ pub struct Translation {
     archive_link: &'static str,
 }
 
-pub fn translations() -> Vec<Language> {
+pub fn translations() -> Vec<Translation> {
     vec![
         Translation {
             id: "en",
+            name: "EN - English",
             to_do_column_title: "To Do",
             in_progress_column_title: "In Progress",
             done_column_title: "Done",
@@ -26,10 +28,10 @@ pub fn translations() -> Vec<Language> {
             tags_link: "Tags",
             users_link: "Users",
             archive_link: "Archive",
-        }
-        .into(),
+        },
         Translation {
             id: "sk",
+            name: "SK - Slovenčina",
             to_do_column_title: "Úlohy",
             in_progress_column_title: "Prebiehajúce",
             done_column_title: "Hotovo",
@@ -37,9 +39,12 @@ pub fn translations() -> Vec<Language> {
             tags_link: "Značky",
             users_link: "Používatelia",
             archive_link: "Archív",
-        }
-        .into(),
+        },
     ]
+}
+
+pub fn languages() -> Vec<Language> {
+    translations().into_iter().map(Language::from).collect()
 }
 
 impl Translation {

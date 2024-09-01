@@ -9,7 +9,7 @@ use crate::{
         form::{CancelButton, ConfirmButton},
         icons::{
             BarsIcon, BookmarkIcon, CircledPlusIcon, DoneIcon, EditIcon, InProgressIcon,
-            SparklesIcon, StackIcon, ToDoIcon, TrashIcon,
+            LanguageIcon, SparklesIcon, StackIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
         nav::NavBar,
@@ -27,6 +27,7 @@ use crate::{
     },
     route::Route,
     themes::Theme,
+    translations::translations,
 };
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -266,7 +267,7 @@ fn LanguagePickerPopup(panel: Signal<Panel>) -> Element {
                 flex flex-row items-center justify-center
             ",
             onclick: move |_| panel.set(Panel::None),
-            BoardList { panel }
+            LanguageList { panel }
         }
     }
 }
@@ -498,7 +499,7 @@ fn BoardPopup(panel: Signal<Panel>) -> Element {
                 flex flex-row items-center justify-center
             ",
             onclick: move |_| panel.set(Panel::None),
-            LanguageList { panel }
+            BoardList { panel }
         }
     }
 }
@@ -508,9 +509,6 @@ fn LanguageList(panel: Signal<Panel>) -> Element {
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg {} {}", theme.text_color, theme.bg_color_2);
-    let current_board = use_context::<Signal<Board>>();
-    let current_board = current_board.read();
-    let boards = use_context::<Signal<SavedBoards>>();
     rsx! {
         section {
             onclick: move |event| event.stop_propagation(),
@@ -521,21 +519,38 @@ fn LanguageList(panel: Signal<Panel>) -> Element {
                     font-bold text-xl
                     flex flex-row gap-1 items-center
                 ",
-                div { class: "size-5", BookmarkIcon {} }
+                div { class: "size-5", LanguageIcon {} }
                 "Languages"
             }
             ul {
                 class: "flex flex-col",
-                for board in boards
-                    .read()
-                    .0
-                    .iter()
-                    .filter(|board| board.name != current_board.board_name)
+                for translation in translations()
                 {
-                    BoardListItem { boards, board: board.clone() }
+                    LanguageListItem { language: translation.name }
                 }
             }
-            JoinBoard { panel }
+        }
+    }
+}
+
+#[component]
+fn LanguageListItem(language: &'static str) -> Element {
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("first:border-t border-b {}", theme.border_color);
+    rsx! {
+        li {
+            class: style,
+            button {
+                class: format!("
+                    flex flex-row justify-between items-center
+                    px-2
+                    size-full rounded-lg
+                    group
+                    {}
+                ", theme.hover_color),
+                {language}
+            }
         }
     }
 }
