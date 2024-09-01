@@ -5,6 +5,12 @@
       "to_do": "Úlohy",
       "in_progress": "Prebiehajúce",
       "done": "Hotovo"
+    },
+    "page": {
+      "board": "Tabuľa",
+      "tags": "Značky",
+      "users": "Používatelia",
+      "archive": "Archív"
     }
   }
 }
