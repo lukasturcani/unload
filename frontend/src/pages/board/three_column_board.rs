@@ -15,7 +15,7 @@ use crate::{
         nav::NavBar,
         tooltip::Tooltip,
     },
-    model::{SavedBoards, Welcome},
+    model::{BoardLanguage, SavedBoards, Welcome},
     pages::board::{
         components::{
             ChatGpt, DenseTask, FilterBarTagIcon, FilteringUserIcon, NewTaskForm, Task, ThemeButton,
@@ -535,6 +535,7 @@ fn LanguageList(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn LanguageListItem(translation: Translation, panel: Signal<Panel>) -> Element {
+    let mut language = use_context::<Signal<BoardLanguage>>();
     let mut i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -551,6 +552,7 @@ fn LanguageListItem(translation: Translation, panel: Signal<Panel>) -> Element {
                     {}
                 ", theme.hover_color),
                 onclick: move |_| {
+                    language.set(BoardLanguage(translation.id.to_string()));
                     i18.set_language(translation.id.parse().unwrap());
                     panel.set(Panel::None);
                 },
