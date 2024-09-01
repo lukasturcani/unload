@@ -14,6 +14,7 @@ RUN \
 RUN cargo install dioxus-cli
 WORKDIR /usr/src/unload
 COPY Cargo.lock Cargo.toml ./
+COPY tools ./tools/
 COPY website  ./website/
 COPY frontend ./frontend/
 COPY shared_models ./shared_models/
