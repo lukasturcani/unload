@@ -17,7 +17,7 @@ pub struct Translation {
 }
 
 pub fn translations() -> Vec<Translation> {
-    vec![
+    let mut translations = vec![
         Translation {
             id: "en",
             name: "EN - English",
@@ -40,7 +40,9 @@ pub fn translations() -> Vec<Translation> {
             users_link: "Používatelia",
             archive_link: "Archív",
         },
-    ]
+    ];
+    translations.sort_by_key(|t| t.name);
+    translations
 }
 
 pub fn languages() -> Vec<Language> {
