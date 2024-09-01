@@ -2115,7 +2115,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.12.11"
+version = "0.12.12-alpha.1"
 dependencies = [
  "anyhow",
  "chrono",
@@ -5367,7 +5367,7 @@ dependencies = [
 
 [[package]]
 name = "shared_models"
-version = "0.12.11"
+version = "0.12.12-alpha.1"
 dependencies = [
  "chrono",
  "serde",
@@ -6273,7 +6273,7 @@ dependencies = [
 
 [[package]]
 name = "tools"
-version = "0.12.11"
+version = "0.12.12-alpha.1"
 
 [[package]]
 name = "tower"
@@ -6526,7 +6526,7 @@ checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
 
 [[package]]
 name = "unload"
-version = "0.12.11"
+version = "0.12.12-alpha.1"
 dependencies = [
  "anyhow",
  "axum 0.7.5",
@@ -6832,7 +6832,7 @@ dependencies = [
 
 [[package]]
 name = "website"
-version = "0.12.11"
+version = "0.12.12-alpha.1"
 dependencies = [
  "anyhow",
  "dioxus",
