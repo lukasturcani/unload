@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::*, translate};
 use itertools::Itertools;
 use shared_models::{BoardName, SavedBoard, TaskStatus};
 
@@ -310,6 +311,7 @@ fn ColumnHeading(value: String) -> Element {
 
 #[component]
 fn Column(adding_task: Signal<bool>, status: TaskStatus, panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border {}", theme.border_color);
@@ -323,15 +325,15 @@ fn Column(adding_task: Signal<bool>, status: TaskStatus, panel: Signal<Panel>) -
                 match status {
                     TaskStatus::ToDo => rsx! {
                         div { class: "size-8 stroke-red-600", ToDoIcon {} }
-                        ColumnHeading { value: "To Do" }
+                        ColumnHeading { value: translate!(i18, "column.to_do") }
                     },
                     TaskStatus::InProgress => rsx! {
                         div { class: "size-8 stroke-fuchsia-600", InProgressIcon {} }
-                        ColumnHeading { value: "In Progress" }
+                        ColumnHeading { value: translate!(i18, "column.in_progress") }
                     },
                     TaskStatus::Done => rsx! {
                         div { class: "size-8 stroke-green-500", DoneIcon {} }
-                        ColumnHeading { value: "Done" }
+                        ColumnHeading { value: translate!(i18, "column.done") }
                     }
                 }
             }
