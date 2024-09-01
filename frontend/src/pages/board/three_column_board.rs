@@ -325,15 +325,15 @@ fn Column(adding_task: Signal<bool>, status: TaskStatus, panel: Signal<Panel>) -
                 match status {
                     TaskStatus::ToDo => rsx! {
                         div { class: "size-8 stroke-red-600", ToDoIcon {} }
-                        ColumnHeading { value: translate!(i18, "column.to_do") }
+                        ColumnHeading { value: translate!(i18, "to_do_column_title") }
                     },
                     TaskStatus::InProgress => rsx! {
                         div { class: "size-8 stroke-fuchsia-600", InProgressIcon {} }
-                        ColumnHeading { value: translate!(i18, "column.in_progress") }
+                        ColumnHeading { value: translate!(i18, "in_progress_column_title") }
                     },
                     TaskStatus::Done => rsx! {
                         div { class: "size-8 stroke-green-500", DoneIcon {} }
-                        ColumnHeading { value: translate!(i18, "column.done") }
+                        ColumnHeading { value: translate!(i18, "done_column_title") }
                     }
                 }
             }

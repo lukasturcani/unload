@@ -37,7 +37,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                         class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", BoardIcon {} }
                         div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidBoardIcon {} }
-                        {translate!(i18, "page.board")}
+                        {translate!(i18, "board_link")}
                     }
                 }
             }
@@ -48,7 +48,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                         class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", TagIcon {} }
                         div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidTagIcon {} }
-                        {translate!(i18, "page.tags")}
+                        {translate!(i18, "tags_link")}
                     }
                 }
             }
@@ -59,7 +59,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                         class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", UsersIcon {} }
                         div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidUsersIcon {} }
-                        {translate!(i18, "page.users")}
+                        {translate!(i18, "users_link")}
                     }
                 }
             }
@@ -70,7 +70,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                         class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", ArchiveIcon {} }
                         div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidArchiveIcon {} }
-                        {translate!(i18, "page.archive")}
+                        {translate!(i18, "archive_link")}
                     }
                 }
             }

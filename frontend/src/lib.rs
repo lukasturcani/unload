@@ -8,4 +8,6 @@ mod pages;
 mod responsive_layout;
 mod route;
 mod themes;
+mod translations;
 mod window;
+
