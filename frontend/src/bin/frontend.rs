@@ -16,6 +16,5 @@ fn Unload() -> Element {
     let origin = Url::from_str(&window.origin()).unwrap();
     let default_language =
         BoardLanguage(window.navigator().language().unwrap_or(String::from("en")));
-    log::info!("default language: {}", default_language.0);
     rsx! { App { origin, default_language } }
 }

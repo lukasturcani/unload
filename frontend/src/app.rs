@@ -7,6 +7,7 @@ use dioxus::prelude::*;
 use dioxus_sdk::i18n::*;
 use dioxus_sdk::storage::*;
 use reqwest::Url;
+use unic_langid_impl::LanguageIdentifier;
 
 #[component]
 pub fn App(origin: Url, default_language: BoardLanguage) -> Element {
@@ -30,12 +31,8 @@ pub fn App(origin: Url, default_language: BoardLanguage) -> Element {
         use_synced_storage::<LocalStorage, BoardLanguage>("language".to_string(), || {
             default_language
         });
-    let language_ = language.read();
-    use_init_i18n(
-        language_.0.parse().unwrap(),
-        language_.0.parse().unwrap(),
-        languages,
-    );
+    let language_ = language.read().0.parse::<LanguageIdentifier>().unwrap();
+    use_init_i18n(language_.clone(), language_, languages);
     use_context_provider(|| language);
     use_context_provider(|| saved_theme);
     use_context_provider(|| Signal::new(UnloadUrl(origin)));
