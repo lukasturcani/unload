@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Translation {
-    id: &'static str,
+    pub id: &'static str,
     pub name: &'static str,
     to_do_column_title: &'static str,
     in_progress_column_title: &'static str,

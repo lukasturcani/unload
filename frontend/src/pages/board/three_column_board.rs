@@ -27,7 +27,7 @@ use crate::{
     },
     route::Route,
     themes::Theme,
-    translations::translations,
+    translations::{translations, Translation},
 };
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -526,7 +526,7 @@ fn LanguageList(panel: Signal<Panel>) -> Element {
                 class: "flex flex-col",
                 for translation in translations()
                 {
-                    LanguageListItem { language: translation.name }
+                    LanguageListItem { translation, panel }
                 }
             }
         }
@@ -534,7 +534,8 @@ fn LanguageList(panel: Signal<Panel>) -> Element {
 }
 
 #[component]
-fn LanguageListItem(language: &'static str) -> Element {
+fn LanguageListItem(translation: Translation, panel: Signal<Panel>) -> Element {
+    let mut i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("first:border-t border-b {}", theme.border_color);
@@ -549,7 +550,11 @@ fn LanguageListItem(language: &'static str) -> Element {
                     group
                     {}
                 ", theme.hover_color),
-                {language}
+                onclick: move |_| {
+                    i18.set_language(translation.id.parse().unwrap());
+                    panel.set(Panel::None);
+                },
+                {translation.name}
             }
         }
     }
