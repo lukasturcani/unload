@@ -5,6 +5,7 @@ members = [
   "backend",
   "frontend",
   "website",
+  "tools",
 ]
 
 [workspace.package]

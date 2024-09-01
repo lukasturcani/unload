@@ -2,6 +2,22 @@
 default:
   @just --list
 
+# Make a release
+release version:
+  git status --porcelain | wc -l | grep 0
+  toml set Cargo.toml workspace.package.version {{version}} > Cargo.tmp
+  mv Cargo.tmp Cargo.toml
+  cargo check
+  git commit -am "Release v{{version}}"
+  git tag v{{version}}
+  git push origin master
+  git push --tags
+  toml set Cargo.toml workspace.package.version $(cargo run --bin bump {{version}}) > Cargo.tmp
+  mv Cargo.tmp Cargo.toml
+  cargo check
+  git commit -am "Bump version"
+  git push origin master
+
 # build a production docker image
 build-prod-image:
   # make sure to run: cargo install toml-cli
