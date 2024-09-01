@@ -29,7 +29,7 @@ pub fn App(origin: Url) -> Element {
             None => Signal::new(themes[0]),
         }
     });
-    use_init_i18n("en-US".parse().unwrap(), "en-US".parse().unwrap(), || {
+    use_init_i18n("en".parse().unwrap(), "en".parse().unwrap(), || {
         vec![
             Language::from_str(EN).unwrap(),
             Language::from_str(SK).unwrap(),
