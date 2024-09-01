@@ -237,6 +237,7 @@ fn FilterBar() -> Element {
 
 #[component]
 fn LanguageButton(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border-2 rounded {}", theme.button);
@@ -248,7 +249,7 @@ fn LanguageButton(panel: Signal<Panel>) -> Element {
                 class: "size-9 p-1 {style}",
                 aria_pressed: panel() == Panel::LanguagePicker,
                 onclick: move |_| panel.set(Panel::LanguagePicker),
-                StackIcon {}
+                {i18.selected_language.read().language.as_str().to_uppercase()}
             }
             Tooltip { content: "Pick Language", position: "-left-10" }
         }
