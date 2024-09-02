@@ -14,7 +14,13 @@ fn main() {
 fn Unload() -> Element {
     let window = web_sys::window().unwrap();
     let origin = Url::from_str(&window.origin()).unwrap();
-    let default_language =
-        BoardLanguage(window.navigator().language().unwrap_or(String::from("en")));
+    let default_language = window.navigator().language().unwrap_or(String::from("en"));
+    let default_language = BoardLanguage(String::from("en"));
+    // let default_language = default_language
+    //     .split_once('-')
+    //     .unwrap_or((&default_language, ""))
+    //     .0;
+    // let default_language = BoardLanguage(default_language.into());
+    log::info!("default language");
     rsx! { App { origin, default_language } }
 }
