@@ -39,7 +39,6 @@ pub fn App(origin: Url, default_language: BoardLanguage) -> Element {
     use_context_provider(|| Signal::new(ScrollTarget::default()));
     use_context_provider(|| Signal::new(FocusTarget::default()));
     use_context_provider(|| Signal::new(Welcome::default()));
-    log::info!("App");
     rsx! {
         Router::<Route>{}
         ScrollCommand {}
