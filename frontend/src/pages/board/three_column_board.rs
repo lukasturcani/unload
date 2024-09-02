@@ -252,7 +252,7 @@ fn LanguageButton(panel: Signal<Panel>) -> Element {
                 onclick: move |_| panel.set(Panel::LanguagePicker),
                 {i18.selected_language.read().language.as_str().to_uppercase()}
             }
-            Tooltip { content: "Pick Language", position: "-left-10" }
+            Tooltip { content: translate!(i18, "pick_language_tooltip"), position: "-left-10" }
         }
     }
 }
@@ -298,6 +298,7 @@ fn DenseButton() -> Element {
 
 #[component]
 fn ToggleThemesButton(show_themes: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border-2 rounded {}", theme.button);
@@ -313,7 +314,10 @@ fn ToggleThemesButton(show_themes: Signal<bool>) -> Element {
                 },
                 SparklesIcon {}
             }
-            Tooltip { content: "Toggle Show Themes", position: "-left-14" }
+            Tooltip {
+                content: translate!(i18, "toggle_show_themes_tooltip"),
+                position: "-left-14",
+            }
         }
     }
 }
