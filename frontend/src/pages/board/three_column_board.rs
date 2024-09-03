@@ -142,7 +142,7 @@ fn TitleInput(editing: Signal<bool>) -> Element {
                 value: title,
             }
             ConfirmButton { label: translate!(i18, "set_board_title_label") }
-            CancelButton { label: translate!(i18, "cancel_title_update_label"), editing }
+            CancelButton { label: translate!(i18, "cancel_board_title_update_label"), editing }
         }
     }
 }
