@@ -33,7 +33,6 @@ pub fn FilteringTaskTags(
             }
             SelectorToggle {
                 show_selector: select_tags,
-                aria_label: "toggle tag selection",
                 tooltip: "Add Tag",
                 size: "size-6",
                 on_toggle_selector,
@@ -76,7 +75,6 @@ pub fn TaskTags(
             }
             SelectorToggle {
                 show_selector: select_tags,
-                aria_label: "toggle tag selection",
                 tooltip: "Add Tag",
                 size: "size-6",
                 on_toggle_selector,
