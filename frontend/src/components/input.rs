@@ -5,7 +5,7 @@ use crate::themes::Theme;
 #[component]
 pub fn TextInput(
     id: String,
-    label: &'static str,
+    label: ReadOnlySignal<String>,
     value: Option<ReadOnlySignal<String>>,
 ) -> Element {
     let theme = use_context::<Signal<Theme>>();

@@ -118,6 +118,7 @@ fn Title() -> Element {
 
 #[component]
 fn TitleInput(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let board = use_context::<Signal<Board>>();
     let board_signals = BoardSignals::default();
 
@@ -137,7 +138,7 @@ fn TitleInput(editing: Signal<bool>) -> Element {
             },
             TextInput {
                 id: "board-title-input",
-                label: "Title",
+                label: translate!(i18, "board_title_input_label"),
                 value: title,
             }
             ConfirmButton { label: "set title" }
@@ -168,6 +169,7 @@ fn TitleShow(editing: Signal<bool>) -> Element {
 
 #[component]
 fn EditTitleButton(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "group relative",
@@ -177,7 +179,10 @@ fn EditTitleButton(editing: Signal<bool>) -> Element {
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }
-            Tooltip { content: "Edit Title", position: "" }
+            Tooltip {
+                content: translate!(i18, "edit_board_title_tooltip"),
+                position: "",
+            }
         }
     }
 }
