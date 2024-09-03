@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::*, translate};
 use shared_models::UserId;
 
 use crate::pages::board::{
@@ -19,13 +20,14 @@ pub fn Assignees(
     dir: Option<&'static str>,
     on_toggle_selector: EventHandler<bool>,
 ) -> Element {
+    let i18 = use_i18();
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     let size = icon_size.unwrap_or("size-6");
     rsx! {
         section {
             id,
-            "aria-label": "assignees",
+            aria_label: translate!(i18, "assignees_section_label"),
             class: "flex flex-row flex-wrap items-center gap-2",
             for &user_id in assignees.read().iter() {
                 UserIcon {

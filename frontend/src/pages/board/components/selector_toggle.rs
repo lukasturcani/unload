@@ -22,9 +22,9 @@ pub fn SelectorToggle(
         div {
             class: "group relative",
             button {
-                "aria-label": aria_label,
+                aria_label,
                 class: "block {size} {style}",
-                "aria-pressed": show_selector(),
+                aria_pressed: show_selector(),
                 onclick: move |_| {
                     let show = show_selector();
                     on_toggle_selector.call(show);
