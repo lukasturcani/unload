@@ -13,7 +13,7 @@ pub fn ConfirmButton(label: String) -> Element {
     ";
     rsx! {
         button {
-            "aria-label": label,
+            aria_label: label,
             class: "size-7 {style}",
             r#type: "submit",
             ConfirmIcon {}
@@ -32,7 +32,7 @@ pub fn CancelButton(label: String, editing: Signal<bool>) -> Element {
     ";
     rsx! {
         button {
-            "aria-label": label,
+            aria_label: label,
             class: "size-7 {style}",
             onclick: move |_| {
                 editing.set(false);

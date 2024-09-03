@@ -129,7 +129,7 @@ fn TitleInput(editing: Signal<bool>) -> Element {
     let title = ReadOnlySignal::from(title);
     rsx! {
         form {
-            aria_label: "update board title",
+            aria_label: translate!(i18, "board_title_update_label"),
             class: "grow flex flex-row gap-2 items-center justify-center",
             onsubmit: move |event| {
                 let title = event.values()["Title"].as_value();
@@ -141,8 +141,8 @@ fn TitleInput(editing: Signal<bool>) -> Element {
                 label: translate!(i18, "board_title_input_label"),
                 value: title,
             }
-            ConfirmButton { label: "set title" }
-            CancelButton { label: "cancel title update", editing }
+            ConfirmButton { label: translate!(i18, "set_board_title_label") }
+            CancelButton { label: translate!(i18, "cancel_title_update_label"), editing }
         }
     }
 }
