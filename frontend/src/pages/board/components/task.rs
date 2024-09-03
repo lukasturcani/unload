@@ -360,6 +360,7 @@ fn StatusButtons(task_id: TaskId, status: TaskStatus) -> Element {
 
 #[component]
 fn ToDoButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let i18 = use_i18();
     let style = format!(
         "active:stroke-red-600 sm:hover:stroke-red-600 {}",
         if status == TaskStatus::ToDo {
@@ -373,20 +374,25 @@ fn ToDoButton(task_id: TaskId, status: TaskStatus) -> Element {
         div {
             class: "group relative",
             button {
-                "aria-label": "set task status to to do",
+                aria_label: translate!(i18, "to_do_button_tooltip"),
                 class: "block size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::ToDo));
                 },
                 ToDoIcon {}
             }
-            Tooltip { content: "To Do", position: "", dir: "rtl" }
+            Tooltip {
+                content: translate!(i18, "to_do_button_tooltip"),
+                position: "",
+                dir: "rtl",
+            }
         }
     }
 }
 
 #[component]
 fn InProgressButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let i18 = use_i18();
     let style = format!(
         "active:stroke-fuchsia-600 sm:hover:stroke-fuchsia-600 {}",
         if status == TaskStatus::InProgress {
@@ -400,20 +406,25 @@ fn InProgressButton(task_id: TaskId, status: TaskStatus) -> Element {
         div {
             class: "group relative",
             button {
-                "aria-label": "set task status to in progress",
+                aria_label: translate!(i18, "in_progress_button_tooltip"),
                 class: "block size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::InProgress));
                 },
                 InProgressIcon {}
             }
-            Tooltip { content: "In Progress", position: "", dir: "rtl" }
+            Tooltip {
+                content: translate!(i18, "in_progress_button_tooltip"),
+                position: "",
+                dir: "rtl",
+            }
         }
     }
 }
 
 #[component]
 fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let i18 = use_i18();
     let style = format!(
         "active:stroke-green-500 sm:hover:stroke-green-500 {}",
         if status == TaskStatus::Done {
@@ -427,14 +438,18 @@ fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
         div {
             class: "group relative",
             button {
-                "aria-label": "set task status to done",
+                aria_label: translate!(i18, "done_button_tooltip"),
                 class: "block size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::Done));
                 },
                 DoneIcon {}
             }
-            Tooltip { content: "Done", position: "", dir: "rtl" }
+            Tooltip {
+                content: translate!(i18, "done_button_tooltip"),
+                position: "",
+                dir: "rtl",
+            }
         }
     }
 }
