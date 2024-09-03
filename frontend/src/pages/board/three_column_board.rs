@@ -129,7 +129,7 @@ fn TitleInput(editing: Signal<bool>) -> Element {
     let title = ReadOnlySignal::from(title);
     rsx! {
         form {
-            "aria-label": "update board title",
+            aria_label: "update board title",
             class: "grow flex flex-row gap-2 items-center justify-center",
             onsubmit: move |event| {
                 let title = event.values()["Title"].as_value();
@@ -174,7 +174,7 @@ fn EditTitleButton(editing: Signal<bool>) -> Element {
         div {
             class: "group relative",
             button {
-                "aria-label": "edit title",
+                aria_label: translate!(i18, "edit_board_title_tooltip"),
                 class: "block size-6",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
@@ -251,7 +251,7 @@ fn LanguageButton(panel: Signal<Panel>) -> Element {
         div {
             class: "group relative",
             button {
-                aria_label: "toggle language picker",
+                aria_label: translate!(i18, "pick_language_tooltip"),
                 class: "size-9 p-1 {style}",
                 aria_pressed: panel() == Panel::LanguagePicker,
                 onclick: move |_| panel.set(Panel::LanguagePicker),
@@ -291,9 +291,9 @@ fn DenseButton() -> Element {
         div {
             class: "group relative",
             button {
-                "aria-label": "toggle dense view",
+                aria_label: translate!(i18, "toggle_dense_view_tooltip"),
                 class: "size-9 p-1 {style}",
-                "aria-pressed": dense.read().0,
+                aria_pressed: dense.read().0,
                 onclick: move |_| {
                     let new_dense = !dense.read().0;
                     dense.set(Dense(new_dense));
@@ -318,7 +318,7 @@ fn ToggleThemesButton(show_themes: Signal<bool>) -> Element {
         div {
             class: "group relative",
             button {
-                "aria-label": "toggle show themes",
+                aria_label: translate!(i18, "toggle_show_themes_tooltip"),
                 class: "size-9 p-1 {style}",
                 "aria-pressed": show_themes(),
                 onclick: move |_| {
