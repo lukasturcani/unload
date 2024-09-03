@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::*, translate};
 use reqwest::Client;
 use shared_models::TaskId;
 
@@ -45,6 +46,7 @@ pub fn DenseTitle(
 
 #[component]
 fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
+    let i18 = use_i18();
     let board_signals = BoardSignals::default();
     rsx! {
         form {
@@ -59,7 +61,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<Stri
                 class: "flex flex-row gap-1 items-center",
                 TextInput {
                     id: "task-{task_id}-title-input",
-                    label: "Title",
+                    label: translate!(i18, "task_title_input_label"),
                     value: title,
                 }
             }
@@ -119,12 +121,13 @@ fn TitleShow(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<Strin
 
 #[component]
 fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         div {
             class: "group relative",
             button {
-                "aria-label": "edit title",
+                aria_label: translate!(i18, "edit_task_title_tooltip"),
                 class: "block size-5",
                 onclick: move |_| {
                     scroll_target.set(
@@ -135,7 +138,7 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
                 EditIcon {}
             }
             Tooltip {
-                content: "Edit Title",
+                content: translate!(i18, "edit_task_title_tooltip"),
                 position: "",
             }
         }
@@ -144,17 +147,18 @@ fn EditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
 
 #[component]
 fn SmallEditButton(task_id: TaskId, editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "group relative",
             button {
-                "aria-label": "edit title",
+                aria_label: translate!(i18, "edit_task_title_tooltip"),
                 class: "block size-4",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }
             Tooltip {
-                content: "Edit Title",
+                content: translate!(i18, "edit_task_title_tooltip"),
                 position: ""
             }
         }
