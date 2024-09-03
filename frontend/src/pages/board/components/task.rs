@@ -347,7 +347,7 @@ fn DeleteTaskButton(task_id: TaskId) -> Element {
 fn StatusButtons(task_id: TaskId, status: TaskStatus) -> Element {
     rsx! {
         section {
-            "aria-label": "set task status",
+            aria_label: "set task status",
             class: "flex flex-row items-center justify-end gap-1",
             ToDoButton { task_id, status }
             InProgressButton { task_id, status }
