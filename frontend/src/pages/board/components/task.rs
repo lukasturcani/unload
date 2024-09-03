@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::*, translate};
 use reqwest::Client;
 use shared_models::{TagId, TaskId, TaskStatus, UserId};
 
@@ -345,9 +346,10 @@ fn DeleteTaskButton(task_id: TaskId) -> Element {
 
 #[component]
 fn StatusButtons(task_id: TaskId, status: TaskStatus) -> Element {
+    let i18 = use_i18();
     rsx! {
         section {
-            aria_label: "set task status",
+            aria_label: translate!(i18, "set_task_status_section_label"),
             class: "flex flex-row items-center justify-end gap-1",
             ToDoButton { task_id, status }
             InProgressButton { task_id, status }
