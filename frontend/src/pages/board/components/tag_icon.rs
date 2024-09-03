@@ -193,7 +193,11 @@ pub fn FilteringTaskTagIcon(
                     tag_id,
                 }
                 RemoveTagButton {
-                    aria_label: "remove tag {tag_data.name} from task",
+                    aria_label: format!(
+                        "{} {}",
+                        translate!(i18, "remove_tag_from_task_button_label"),
+                        tag_data.name
+                    ),
                     tag_id,
                     on_unassign_tag,
                 }
