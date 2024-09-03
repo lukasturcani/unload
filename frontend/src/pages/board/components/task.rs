@@ -474,10 +474,11 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
 
 #[component]
 fn TaskActions(task_id: TaskId) -> Element {
+    let i18 = use_i18();
     let board_signals = BoardSignals::default();
     rsx! {
         section {
-            "aria-label": "task actions",
+            aria_label: translate!(i18, "task_actions_section_label"),
             class: "flex flex-row gap-1",
             // ActionButton {
             //     onclick: move |_| {
@@ -490,14 +491,14 @@ fn TaskActions(task_id: TaskId) -> Element {
                 onclick: move |_| {
                     spawn_forever(clone_task(board_signals, task_id)) ;
                 },
-                tooltip: "Duplicate Task",
+                tooltip: translate!(i18, "duplicate_task_button_tooltip"),
                 body: rsx!(CopyIcon {})
             }
             ActionButton {
                 onclick: move |_| {
                     spawn_forever(archive_task(board_signals, task_id));
                 },
-                tooltip: "Archive Task",
+                tooltip: translate!(i18, "archive_task_button_tooltip"),
                 body: rsx!(ArchiveIcon {})
             }
         }
