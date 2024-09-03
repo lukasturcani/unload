@@ -462,7 +462,7 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
         div {
             class: "group relative",
             button {
-                "aria-label": aria_label,
+                aria_label,
                 class: "block size-6 {style}",
                 onclick: move |event| onclick.call(event),
                 {body}
