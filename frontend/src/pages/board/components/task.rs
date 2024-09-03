@@ -467,7 +467,7 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
                 onclick: move |event| onclick.call(event),
                 {body}
             }
-            Tooltip { position: "-top-10 -left-20", content: tooltip }
+            Tooltip { position: "-top-10 right-0", content: tooltip }
         }
     }
 }
