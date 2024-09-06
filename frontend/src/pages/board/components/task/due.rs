@@ -80,8 +80,11 @@ fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>
             if has_due() {
                 TimeSelect {}
             }
-            ConfirmButton { label: "set due" }
-            CancelButton { label: "cancel due update", editing }
+            ConfirmButton { label: translate!(i18, "set_due_date_button_label") }
+            CancelButton {
+                label: translate!(i18, "cancel_due_date_update_button_label"),
+                editing,
+            }
         }
     }
 }
