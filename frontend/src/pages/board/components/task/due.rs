@@ -127,6 +127,7 @@ fn TimeSelect() -> Element {
 
 #[component]
 fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let icon_style = if let Some(DueOptions {
@@ -141,7 +142,7 @@ fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> E
     };
     rsx! {
         section {
-            "aria-label": "due date",
+            aria_label: translate!(i18, "due_date_section_label"),
             class: "flex flex-row gap-2 items-center text-sm",
             div { class: "size-6 {icon_style}", ClockIcon {} }
             if let Some(DueOptions { due, show_time_left, is_late }) = due {
