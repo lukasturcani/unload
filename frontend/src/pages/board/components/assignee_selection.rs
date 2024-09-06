@@ -177,7 +177,7 @@ fn AddUserListForm(
 ) -> Element {
     let i18 = use_i18();
     let board_signals = BoardSignals::default();
-    let input_label = translate!(i18, "new_user_name_input_label");
+    let input_label = translate!(i18, "user_name_input_label");
     rsx! {
         li {
             form {

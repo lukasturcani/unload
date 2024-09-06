@@ -139,6 +139,7 @@ fn CancelButton(aria_label: String, state: Signal<State>) -> Element {
 
 #[component]
 fn ColorShow(user_id: UserId, color: Color, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -169,7 +170,7 @@ fn ColorShow(user_id: UserId, color: Color, state: Signal<State>) -> Element {
             }
             button {
                 class: "size-4",
-                "aria-label": "edit color",
+                aria_label: translate!(i18, "edit_user_color_button_label"),
                 onclick: move |_| {
                     scroll_target.set(
                         ScrollTarget(Some(format!("user-{user_id}-color-form")))
@@ -184,25 +185,30 @@ fn ColorShow(user_id: UserId, color: Color, state: Signal<State>) -> Element {
 
 #[component]
 fn NameInput(user_id: UserId, name: ReadOnlySignal<String>, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<UsersUrl>>();
     let users = use_context::<Signal<UserEntries>>();
+    let input_label = translate!(i18, "user_name_input_label");
     rsx! {
         form {
             id: "user-{user_id}-name-form",
-            "aria-label": "edit name",
+            aria_label: translate!(i18, "edit_user_name_form_label"),
             class: "flex flex-row gap-2 items-center p-2",
             onsubmit: move |event| {
-                let name = event.values()["Name"].as_value();
+                let name = event.values()[&input_label].as_value();
                 spawn_forever(requests::set_user_name(users, url, user_id, name));
                 state.set(State::Show);
             },
             TextInput {
                 id: "user-{user_id}-name-input",
-                label: "Name",
+                label: input_label.clone(),
                 value: name,
             }
-            ConfirmButton { label: "set name" }
-            CancelButton { aria_label: "cancel name update", state }
+            ConfirmButton { label: translate!(i18, "set_user_name_button_label") }
+            CancelButton {
+                aria_label: translate!(i18, "cancel_user_name_update_button_label"),
+                state,
+            }
         }
     }
 }
