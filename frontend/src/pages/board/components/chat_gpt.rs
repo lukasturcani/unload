@@ -333,6 +333,7 @@ fn Title(suggestion_id: usize, title: Signal<String>) -> Element {
 
 #[component]
 fn TitleShow(editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "flex flex-row gap-2 pr-2 items-center",
@@ -343,18 +344,21 @@ fn TitleShow(editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
                 ",
                 {title}
             }
-            EditButton { tooltip: "Edit Title", editing }
+            EditButton {
+                tooltip: translate!(i18, "edit_task_title_tooltip"),
+                editing
+            }
         }
     }
 }
 
 #[component]
-fn EditButton(tooltip: &'static str, editing: Signal<bool>) -> Element {
+fn EditButton(tooltip: ReadOnlySignal<String>, editing: Signal<bool>) -> Element {
     rsx! {
         div {
             class: "group relative",
             button {
-                "aria-label": "edit title",
+                aria_label: tooltip,
                 class: "block size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
@@ -369,27 +373,32 @@ fn EditButton(tooltip: &'static str, editing: Signal<bool>) -> Element {
 
 #[component]
 fn TitleInput(suggestion_id: usize, editing: Signal<bool>, title: Signal<String>) -> Element {
+    let i18 = use_i18();
     let read_only_title = ReadOnlySignal::from(title);
+    let input_label = translate!(i18, "task_title_input_label");
     rsx! {
         form {
-            "aria-label": "update title",
+            aria_label: translate!(i18, "task_title_update_form_label"),
             class: "flex flex-row gap-2 justify-start items-center",
             onsubmit: move |event| {
-                title.set(event.values()["Title"].as_value());
+                title.set(event.values()[&input_label].as_value());
                 editing.set(false);
             },
             div {
                 class: "flex flex-row gap-1 items-center",
                 TextInput {
                     id: "suggestion-{suggestion_id}-title-input",
-                    label: "Title",
+                    label: input_label.clone(),
                     value: read_only_title,
                 }
             }
             div {
                 class: "flex flex-row gap-1 items-center",
-                ConfirmButton { label: "set title" }
-                CancelButton { label: "cancel title update", editing }
+                ConfirmButton { label: translate!(i18, "set_task_title_button_label") }
+                CancelButton {
+                    label: translate!(i18, "cancel_task_title_update_button_label"),
+                    editing
+                }
             }
         }
     }
