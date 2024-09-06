@@ -108,7 +108,7 @@ fn ColorSelect(user_id: UserId, color: Color, state: Signal<State>) -> Element {
                 class: "flex flex-row gap-2 items-center justify-center",
                 ConfirmButton { label: translate!(i18, "set_user_color_button_label") }
                 CancelButton {
-                    label: translate!(i18, "cancel_user_color_update_button_label"),
+                    aria_label: translate!(i18, "cancel_user_color_update_button_label"),
                     state,
                 }
             }
@@ -117,7 +117,7 @@ fn ColorSelect(user_id: UserId, color: Color, state: Signal<State>) -> Element {
 }
 
 #[component]
-fn CancelButton(label: String, state: Signal<State>) -> Element {
+fn CancelButton(aria_label: String, state: Signal<State>) -> Element {
     let style = "
         rounded-md
         border border-red-600
@@ -127,7 +127,7 @@ fn CancelButton(label: String, state: Signal<State>) -> Element {
     ";
     rsx! {
         button {
-            "aria-label": label,
+            aria_label,
             class: "size-7 {style}",
             onclick: move |_| {
                 state.set(State::Show);
@@ -202,7 +202,7 @@ fn NameInput(user_id: UserId, name: ReadOnlySignal<String>, state: Signal<State>
                 value: name,
             }
             ConfirmButton { label: "set name" }
-            CancelButton { label: "cancel name update", state }
+            CancelButton { aria_label: "cancel name update", state }
         }
     }
 }
