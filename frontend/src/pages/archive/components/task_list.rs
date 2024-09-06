@@ -5,6 +5,7 @@ use crate::{
 };
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, TagId, TaskId, TaskStatus, UserId};
 
 use crate::{
@@ -57,6 +58,7 @@ fn Task(
     tags: ReadOnlySignal<Vec<TagId>>,
     due: Option<DateTime<Utc>>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let expanded = use_signal(|| false);
@@ -84,7 +86,7 @@ fn Task(
                     Title { title }
                 }
                 section {
-                    "aria-label": "task status",
+                    aria_label: translate!(i18, "task_status_section_label"),
                     match status {
                         TaskStatus::ToDo => rsx! {
                             div {
