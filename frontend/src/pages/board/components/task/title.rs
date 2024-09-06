@@ -48,12 +48,13 @@ pub fn DenseTitle(
 fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
     let i18 = use_i18();
     let board_signals = BoardSignals::default();
+    let input_label = use_signal(|| translate!(i18, "task_title_input_label"));
     rsx! {
         form {
             aria_label: translate!(i18, "task_title_update_label"),
             class: "flex flex-col gap-2 justify-center items-center",
             onsubmit: move |event| {
-                let title = event.values()["Title"].as_value();
+                let title = event.values()[&*input_label.read()].as_value();
                 spawn_forever(set_task_title(board_signals, task_id, title));
                 editing.set(false);
             },
@@ -61,7 +62,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<Stri
                 class: "flex flex-row gap-1 items-center",
                 TextInput {
                     id: "task-{task_id}-title-input",
-                    label: translate!(i18, "task_title_input_label"),
+                    label: input_label,
                     value: title,
                 }
             }
