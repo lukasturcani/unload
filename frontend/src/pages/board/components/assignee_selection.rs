@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, UserData, UserId};
 
 use crate::{
@@ -26,6 +27,7 @@ pub fn AssigneeSelection(
     on_unassign_user: EventHandler<UserId>,
     on_add_user: EventHandler<UserId>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg border {}", theme.border_color);
@@ -44,7 +46,7 @@ pub fn AssigneeSelection(
     unassigned.sort_by_key(|(_, user)| user.name.to_lowercase());
     rsx! {
         section {
-            "aria-label": "assignee selection",
+            aria_label: translate!(i18, "assignee_selection_section_label"),
             class: "flex flex-col gap-2 p-2 {style}",
             UserBadges { assignees: assignee_data, on_unassign_user }
             UserList { id, unassigned, on_assign_user, on_add_user }
@@ -147,6 +149,7 @@ fn UserListItem(user_id: UserId, user: UserData, on_assign_user: EventHandler<Us
 
 #[component]
 fn AddUserListItem(id: String, on_add_user: EventHandler<UserId>) -> Element {
+    let i18 = use_i18();
     let show_form = use_signal(|| false);
     rsx! {
         li {
@@ -155,7 +158,7 @@ fn AddUserListItem(id: String, on_add_user: EventHandler<UserId>) -> Element {
             } else {
                 ShowSelectionListFormButton {
                     r#for: "{id}-form",
-                    content: "Add User",
+                    content: translate!(i18, "add_tag_toggle_button_tooltip"),
                     show_form ,
                 }
             }
