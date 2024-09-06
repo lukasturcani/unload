@@ -328,20 +328,25 @@ fn AdditionalActions(task_id: TaskId) -> Element {
 
 #[component]
 fn DeleteTaskButton(task_id: TaskId) -> Element {
+    let i18 = use_i18();
     let style = "stroke-red-600";
     let board_signals = BoardSignals::default();
+    let aria_label = translate!(i18, "delete_task_tooltip");
     rsx! {
         div {
             class: "group relative",
             button {
-                "aria-label": "delete task",
+                aria_label,
                 class: "block size-6 {style}",
                 onclick: move |_| {
                     spawn_forever(delete_task(board_signals, task_id));
                 },
                 TrashIcon {}
             }
-            Tooltip { content: "Delete Task", position: "-top-10 -left-20" }
+            Tooltip {
+                content: aria_label.clone(),
+                position: "-top-10 -left-20",
+            }
         }
     }
 }
