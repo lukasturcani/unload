@@ -1,5 +1,6 @@
 use chrono::{DateTime, Local, NaiveDate, NaiveTime, TimeZone, Utc};
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use reqwest::Client;
 use shared_models::TaskId;
 
@@ -40,11 +41,12 @@ pub fn Due(task_id: TaskId, due: Option<DueOptions>) -> Element {
 
 #[component]
 fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let board_signals = BoardSignals::default();
     let mut has_due = use_signal(|| due.is_some());
     rsx! {
         form {
-            "aria-label": "set due date",
+            aria_label: translate!(i18, "due_date_form_label"),
             class: "flex flex-row flex-wrap gap-1 items-center",
             onsubmit: move |event| {
                 let values = event.values();
