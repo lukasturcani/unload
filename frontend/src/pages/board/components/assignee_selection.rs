@@ -141,12 +141,10 @@ fn UserList(
 
 #[component]
 fn UserListItem(user_id: UserId, user: UserData, on_assign_user: EventHandler<UserId>) -> Element {
-    let label = format!("assign {} to task", user.name);
     rsx! {
         AssignmentListItem {
             content: user.name,
             color: user.color,
-            aria_label: label,
             onclick: move |_| on_assign_user.call(user_id),
         }
     }

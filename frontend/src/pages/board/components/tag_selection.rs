@@ -52,12 +52,10 @@ pub fn TagSelection(
 
 #[component]
 fn TagListItem(tag_id: TagId, tag: TagData, on_assign_tag: EventHandler<TagId>) -> Element {
-    let label = format!("assign {} to task", tag.name);
     rsx! {
         AssignmentListItem {
             content: tag.name,
             color: tag.color,
-            aria_label: label,
             onclick: move |_| on_assign_tag.call(tag_id),
         }
     }
@@ -109,7 +107,7 @@ fn AddTagListForm(id: String, show_form: Signal<bool>, on_add_tag: EventHandler<
                 ColorPicker { }
                 div {
                     class: "flex flex-row gap-2 items-center justify-center",
-                    ConfirmButton { label: "add tag" }
+                    ConfirmButton { label: translate!(i18, "add_tag_button_label") }
                     CancelButton {
                         label: "cancel adding tag",
                         editing: show_form,

@@ -28,7 +28,6 @@ pub fn AssignmentList(body: Element) -> Element {
 pub fn AssignmentListItem(
     content: String,
     color: Color,
-    aria_label: String,
     onclick: EventHandler<MouseEvent>,
 ) -> Element {
     let theme = use_context::<Signal<Theme>>();
