@@ -6,6 +6,7 @@ use crate::{components::icons::CancelIcon, pages::board::model::TagFilter, theme
 
 #[component]
 pub fn FilterBarTagIcon(tag_id: TagId, tag_data: TagData) -> Element {
+    let i18 = use_i18();
     let tag_filter = use_context::<Signal<TagFilter>>();
     let aria_pressed = tag_filter.read().0.contains(&tag_id);
     rsx! {
@@ -15,7 +16,11 @@ pub fn FilterBarTagIcon(tag_id: TagId, tag_data: TagData) -> Element {
             body: rsx!{
                 FilterButton {
                     aria_pressed,
-                    aria_label: "toggle {tag_data.name} filter",
+                    aria_label: format!(
+                        "{} {}",
+                        translate!(i18, "toggle_tag_filter_button_label"),
+                        tag_data.name
+                    ),
                     content: "# {tag_data.name}",
                     tag_id,
                 }
@@ -132,13 +137,18 @@ pub fn TaskTagIcon(
     tag_data: TagData,
     on_unassign_tag: EventHandler<TagId>,
 ) -> Element {
+    let i18 = use_i18();
     rsx! {
         TagIcon {
             color: tag_data.color,
             body: rsx! {
                 IconBody { content: "# {tag_data.name}" }
                 RemoveTagButton {
-                    aria_label: "remove tag {tag_data.name} from task",
+                    aria_label: format!(
+                        "{} {}",
+                        translate!(i18, "remove_tag_from_task_button_label"),
+                        tag_data.name,
+                    ),
                     tag_id,
                     on_unassign_tag,
                 }
@@ -153,13 +163,18 @@ pub fn TaskNewTagIcon(
     tag_data: TagData,
     on_unassign_tag: EventHandler<usize>,
 ) -> Element {
+    let i18 = use_i18();
     rsx! {
         TagIcon {
             color: tag_data.color,
             body: rsx! {
                 IconBody { content: "# {tag_data.name}" }
                 RemoveNewTagButton {
-                    aria_label: "remove tag {tag_data.name} from task",
+                    aria_label: format!(
+                        "{} {}",
+                        translate!(i18, "remove_tag_from_task_button_label"),
+                        tag_data.name,
+                    ),
                     tag_id,
                     on_unassign_tag,
                 }
