@@ -182,17 +182,19 @@ fn HasDue(due: DateTime<Utc>, show_time_left: bool, is_late: bool) -> Element {
 
 #[component]
 fn EditButton(task_id: TaskId, editing: Signal<bool>, dir: &'static str) -> Element {
+    let i18 = use_i18();
+    let aria_label = translate!(i18, "edit_due_date_tooltip");
     rsx! {
         div {
             class: "group relative",
             button {
-                "aria-label": "edit due date",
+                aria_label,
                 class: "block size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }
             Tooltip {
-                content: "Edit Due Date",
+                content: aria_label.clone(),
                 position: "",
                 dir,
             }
