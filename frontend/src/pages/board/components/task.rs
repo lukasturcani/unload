@@ -161,7 +161,7 @@ pub fn Task(
             }
             if expanded() {
                 Description { task_id, description }
-                SpecialActions { task_id }
+                AdditionalActions { task_id }
             }
         }
     }
@@ -282,7 +282,7 @@ pub fn DenseTask(
                         },
                     }
                 }
-                SpecialActions { task_id }
+                AdditionalActions { task_id }
             }
         }
     }
@@ -315,10 +315,11 @@ fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -
 }
 
 #[component]
-fn SpecialActions(task_id: TaskId) -> Element {
+fn AdditionalActions(task_id: TaskId) -> Element {
+    let i18 = use_i18();
     rsx! {
         section {
-            "aria-label": "special actions",
+            aria_label: translate!(i18, "additional_actions_section_label"),
             class: "grid grid-rows-1 justify-items-end",
             DeleteTaskButton { task_id }
         }
