@@ -281,7 +281,7 @@ pub fn translations() -> Vec<Translation> {
                 task_status_section_label: "Task Status...",
                 chat_gpt_limit_exceeded_title: "ChatGPT Limit Exceeded...",
                 chat_gpt_limit_exceeded_content:
-                    "You have reached the limit of ChatGPT calls. Please try again later.",
+                    "You have reached the limit of ChatGPT calls. Please try again later...",
                 board_link: "Tabuľa",
                 tags_link: "Značky",
                 users_link: "Používatelia",
