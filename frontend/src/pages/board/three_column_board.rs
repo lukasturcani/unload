@@ -127,19 +127,19 @@ fn TitleInput(editing: Signal<bool>) -> Element {
         board.title.clone()
     });
     let title = ReadOnlySignal::from(title);
-    let input_label = use_signal(|| translate!(i18, "task_title_input_label"));
+    let input_label = translate!(i18, "task_title_input_label");
     rsx! {
         form {
             aria_label: translate!(i18, "board_title_update_label"),
             class: "grow flex flex-row gap-2 items-center justify-center",
             onsubmit: move |event| {
-                let title = event.values()[&*input_label.read()].as_value();
+                let title = event.values()[&input_label].as_value();
                 spawn_forever(requests::set_board_title(board_signals, title));
                 editing.set(false);
             },
             TextInput {
                 id: "board-title-input",
-                label: input_label,
+                label: input_label.clone(),
                 value: title,
             }
             ConfirmButton { label: translate!(i18, "set_board_title_label") }
