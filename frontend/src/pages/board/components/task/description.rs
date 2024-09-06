@@ -69,18 +69,20 @@ fn DescriptionShow(
     description: ReadOnlySignal<String>,
     editing: Signal<bool>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let edit_button_style = format!("rounded border {}", theme.button);
+    let aria_label = translate!(i18, "edit_description_tooltip");
     rsx! {
         section {
-            aria_label: "description",
+            aria_label: translate!(i18, "description_section_label"),
             class: "flex flex-col gap-1",
             DescriptionContent { task_id, description }
             div {
                 class: "flex flex-row justify-center",
                 button {
-                    aria_label: "edit description",
+                    aria_label,
                     class: "
                         group
                         flex flex-row justify-center items-center
@@ -91,7 +93,10 @@ fn DescriptionShow(
                     div {
                         class: "relative",
                         div { class: "size-5", EditIcon {} }
-                        Tooltip { content: "Edit Description", position: "-top-12 -left-10" }
+                        Tooltip {
+                            content: aria_label.clone(),
+                            position: "-top-12 -left-10",
+                        }
                     }
                 }
             }
