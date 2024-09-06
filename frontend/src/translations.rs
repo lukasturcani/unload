@@ -92,6 +92,8 @@ struct Text {
     edit_user_name_button_label: &'static str,
     delete_user_button_label: &'static str,
     task_status_section_label: &'static str,
+    chat_gpt_limit_exceeded_title: &'static str,
+    chat_gpt_limit_exceeded_content: &'static str,
     board_link: &'static str,
     tags_link: &'static str,
     users_link: &'static str,
@@ -184,6 +186,9 @@ pub fn translations() -> Vec<Translation> {
                 edit_user_name_button_label: "Edit Name",
                 delete_user_button_label: "Delete User",
                 task_status_section_label: "Task Status",
+                chat_gpt_limit_exceeded_title: "ChatGPT Limit Exceeded",
+                chat_gpt_limit_exceeded_content:
+                    "You have reached the limit of ChatGPT calls. Please try again later.",
                 board_link: "Board",
                 tags_link: "Tags",
                 users_link: "Users",
@@ -274,6 +279,9 @@ pub fn translations() -> Vec<Translation> {
                 edit_user_name_button_label: "Edit Name...",
                 delete_user_button_label: "Delete User...",
                 task_status_section_label: "Task Status...",
+                chat_gpt_limit_exceeded_title: "ChatGPT Limit Exceeded...",
+                chat_gpt_limit_exceeded_content:
+                    "You have reached the limit of ChatGPT calls. Please try again later.",
                 board_link: "Tabuľa",
                 tags_link: "Značky",
                 users_link: "Používatelia",

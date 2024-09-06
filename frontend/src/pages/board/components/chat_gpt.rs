@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, TagData, TagEntry, TagId, TaskStatus, TaskSuggestion, UserId};
 
 use crate::{
@@ -52,16 +53,17 @@ pub fn ChatGpt(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
 
 #[component]
 fn ChatGptLimitExceeded(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center",
             h2 {
                 class: "text-xl font-bold",
-                "ChatGPT Limit Exceeded"
+                {translate!(i18, "caht_gpt_limit_exceeded_title")}
             },
             p {
                 class: "text-sm",
-                "You have reached the limit of ChatGPT calls. Please try again later."
+                {translate!(i18, "chat_gpt_limit_exceeded_content")}
             }
         }
     }
