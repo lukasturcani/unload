@@ -109,7 +109,7 @@ fn ColorSelect(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
                 class: "flex flex-row gap-2 items-center justify-center",
                 ConfirmButton { label: translate!(i18, "set_tag_color_button_label") }
                 CancelButton {
-                    label: translate!(i18, "cancel_tag_color_update_label"),
+                    aria_label: translate!(i18, "cancel_tag_color_update_label"),
                     state,
                 }
             }
@@ -118,7 +118,7 @@ fn ColorSelect(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
 }
 
 #[component]
-fn CancelButton(label: String, state: Signal<State>) -> Element {
+fn CancelButton(aria_label: String, state: Signal<State>) -> Element {
     let style = "
         rounded-md
         border border-red-600
@@ -128,7 +128,7 @@ fn CancelButton(label: String, state: Signal<State>) -> Element {
     ";
     rsx! {
         button {
-            "aria-label": label,
+            aria_label,
             class: "size-7 {style}",
             onclick: move |_| {
                 state.set(State::Show);
@@ -207,7 +207,7 @@ fn NameInput(tag_id: TagId, name: ReadOnlySignal<String>, state: Signal<State>) 
             }
             ConfirmButton { label: translate!(i18, "set_tag_name_button_label") }
             CancelButton {
-                label: translate!(i18, "cancel_tag_name_update_button_label"),
+                aria_label: translate!(i18, "cancel_tag_name_update_button_label"),
                 state,
             }
         }
