@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use reqwest::Client;
 use shared_models::TaskId;
 
@@ -34,10 +35,11 @@ fn DescriptionForm(
     editing: Signal<bool>,
     description: ReadOnlySignal<String>,
 ) -> Element {
+    let i18 = use_i18();
     let board_signals = BoardSignals::default();
     rsx! {
         form {
-            "aria-label": "update description",
+            aria_label: translate!(i18, "description_update_form_label"),
             class: "flex flex-col gap-2",
             onsubmit: move |event| {
                 let description = event.values()["Description"].as_value();
@@ -51,8 +53,11 @@ fn DescriptionForm(
             },
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "set description" }
-                CancelButton { label: "cancel description update", editing }
+                ConfirmButton { label: translate!(i18, "set_description_button_label") }
+                CancelButton {
+                    label: translate!(i18, "cancel_description_update_button_label"),
+                    editing,
+                }
             }
         }
     }
