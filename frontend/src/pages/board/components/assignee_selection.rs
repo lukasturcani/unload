@@ -196,14 +196,14 @@ fn AddUserListForm(
                 },
                 TextInput {
                     id: "{id}-new-user-name-input",
-                    label: "Name",
+                    label: translate!(i18, "new_user_name_input_label"),
                 }
                 ColorPicker { }
                 div {
                     class: "flex flex-row gap-2 items-center justify-center",
-                    ConfirmButton { label: "add user" }
+                    ConfirmButton { label: translate!(i18, "add_user_button_label") }
                     CancelButton {
-                        label: "cancel adding user",
+                        label: translate!(i18, "cancel_adding_new_user_button_label"),
                         editing: show_form,
                     }
                 }
