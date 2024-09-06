@@ -65,6 +65,7 @@ fn TagListItem(tag_id: TagId, tag: TagData, on_assign_tag: EventHandler<TagId>) 
 
 #[component]
 fn AddTagListItem(id: String, on_add_tag: EventHandler<TagId>) -> Element {
+    let i18 = use_i18();
     let show_form = use_signal(|| false);
     rsx! {
         li {
@@ -73,7 +74,7 @@ fn AddTagListItem(id: String, on_add_tag: EventHandler<TagId>) -> Element {
             } else {
                 ShowSelectionListFormButton {
                     r#for: "{id}-form",
-                    content: "Add Tag",
+                    content: translate!(i18, "add_tag_button_label"),
                     show_form,
                 }
             }
@@ -83,12 +84,13 @@ fn AddTagListItem(id: String, on_add_tag: EventHandler<TagId>) -> Element {
 
 #[component]
 fn AddTagListForm(id: String, show_form: Signal<bool>, on_add_tag: EventHandler<TagId>) -> Element {
+    let i18 = use_i18();
     let board_signals = BoardSignals::default();
     rsx! {
         li {
             form {
                 id: "{id}-form",
-                "aria-label": "add tag",
+                aria_label: translate!(i18, "add_tag_form_label"),
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
                     let values = event.values();
