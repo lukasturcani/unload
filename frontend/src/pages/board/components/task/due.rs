@@ -44,13 +44,14 @@ fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>
     let i18 = use_i18();
     let board_signals = BoardSignals::default();
     let mut has_due = use_signal(|| due.is_some());
+    let input_label = translate!(i18, "due_date_input_label");
     rsx! {
         form {
             aria_label: translate!(i18, "due_date_form_label"),
             class: "flex flex-row flex-wrap gap-1 items-center",
             onsubmit: move |event| {
                 let values = event.values();
-                let due_string = values["Due"].as_value();
+                let due_string = values[&input_label].as_value();
                 let due = if due_string.is_empty() {
                     None
                 } else {
@@ -72,7 +73,7 @@ fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>
             div { class: "size-6", ClockIcon {} }
             DateInput {
                 id: "task-{task_id}-due-input",
-                label: "Due",
+                label: input_label.clone(),
                 value: due.map(|d| d.format("%Y-%m-%d").to_string()),
                 oninput: move |event: FormEvent| has_due.set(!event.value().is_empty()),
             }
