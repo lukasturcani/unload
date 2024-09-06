@@ -86,6 +86,7 @@ fn AddTagListItem(id: String, on_add_tag: EventHandler<TagId>) -> Element {
 fn AddTagListForm(id: String, show_form: Signal<bool>, on_add_tag: EventHandler<TagId>) -> Element {
     let i18 = use_i18();
     let board_signals = BoardSignals::default();
+    let input_label = translate!(i18, "tag_name_input_label");
     rsx! {
         li {
             form {
@@ -94,7 +95,7 @@ fn AddTagListForm(id: String, show_form: Signal<bool>, on_add_tag: EventHandler<
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
                     let values = event.values();
-                    let name = values["Name"].as_value();
+                    let name = values[&input_label].as_value();
                     let color = serde_json::from_str(
                         &values["color-picker"].as_value()
                     ).unwrap();
@@ -103,7 +104,7 @@ fn AddTagListForm(id: String, show_form: Signal<bool>, on_add_tag: EventHandler<
                 },
                 TextInput {
                     id: "{id}-tag-name-input",
-                    label: "Name",
+                    label: input_label.clone(),
                 }
                 ColorPicker { }
                 div {
