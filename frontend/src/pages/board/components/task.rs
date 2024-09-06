@@ -290,13 +290,14 @@ pub fn DenseTask(
 
 #[component]
 fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     let style = "rounded";
     let expanded_ = expanded();
     rsx! {
         button {
-            "aria-label": "toggle expand task",
-            "aria-pressed": expanded(),
+            aria_label: translate!(i18, "toggle_expand_task_button_label"),
+            aria_pressed: expanded(),
             class: "shrink-0 {size} p-1 {style}",
             onclick: move |_| {
                 if !expanded() {
