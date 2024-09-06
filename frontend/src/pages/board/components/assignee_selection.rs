@@ -179,6 +179,7 @@ fn AddUserListForm(
 ) -> Element {
     let i18 = use_i18();
     let board_signals = BoardSignals::default();
+    let input_label = translate!(i18, "new_user_name_input_label");
     rsx! {
         li {
             form {
@@ -187,7 +188,7 @@ fn AddUserListForm(
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
                     let values = event.values();
-                    let name = values["Name"].as_value();
+                    let name = values[&input_label].as_value();
                     let color = serde_json::from_str(
                         &values["color-picker"].as_value()
                     ).unwrap();
@@ -196,7 +197,7 @@ fn AddUserListForm(
                 },
                 TextInput {
                     id: "{id}-new-user-name-input",
-                    label: translate!(i18, "new_user_name_input_label"),
+                    label: input_label.clone(),
                 }
                 ColorPicker { }
                 div {
