@@ -130,7 +130,7 @@ fn TitleInput(editing: Signal<bool>) -> Element {
     let input_label = translate!(i18, "task_title_input_label");
     rsx! {
         form {
-            aria_label: translate!(i18, "board_title_update_label"),
+            aria_label: translate!(i18, "board_title_update_form_label"),
             class: "grow flex flex-row gap-2 items-center justify-center",
             onsubmit: move |event| {
                 let title = event.values()[&input_label].as_value();
@@ -142,8 +142,11 @@ fn TitleInput(editing: Signal<bool>) -> Element {
                 label: input_label.clone(),
                 value: title,
             }
-            ConfirmButton { label: translate!(i18, "set_board_title_label") }
-            CancelButton { label: translate!(i18, "cancel_board_title_update_label"), editing }
+            ConfirmButton { label: translate!(i18, "set_board_title_button_label") }
+            CancelButton {
+                label: translate!(i18, "cancel_board_title_update_button_label"),
+                editing,
+            }
         }
     }
 }

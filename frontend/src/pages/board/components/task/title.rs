@@ -51,7 +51,7 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<Stri
     let input_label = translate!(i18, "task_title_input_label");
     rsx! {
         form {
-            aria_label: translate!(i18, "task_title_update_label"),
+            aria_label: translate!(i18, "task_title_update_form_label"),
             class: "flex flex-col gap-2 justify-center items-center",
             onsubmit: move |event| {
                 let title = event.values()[&input_label].as_value();
@@ -68,8 +68,11 @@ fn TitleInput(task_id: TaskId, editing: Signal<bool>, title: ReadOnlySignal<Stri
             }
             div {
                 class: "flex flex-row gap-1 items-center",
-                ConfirmButton { label: translate!(i18, "set_task_title_label") }
-                CancelButton { label: translate!(i18, "cancel_task_title_update_label"), editing }
+                ConfirmButton { label: translate!(i18, "set_task_title_button_label") }
+                CancelButton {
+                    label: translate!(i18, "cancel_task_title_update_button_label"),
+                    editing,
+                }
             }
         }
     }
