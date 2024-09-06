@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, TagEntry, TagId};
 
 use crate::{
@@ -88,12 +89,13 @@ fn TagListItem(tag: TagEntry) -> Element {
 
 #[component]
 fn ColorSelect(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let tags = use_context::<Signal<TagEntries>>();
     let url = use_context::<Signal<TagsUrl>>();
     rsx! {
         form {
             id: "tag-{tag_id}-color-form",
-            "aria-label": "edit color",
+            aria_label: translate!(i18, "edit_tag_color_form_label"),
             class: "flex flex-col gap-2 items-center p-2",
             onsubmit: move |event| {
                 let color = serde_json::from_str(
@@ -105,8 +107,11 @@ fn ColorSelect(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
             ColorPicker { selected_color: color }
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "set color" }
-                CancelButton { label: "cancel color update", state }
+                ConfirmButton { label: translate!(i18, "set_tag_color_button_label") }
+                CancelButton {
+                    label: translate!(i18, "cancel_tag_color_update_label"),
+                    state,
+                }
             }
         }
     }
@@ -135,6 +140,7 @@ fn CancelButton(label: String, state: Signal<State>) -> Element {
 
 #[component]
 fn ColorShow(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -165,7 +171,7 @@ fn ColorShow(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
             }
             button {
                 class: "size-4",
-                "aria-label": "edit color",
+                aria_label: translate!(i18, "edit_tag_color_button_label"),
                 onclick: move |_| {
                     scroll_target.set(
                         ScrollTarget(Some(format!("tag-{tag_id}-color-form")))
