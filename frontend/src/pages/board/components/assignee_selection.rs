@@ -158,7 +158,7 @@ fn AddUserListItem(id: String, on_add_user: EventHandler<UserId>) -> Element {
             } else {
                 ShowSelectionListFormButton {
                     r#for: "{id}-form",
-                    content: translate!(i18, "add_tag_toggle_button_tooltip"),
+                    content: translate!(i18, "add_user_button_label"),
                     show_form ,
                 }
             }
@@ -172,12 +172,13 @@ fn AddUserListForm(
     show_form: Signal<bool>,
     on_add_user: EventHandler<UserId>,
 ) -> Element {
+    let i18 = use_i18();
     let board_signals = BoardSignals::default();
     rsx! {
         li {
             form {
                 id: "{id}-form",
-                "aria-label": "add user",
+                aria_label: translate!(i18, "add_user_form_label"),
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
                     let values = event.values();
