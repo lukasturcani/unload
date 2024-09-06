@@ -109,7 +109,7 @@ fn AddTagListForm(id: String, show_form: Signal<bool>, on_add_tag: EventHandler<
                     class: "flex flex-row gap-2 items-center justify-center",
                     ConfirmButton { label: translate!(i18, "add_tag_button_label") }
                     CancelButton {
-                        label: "cancel adding tag",
+                        label: translate!(i18, "cancel_adding_new_tag_button_label"),
                         editing: show_form,
                     }
                 }
