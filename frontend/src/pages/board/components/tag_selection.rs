@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::*, translate};
 use shared_models::{TagData, TagId};
 
 use crate::{
@@ -23,6 +24,7 @@ pub fn TagSelection(
     on_assign_tag: EventHandler<TagId>,
     on_add_tag: EventHandler<TagId>,
 ) -> Element {
+    let i18 = use_i18();
     let tags = tags.read();
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
@@ -35,7 +37,7 @@ pub fn TagSelection(
     unassigned.sort_by_key(|(_, tag)| tag.name.to_lowercase());
     rsx! {
         section {
-            "aria-label": "tag selection",
+            aria_label: translate!(i18, "tag_selection_section_label"),
             AssignmentList {
                 body: rsx! {
                     for (tag_id, tag) in unassigned {
