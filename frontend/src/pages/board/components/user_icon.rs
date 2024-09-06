@@ -38,7 +38,7 @@ pub fn UserIcon(
         sm:hover:border-4 active:border-4 sm:hover:scale-110 active:scale-110
     ";
     let aria_label = format!(
-        "{} {}",
+        "{}: {}",
         translate!(i18, "toggle_user_filter_button_label"),
         user_data.name,
     );
@@ -90,7 +90,7 @@ pub fn FilteringUserIcon(
         sm:hover:border-4 active:border-4 sm:hover:scale-110 active:scale-110
     ";
     let aria_label = format!(
-        "{} {}",
+        "{}: {}",
         translate!(i18, "toggle_user_filter_button_label"),
         user_data.name,
     );

@@ -17,7 +17,7 @@ pub fn FilterBarTagIcon(tag_id: TagId, tag_data: TagData) -> Element {
                 FilterButton {
                     aria_pressed,
                     aria_label: format!(
-                        "{} {}",
+                        "{}: {}",
                         translate!(i18, "toggle_tag_filter_button_label"),
                         tag_data.name
                     ),
@@ -145,7 +145,7 @@ pub fn TaskTagIcon(
                 IconBody { content: "# {tag_data.name}" }
                 RemoveTagButton {
                     aria_label: format!(
-                        "{} {}",
+                        "{}: {}",
                         translate!(i18, "remove_tag_from_task_button_label"),
                         tag_data.name,
                     ),
@@ -171,7 +171,7 @@ pub fn TaskNewTagIcon(
                 IconBody { content: "# {tag_data.name}" }
                 RemoveNewTagButton {
                     aria_label: format!(
-                        "{} {}",
+                        "{}: {}",
                         translate!(i18, "remove_tag_from_task_button_label"),
                         tag_data.name,
                     ),
@@ -200,7 +200,7 @@ pub fn FilteringTaskTagIcon(
                 FilterButton {
                     aria_pressed,
                     aria_label: format!(
-                        "{} {}",
+                        "{}: {}",
                         translate!(i18, "toggle_tag_filter_button_label"),
                         tag_data.name
                     ),
@@ -209,7 +209,7 @@ pub fn FilteringTaskTagIcon(
                 }
                 RemoveTagButton {
                     aria_label: format!(
-                        "{} {}",
+                        "{}: {}",
                         translate!(i18, "remove_tag_from_task_button_label"),
                         tag_data.name
                     ),
