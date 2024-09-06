@@ -211,6 +211,7 @@ fn NameInput(tag_id: TagId, name: ReadOnlySignal<String>, state: Signal<State>) 
 
 #[component]
 fn NameShow(tag_id: TagId, name: String, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         div {
@@ -218,7 +219,7 @@ fn NameShow(tag_id: TagId, name: String, state: Signal<State>) -> Element {
             {name}
             button {
                 class: "size-4",
-                "aria-label": "edit name",
+                aria_label: translate!(i18, "edit_tag_name_button_label"),
                 onclick: move |_| {
                     scroll_target.set(
                         ScrollTarget(Some(format!("tag-{tag_id}-name-form")))
