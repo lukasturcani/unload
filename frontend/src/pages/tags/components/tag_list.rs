@@ -239,12 +239,13 @@ fn NameShow(tag_id: TagId, name: String, state: Signal<State>) -> Element {
 
 #[component]
 fn DeleteTagButton(tag_id: TagId) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<TagsUrl>>();
     let tags = use_context::<Signal<TagEntries>>();
     let style = "stroke-red-600";
     rsx! {
         button {
-            "aria-label": "delete tag",
+            aria_label: translate!(i18, "delete_tag_button_label"),
             class: "block size-6 {style}",
             onclick: move |_| {
                 spawn_forever(requests::delete_tag(tags, url, tag_id));
@@ -256,11 +257,12 @@ fn DeleteTagButton(tag_id: TagId) -> Element {
 
 #[component]
 fn ArchiveTagButton(tag_id: TagId) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<TagsUrl>>();
     let tags = use_context::<Signal<TagEntries>>();
     rsx! {
         button {
-            "aria-label": "archive tag",
+            aria_label: translate!(i18, "archive_tag_button_label"),
             class: "block size-6",
             onclick: move |_| {
                 spawn_forever(requests::set_tag_archived(tags, url, tag_id));
