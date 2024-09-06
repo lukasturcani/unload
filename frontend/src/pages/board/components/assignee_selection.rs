@@ -75,6 +75,7 @@ fn UserBadge(
     user_data: UserData,
     on_unassign_user: EventHandler<UserId>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = "border-2 rounded";
@@ -97,7 +98,11 @@ fn UserBadge(
         Color::Teal => theme.color15_button,
         Color::Aqua => theme.color16_button,
     };
-    let unassign_label = format!("unassign {} from task", user_data.name);
+    let aria_label = format!(
+        "{}: {}",
+        translate!(i18, "remove_user_from_task_button_label"),
+        user_data.name,
+    );
     rsx! {
         div {
             class: "
@@ -106,7 +111,7 @@ fn UserBadge(
             ",
             {user_data.name}
             button {
-                "aria-label": unassign_label,
+                aria_label,
                 class: "size-5 p-0.5 {button_style}",
                 onclick: move |_| on_unassign_user.call(user_id),
                 CancelIcon {}
