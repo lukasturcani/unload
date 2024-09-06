@@ -71,12 +71,13 @@ fn ChatGptLimitExceeded(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> E
 
 #[component]
 fn ChatGptWaiting() -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center",
             role: "status",
             p {
-                "Talking to ChatGPT..."
+                {translate!(i18, "chat_gpt_waiting_message")}
             }
             svg {
                 xmlns: "http://www.w3.org/2000/svg",

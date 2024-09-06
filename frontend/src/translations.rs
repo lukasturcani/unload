@@ -94,6 +94,7 @@ struct Text {
     task_status_section_label: &'static str,
     chat_gpt_limit_exceeded_title: &'static str,
     chat_gpt_limit_exceeded_content: &'static str,
+    chat_gpt_waiting_message: &'static str,
     board_link: &'static str,
     tags_link: &'static str,
     users_link: &'static str,
@@ -189,6 +190,7 @@ pub fn translations() -> Vec<Translation> {
                 chat_gpt_limit_exceeded_title: "ChatGPT Limit Exceeded",
                 chat_gpt_limit_exceeded_content:
                     "You have reached the limit of ChatGPT calls. Please try again later.",
+                chat_gpt_waiting_message: "Talking to ChatGPT...",
                 board_link: "Board",
                 tags_link: "Tags",
                 users_link: "Users",
@@ -282,6 +284,7 @@ pub fn translations() -> Vec<Translation> {
                 chat_gpt_limit_exceeded_title: "ChatGPT Limit Exceeded...",
                 chat_gpt_limit_exceeded_content:
                     "You have reached the limit of ChatGPT calls. Please try again later...",
+                chat_gpt_waiting_message: "Talking to ChatGPT!!!",
                 board_link: "Tabuľa",
                 tags_link: "Značky",
                 users_link: "Používatelia",
