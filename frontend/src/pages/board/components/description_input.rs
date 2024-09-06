@@ -60,6 +60,7 @@ pub fn DescriptionInput(
                 }
             }
             textarea {
+                aria_label: translate!(i18, "description_text_area_label"),
                 id,
                 onmounted: move |event| async move {
                     let _ = event.set_focus(true).await;
