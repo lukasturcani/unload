@@ -215,6 +215,7 @@ fn NameInput(user_id: UserId, name: ReadOnlySignal<String>, state: Signal<State>
 
 #[component]
 fn NameShow(user_id: UserId, name: String, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         div {
@@ -222,7 +223,7 @@ fn NameShow(user_id: UserId, name: String, state: Signal<State>) -> Element {
             {name}
             button {
                 class: "size-4",
-                "aria-label": "edit name",
+                aria_label: translate!(i18, "edit_user_name_button_label"),
                 onclick: move |_| {
                     scroll_target.set(
                         ScrollTarget(Some(format!("user-{user_id}-name-form")))
@@ -237,12 +238,13 @@ fn NameShow(user_id: UserId, name: String, state: Signal<State>) -> Element {
 
 #[component]
 fn DeleteUserButton(user_id: UserId) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<UsersUrl>>();
     let users = use_context::<Signal<UserEntries>>();
     let style = "stroke-red-600";
     rsx! {
         button {
-            "aria-label": "delete user",
+            aria_label: translate!(i18, "delete_user_button_label"),
             class: "block size-6 {style}",
             onclick: move |_| {
                 spawn_forever(requests::delete_user(users, url, user_id));
