@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, UserEntry, UserId};
 
 use crate::{
@@ -87,12 +88,13 @@ fn UserListItem(user: UserEntry) -> Element {
 
 #[component]
 fn ColorSelect(user_id: UserId, color: Color, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let users = use_context::<Signal<UserEntries>>();
     let url = use_context::<Signal<UsersUrl>>();
     rsx! {
         form {
             id: "user-{user_id}-color-form",
-            "aria-label": "edit color",
+            aria_label: translate!(i18, "edit_user_color_form_label"),
             class: "flex flex-col gap-2 items-center p-2",
             onsubmit: move |event| {
                 let color = serde_json::from_str(
@@ -104,8 +106,11 @@ fn ColorSelect(user_id: UserId, color: Color, state: Signal<State>) -> Element {
             ColorPicker { selected_color: color }
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "set color" }
-                CancelButton { label: "cancel color update", state }
+                ConfirmButton { label: translate!(i18, "set_user_color_button_label") }
+                CancelButton {
+                    label: translate!(i18, "cancel_user_color_update_button_label"),
+                    state,
+                }
             }
         }
     }
