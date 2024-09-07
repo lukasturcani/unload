@@ -1654,8 +1654,7 @@ pub async fn suggest_tasks(
                     Include a tag which ties all tasks together. \
                     Do not include any other text in the response. \
                     The prompt and your response should be in {}.",
-                    tags,
-                    request.language.name(),
+                    tags, request.language,
                 )),
                 name: None,
                 tool_calls: None,

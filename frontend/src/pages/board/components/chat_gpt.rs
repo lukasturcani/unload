@@ -729,6 +729,7 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
                         board.read().board_name.clone(),
                         url,
                         prompt,
+                        i18.selected_language.read().language.as_str().to_string(),
                         chat_gpt_response,
                         num_calls_left,
                     ));
@@ -787,6 +788,7 @@ fn PromptSuggestions(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Elem
 
 #[component]
 fn PromptSuggestion(prompt: String, chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<UnloadUrl>>();
     let p = prompt.clone();
     let board = use_context::<Signal<Board>>();
@@ -800,6 +802,7 @@ fn PromptSuggestion(prompt: String, chat_gpt_response: Signal<Option<ChatGptResp
                         board.read().board_name.clone(),
                         url,
                         p.clone(),
+                        i18.selected_language.read().language.as_str().to_string(),
                         chat_gpt_response,
                         num_calls_left,
                     ));

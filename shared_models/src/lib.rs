@@ -263,24 +263,9 @@ pub enum ChatGptResponse {
     LimitExceeded,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Language {
-    English,
-    Slovak,
-}
-
-impl Language {
-    pub fn name(&self) -> &'static str {
-        match self {
-            Language::English => "English",
-            Language::Slovak => "Slovak",
-        }
-    }
-}
-
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ChatGptRequest {
     pub board_name: BoardName,
-    pub language: Language,
+    pub language: String,
     pub prompt: String,
 }
