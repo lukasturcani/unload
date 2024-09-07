@@ -210,13 +210,14 @@ fn ThemesBar() -> Element {
 
 #[component]
 fn FilterBar() -> Element {
+    let i18 = use_i18();
     let tags = use_context::<Signal<Tags>>();
     let tags = &tags.read().0;
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     rsx! {
         section {
-            "aria-label": "filters",
+            aria_label: translate!(i18, "filters_section_label"),
             class: "grid grid-cols-5 gap-1",
             div {
                 class: "col-span-4 flex flex-row flex-wrap items-center gap-1",
@@ -526,6 +527,7 @@ fn BoardPopup(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn LanguageList(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg {} {}", theme.text_color, theme.bg_color_2);
@@ -540,7 +542,7 @@ fn LanguageList(panel: Signal<Panel>) -> Element {
                     flex flex-row gap-1 items-center
                 ",
                 div { class: "size-5", LanguageIcon {} }
-                "Languages"
+                {translate!(i18, "languages_section_title")}
             }
             ul {
                 class: "flex flex-col",
@@ -612,6 +614,7 @@ fn ChatGptContainer(
     adding_task: Signal<bool>,
     panel: Signal<Panel>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -633,7 +636,7 @@ fn ChatGptContainer(
                     hr { class: "w-64 h-px border-0 bg-gray-700" }
                     span {
                         class: "absolute px-3 font-medium -translate-x-1/2 left-1/2 text-white bg-gray-900",
-                        "or"
+                        {translate!(i18, "or_label")}
                     }
                 }
                 CustomTaskButton { status, adding_task, panel }
@@ -648,6 +651,7 @@ fn CustomTaskButton(
     adding_task: Signal<bool>,
     panel: Signal<Panel>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg {}", theme.primary_button);
@@ -670,13 +674,14 @@ fn CustomTaskButton(
                     adding_task.set(true);
                 }
             },
-            "Custom Task"
+            {translate!(i18, "custom_task_button_label")}
         }
     }
 }
 
 #[component]
 fn BoardList(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg {} {}", theme.text_color, theme.bg_color_2);
@@ -694,7 +699,7 @@ fn BoardList(panel: Signal<Panel>) -> Element {
                     flex flex-row gap-1 items-center
                 ",
                 div { class: "size-5", BookmarkIcon {} }
-                "Boards"
+                {translate!(i18, "board_list_section_label")}
             }
             ul {
                 class: "flex flex-col",
@@ -726,6 +731,7 @@ fn JoinBoard(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn JoinBoardButton(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg p-2 {}", theme.primary_button);
@@ -735,7 +741,7 @@ fn JoinBoardButton(editing: Signal<bool>) -> Element {
             button {
                 class: style,
                 onclick: move |_| editing.set(true),
-                "Join Board"
+                {translate!(i18, "join_board_button_label")}
             }
         }
     }
