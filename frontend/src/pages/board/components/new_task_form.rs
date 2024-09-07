@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::TaskStatus;
 
 use crate::{
@@ -13,6 +14,7 @@ use crate::{
 
 #[component]
 pub fn NewTaskForm(status: TaskStatus, adding_task: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let scroll_target = use_context::<Signal<ScrollTarget>>();
     let board_signals = BoardSignals::default();
     let theme = use_context::<Signal<Theme>>();
@@ -28,6 +30,7 @@ pub fn NewTaskForm(status: TaskStatus, adding_task: Signal<bool>) -> Element {
     );
     rsx! {
         form {
+            aria_label: translate!(i18, "new_task_form_label"),
             class: "flex flex-row gap-1 p-2.5 items-center {style}",
             onsubmit: move |event| {
                 let title = event.values()["Title"].as_value();
