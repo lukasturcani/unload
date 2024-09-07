@@ -747,6 +747,7 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
 
 #[component]
 fn PromptSuggestions(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -756,12 +757,30 @@ fn PromptSuggestions(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Elem
     rsx! {
         ul {
             class: "w-full {style}",
-            PromptSuggestion { prompt: "suggest cupcake recipe", chat_gpt_response }
-            PromptSuggestion { prompt: "paint bedroom", chat_gpt_response }
-            PromptSuggestion { prompt: "friends over for BBQ", chat_gpt_response }
-            PromptSuggestion { prompt: "prepare for Rome vacation", chat_gpt_response }
-            PromptSuggestion { prompt: "house tidy", chat_gpt_response }
-            PromptSuggestion { prompt: "fix fence", chat_gpt_response }
+            PromptSuggestion {
+                prompt: translate!(i18, "suggest_cupcake_recipe_prompt"),
+                chat_gpt_response
+            }
+            PromptSuggestion {
+                prompt: translate!(i18, "paint_bedroom_prompt"),
+                chat_gpt_response
+            }
+            PromptSuggestion {
+                prompt: translate!(i18, "friends_over_for_bbq_prompt"),
+                chat_gpt_response
+            }
+            PromptSuggestion {
+                prompt: translate!(i18, "prepare_for_rome_vacation_prompt"),
+                chat_gpt_response
+            }
+            PromptSuggestion {
+                prompt: translate!(i18, "house_tidy_prompt"),
+                chat_gpt_response
+            }
+            PromptSuggestion {
+                prompt: translate!(i18, "fix_fence_prompt"),
+                chat_gpt_response
+            }
         }
     }
 }
