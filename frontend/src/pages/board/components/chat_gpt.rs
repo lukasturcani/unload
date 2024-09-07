@@ -419,6 +419,7 @@ fn AddTaskButton(
     resolved_suggestions: Signal<HashSet<usize>>,
     suggestion: SuggestionSignals,
 ) -> Element {
+    let i18 = use_i18();
     let style = "
         rounded-md
         border border-green-500
@@ -429,7 +430,7 @@ fn AddTaskButton(
     let board_signals = BoardSignals::default();
     rsx! {
         button {
-            aria_label: "add task",
+            aria_label: translate!(i18, "add_task_button_label"),
             class: "size-7 {style}",
             onclick: move |_| {
                 let mut resolved_suggestions = resolved_suggestions.write();
@@ -459,6 +460,7 @@ async fn create_task(signals: BoardSignals, suggestion: SuggestionSignals) {
 
 #[component]
 fn DeleteTaskButton(suggestion_id: usize, resolved_suggestions: Signal<HashSet<usize>>) -> Element {
+    let i18 = use_i18();
     let style = "
         rounded-md
         border border-red-600
@@ -468,7 +470,7 @@ fn DeleteTaskButton(suggestion_id: usize, resolved_suggestions: Signal<HashSet<u
     ";
     rsx! {
         button {
-            aria_label: "delete task",
+            aria_label: translate!(i18, "delete_task_button_label"),
             class: "size-7 {style}",
             onclick: move |_| {
                 let mut resolved_suggestions = resolved_suggestions.write();
@@ -533,9 +535,10 @@ fn DescriptionForm(
     editing: Signal<bool>,
     description: Signal<String>,
 ) -> Element {
+    let i18 = use_i18();
     rsx! {
         form {
-            aria_label: "update description",
+            aria_label: translate!(i18, "description_update_form_label"),
             class: "flex flex-col gap-2",
             onsubmit: move |event| {
                 description.set(event.values()["Description"].as_value());
@@ -548,8 +551,11 @@ fn DescriptionForm(
             },
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "set description" }
-                CancelButton { label: "cancel description update", editing }
+                ConfirmButton { label: translate!(i18, "set_description_button_label") }
+                CancelButton {
+                    label: translate!(i18, "cancel_description_update_button_label"),
+                    editing,
+                }
             }
         }
     }
@@ -557,9 +563,10 @@ fn DescriptionForm(
 
 #[component]
 fn DescriptionShow(editing: Signal<bool>, description: Signal<String>) -> Element {
+    let i18 = use_i18();
     rsx! {
         section {
-            aria_label: "description",
+            aria_label: translate!(i18, "description_section_label"),
             class: "flex flex-col gap-2",
             DescriptionContent { description }
             div {
@@ -572,12 +579,14 @@ fn DescriptionShow(editing: Signal<bool>, description: Signal<String>) -> Elemen
 
 #[component]
 fn EditDescriptionButton(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded border {}", theme.button);
+    let aria_label = translate!(i18, "edit_description_tooltip");
     rsx! {
         button {
-            aria_label: "edit description",
+            aria_label,
             class: "
                 group
                 flex flex-row justify-center items-center
@@ -588,7 +597,10 @@ fn EditDescriptionButton(editing: Signal<bool>) -> Element {
             div {
                 class: "relative",
                 div { class: "size-5", EditIcon {} }
-                Tooltip { content: "Edit Description", position: "-top-12 -left-10" }
+                Tooltip {
+                    content: aria_label.clone(),
+                    position: "-top-12 -left-10",
+                }
             }
         }
     }
@@ -663,16 +675,17 @@ fn Bullet(line: String) -> Element {
 
 #[component]
 fn ChatGptError(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center",
             h2 {
                 class: "text-xl font-bold",
-                "ChatGPT Error"
+                {translate!(i18, "chat_gpt_error_title")}
             },
             p {
                 class: "text-sm",
-                "An error occurred while trying to connect to Chat GPT. Please try again later."
+                {translate!(i18, "chat_gpt_error_content")}
             }
         }
     }
@@ -680,6 +693,7 @@ fn ChatGptError(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
 
 #[component]
 fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = theme.text_color;
@@ -687,23 +701,30 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
     let board = use_context::<Signal<Board>>();
     let num_calls_left = use_context::<Signal<NumChatGptCalls>>();
     let num_calls_left_ = num_calls_left.read().0;
+    let input_label = translate!(i18, "chat_gpt_prompt_input_label");
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center {style}",
             p {
                 class: "text-xl font-bold",
-                "Use ChatGPT ({num_calls_left_} daily attempts left)"
+                {
+                    format!(
+                        "{} ({}: {num_calls_left_})",
+                        translate!(i18, "chat_gpt_prompt_input_title"),
+                        translate!(i18, "chat_gpt_daily_attempts_left"),
+                    )
+                }
             }
             p {
                 class: "text-sm",
-                "or pick one from the suggestions below:"
+                {translate!(i18, "chat_gpt_prompt_input_content")}
             }
             PromptSuggestions { chat_gpt_response }
             form {
                 id: "chat-gpt-prompt-form",
-                "aria-label": "chat gpt prompt",
+                aria_label: translate!(i18, "chat_gpt_prompt_input_form_label"),
                 onsubmit: move |event| {
-                    let prompt = event.values()["Prompt:"].as_value();
+                    let prompt = event.values()[&input_label].as_value();
                     spawn_forever(requests::send_chat_gpt_prompt(
                         board.read().board_name.clone(),
                         url,
@@ -716,7 +737,7 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
                     class: "flex flex-row gap-2 items-center justify-start",
                     TextInput {
                         id: "chat-gpt-prompt" ,
-                        label: "Prompt:",
+                        label: input_label.clone(),
                     }
                 }
             }
