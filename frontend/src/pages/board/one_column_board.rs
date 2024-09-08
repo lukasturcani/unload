@@ -642,7 +642,7 @@ fn ToggleNavDrawerButton(panel: Signal<Panel>) -> Element {
     rsx! {
         button {
             class: "size-7 p-1 {style}",
-            "aria-pressed": panel() == Panel::Navigation,
+            aria_pressed: panel() == Panel::Navigation,
             onclick: move |event| {
                 event.stop_propagation();
                 if panel() == Panel::Navigation {
@@ -658,14 +658,15 @@ fn ToggleNavDrawerButton(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn ToggleActionsDrawerButton(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
-            "aria-label": "toggle actions drawer",
+            aria_label: translate!(i18, "toggle_actions_drawer_button_label"),
             class: "size-7 p-1 {style}",
-            "aria-pressed": panel() == Panel::Actions,
+            aria_pressed: panel() == Panel::Actions,
             onclick: move |event| {
                 event.stop_propagation();
                 if panel() == Panel::Actions {
@@ -681,14 +682,15 @@ fn ToggleActionsDrawerButton(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn ToggleFiltersButton(extra_bar: Signal<ExtraBar>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
-            "aria-label": "toggle show filters",
+            aria_label: translate!(i18, "toggle_show_filters_button_label"),
             class: "size-7 p-1 {style}",
-            "aria-pressed": extra_bar() == ExtraBar::Filter,
+            aria_pressed: extra_bar() == ExtraBar::Filter,
             onclick: move |event| {
                 event.stop_propagation();
                 if extra_bar() == ExtraBar::Filter {
@@ -725,7 +727,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                     text-sm
                     {status_style}
                 ",
-                "aria-pressed": panel() == Panel::Status,
+                aria_pressed: panel() == Panel::Status,
                 onclick: move |event| {
                     if panel() == Panel::Status {
                         panel.set(Panel::None);
