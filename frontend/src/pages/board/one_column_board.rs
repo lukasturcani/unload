@@ -415,7 +415,7 @@ fn LanguageList(panel: Signal<Panel>) -> Element {
     rsx! {
         section {
             onclick: move |event| event.stop_propagation(),
-            class: "px-3 py-5 flex flex-col gap-2 w-1/2 {style}",
+            class: "px-3 py-5 flex flex-col gap-2 {style}",
             h2 {
                 class: "
                     px-2
