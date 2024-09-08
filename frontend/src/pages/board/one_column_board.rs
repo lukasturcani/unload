@@ -706,6 +706,7 @@ fn ToggleFiltersButton(extra_bar: Signal<ExtraBar>) -> Element {
 
 #[component]
 fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let status_style = format!("border rounded {}", theme.button);
@@ -768,7 +769,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             event.stop_propagation();
                         },
                         div { class: "size-5", ToDoIcon {} }
-                        "To Do",
+                        {translate!(i18, "to_do_column_title")}
                     }
                     button {
                         class: "flex flex-row gap-1 items-center text-nowrap px-1",
@@ -778,7 +779,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             event.stop_propagation();
                         },
                         div { class: "size-5", InProgressIcon {} }
-                        "In Progress",
+                        {translate!(i18, "in_progress_column_title")}
                     }
                     button {
                         class: "flex flex-row gap-1 items-center text-nowrap px-1",
@@ -788,7 +789,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             event.stop_propagation();
                         },
                         div { class: "size-5", DoneIcon {} }
-                        "Done",
+                        {translate!(i18, "done_column_title")}
                     }
                 }
             }
