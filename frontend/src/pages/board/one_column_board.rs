@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use itertools::Itertools;
 use shared_models::{BoardName, SavedBoard, TaskStatus};
 
@@ -49,16 +50,17 @@ enum ExtraBar {
 
 #[component]
 pub fn OneColumnBoard(board_name: BoardName) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let status = use_signal(|| TaskStatus::ToDo);
     let status_ = status();
     let mut panel = use_signal(|| Panel::None);
-    let column_label = match status_ {
-        TaskStatus::ToDo => "To Do",
-        TaskStatus::InProgress => "In Progress",
-        TaskStatus::Done => "Done",
+    let aria_label = match status_ {
+        TaskStatus::ToDo => translate!(i18, "to_do_column_title"),
+        TaskStatus::InProgress => translate!(i18, "in_progress_column_title"),
+        TaskStatus::Done => translate!(i18, "done_column_title"),
     };
     let extra_bar = use_signal(|| ExtraBar::None);
     let adding_task = use_signal(|| false);
@@ -69,7 +71,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
             Header { panel, status, extra_bar }
             section {
                 class: "grow flex flex-col overflow-y-auto gap-1",
-                "aria-label": "{column_label} tasks",
+                aria_label,
                 ColumnSwitcher { status, panel }
                 Column { status: status_, adding_task }
             }
