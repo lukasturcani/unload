@@ -118,6 +118,7 @@ fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>, panel: Signal<Pa
 
 #[component]
 fn TitleInput(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let board = use_context::<Signal<Board>>();
     let board_signals = BoardSignals::default();
 
@@ -126,12 +127,13 @@ fn TitleInput(editing: Signal<bool>) -> Element {
         board.title.clone()
     });
     let title = ReadOnlySignal::from(title);
+    let input_label = translate!(i18, "board_title_input_label");
     rsx! {
         form {
-            "aria-label": "update board title",
+            aria_label: translate!(i18, "board_title_update_form_label"),
             class: "grow flex flex-col gap-1 items-center justify-center",
             onsubmit: move |event| {
-                let title = event.values()["Title"].as_value();
+                let title = event.values()[&input_label].as_value();
                 spawn_forever(requests::set_board_title(board_signals, title));
                 editing.set(false);
             },
@@ -139,14 +141,17 @@ fn TitleInput(editing: Signal<bool>) -> Element {
                 class: "flex flex-row gap-1 items-center justify-center",
                 TextInput {
                     id: "board-title-input",
-                    label: "Title",
+                    label: input_label.clone(),
                     value: title,
                 }
             }
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "set title" }
-                CancelButton { label: "cancel title update", editing }
+                ConfirmButton { label: translate!(i18, "set_board_title_button_label") }
+                CancelButton {
+                    label: translate!(i18, "cancel_board_title_update_button_label"),
+                    editing,
+                }
             }
         }
     }
@@ -177,9 +182,10 @@ fn TitleShow(editing: Signal<bool>) -> Element {
 
 #[component]
 fn EditTitleButton(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     rsx! {
         button {
-            "aria-label": "edit title",
+            aria_label: translate!(i18, "edit_board_title_tooltip"),
             class: "block size-4",
             onclick: move |_| editing.set(true),
             EditIcon {}
