@@ -9,8 +9,8 @@ use crate::{
         form::{CancelButton, ConfirmButton},
         icons::{
             BarsIcon, BookmarkIcon, CancelIcon, CircledPlusIcon, DoneIcon, EditIcon,
-            ElipsisHorizontalIcon, FilterIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon,
-            TrashIcon,
+            ElipsisHorizontalIcon, FilterIcon, InProgressIcon, LanguageIcon, SparklesIcon,
+            StackIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
         nav::NavBar,
@@ -27,6 +27,8 @@ use crate::{
     },
     route::Route,
     themes::Theme,
+    translations::{translations, Translation},
+    BoardLanguage,
 };
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -35,6 +37,7 @@ enum Panel {
     Actions,
     Navigation,
     Status,
+    Languages,
     ChatGpt {
         status: TaskStatus,
         adding_task: Signal<bool>,
@@ -87,6 +90,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
             Panel::Actions => rsx! { ActionsSheet { panel, extra_bar } },
             Panel::Navigation => rsx! { NavigationSheet { panel } },
             Panel::ChatGpt{status, adding_task} => rsx! { ChatGptSheet { status, adding_task, panel } },
+            Panel::Languages => rsx! { LanguagesSheet { panel } },
             Panel::None | Panel::Status => rsx! {},
         }
     }
@@ -324,6 +328,12 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                         div { class: "size-5", SparklesIcon {} }
                         {translate!(i18, "toggle_show_themes_tooltip")}
                     }
+                    button {
+                        class: "flex flex-row gap-2 items-center justify-left px-1",
+                        onclick: move |_| panel.set(Panel::Languages),
+                        div { class: "size-5", LanguageIcon {} }
+                        {translate!(i18, "pick_language_tooltip")}
+                    }
                 }
             },
         }
@@ -365,6 +375,91 @@ fn NavigationSheet(panel: Signal<Panel>) -> Element {
                     aria_label: translate!(i18, "navigation_section_label"),
                     BoardList { panel }
                 }
+            }
+        }
+    }
+}
+
+#[component]
+fn LanguagesSheet(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
+            rounded-t-2xl text-lg border-t overflow-hidden
+            {} {} {}
+        ",
+        theme.bg_color_1, theme.text_color, theme.border_color
+    );
+    rsx! {
+        BottomSheet {
+            panel,
+            body: rsx! {
+                section {
+                    aria_label: translate!(i18, "languages_section_title"),
+                    class: "flex flex-col gap-5 h-5/6 {style}",
+                    LanguageList { panel }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn LanguageList(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded-lg {} {}", theme.text_color, theme.bg_color_2);
+    rsx! {
+        section {
+            onclick: move |event| event.stop_propagation(),
+            class: "px-3 py-5 flex flex-col gap-2 w-1/2 {style}",
+            h2 {
+                class: "
+                    px-2
+                    font-bold text-xl
+                    flex flex-row gap-1 items-center
+                ",
+                div { class: "size-5", LanguageIcon {} }
+                {translate!(i18, "languages_section_title")}
+            }
+            ul {
+                class: "flex flex-col",
+                for translation in translations()
+                {
+                    LanguageListItem { translation, panel }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn LanguageListItem(translation: Translation, panel: Signal<Panel>) -> Element {
+    let mut language = use_context::<Signal<BoardLanguage>>();
+    let mut i18 = use_i18();
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("first:border-t border-b {}", theme.border_color);
+    rsx! {
+        li {
+            class: style,
+            button {
+                class: format!("
+                    flex flex-row justify-between items-center
+                    px-2
+                    size-full rounded-lg
+                    group
+                    {}
+                ", theme.hover_color),
+                onclick: move |_| {
+                    language.set(BoardLanguage(translation.id.to_string()));
+                    i18.set_language(translation.id.parse().unwrap());
+                    panel.set(Panel::None);
+                },
+                {translation.name}
             }
         }
     }
