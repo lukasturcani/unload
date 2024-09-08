@@ -212,6 +212,7 @@ fn BottomSheet(panel: Signal<Panel>, body: Element) -> Element {
 
 #[component]
 fn ChatGptSheet(status: TaskStatus, panel: Signal<Panel>, adding_task: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -239,7 +240,7 @@ fn ChatGptSheet(status: TaskStatus, panel: Signal<Panel>, adding_task: Signal<bo
                             hr { class: "w-64 h-px border-0 bg-gray-700" }
                             span {
                                 class: "absolute px-3 font-medium -translate-x-1/2 left-1/2 text-white bg-gray-900",
-                                "or"
+                                {translate!(i18, "or_label")}
                             }
                         }
                         CustomTaskButton { status, adding_task, panel }
@@ -256,6 +257,7 @@ fn CustomTaskButton(
     adding_task: Signal<bool>,
     panel: Signal<Panel>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg {}", theme.primary_button);
@@ -278,13 +280,14 @@ fn CustomTaskButton(
                     adding_task.set(true);
                 }
             },
-            "Custom Task"
+            {translate!(i18, "custom_task_button_label")}
         }
     }
 }
 
 #[component]
 fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -300,7 +303,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
             panel
             body: rsx! {
                 section {
-                    aria_label: "actions",
+                    aria_label: translate!(i18, "task_actions_section_label"),
                     class: "flex flex-col gap-2 pt-2 pb-20 {style}",
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
@@ -310,7 +313,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                             panel.set(Panel::None);
                         },
                         div { class: "size-5", StackIcon {} }
-                        "Toggle dense view"
+                        {translate!(i18, "toggle_dense_view_tooltip")}
                     }
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
@@ -319,7 +322,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                             panel.set(Panel::None);
                         },
                         div { class: "size-5", SparklesIcon {} }
-                        "Change theme"
+                        {translate!(i18, "toggle_show_themes_tooltip")}
                     }
                 }
             },
@@ -346,6 +349,7 @@ fn SideSheet(panel: Signal<Panel>, body: Element) -> Element {
 
 #[component]
 fn NavigationSheet(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -358,7 +362,7 @@ fn NavigationSheet(panel: Signal<Panel>) -> Element {
             body: rsx! {
                 section {
                     class: "w-10/12 {style}",
-                    "aria-label": "navigation",
+                    aria_label: translate!(i18, "navigation_section_label"),
                     BoardList { panel }
                 }
             }
@@ -368,6 +372,7 @@ fn NavigationSheet(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn BoardList(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let current_board = use_context::<Signal<Board>>();
     let current_board = current_board.read();
     let boards = use_context::<Signal<SavedBoards>>();
@@ -377,7 +382,7 @@ fn BoardList(panel: Signal<Panel>) -> Element {
             h2 {
                 class: "font-bold flex flex-row gap-1 items-center",
                 div { class: "size-5", BookmarkIcon {} }
-                "Boards"
+                {translate!(i18, "board_list_section_label")}
             }
             ul {
                 class: "flex flex-col",
@@ -409,6 +414,7 @@ fn JoinBoard(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn JoinBoardButton(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg p-2 {}", theme.primary_button);
@@ -418,7 +424,7 @@ fn JoinBoardButton(editing: Signal<bool>) -> Element {
             button {
                 class: "text-sm {style}",
                 onclick: move |_| editing.set(true),
-                "Join Board"
+                {translate!(i18, "join_board_button_label")}
             }
         }
     }
