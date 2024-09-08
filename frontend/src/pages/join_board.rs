@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use dioxus_sdk::storage::*;
+use dioxus_sdk::{i18n::use_i18, storage::*, translate};
 use reqwest::Client;
 use shared_models::{BoardName, SavedBoard};
 
@@ -12,6 +12,7 @@ use crate::{
 
 #[component]
 pub fn JoinBoard() -> Element {
+    let i18 = use_i18();
     let boards =
         use_synced_storage::<LocalStorage, SavedBoards>("boards".to_string(), SavedBoards::default);
     use_context_provider(|| boards);
@@ -19,6 +20,7 @@ pub fn JoinBoard() -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let nav = use_navigator();
+    let input_label = translate!(i18, "board_name_input_label");
     rsx! {
         div{
             class: "
@@ -30,12 +32,12 @@ pub fn JoinBoard() -> Element {
             form {
                 class: "flex flex-row flex-wrap items-center gap-2 justify-center",
                 onsubmit: move |event| {
-                    let board_name = event.values()["Board Name"].as_value().into();
+                    let board_name = event.values()[&input_label].as_value().into();
                     nav.push(Route::Board { board_name });
                 },
                 TextInput {
                     id: "board_name",
-                    label: "Board Name",
+                    label: input_label.clone(),
                 }
                 JoinBoardButton {}
             }
@@ -46,7 +48,7 @@ pub fn JoinBoard() -> Element {
                 },
                 span {
                     class: "absolute px-3 font-medium -translate-x-1/2 left-1/2 text-white bg-gray-900",
-                    "or"
+                    {translate!(i18, "or_label")}
                 },
             },
             div {
@@ -59,6 +61,7 @@ pub fn JoinBoard() -> Element {
 
 #[component]
 fn JoinBoardButton() -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg {}", theme.primary_button);
@@ -71,13 +74,14 @@ fn JoinBoardButton() -> Element {
                 text-sm text-center font-medium
                 {style}
             ",
-            "Join Board"
+            {translate!(i18, "join_board_button_label")}
         }
     }
 }
 
 #[component]
 fn CreateBoardButton() -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let url = use_context::<Signal<UnloadUrl>>();
@@ -92,7 +96,7 @@ fn CreateBoardButton() -> Element {
                 {style}
             ",
             onclick: move |_| create_board(url, nav),
-            "Create New Board"
+            {translate!(i18, "create_new_board_button_label")}
         }
     }
 }
@@ -147,10 +151,11 @@ fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
 
 #[component]
 fn RemoveBoardButton(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
+    let i18 = use_i18();
     let style = "stroke-red-600";
     rsx! {
         button {
-            "aria-label": "remove board",
+            aria_label: translate!(i18, "remove_board_button_label"),
             class: "size-5 {style}",
             onclick: move |_| {
                 boards.write().0.retain(|b| b != &board);

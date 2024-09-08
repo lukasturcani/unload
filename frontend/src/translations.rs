@@ -97,6 +97,7 @@ struct Text {
     custom_task_button_label: &'static str,
     board_list_section_label: &'static str,
     join_board_button_label: &'static str,
+    create_new_board_button_label: &'static str,
     or_label: &'static str,
     chat_gpt_limit_exceeded_title: &'static str,
     chat_gpt_limit_exceeded_content: &'static str,
@@ -225,6 +226,7 @@ pub fn translations() -> Vec<Translation> {
                 board_list_section_label: "Board List",
                 custom_task_button_label: "Custom Task",
                 join_board_button_label: "Join Board",
+                create_new_board_button_label: "Create New Board",
                 chat_gpt_limit_exceeded_title: "ChatGPT Limit Exceeded",
                 or_label: "or",
                 chat_gpt_limit_exceeded_content:
@@ -353,6 +355,7 @@ pub fn translations() -> Vec<Translation> {
                 board_list_section_label: "Zoznam násteniek",
                 custom_task_button_label: "Vlastná úloha",
                 join_board_button_label: "Pripojiť sa k nástenke",
+                create_new_board_button_label: "Vytvoriť novú nástenku",
                 chat_gpt_limit_exceeded_title: "Prekročený limit ChatGPT",
                 or_label: "alebo",
                 chat_gpt_limit_exceeded_content:
@@ -481,6 +484,7 @@ pub fn translations() -> Vec<Translation> {
                 board_list_section_label: "보드 목록",
                 custom_task_button_label: "사용자 정의 작업",
                 join_board_button_label: "보드 참여",
+                create_new_board_button_label: "새 보드 만들기",
                 chat_gpt_limit_exceeded_title: "ChatGPT 제한 초과",
                 or_label: "또는",
                 chat_gpt_limit_exceeded_content:
