@@ -833,6 +833,7 @@ fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
 
 #[component]
 fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border-t {}", theme.border_color);
@@ -842,12 +843,12 @@ fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
     let users = &users.read().0;
     rsx! {
         section {
-            "aria-label": "filters",
+            aria_label: translate!(i18, "filters_section_label"),
             class: "flex flex-col gap-1 px-2 py-1 {style}",
             div {
                 class: "flex flex-row px-1 justify-end",
                 button {
-                    "aria-label": "close filters",
+                    aria_label: translate!(i18, "close_filters_button_label"),
                     class: "size-6",
                     onclick: move |_| extra_bar.set(ExtraBar::None),
                     CancelIcon {}
