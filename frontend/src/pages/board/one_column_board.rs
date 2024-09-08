@@ -740,15 +740,15 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                 match status() {
                     TaskStatus::ToDo => rsx! {
                         div { class: "size-3", ToDoIcon {} }
-                        "To Do"
+                        {translate!(i18, "to_do_column_title")}
                     },
                     TaskStatus::InProgress => rsx! {
                         div { class: "size-3", InProgressIcon {} }
-                        "In Progress"
+                        {translate!(i18, "in_progress_column_title")}
                     },
                     TaskStatus::Done => rsx! {
                         div { class: "size-3", DoneIcon {} }
-                        "Done"
+                        {translate!(i18, "done_column_title")}
                     }
                 }
             }
