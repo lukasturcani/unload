@@ -432,25 +432,27 @@ fn JoinBoardButton(editing: Signal<bool>) -> Element {
 
 #[component]
 fn JoinBoardForm(panel: Signal<Panel>, editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let nav = use_navigator();
+    let input_label = translate!(i18, "join_board_input_label");
     rsx! {
         form {
-            "aria-label": "join board",
+            aria_label: translate!(i18, "join_board_form_label"),
             class: "flex flex-col gap-1 items-center justify-center",
             onsubmit: move |event| {
-                let board_name = event.values()["Board Name"].as_value().into();
+                let board_name = event.values()[&input_label].as_value().into();
                 panel.set(Panel::None);
                 nav.push(Route::Board { board_name });
             },
             TextInput {
                 id: "join-board-input",
-                label: "Board Name"
+                label: input_label.clone(),
             }
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "join board" }
+                ConfirmButton { label: translate!(i18, "join_board_button_label") }
                 CancelButton {
-                    label: "cancel join board",
+                    label: translate!(i18, "cancel_joining_board_button_label"),
                     editing,
                 }
             }
