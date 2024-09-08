@@ -492,10 +492,11 @@ fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
 
 #[component]
 fn RemoveBoardButton(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
+    let i18 = use_i18();
     let style = "stroke-red-600";
     rsx! {
         button {
-            "aria-label": "remove board",
+            aria_label: translate!(i18, "remove_board_button_label"),
             class: "size-5 {style}",
             onclick: move |_| {
                 boards.write().0.retain(|b| b != &board);
