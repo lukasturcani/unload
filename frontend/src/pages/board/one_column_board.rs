@@ -822,7 +822,7 @@ fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
                 }
             }
             button {
-                "aria-label": "close theme selector",
+                aria_label: translate!(i18, "close_theme_selector_button_label"),
                 class: "size-6 shrink-0",
                 onclick: move |_| extra_bar.set(ExtraBar::None),
                 CancelIcon {}
