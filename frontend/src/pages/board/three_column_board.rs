@@ -193,11 +193,15 @@ fn EditTitleButton(editing: Signal<bool>) -> Element {
 
 #[component]
 fn ThemesBar() -> Element {
+    let i18 = use_i18();
     let themes = use_context::<Signal<Vec<Theme>>>();
     rsx! {
         section {
             class: "flex flex-row gap-2 items-center",
-            h2 { class: "text-xl", "Themes:" }
+            h2 {
+                class: "text-xl",
+                {format!("{}:", translate!(i18, "themes_section_label"))}
+            }
             div {
                 class: "flex flex-row overflow-x-auto gap-2",
                 for theme in themes.read().iter() {

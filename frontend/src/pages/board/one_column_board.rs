@@ -799,6 +799,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
 
 #[component]
 fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
+    let i18 = use_i18();
     let themes = use_context::<Signal<Vec<Theme>>>();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -813,7 +814,7 @@ fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
                 p-2
                 {style}
             ",
-            "aria-label": "themes",
+            aria_label: translate!(i18, "themes_section_label"),
             div {
                 class: "flex flex-row overflow-x-auto gap-2",
                 for theme in themes.read().iter() {
