@@ -28,13 +28,14 @@ fn main() -> Result<()> {
     #[cfg(not(feature = "prebuild"))]
     {
         dioxus_logger::init(Level::INFO).expect("failed to init logger");
-        fn app() -> Element {
-            let en = "en".parse::<LanguageIdentifier>().unwrap();
-            App(AppProps { language: en })
-        }
         LaunchBuilder::web()
             .with_cfg(Config::new().hydrate(true))
-            .launch(app);
+            .launch(|| {
+                let en = "en".parse::<LanguageIdentifier>().unwrap();
+                rsx! {
+                    App{ language: en }
+                }
+            });
     }
     Ok(())
 }
