@@ -1,34 +1,59 @@
 use anyhow::Result;
 use dioxus::prelude::*;
 use dioxus_logger::tracing::Level;
+use dioxus_sdk::i18n::use_init_i18n;
 use dioxus_web::Config;
 use std::fs;
+use unic_langid_impl::LanguageIdentifier;
 
 fn main() -> Result<()> {
     #[cfg(feature = "prebuild")]
     {
-        fs::write("./dist/index.html", index_page()?)?;
+        let languages = [
+            "en".parse::<LanguageIdentifier>()?,
+            "sk".parse::<LanguageIdentifier>()?,
+            "ko".parse::<LanguageIdentifier>()?,
+        ];
+        for language in languages {
+            fs::write(
+                format!("./dist/{}/index.html", language),
+                index_page(language)?,
+            )?;
+        }
+        fs::write(
+            "./dist/index.html",
+            index_page("en".parse::<LanguageIdentifier>()?)?,
+        )?;
     }
     #[cfg(not(feature = "prebuild"))]
     {
         dioxus_logger::init(Level::INFO).expect("failed to init logger");
+        fn app() -> Element {
+            let en = "en".parse::<LanguageIdentifier>().unwrap();
+            App(AppProps { language: en })
+        }
         LaunchBuilder::web()
             .with_cfg(Config::new().hydrate(true))
-            .launch(App);
+            .launch(app);
     }
     Ok(())
 }
 
 #[allow(dead_code)]
-fn index_page() -> Result<String> {
-    let mut vdom = VirtualDom::new(App);
+fn index_page(language: LanguageIdentifier) -> Result<String> {
+    let mut vdom = VirtualDom::new_with_props(App, AppProps { language });
     vdom.rebuild_in_place();
     Ok(fs::read_to_string("./dist/index.html")?
         .replace("<!-- REPLACE ME -->", &dioxus::ssr::pre_render(&vdom)))
 }
 
-#[component]
-fn App() -> Element {
+#[derive(PartialEq, Props, Clone)]
+struct AppProps {
+    language: LanguageIdentifier,
+}
+
+#[allow(non_snake_case)]
+fn App(props: AppProps) -> Element {
     let scroll = eval(
         r#"
             let elementId = await dioxus.recv();
@@ -40,6 +65,7 @@ fn App() -> Element {
     let mut dense = use_signal(|| false);
     let mut dark = use_signal(|| false);
     let mut mobile = use_signal(|| false);
+    use_init_i18n(props.language.clone(), props.language, Vec::new);
     rsx! {
         div {
             class: "font-mono min-h-screen min-w-screen text-white flex flex-col ",

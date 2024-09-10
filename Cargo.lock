@@ -6879,8 +6879,10 @@ dependencies = [
  "anyhow",
  "dioxus",
  "dioxus-logger 0.5.1",
+ "dioxus-sdk",
  "dioxus-ssr",
  "dioxus-web",
+ "unic-langid-impl",
 ]
 
 [[package]]
