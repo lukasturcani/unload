@@ -3,8 +3,7 @@ use dioxus::prelude::*;
 use dioxus_logger::tracing::Level;
 use dioxus_sdk::i18n::{use_i18, use_init_i18n};
 use dioxus_web::Config;
-use std::fs;
-use translations::translations;
+use std::{fs, path::PathBuf};
 use unic_langid_impl::LanguageIdentifier;
 
 mod translations;
@@ -18,10 +17,10 @@ fn main() -> Result<()> {
             "ko".parse::<LanguageIdentifier>()?,
         ];
         for language in languages {
-            fs::write(
-                format!("./dist/{}/index.html", language),
-                index_page(language)?,
-            )?;
+            let mut path = PathBuf::from(format!("./dist/{}", language));
+            fs::create_dir(&path)?;
+            path.push("index.html");
+            fs::write(path, index_page(language)?)?;
         }
         fs::write(
             "./dist/index.html",
