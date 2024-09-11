@@ -6882,6 +6882,8 @@ dependencies = [
  "dioxus-sdk",
  "dioxus-ssr",
  "dioxus-web",
+ "serde",
+ "serde_json",
  "unic-langid-impl",
 ]
 

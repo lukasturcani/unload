@@ -1,10 +1,12 @@
 use anyhow::Result;
 use dioxus::prelude::*;
 use dioxus_logger::tracing::Level;
-use dioxus_sdk::i18n::use_init_i18n;
+use dioxus_sdk::i18n::{use_i18, use_init_i18n};
 use dioxus_web::Config;
 use std::fs;
 use unic_langid_impl::LanguageIdentifier;
+
+mod translations;
 
 fn main() -> Result<()> {
     #[cfg(feature = "prebuild")]
@@ -67,6 +69,7 @@ fn App(props: AppProps) -> Element {
     let mut dark = use_signal(|| false);
     let mut mobile = use_signal(|| false);
     use_init_i18n(props.language.clone(), props.language, Vec::new);
+    let i18 = use_i18();
     rsx! {
         div {
             class: "font-mono min-h-screen min-w-screen text-white flex flex-col ",
