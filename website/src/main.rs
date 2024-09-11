@@ -4,6 +4,7 @@ use dioxus_logger::tracing::Level;
 use dioxus_sdk::i18n::{use_i18, use_init_i18n};
 use dioxus_web::Config;
 use std::fs;
+use translations::translations;
 use unic_langid_impl::LanguageIdentifier;
 
 mod translations;
@@ -68,7 +69,11 @@ fn App(props: AppProps) -> Element {
     let mut dense = use_signal(|| false);
     let mut dark = use_signal(|| false);
     let mut mobile = use_signal(|| false);
-    use_init_i18n(props.language.clone(), props.language, Vec::new);
+    use_init_i18n(
+        props.language.clone(),
+        props.language,
+        translations::languages,
+    );
     let i18 = use_i18();
     rsx! {
         div {
@@ -197,14 +202,14 @@ fn App(props: AppProps) -> Element {
                                     class: "object-contain",
                                     alt: "unload board",
                                     src: match (dense(), dark(), mobile()) {
-                                        (true, true, true) => "dense_dark_mobile.png",
-                                        (true, true, false) => "dense_dark_nmobile.png",
-                                        (true, false, true) => "dense_ndark_mobile.png",
-                                        (true, false, false) => "dense_ndark_nmobile.png",
-                                        (false, true, true) => "ndense_dark_mobile.png",
-                                        (false, true, false) => "ndense_dark_nmobile.png",
-                                        (false, false, true) => "ndense_ndark_mobile.png",
-                                        (false, false, false) => "ndense_ndark_nmobile.png",
+                                        (true, true, true) => "/dense_dark_mobile.png",
+                                        (true, true, false) => "/dense_dark_nmobile.png",
+                                        (true, false, true) => "/dense_ndark_mobile.png",
+                                        (true, false, false) => "/dense_ndark_nmobile.png",
+                                        (false, true, true) => "/ndense_dark_mobile.png",
+                                        (false, true, false) => "/ndense_dark_nmobile.png",
+                                        (false, false, true) => "/ndense_ndark_mobile.png",
+                                        (false, false, false) => "/ndense_ndark_nmobile.png",
                                     },
                                 }
                             }

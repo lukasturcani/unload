@@ -13,6 +13,10 @@ pub struct Translation {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 struct Text {}
 
+pub fn languages() -> Vec<Language> {
+    translations().into_iter().map(Language::from).collect()
+}
+
 pub fn translations() -> Vec<Translation> {
     let mut translations = vec![
         Translation {
