@@ -27,12 +27,12 @@ use tracing_subscriber::{layer::SubscriberExt, EnvFilter};
 use unload::{
     add_task_assignee, add_task_tag, clone_task, create_board, create_quick_add_task, create_tag,
     create_task, create_user, delete_quick_add_task, delete_tag, delete_task, delete_task_assignee,
-    delete_task_tag, delete_user, new_board_redirect, show_archived_tags, show_archived_tasks,
-    show_board, show_board_title, show_quick_add_tasks, show_tag, show_tags, show_task, show_tasks,
-    show_user, show_users, suggest_tasks, update_board_title, update_tag_archived,
-    update_tag_color, update_tag_name, update_task_archived, update_task_assignees,
-    update_task_description, update_task_due, update_task_status, update_task_tags,
-    update_task_title, update_user_color, update_user_name, AppState, Result,
+    delete_task_tag, delete_user, new_board_lang_redirect, new_board_redirect, show_archived_tags,
+    show_archived_tasks, show_board, show_board_title, show_quick_add_tasks, show_tag, show_tags,
+    show_task, show_tasks, show_user, show_users, suggest_tasks, update_board_title,
+    update_tag_archived, update_tag_color, update_tag_name, update_task_archived,
+    update_task_assignees, update_task_description, update_task_due, update_task_status,
+    update_task_tags, update_task_title, update_user_color, update_user_name, AppState, Result,
 };
 
 #[derive(confique::Config)]
@@ -74,8 +74,17 @@ struct Config {
 fn website_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
     Router::new()
         .route("/app", get(redirect_to_app))
+        .route("/app/:language", get(redirect_to_lang_app))
         .route("/new-board", get(new_board_redirect))
+        .route("/new-board/:language", get(new_board_lang_redirect))
         .nest_service("/", compressed_dir(&serve_dir))
+}
+
+async fn redirect_to_lang_app(
+    Host(host): Host,
+    extract::Path(language): extract::Path<String>,
+) -> Redirect {
+    Redirect::to(&format!("//app.{}/{}", host, language))
 }
 
 async fn redirect_to_app(Host(host): Host) -> Redirect {
@@ -195,7 +204,7 @@ fn app_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
             get(show_archived_tags),
         )
         .route("/api/chat-gpt/suggest-tasks", post(suggest_tasks))
-        .nest_service("/", compressed_dir(&serve_dir))
+        .nest_service("/:language", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/users", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/tags", compressed_dir(&serve_dir))
