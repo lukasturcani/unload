@@ -13,6 +13,7 @@ pub struct Translation {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 struct Text {
     go_to_app: &'static str,
+    app_link: &'static str,
 }
 
 pub fn languages() -> Vec<Language> {
@@ -26,6 +27,7 @@ pub fn translations() -> Vec<Translation> {
             name: "EN - English",
             text: Text {
                 go_to_app: "Go to app",
+                app_link: "/app/en",
             },
         },
         Translation {
@@ -33,6 +35,7 @@ pub fn translations() -> Vec<Translation> {
             name: "SK - Slovenčina",
             text: Text {
                 go_to_app: "Prejsť na aplikáciu",
+                app_link: "/app/sk",
             },
         },
         Translation {
@@ -40,6 +43,7 @@ pub fn translations() -> Vec<Translation> {
             name: "KO - 한국어",
             text: Text {
                 go_to_app: "앱으로 이동",
+                app_link: "/app/ko",
             },
         },
     ];

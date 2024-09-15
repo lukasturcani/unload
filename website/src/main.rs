@@ -115,7 +115,7 @@ fn App(props: AppProps) -> Element {
                                 transition-all ease-in-out
                                 shadow-xl hover:shadow-md hover:translate-y-1
                             ",
-                            href: "/app",
+                            href: translate!(i18, "app_link"),
                             {translate!(i18, "go_to_app")}
                         }
                     }
@@ -158,7 +158,7 @@ fn App(props: AppProps) -> Element {
                                 transition-all ease-in-out
                                 shadow-xl hover:shadow-md hover:translate-y-1
                             ",
-                            href: "/app",
+                            href: translate!(i18, "app_link"),
                             {translate!(i18, "go_to_app")}
                         }
                     }
