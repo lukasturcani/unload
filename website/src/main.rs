@@ -1,7 +1,10 @@
 use anyhow::Result;
 use dioxus::prelude::*;
 use dioxus_logger::tracing::Level;
-use dioxus_sdk::i18n::{use_i18, use_init_i18n};
+use dioxus_sdk::{
+    i18n::{use_i18, use_init_i18n},
+    translate,
+};
 use dioxus_web::Config;
 use std::{fs, path::PathBuf};
 use unic_langid_impl::LanguageIdentifier;
@@ -113,7 +116,7 @@ fn App(props: AppProps) -> Element {
                                 shadow-xl hover:shadow-md hover:translate-y-1
                             ",
                             href: "/app",
-                            "Go to app"
+                            {translate!(i18, "go_to_app")}
                         }
                     }
                 }
@@ -156,7 +159,7 @@ fn App(props: AppProps) -> Element {
                                 shadow-xl hover:shadow-md hover:translate-y-1
                             ",
                             href: "/app",
-                            "Go to app"
+                            {translate!(i18, "go_to_app")}
                         }
                     }
                     div {

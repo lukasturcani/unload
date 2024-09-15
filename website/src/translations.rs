@@ -11,7 +11,9 @@ pub struct Translation {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-struct Text {}
+struct Text {
+    go_to_app: &'static str,
+}
 
 pub fn languages() -> Vec<Language> {
     translations().into_iter().map(Language::from).collect()
@@ -22,17 +24,23 @@ pub fn translations() -> Vec<Translation> {
         Translation {
             id: "en",
             name: "EN - English",
-            text: Text {},
+            text: Text {
+                go_to_app: "Go to app",
+            },
         },
         Translation {
             id: "sk",
             name: "SK - Slovenčina",
-            text: Text {},
+            text: Text {
+                go_to_app: "Prejsť na aplikáciu",
+            },
         },
         Translation {
             id: "ko",
             name: "KO - 한국어",
-            text: Text {},
+            text: Text {
+                go_to_app: "앱으로 이동",
+            },
         },
     ];
     translations.sort_by_key(|t| t.name);
