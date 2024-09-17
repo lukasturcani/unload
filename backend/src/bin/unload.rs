@@ -192,6 +192,7 @@ fn app_api_router() -> Router<AppState> {
 fn app_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
     let mut router = Router::new()
         .nest("/api", app_api_router())
+        .nest_service("/", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/users", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/tags", compressed_dir(&serve_dir))
