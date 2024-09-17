@@ -11,6 +11,7 @@ use openai_api_rs::v1::api::OpenAIClient;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{trace, Resource};
+use shared_models::{IntoEnumIterator, SupportedLanguage};
 use sqlx::SqlitePool;
 use std::{
     net::SocketAddr,
@@ -91,124 +92,114 @@ async fn redirect_to_app(Host(host): Host) -> Redirect {
     Redirect::to(&format!("//app.{}", host))
 }
 
-fn app_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
+fn app_api_router() -> Router<AppState> {
     Router::new()
-        .route("/api/boards", post(create_board))
-        .route("/api/boards/:board_name/read", post(show_board))
-        .route("/api/boards/:board_name/title", put(update_board_title))
-        .route("/api/boards/:board_name/title", get(show_board_title))
-        .route("/api/boards/:board_name/tasks/:task_id", get(show_task))
+        .route("/boards", post(create_board))
+        .route("/boards/:board_name/read", post(show_board))
+        .route("/boards/:board_name/title", put(update_board_title))
+        .route("/boards/:board_name/title", get(show_board_title))
+        .route("/boards/:board_name/tasks/:task_id", get(show_task))
+        .route("/boards/:board_name/tasks/:task_id/clone", post(clone_task))
         .route(
-            "/api/boards/:board_name/tasks/:task_id/clone",
-            post(clone_task),
-        )
-        .route(
-            "/api/boards/:board_name/tasks/:task_id/status",
+            "/boards/:board_name/tasks/:task_id/status",
             put(update_task_status),
         )
         .route(
-            "/api/boards/:board_name/tasks/:task_id/title",
+            "/boards/:board_name/tasks/:task_id/title",
             put(update_task_title),
         )
         .route(
-            "/api/boards/:board_name/tasks/:task_id/description",
+            "/boards/:board_name/tasks/:task_id/description",
             put(update_task_description),
         )
         .route(
-            "/api/boards/:board_name/tasks/:task_id/due",
+            "/boards/:board_name/tasks/:task_id/due",
             put(update_task_due),
         )
         .route(
-            "/api/boards/:board_name/tasks/:task_id/archived",
+            "/boards/:board_name/tasks/:task_id/archived",
             put(update_task_archived),
         )
         .route(
-            "/api/boards/:board_name/tasks/:task_id/assignees",
+            "/boards/:board_name/tasks/:task_id/assignees",
             put(update_task_assignees),
         )
         .route(
-            "/api/boards/:board_name/tasks/:task_id/assignees",
+            "/boards/:board_name/tasks/:task_id/assignees",
             post(add_task_assignee),
         )
         .route(
-            "/api/boards/:board_name/tasks/:task_id/tags",
+            "/boards/:board_name/tasks/:task_id/tags",
             put(update_task_tags),
         )
         .route(
-            "/api/boards/:board_name/tasks/:task_id/tags",
+            "/boards/:board_name/tasks/:task_id/tags",
             post(add_task_tag),
         )
         .route(
-            "/api/boards/:board_name/tasks/:task_id/tags/:tag_id",
+            "/boards/:board_name/tasks/:task_id/tags/:tag_id",
             delete(delete_task_tag),
         )
         .route(
-            "/api/boards/:board_name/tasks/:task_id/assignees/:user_id",
+            "/boards/:board_name/tasks/:task_id/assignees/:user_id",
             delete(delete_task_assignee),
         )
+        .route("/boards/:board_name/tasks/:task_id", delete(delete_task))
+        .route("/boards/:board_name/tasks", get(show_tasks))
+        .route("/boards/:board_name/tasks", post(create_task))
+        .route("/boards/:board_name/quick-add", get(show_quick_add_tasks))
+        .route("/boards/:board_name/quick-add", post(create_quick_add_task))
         .route(
-            "/api/boards/:board_name/tasks/:task_id",
-            delete(delete_task),
-        )
-        .route("/api/boards/:board_name/tasks", get(show_tasks))
-        .route("/api/boards/:board_name/tasks", post(create_task))
-        .route(
-            "/api/boards/:board_name/quick-add",
-            get(show_quick_add_tasks),
-        )
-        .route(
-            "/api/boards/:board_name/quick-add",
-            post(create_quick_add_task),
-        )
-        .route(
-            "/api/boards/:board_name/quick-add/:task_id",
+            "/boards/:board_name/quick-add/:task_id",
             delete(delete_quick_add_task),
         )
-        .route("/api/boards/:board_name/users/:user_id", get(show_user))
+        .route("/boards/:board_name/users/:user_id", get(show_user))
+        .route("/boards/:board_name/users/:user_id", delete(delete_user))
         .route(
-            "/api/boards/:board_name/users/:user_id",
-            delete(delete_user),
-        )
-        .route(
-            "/api/boards/:board_name/users/:user_id/color",
+            "/boards/:board_name/users/:user_id/color",
             put(update_user_color),
         )
         .route(
-            "/api/boards/:board_name/users/:user_id/name",
+            "/boards/:board_name/users/:user_id/name",
             put(update_user_name),
         )
-        .route("/api/boards/:board_name/users", get(show_users))
-        .route("/api/boards/:board_name/users", post(create_user))
-        .route("/api/boards/:board_name/tags", get(show_tags))
-        .route("/api/boards/:board_name/tags", post(create_tag))
-        .route("/api/boards/:board_name/tags/:tag_id", get(show_tag))
-        .route("/api/boards/:board_name/tags/:tag_id", delete(delete_tag))
+        .route("/boards/:board_name/users", get(show_users))
+        .route("/boards/:board_name/users", post(create_user))
+        .route("/boards/:board_name/tags", get(show_tags))
+        .route("/boards/:board_name/tags", post(create_tag))
+        .route("/boards/:board_name/tags/:tag_id", get(show_tag))
+        .route("/boards/:board_name/tags/:tag_id", delete(delete_tag))
         .route(
-            "/api/boards/:board_name/tags/:tag_id/name",
+            "/boards/:board_name/tags/:tag_id/name",
             put(update_tag_name),
         )
         .route(
-            "/api/boards/:board_name/tags/:tag_id/color",
+            "/boards/:board_name/tags/:tag_id/color",
             put(update_tag_color),
         )
         .route(
-            "/api/boards/:board_name/tags/:tag_id/archived",
+            "/boards/:board_name/tags/:tag_id/archived",
             put(update_tag_archived),
         )
         .route(
-            "/api/boards/:board_name/archive/tasks",
+            "/boards/:board_name/archive/tasks",
             get(show_archived_tasks),
         )
-        .route(
-            "/api/boards/:board_name/archive/tags",
-            get(show_archived_tags),
-        )
-        .route("/api/chat-gpt/suggest-tasks", post(suggest_tasks))
-        .nest_service("/:language", compressed_dir(&serve_dir))
+        .route("/boards/:board_name/archive/tags", get(show_archived_tags))
+        .route("/chat-gpt/suggest-tasks", post(suggest_tasks))
+}
+
+fn app_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
+    let mut router = Router::new()
+        .nest("/api", app_api_router())
         .nest_service("/boards/:board_name", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/users", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/tags", compressed_dir(&serve_dir))
-        .nest_service("/boards/:board_name/archive", compressed_dir(&serve_dir))
+        .nest_service("/boards/:board_name/archive", compressed_dir(&serve_dir));
+    for language in SupportedLanguage::iter() {
+        router = router.nest_service(&format!("/{}", language.id()), compressed_dir(&serve_dir));
+    }
+    router
 }
 
 fn init_tracing(otlp_endpoint: &str, environment: String, log: String) -> Result<()> {

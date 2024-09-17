@@ -1,6 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::{convert::Infallible, fmt::Display, num::ParseIntError, str::FromStr};
+use strum_macros::EnumIter;
+
+pub use strum::IntoEnumIterator;
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
@@ -268,4 +271,21 @@ pub struct ChatGptRequest {
     pub board_name: BoardName,
     pub language: String,
     pub prompt: String,
+}
+
+#[derive(EnumIter, Debug, Eq, PartialEq)]
+pub enum SupportedLanguage {
+    English,
+    Slovak,
+    Korean,
+}
+
+impl SupportedLanguage {
+    pub fn id(&self) -> &str {
+        match self {
+            SupportedLanguage::English => "en",
+            SupportedLanguage::Slovak => "sk",
+            SupportedLanguage::Korean => "ko",
+        }
+    }
 }
