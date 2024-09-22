@@ -12,6 +12,7 @@ pub struct Translation {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 struct Text {
+    board_name_input_label: &'static str,
     to_do_column_title: &'static str,
     in_progress_column_title: &'static str,
     done_column_title: &'static str,
@@ -141,6 +142,7 @@ pub fn translations() -> Vec<Translation> {
             id: "en",
             name: "EN - English",
             text: Text {
+                board_name_input_label: "Board Name",
                 to_do_column_title: "To Do",
                 in_progress_column_title: "In Progress",
                 done_column_title: "Done",
@@ -270,6 +272,7 @@ pub fn translations() -> Vec<Translation> {
             id: "sk",
             name: "SK - Slovenčina",
             text: Text {
+                board_name_input_label: "Názov nástenky",
                 to_do_column_title: "Nezačaté",
                 in_progress_column_title: "Prebiehajúce",
                 done_column_title: "Dokončené",
@@ -399,6 +402,7 @@ pub fn translations() -> Vec<Translation> {
             id: "ko",
             name: "KO - 한국어",
             text: Text {
+                board_name_input_label: "보드 이름",
                 to_do_column_title: "시작 전",
                 in_progress_column_title: "진행 중",
                 done_column_title: "완료",
