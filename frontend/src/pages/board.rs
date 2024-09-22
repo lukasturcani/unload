@@ -4,7 +4,7 @@ use dioxus_sdk::storage::*;
 use model::NumChatGptCalls;
 use unic_langid_impl::LanguageIdentifier;
 
-use crate::model::SavedBoards;
+use crate::model::{SavedBoards, UrlLanguage};
 use crate::pages::board::model::{Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users};
 use crate::pages::board::one_column_board::OneColumnBoard;
 use crate::pages::board::requests::BoardSignals;
@@ -32,7 +32,11 @@ pub fn Board(board_name: BoardName) -> Element {
 
 #[component]
 pub fn LanguageBoard(language: ReadOnlySignal<String>, board_name: BoardName) -> Element {
+    let mut url_language = use_context::<Signal<UrlLanguage>>();
     let language = language.read();
+    if *language != url_language.read().0 {
+        url_language.write().0 = language.clone();
+    }
     let mut i18 = use_i18();
     if !language.is_empty() && *language != i18.selected_language.read().to_string() {
         i18.set_language(language.parse::<LanguageIdentifier>().unwrap());

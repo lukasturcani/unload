@@ -8,4 +8,4 @@ pub use archive::Archive;
 pub use board::{Board, LanguageBoard};
 pub use join_board::JoinBoard;
 pub use tags::Tags;
-pub use users::Users;
+pub use users::{LanguageUsers, Users};
