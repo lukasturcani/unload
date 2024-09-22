@@ -141,6 +141,8 @@ pub fn BoardList() -> Element {
 
 #[component]
 fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
+    let url_language = use_context::<Signal<UrlLanguage>>();
+    let url_language = &url_language.read().0;
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("last:border-none border-b {}", theme.border_color);
@@ -153,7 +155,11 @@ fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
             ",
             a {
                 class: "w-full",
-                href: format!("/boards/{}", board.name),
+                href: if url_language.is_empty() {
+                    format!("/boards/{}", board.name)
+                } else {
+                    format!("/{url_language}/boards/{}", board.name)
+                },
                 div {
                     class: "w-full flex flex-row gap-1",
                     p {
