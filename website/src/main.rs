@@ -86,7 +86,7 @@ fn App(props: AppProps) -> Element {
                     class: "flex flex-row py-5 justify-center sm:justify-between items-center",
                     a {
                         class: "text-2xl font-bold",
-                        href: "/",
+                        href: translate!(i18, "home_link"),
                         "Unload"
                     }
                     div {

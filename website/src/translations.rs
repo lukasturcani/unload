@@ -14,6 +14,7 @@ pub struct Translation {
 struct Text {
     go_to_app: &'static str,
     app_link: &'static str,
+    home_link: &'static str,
 }
 
 pub fn languages() -> Vec<Language> {
@@ -28,6 +29,7 @@ pub fn translations() -> Vec<Translation> {
             text: Text {
                 go_to_app: "Go to app",
                 app_link: "/app/en",
+                home_link: "/en",
             },
         },
         Translation {
@@ -36,6 +38,7 @@ pub fn translations() -> Vec<Translation> {
             text: Text {
                 go_to_app: "Prejsť na aplikáciu",
                 app_link: "/app/sk",
+                home_link: "/sk",
             },
         },
         Translation {
@@ -44,6 +47,7 @@ pub fn translations() -> Vec<Translation> {
             text: Text {
                 go_to_app: "앱으로 이동",
                 app_link: "/app/ko",
+                home_link: "/ko",
             },
         },
     ];
