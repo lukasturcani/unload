@@ -1,6 +1,8 @@
 use dioxus::prelude::*;
+use dioxus_sdk::i18n::use_i18;
 use dioxus_sdk::storage::*;
 use model::NumChatGptCalls;
+use unic_langid_impl::LanguageIdentifier;
 
 use crate::model::SavedBoards;
 use crate::pages::board::model::{Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users};
@@ -20,6 +22,20 @@ mod three_column_board;
 
 #[component]
 pub fn Board(board_name: BoardName) -> Element {
+    rsx! {
+        LanguageBoard {
+            language: "",
+            board_name
+        }
+    }
+}
+
+#[component]
+pub fn LanguageBoard(language: ReadOnlySignal<String>, board_name: BoardName) -> Element {
+    let mut i18 = use_i18();
+    if !language.read().is_empty() {
+        i18.set_language(language.read().parse::<LanguageIdentifier>().unwrap());
+    }
     let mut saved_boards =
         use_synced_storage::<LocalStorage, SavedBoards>("boards".to_string(), SavedBoards::default);
     let dense = use_synced_storage::<LocalStorage, Dense>("dense".to_string(), Dense::default);
