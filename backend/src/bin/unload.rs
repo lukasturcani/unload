@@ -198,7 +198,24 @@ fn app_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
         .nest_service("/boards/:board_name/tags", compressed_dir(&serve_dir))
         .nest_service("/boards/:board_name/archive", compressed_dir(&serve_dir));
     for language in SupportedLanguage::iter() {
-        router = router.nest_service(&format!("/{}", language.id()), compressed_dir(&serve_dir));
+        router = router
+            .nest_service(&format!("/{}", language.id()), compressed_dir(&serve_dir))
+            .nest_service(
+                &format!("/{}/boards/:board_name", language.id()),
+                compressed_dir(&serve_dir),
+            )
+            .nest_service(
+                &format!("/{}/boards/:board_name/users", language.id()),
+                compressed_dir(&serve_dir),
+            )
+            .nest_service(
+                &format!("/{}/boards/:board_name/tags", language.id()),
+                compressed_dir(&serve_dir),
+            )
+            .nest_service(
+                &format!("/{}/boards/:board_name/archive", language.id()),
+                compressed_dir(&serve_dir),
+            );
     }
     router
 }
