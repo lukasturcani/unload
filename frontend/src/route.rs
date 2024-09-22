@@ -1,4 +1,4 @@
-use crate::pages::{Archive, Board, JoinBoard, Tags, Users};
+use crate::pages::{Archive, Board, JoinBoard, LanguageJoinBoard, Tags, Users};
 use dioxus::prelude::*;
 use shared_models::BoardName;
 
@@ -6,6 +6,8 @@ use shared_models::BoardName;
 pub enum Route {
     #[route("/")]
     JoinBoard {},
+    #[route("/:language")]
+    LanguageJoinBoard { language: String },
     #[route("/boards/:board_name")]
     Board { board_name: BoardName },
     #[route("/boards/:board_name/users")]

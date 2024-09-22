@@ -5,10 +5,21 @@ use shared_models::{BoardName, SavedBoard};
 
 use crate::{
     components::{icons::TrashIcon, input::TextInput},
-    model::{SavedBoards, UnloadUrl},
+    model::{BoardLanguage, SavedBoards, UnloadUrl},
     route::Route,
     themes::Theme,
 };
+
+#[component]
+pub fn LanguageJoinBoard(language: ReadOnlySignal<String>) -> Element {
+    let mut board_language = use_context::<Signal<BoardLanguage>>();
+    board_language.set(BoardLanguage(language.read().clone()));
+    let mut i18 = use_i18();
+    i18.set_language(language.read().parse().unwrap());
+    let nav = use_navigator();
+    nav.push(Route::JoinBoard {});
+    rsx! {}
+}
 
 #[component]
 pub fn JoinBoard() -> Element {
