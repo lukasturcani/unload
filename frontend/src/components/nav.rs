@@ -7,12 +7,15 @@ use crate::{
         ArchiveIcon, BoardIcon, SolidArchiveIcon, SolidBoardIcon, SolidTagIcon, SolidUsersIcon,
         TagIcon, UsersIcon,
     },
+    model::UrlLanguage,
     route::Route,
     themes::Theme,
 };
 
 #[component]
 pub fn NavBar(board_name: BoardName) -> Element {
+    let url_language = use_context::<Signal<UrlLanguage>>();
+    let url_language = &url_language.read().0;
     let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -31,7 +34,15 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 {style}
             ",
             NavLink {
-                to: Route::Board { board_name: board_name.clone() },
+                to:
+                    if url_language.is_empty() {
+                        Route::Board { board_name: board_name.clone() }
+                    } else {
+                        Route::LanguageBoard {
+                            language: url_language.clone(),
+                            board_name: board_name.clone(),
+                        }
+                    },
                 body: rsx!{
                     div {
                         class: "h-full flex flex-col items-center justify-center",
@@ -42,7 +53,15 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 }
             }
             NavLink {
-                to: Route::Tags { board_name: board_name.clone() },
+                to:
+                    if url_language.is_empty() {
+                        Route::Tags { board_name: board_name.clone() }
+                    } else {
+                        Route::LanguageTags {
+                            language: url_language.clone(),
+                            board_name: board_name.clone(),
+                        }
+                    },
                 body: rsx!{
                     div {
                         class: "h-full flex flex-col items-center justify-center",
@@ -53,7 +72,15 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 }
             }
             NavLink {
-                to: Route::Users { board_name: board_name.clone() },
+                to:
+                    if url_language.is_empty() {
+                        Route::Users { board_name: board_name.clone() }
+                    } else {
+                        Route::LanguageUsers {
+                            language: url_language.clone(),
+                            board_name: board_name.clone(),
+                        }
+                    },
                 body: rsx!{
                     div {
                         class: "h-full flex flex-col items-center justify-center",
@@ -64,7 +91,15 @@ pub fn NavBar(board_name: BoardName) -> Element {
                 }
             }
             NavLink {
-                to: Route::Archive { board_name },
+                to:
+                    if url_language.is_empty() {
+                        Route::Archive { board_name }
+                    } else {
+                        Route::LanguageArchive {
+                            language: url_language.clone(),
+                            board_name,
+                        }
+                    },
                 body: rsx!{
                     div {
                         class: "h-full flex flex-col items-center justify-center",
