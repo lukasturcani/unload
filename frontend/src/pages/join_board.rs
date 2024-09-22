@@ -12,8 +12,9 @@ use crate::{
 };
 
 #[component]
-pub fn JoinBoard(language: String) -> Element {
+pub fn JoinBoard(language: ReadOnlySignal<String>) -> Element {
     let mut i18 = use_i18();
+    let language = language.read();
     if !language.is_empty() {
         i18.set_language(language.parse::<LanguageIdentifier>().unwrap());
     }
