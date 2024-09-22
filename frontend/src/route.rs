@@ -1,5 +1,6 @@
 use crate::pages::{
-    Archive, Board, JoinBoard, LanguageBoard, LanguageTags, LanguageUsers, Tags, Users,
+    Archive, Board, JoinBoard, LanguageArchive, LanguageBoard, LanguageTags, LanguageUsers, Tags,
+    Users,
 };
 use dioxus::prelude::*;
 use shared_models::BoardName;
@@ -31,4 +32,9 @@ pub enum Route {
     },
     #[route("/boards/:board_name/archive")]
     Archive { board_name: BoardName },
+    #[route("/:language/boards/:board_name/archive")]
+    LanguageArchive {
+        language: String,
+        board_name: BoardName,
+    },
 }

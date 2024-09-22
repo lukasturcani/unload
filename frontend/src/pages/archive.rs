@@ -1,12 +1,14 @@
 use dioxus::prelude::*;
+use dioxus_sdk::i18n::use_i18;
 use shared_models::BoardName;
+use unic_langid_impl::LanguageIdentifier;
 
 use crate::{
     components::{
         icons::{DoneIcon, SolidDoneIcon, SolidTagIcon, TagIcon},
         nav::NavBar,
     },
-    model::UnloadUrl,
+    model::{UnloadUrl, UrlLanguage},
     pages::archive::{
         components::{TagArchive, TaskArchive},
         model::BoardUrl,
@@ -26,6 +28,25 @@ enum Tab {
 
 #[component]
 pub fn Archive(board_name: BoardName) -> Element {
+    rsx! {
+        LanguageArchive {
+            language: "",
+            board_name
+        }
+    }
+}
+
+#[component]
+pub fn LanguageArchive(language: ReadOnlySignal<String>, board_name: BoardName) -> Element {
+    let mut url_language = use_context::<Signal<UrlLanguage>>();
+    let language = language.read();
+    if *language != url_language.read().0 {
+        url_language.write().0 = language.clone();
+    }
+    let mut i18 = use_i18();
+    if !language.is_empty() && *language != i18.selected_language.read().to_string() {
+        i18.set_language(language.parse::<LanguageIdentifier>().unwrap());
+    }
     eval(&format!(r#"document.title = "{board_name}";"#));
     let url = use_context::<Signal<UnloadUrl>>();
     use_context_provider(|| {
