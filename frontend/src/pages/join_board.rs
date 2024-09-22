@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 use dioxus_sdk::{i18n::use_i18, storage::*, translate};
 use reqwest::Client;
 use shared_models::{BoardName, SavedBoard};
+use unic_langid_impl::LanguageIdentifier;
 
 use crate::{
     components::{icons::TrashIcon, input::TextInput},
@@ -11,8 +12,11 @@ use crate::{
 };
 
 #[component]
-pub fn JoinBoard() -> Element {
-    let i18 = use_i18();
+pub fn JoinBoard(language: String) -> Element {
+    let mut i18 = use_i18();
+    if !language.is_empty() {
+        i18.set_language(language.parse::<LanguageIdentifier>().unwrap());
+    }
     let boards =
         use_synced_storage::<LocalStorage, SavedBoards>("boards".to_string(), SavedBoards::default);
     use_context_provider(|| boards);

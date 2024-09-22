@@ -4,8 +4,8 @@ use shared_models::BoardName;
 
 #[derive(Clone, Routable, Debug, PartialEq)]
 pub enum Route {
-    #[route("/")]
-    JoinBoard {},
+    #[route("/:language")]
+    JoinBoard { language: String },
     #[route("/boards/:board_name")]
     Board { board_name: BoardName },
     #[route("/boards/:board_name/users")]
