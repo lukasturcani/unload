@@ -19,7 +19,7 @@ pub fn JoinBoard(language: ReadOnlySignal<String>) -> Element {
         url_language.write().0 = language.clone();
     }
     let mut i18 = use_i18();
-    if *language != i18.selected_language.read().to_string() {
+    if !language.is_empty() && *language != i18.selected_language.read().to_string() {
         i18.set_language(language.parse::<LanguageIdentifier>().unwrap());
     }
     let boards =

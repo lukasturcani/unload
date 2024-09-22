@@ -34,7 +34,7 @@ pub fn Board(board_name: BoardName) -> Element {
 pub fn LanguageBoard(language: ReadOnlySignal<String>, board_name: BoardName) -> Element {
     let language = language.read();
     let mut i18 = use_i18();
-    if *language != i18.selected_language.read().to_string() {
+    if !language.is_empty() && *language != i18.selected_language.read().to_string() {
         i18.set_language(language.parse::<LanguageIdentifier>().unwrap());
     }
     let mut saved_boards =
