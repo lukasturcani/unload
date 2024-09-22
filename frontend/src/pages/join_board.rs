@@ -31,7 +31,7 @@ pub fn JoinBoard() -> Element {
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let nav = use_navigator();
-    let input_label = translate!(i18, "board_name_input_label");
+    let input_label = translate!(i18, "join_board_input_label");
     rsx! {
         div{
             class: "
