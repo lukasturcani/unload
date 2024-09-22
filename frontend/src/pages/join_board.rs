@@ -6,16 +6,20 @@ use unic_langid_impl::LanguageIdentifier;
 
 use crate::{
     components::{icons::TrashIcon, input::TextInput},
-    model::{SavedBoards, UnloadUrl},
+    model::{SavedBoards, UnloadUrl, UrlLanguage},
     route::Route,
     themes::Theme,
 };
 
 #[component]
 pub fn JoinBoard(language: ReadOnlySignal<String>) -> Element {
-    let mut i18 = use_i18();
+    let mut url_language = use_context::<Signal<UrlLanguage>>();
     let language = language.read();
-    if !language.is_empty() {
+    if *language != url_language.read().0 {
+        url_language.write().0 = language.clone();
+    }
+    let mut i18 = use_i18();
+    if *language != i18.selected_language.read().to_string() {
         i18.set_language(language.parse::<LanguageIdentifier>().unwrap());
     }
     let boards =
@@ -38,7 +42,15 @@ pub fn JoinBoard(language: ReadOnlySignal<String>) -> Element {
                 class: "flex flex-row flex-wrap items-center gap-2 justify-center",
                 onsubmit: move |event| {
                     let board_name = event.values()[&input_label].as_value().into();
-                    nav.push(Route::Board { board_name });
+                    let language = &url_language.read().0;
+                    if language.is_empty() {
+                        nav.push(Route::Board { board_name });
+                    } else {
+                        nav.push(Route::LanguageBoard {
+                            language: language.clone(),
+                            board_name,
+                        });
+                    }
                 },
                 TextInput {
                     id: "board_name",

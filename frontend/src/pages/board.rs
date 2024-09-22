@@ -32,9 +32,10 @@ pub fn Board(board_name: BoardName) -> Element {
 
 #[component]
 pub fn LanguageBoard(language: ReadOnlySignal<String>, board_name: BoardName) -> Element {
+    let language = language.read();
     let mut i18 = use_i18();
-    if !language.read().is_empty() {
-        i18.set_language(language.read().parse::<LanguageIdentifier>().unwrap());
+    if *language != i18.selected_language.read().to_string() {
+        i18.set_language(language.parse::<LanguageIdentifier>().unwrap());
     }
     let mut saved_boards =
         use_synced_storage::<LocalStorage, SavedBoards>("boards".to_string(), SavedBoards::default);

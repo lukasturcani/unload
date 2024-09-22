@@ -1,5 +1,5 @@
 use crate::commands::{FocusCommand, FocusTarget, ScrollCommand, ScrollTarget};
-use crate::model::{BoardLanguage, UnloadUrl, Welcome};
+use crate::model::{BoardLanguage, UnloadUrl, UrlLanguage, Welcome};
 use crate::route::Route;
 use crate::themes::{themes, SavedTheme};
 use crate::translations::languages;
@@ -35,6 +35,7 @@ pub fn App(origin: Url, default_language: BoardLanguage) -> Element {
     use_init_i18n(language_.clone(), language_, languages);
     use_context_provider(|| language);
     use_context_provider(|| saved_theme);
+    use_context_provider(|| Signal::new(UrlLanguage::default()));
     use_context_provider(|| Signal::new(UnloadUrl(origin)));
     use_context_provider(|| Signal::new(ScrollTarget::default()));
     use_context_provider(|| Signal::new(FocusTarget::default()));
