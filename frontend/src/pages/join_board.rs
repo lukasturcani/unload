@@ -17,7 +17,7 @@ pub fn LanguageJoinBoard(language: ReadOnlySignal<String>) -> Element {
     let mut i18 = use_i18();
     i18.set_language(language.read().parse().unwrap());
     let nav = use_navigator();
-    nav.push(Route::JoinBoard {});
+    nav.replace(Route::JoinBoard {});
     rsx! {}
 }
 

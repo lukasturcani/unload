@@ -27,7 +27,7 @@ pub fn LanguageBoard(language: ReadOnlySignal<String>, board_name: BoardName) ->
     let mut i18 = use_i18();
     i18.set_language(language.read().parse().unwrap());
     let nav = use_navigator();
-    nav.push(Route::Board { board_name });
+    nav.replace(Route::Board { board_name });
     rsx! {}
 }
 
