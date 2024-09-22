@@ -4,8 +4,8 @@ mod join_board;
 mod tags;
 mod users;
 
-pub use archive::{Archive, LanguageArchive};
-pub use board::{Board, LanguageBoard};
+pub use archive::Archive;
+pub use board::Board;
 pub use join_board::JoinBoard;
-pub use tags::{LanguageTags, Tags};
-pub use users::{LanguageUsers, Users};
+pub use tags::Tags;
+pub use users::Users;
