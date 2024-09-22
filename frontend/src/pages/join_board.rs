@@ -98,6 +98,7 @@ fn JoinBoardButton() -> Element {
 
 #[component]
 fn CreateBoardButton() -> Element {
+    let url_language = use_context::<Signal<UrlLanguage>>();
     let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -112,7 +113,7 @@ fn CreateBoardButton() -> Element {
                 text-sm text-center font-medium
                 {style}
             ",
-            onclick: move |_| create_board(url, nav),
+            onclick: move |_| create_board(url, nav, url_language),
             {translate!(i18, "create_new_board_button_label")}
         }
     }
@@ -182,9 +183,16 @@ fn RemoveBoardButton(boards: Signal<SavedBoards>, board: SavedBoard) -> Element 
     }
 }
 
-async fn create_board(url: Signal<UnloadUrl>, nav: Navigator) {
+async fn create_board(url: Signal<UnloadUrl>, nav: Navigator, url_language: Signal<UrlLanguage>) {
     if let Ok(board_name) = send_create_board_request(url).await {
-        nav.push(Route::Board { board_name });
+        if url_language.read().0.is_empty() {
+            nav.push(Route::Board { board_name });
+        } else {
+            nav.push(Route::LanguageBoard {
+                language: url_language.read().0.clone(),
+                board_name,
+            });
+        }
     }
 }
 
