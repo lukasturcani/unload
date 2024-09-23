@@ -152,7 +152,7 @@ pub async fn new_board_redirect(state: State<AppState>, Host(host): Host) -> Res
 pub async fn new_board_lang_redirect(
     state: State<AppState>,
     Host(host): Host,
-    Path(language): Path<String>,
+    language: String,
 ) -> Result<Redirect> {
     let board_name = add_board(state).await?;
     Ok(Redirect::to(&format!(

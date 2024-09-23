@@ -273,7 +273,7 @@ pub struct ChatGptRequest {
     pub prompt: String,
 }
 
-#[derive(EnumIter, Debug, Eq, PartialEq)]
+#[derive(EnumIter, Debug, Eq, PartialEq, Clone, Copy)]
 pub enum SupportedLanguage {
     English,
     Slovak,

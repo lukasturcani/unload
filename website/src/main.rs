@@ -144,7 +144,7 @@ fn App(props: AppProps) -> Element {
                                 transition-all ease-in-out
                                 shadow-xl hover:shadow-md hover:translate-y-1
                             ",
-                            href: "/new-board",
+                            href: translate!(i18, "new_board_link"),
                             "New board"
 
                         }

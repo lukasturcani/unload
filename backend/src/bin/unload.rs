@@ -73,18 +73,27 @@ struct Config {
 }
 
 fn website_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
-    Router::new()
+    let mut router = Router::new()
         .route("/app", get(redirect_to_app))
-        .route("/app/:language", get(redirect_to_lang_app))
         .route("/new-board", get(new_board_redirect))
-        .route("/new-board/:language", get(new_board_lang_redirect))
-        .nest_service("/", compressed_dir(&serve_dir))
+        .nest_service("/", compressed_dir(&serve_dir));
+    for language in SupportedLanguage::iter() {
+        router = router
+            .route(
+                &format!("/{}/app", language.id()),
+                get(move |host| redirect_to_lang_app(host, language.id().to_string())),
+            )
+            .route(
+                &format!("/{}/new-board", language.id()),
+                get(move |state, host| {
+                    new_board_lang_redirect(state, host, language.id().to_string())
+                }),
+            );
+    }
+    router
 }
 
-async fn redirect_to_lang_app(
-    Host(host): Host,
-    extract::Path(language): extract::Path<String>,
-) -> Redirect {
+async fn redirect_to_lang_app(Host(host): Host, language: String) -> Redirect {
     Redirect::to(&format!("//app.{}/{}", host, language))
 }
 
