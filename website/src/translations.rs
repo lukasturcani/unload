@@ -16,6 +16,12 @@ struct Text {
     app_link: &'static str,
     home_link: &'static str,
     new_board_link: &'static str,
+    new_board: &'static str,
+    h1_main: &'static str,
+    h1_sub: &'static str,
+    dense_button_label: &'static str,
+    dark_button_label: &'static str,
+    mobile_button_label: &'static str,
 }
 
 pub fn languages() -> Vec<Language> {
@@ -32,6 +38,12 @@ pub fn translations() -> Vec<Translation> {
                 app_link: "/en/app",
                 home_link: "/en",
                 new_board_link: "/en/new-board",
+                new_board: "New board",
+                h1_main: "Shared task managment.",
+                h1_sub: "Simple, with no sign ups.",
+                dense_button_label: "Dense",
+                dark_button_label: "Dark",
+                mobile_button_label: "Mobile",
             },
         },
         Translation {
@@ -42,6 +54,12 @@ pub fn translations() -> Vec<Translation> {
                 app_link: "/sk/app",
                 home_link: "/sk",
                 new_board_link: "/sk/new-board",
+                new_board: "Nová nástenka",
+                h1_main: "Správa úloh.",
+                h1_sub: "Jednoducho, bez registrácie.",
+                dense_button_label: "Husté",
+                dark_button_label: "Tmavé",
+                mobile_button_label: "Mobil",
             },
         },
         Translation {
@@ -52,6 +70,12 @@ pub fn translations() -> Vec<Translation> {
                 app_link: "/ko/app",
                 home_link: "/ko",
                 new_board_link: "/ko/new-board",
+                new_board: "새 보드",
+                h1_main: "동기 작업 관리.",
+                h1_sub: "등록 없이 간단하고 쉽게.",
+                dense_button_label: "밀집",
+                dark_button_label: "어두운",
+                mobile_button_label: "모바일",
             },
         },
     ];

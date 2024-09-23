@@ -122,13 +122,13 @@ fn App(props: AppProps) -> Element {
                 }
                 div {
                     class: "flex flex-col items-center gap-4 pb-5",
-                    p {
+                    h1 {
                         class: "text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-center",
-                        "Shared task managment."
+                        {translate!(i18, "h1_main")}
                         br {}
                         span {
                             class: "text-[#ff6dff]",
-                            "Simple, with no sign ups."
+                            {translate!(i18, "h1_sub")}
                         }
                     }
                     div {
@@ -145,7 +145,7 @@ fn App(props: AppProps) -> Element {
                                 shadow-xl hover:shadow-md hover:translate-y-1
                             ",
                             href: translate!(i18, "new_board_link"),
-                            "New board"
+                            {translate!(i18, "new_board")}
 
                         }
                         a {
@@ -176,7 +176,7 @@ fn App(props: AppProps) -> Element {
                                     dense.set(!dense());
                                     let _ = scroll.send("board-image".into());
                                 },
-                                label: "Dense"
+                                label: translate!(i18, "dense_button_label")
                             }
                             ToggleButton {
                                 aria_pressed: dark(),
@@ -184,7 +184,7 @@ fn App(props: AppProps) -> Element {
                                     dark.set(!dark());
                                     let _ = scroll.send("board-image".into());
                                 },
-                                label: "Dark"
+                                label: translate!(i18, "dark_button_label")
                             }
                             ToggleButton {
                                 aria_pressed: mobile(),
@@ -192,7 +192,7 @@ fn App(props: AppProps) -> Element {
                                     mobile.set(!mobile());
                                     let _ = scroll.send("board-image".into());
                                 },
-                                label: "Mobile"
+                                label: translate!(i18, "mobile_button_label")
                             }
                         }
                         div {
@@ -227,13 +227,13 @@ fn App(props: AppProps) -> Element {
 fn ToggleButton(
     onclick: EventHandler<MouseEvent>,
     aria_pressed: bool,
-    label: &'static str,
+    label: ReadOnlySignal<String>,
 ) -> Element {
     rsx! {
         button {
             class: "
                 px-2 py-1 rounded-md font-bold
-                shadow-md hover:shadow hover:translate-y-1
+                shadow-md sm:hover:shadow sm:hover:translate-y-1
                 aria-pressed:shadow aria-pressed:translate-y-1 aria-pressed:bg-[#07fc03]
                 bg-white text-[#ff6dff]
                 transition-all ease-in-out
