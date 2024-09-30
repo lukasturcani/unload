@@ -36,9 +36,15 @@ fn main() -> Result<()> {
         LaunchBuilder::web()
             .with_cfg(Config::new().hydrate(true))
             .launch(|| {
-                let en = "en".parse::<LanguageIdentifier>().unwrap();
+                let default_language = web_sys::window()
+                    .unwrap()
+                    .navigator()
+                    .language()
+                    .unwrap_or(String::from("en"))
+                    .parse::<LanguageIdentifier>()
+                    .unwrap();
                 rsx! {
-                    App{ language: en }
+                    App{ language: default_language }
                 }
             });
     }
@@ -53,13 +59,9 @@ fn index_page(language: LanguageIdentifier) -> Result<String> {
         .replace("<!-- REPLACE ME -->", &dioxus::ssr::pre_render(&vdom)))
 }
 
-#[derive(PartialEq, Props, Clone)]
-struct AppProps {
-    language: LanguageIdentifier,
-}
-
-#[allow(non_snake_case)]
-fn App(props: AppProps) -> Element {
+#[component]
+fn App(language: LanguageIdentifier) -> Element {
+    dioxus_logger::tracing::info!("{:?}", language);
     let scroll = eval(
         r#"
             let elementId = await dioxus.recv();
@@ -71,11 +73,7 @@ fn App(props: AppProps) -> Element {
     let mut dense = use_signal(|| false);
     let mut dark = use_signal(|| false);
     let mut mobile = use_signal(|| false);
-    use_init_i18n(
-        props.language.clone(),
-        props.language,
-        translations::languages,
-    );
+    use_init_i18n(language.clone(), language, translations::languages);
     let i18 = use_i18();
     rsx! {
         div {
