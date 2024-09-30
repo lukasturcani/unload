@@ -61,7 +61,6 @@ fn index_page(language: LanguageIdentifier) -> Result<String> {
 
 #[component]
 fn App(language: LanguageIdentifier) -> Element {
-    dioxus_logger::tracing::info!("{:?}", language);
     let scroll = eval(
         r#"
             let elementId = await dioxus.recv();
