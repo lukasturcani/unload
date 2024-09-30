@@ -33,18 +33,13 @@ fn main() -> Result<()> {
     #[cfg(not(feature = "prebuild"))]
     {
         dioxus_logger::init(Level::INFO).expect("failed to init logger");
+        let url = web_sys::window().unwrap().location().href().unwrap();
+        dioxus_logger::tracing::info!("boo {}", url);
         LaunchBuilder::web()
             .with_cfg(Config::new().hydrate(true))
             .launch(|| {
-                let default_language = web_sys::window()
-                    .unwrap()
-                    .navigator()
-                    .language()
-                    .unwrap_or(String::from("en"))
-                    .parse::<LanguageIdentifier>()
-                    .unwrap();
                 rsx! {
-                    App{ language: default_language }
+                    App{ language: "en".parse::<LanguageIdentifier>().unwrap() }
                 }
             });
     }
@@ -74,6 +69,15 @@ fn App(language: LanguageIdentifier) -> Element {
     let mut mobile = use_signal(|| false);
     use_init_i18n(language.clone(), language, translations::languages);
     let i18 = use_i18();
+    use_future(move || async move {
+        let language = web_sys::window()
+            .unwrap()
+            .navigator()
+            .language()
+            .unwrap_or(String::from("en"))
+            .parse::<LanguageIdentifier>()
+            .unwrap();
+    });
     rsx! {
         div {
             class: "font-mono min-h-screen min-w-screen text-white flex flex-col ",
