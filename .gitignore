@@ -4,6 +4,7 @@ frontend/static
 frontend/.dioxus
 frontend/node_modules
 website/assets/tailwind.css
+website/assets/flowbite.min.js
 website/dist
 website/node_modules
 /target
