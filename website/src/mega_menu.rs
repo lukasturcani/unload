@@ -1,59 +1,52 @@
 use dioxus::prelude::*;
 use dioxus_html_macro::html;
+use dioxus_sdk::{i18n::use_i18, translate};
 
 #[component]
 pub fn MegaMenu() -> Element {
+    let i18 = use_i18();
     html! {
         <nav class="bg-white border-gray-200 dark:bg-gray-900">
             <div class="flex flex-wrap items-center justify-between max-w-screen-xl mx-auto p-4">
-                <a href="https://flowbite.com" class="flex items-center space-x-3 rtl:space-x-reverse">
+                <a href={translate!(i18, "home_link")} class="flex items-center space-x-3 rtl:space-x-reverse">
                     <img src="https://flowbite.com/docs/images/logo.svg" class="h-8" alt="Flowbite Logo" />
                     <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">{"Unload"}</span>
                 </a>
                 <div class="flex items-center md:order-2 space-x-1 md:space-x-2 rtl:space-x-reverse">
+                    <ToggleMegaMenuButton id={"language-dropdown-button"} data_dropdown_toggle={"language-dropdown"} label={i18.selected_language.read().language.as_str().to_uppercase()} />
+                    <div id="language-dropdown" class="absolute z-10 grid hidden w-auto grid-cols-2 text-sm bg-white border border-gray-100 rounded-lg shadow-md dark:border-gray-700 md:grid-cols-3 dark:bg-gray-700">
+                        <div class="p-4 pb-0 text-gray-900 md:pb-4 dark:text-white">
+                            <ul class="space-y-4" aria_labelledby="language-dropdown-button">
+                                <li> <MegaMenuLink label={"About Us"} /> </li>
+                                <li> <MegaMenuLink label={"Library"} /> </li>
+                                <li> <MegaMenuLink label={"Resources"} /> </li>
+                                <li> <MegaMenuLink label={"Pro Version"} /> </li>
+                            </ul>
+                        </div>
+                        <div class="p-4 pb-0 text-gray-900 md:pb-4 dark:text-white">
+                            <ul class="space-y-4">
+                                <li> <MegaMenuLink label={"Blog"} /> </li>
+                                <li> <MegaMenuLink label={"Newsletter"} /> </li>
+                                <li> <MegaMenuLink label={"Playground"} /> </li>
+                                <li> <MegaMenuLink label={"License"} /> </li>
+                            </ul>
+                        </div>
+                        <div class="p-4">
+                            <ul class="space-y-4">
+                                <li> <MegaMenuLink label={"Contact Us"} /> </li>
+                                <li> <MegaMenuLink label={"Support Center"} /> </li>
+                                <li> <MegaMenuLink label={"Terms"} /> </li>
+                            </ul>
+                        </div>
+                    </div>
                     <a href="#" class="text-gray-800 dark:text-white hover:bg-gray-50 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 md:px-5 md:py-2.5 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800">{"Login"}</a>
-                    <a href="#" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 md:px-5 md:py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">{"Sign up"}</a>
+                    <PrimaryNavLink label={"Go to app"} />
                     <button "data-collapse-toggle"="mega-menu" r#type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria_controls="mega-menu" aria_expanded="false">
                         <span class="sr-only">{"Open main menu"}</span>
                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" view_box="0 0 17 14">
                             <path stroke="currentColor" stroke_linecap="round" stroke_linejoin="round" stroke_width="2" d="M1 1h15M1 7h15M1 13h15"/>
                         </svg>
                     </button>
-                </div>
-                <div id="mega-menu" class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1">
-                    <ul class="flex flex-col mt-4 font-medium md:flex-row md:mt-0 md:space-x-8 rtl:space-x-reverse">
-                        <li> <SelectedNavLink label={"Home"} /> </li>
-                        <li>
-                            <ToggleMegaMenuButton id={"mega-menu-dropdown-button"} label={"Company"} />
-                            <div id="mega-menu-dropdown" class="absolute z-10 grid hidden w-auto grid-cols-2 text-sm bg-white border border-gray-100 rounded-lg shadow-md dark:border-gray-700 md:grid-cols-3 dark:bg-gray-700">
-                                <div class="p-4 pb-0 text-gray-900 md:pb-4 dark:text-white">
-                                    <ul class="space-y-4" aria_labelledby="mega-menu-dropdown-button">
-                                        <li> <MegaMenuLink label={"About Us"} /> </li>
-                                        <li> <MegaMenuLink label={"Library"} /> </li>
-                                        <li> <MegaMenuLink label={"Resources"} /> </li>
-                                        <li> <MegaMenuLink label={"Pro Version"} /> </li>
-                                    </ul>
-                                </div>
-                                <div class="p-4 pb-0 text-gray-900 md:pb-4 dark:text-white">
-                                    <ul class="space-y-4">
-                                        <li> <MegaMenuLink label={"Blog"} /> </li>
-                                        <li> <MegaMenuLink label={"Newsletter"} /> </li>
-                                        <li> <MegaMenuLink label={"Playground"} /> </li>
-                                        <li> <MegaMenuLink label={"License"} /> </li>
-                                    </ul>
-                                </div>
-                                <div class="p-4">
-                                    <ul class="space-y-4">
-                                        <li> <MegaMenuLink label={"Contact Us"} /> </li>
-                                        <li> <MegaMenuLink label={"Support Center"} /> </li>
-                                        <li> <MegaMenuLink label={"Terms"} /> </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </li>
-                        <li> <NavLink label={"Team"} /> </li>
-                        <li> <NavLink label={"Company"} /> </li>
-                    </ul>
                 </div>
             </div>
         </nav>
@@ -94,12 +87,16 @@ fn SelectedNavLink(label: ReadOnlySignal<String>) -> Element {
 }
 
 #[component]
-fn ToggleMegaMenuButton(id: ReadOnlySignal<String>, label: ReadOnlySignal<String>) -> Element {
+fn ToggleMegaMenuButton(
+    id: ReadOnlySignal<String>,
+    data_dropdown_toggle: ReadOnlySignal<String>,
+    label: ReadOnlySignal<String>,
+) -> Element {
     rsx! {
         button {
             id,
-            "data-dropdown-toggle": "mega-menu-dropdown",
-            class: "flex items-center justify-between w-full py-2 px-3 font-medium text-gray-900 border-b border-gray-100 md:w-auto hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-600 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-blue-500 md:dark:hover:bg-transparent dark:border-gray-700",
+            "data-dropdown-toggle": data_dropdown_toggle,
+            class: "flex items-center justify-between w-full py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-gray-400 dark:hover:text-white dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent",
             {label}
             svg {
                 class: "w-2.5 h-2.5 ms-3",
@@ -113,6 +110,18 @@ fn ToggleMegaMenuButton(id: ReadOnlySignal<String>, label: ReadOnlySignal<String
                     d: "m1 1 4 4 4-4",
                 }
             }
+        }
+    }
+}
+
+#[component]
+fn PrimaryNavLink(label: ReadOnlySignal<String>) -> Element {
+    rsx! {
+        a {
+            href: "#",
+            class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm \
+                px-4 py-2 md:px-5 md:py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800",
+            {label}
         }
     }
 }
