@@ -633,6 +633,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
 
 [[package]]
+name = "bumpslab"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e5816c875b50b9866d759fa24d46159dccab0d7942c0ccbfd700b4f45dd961e"
+dependencies = [
+ "bumpalo",
+]
+
+[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1342,12 +1351,21 @@ dependencies = [
 
 [[package]]
 name = "dioxus"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e24fd50a67f179f801ffe5316357d95c064676661614a38efd8902361dac9ef"
+dependencies = [
+ "dioxus-core 0.3.3",
+]
+
+[[package]]
+name = "dioxus"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8e7fe217b50d43b27528b0f24c89b411f742a3e7564d1cfbf85253f967954db"
 dependencies = [
  "dioxus-config-macro",
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "dioxus-core-macro",
  "dioxus-fullstack",
  "dioxus-hooks",
@@ -1380,6 +1398,24 @@ checksum = "cb1a1aa34cc04c1f7fcbb7a10791ba773cc02d834fe3ec1fe05647699f3b101f"
 dependencies = [
  "proc-macro2",
  "quote",
+]
+
+[[package]]
+name = "dioxus-core"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e4d15b0bb9c58d015b2295f240600dd76e427758377569fa33783afc295706a"
+dependencies = [
+ "bumpalo",
+ "bumpslab",
+ "futures-channel",
+ "futures-util",
+ "indexmap 1.9.3",
+ "log",
+ "longest-increasing-subsequence",
+ "rustc-hash",
+ "slab",
+ "smallbox",
 ]
 
 [[package]]
@@ -1431,7 +1467,7 @@ dependencies = [
  "cocoa",
  "core-foundation",
  "dioxus-cli-config",
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "dioxus-hooks",
  "dioxus-html",
  "dioxus-interpreter-js",
@@ -1502,7 +1538,7 @@ version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa8f9c661eea82295219d25555d5c0b597e74186b029038ceb5e3700ccbd4380"
 dependencies = [
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "dioxus-debug-cell",
  "dioxus-signals",
  "futures-channel",
@@ -1519,7 +1555,7 @@ version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77d01246cb1b93437fb0bbd0dd11cfc66342d86b4311819e76654f2017ce1473"
 dependencies = [
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "dioxus-html",
  "dioxus-rsx",
  "interprocess-docfix",
@@ -1534,7 +1570,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f01a0826f179adad6ea8d6586746e8edde0c602cc86f4eb8e5df7a3b204c4018"
 dependencies = [
  "async-trait",
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "dioxus-html-internal-macro",
  "enumset",
  "euclid",
@@ -1564,12 +1600,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "dioxus-html-macro"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fd5263f294a442d7c7734825ada56bb777c28711df1e59c110cc143e9fa7e4fd"
+dependencies = [
+ "dioxus 0.3.2",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "dioxus-interpreter-js"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "351fad098c657d14f3ac2900362d2b86e83c22c4c620a404839e1ab628f3395b"
 dependencies = [
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "dioxus-html",
  "js-sys",
  "md5",
@@ -1586,7 +1634,7 @@ version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8bd39b2c41dd1915dcb91d914ea72d8b646f1f8995aaeff82816b862ec586ecd"
 dependencies = [
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "dioxus-core-macro",
  "dioxus-hooks",
  "dioxus-html",
@@ -1665,7 +1713,7 @@ version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15c400bc8a779107d8f3a67b14375db07dbd2bc31163bf085a8e9097f36f7179"
 dependencies = [
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "internment",
  "krates",
  "proc-macro2",
@@ -1681,7 +1729,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "271adf41837fbbceb955fefd71816d4a3fbbab2829f8c0ea0364584b531ce999"
 dependencies = [
  "cfg-if",
- "dioxus",
+ "dioxus 0.5.6",
  "dioxus-signals",
  "directories",
  "futures-util",
@@ -1706,7 +1754,7 @@ version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e3e224cd3d3713f159f0199fc088c292a0f4adb94996b48120157f6a8f8342d"
 dependencies = [
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "futures-channel",
  "futures-util",
  "generational-box",
@@ -1726,7 +1774,7 @@ dependencies = [
  "askama_escape",
  "async-trait",
  "chrono",
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "dioxus-html",
  "generational-box",
  "http 1.1.0",
@@ -1746,7 +1794,7 @@ checksum = "e0855ac81fcc9252a0863930a7a7cbb2504fc1b6efe893489c8d0e23aaeb2cb9"
 dependencies = [
  "async-trait",
  "console_error_panic_hook",
- "dioxus-core",
+ "dioxus-core 0.5.6",
  "dioxus-html",
  "dioxus-interpreter-js",
  "futures-channel",
@@ -2133,7 +2181,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "console_error_panic_hook",
- "dioxus",
+ "dioxus 0.5.6",
  "dioxus-logger 0.4.1",
  "dioxus-sdk",
  "itertools 0.12.1",
@@ -5500,6 +5548,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "smallbox"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd25fd92ca74ea10baed4504ce14d54835060ac90bea40c75274c47518a0ef51"
+
+[[package]]
 name = "smallvec"
 version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6898,7 +6952,8 @@ name = "website"
 version = "0.12.12-alpha.1"
 dependencies = [
  "anyhow",
- "dioxus",
+ "dioxus 0.5.6",
+ "dioxus-html-macro",
  "dioxus-logger 0.5.1",
  "dioxus-sdk",
  "dioxus-ssr",

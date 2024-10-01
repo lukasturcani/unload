@@ -6,6 +6,7 @@ use dioxus_sdk::{
     translate,
 };
 use dioxus_web::Config;
+use mega_menu::MegaMenu;
 use std::{fs, path::PathBuf};
 use unic_langid_impl::LanguageIdentifier;
 
@@ -71,6 +72,7 @@ fn App(language: LanguageIdentifier) -> Element {
     use_init_i18n(language.clone(), language, translations::languages);
     let i18 = use_i18();
     rsx! {
+        MegaMenu {}
         div {
             class: "font-mono min-h-screen min-w-screen text-white flex flex-col ",
             div {
