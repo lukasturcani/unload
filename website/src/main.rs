@@ -9,6 +9,7 @@ use dioxus_web::Config;
 use std::{fs, path::PathBuf};
 use unic_langid_impl::LanguageIdentifier;
 
+mod mega_menu;
 mod translations;
 
 fn main() -> Result<()> {
@@ -83,8 +84,9 @@ fn App(language: LanguageIdentifier) -> Element {
                     }
                     div {
                         class: "
-                            hidden sm:flex flex-row gap-4 items-center
+                            sm:flex flex-row gap-4 items-center
                         ",
+                        ToggleLanguageSelectionButton {}
                         a {
                             href: "https://github.com/lukasturcani/unload",
                             target: "_blank",
@@ -211,6 +213,17 @@ fn App(language: LanguageIdentifier) -> Element {
                     }
                 }
             }
+        }
+    }
+}
+
+#[component]
+fn ToggleLanguageSelectionButton() -> Element {
+    let i18 = use_i18();
+    rsx! {
+        button {
+            class: "text-xl",
+            {i18.selected_language.read().language.as_str().to_uppercase()}
         }
     }
 }
