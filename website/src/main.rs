@@ -69,15 +69,6 @@ fn App(language: LanguageIdentifier) -> Element {
     let mut mobile = use_signal(|| false);
     use_init_i18n(language.clone(), language, translations::languages);
     let i18 = use_i18();
-    use_future(move || async move {
-        let language = web_sys::window()
-            .unwrap()
-            .navigator()
-            .language()
-            .unwrap_or(String::from("en"))
-            .parse::<LanguageIdentifier>()
-            .unwrap();
-    });
     rsx! {
         div {
             class: "font-mono min-h-screen min-w-screen text-white flex flex-col ",
