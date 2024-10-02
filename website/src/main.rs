@@ -119,6 +119,7 @@ fn App(language: LanguageIdentifier) -> Element {
                 div {
                     class: "flex flex-col items-center gap-4 pb-5",
                     h1 {
+                        id: "home",
                         class: "text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-center",
                         {translate!(i18, "h1_main")}
                         br {}
@@ -213,6 +214,18 @@ fn App(language: LanguageIdentifier) -> Element {
                             }
                         }
                     }
+                }
+                h2 {
+                    id: "features",
+                    {translate!(i18, "features_section_label")}
+                }
+                h2 {
+                    id: "pricing",
+                    {translate!(i18, "pricing_section_label")}
+                }
+                h2 {
+                    id: "contact",
+                    {translate!(i18, "contact_section_label")}
                 }
             }
         }
