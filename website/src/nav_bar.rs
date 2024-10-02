@@ -28,9 +28,8 @@ fn ToggleSectionListButton() -> Element {
         button {
             "data-collapse-toggle": "navbar-sticky",
             r#type: "button",
-            class: "inline-flex items-center p-2 w-10 h-10 justify-center text-sm \
-                text-grey-400 rounded-lg md:hidden hover:bg-grey-700 \
-                focus:outline-none focus:ring-2 focus:ring-grey-600",
+            class: "inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg md:hidden \
+                focus:outline-none focus:ring-2 text-gray-400 hover:bg-gray-700 focus:ring-gray-600",
             aria_controls: "navbar-sticky",
             aria_expanded: "false",
             span { class: "sr-only", "Open main menu" }
