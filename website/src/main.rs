@@ -74,7 +74,7 @@ fn App(language: LanguageIdentifier) -> Element {
     rsx! {
         NavBar {}
         div {
-            class: "font-mono min-h-screen min-w-screen text-white flex flex-col ",
+            class: "font-mono min-h-screen min-w-screen text-white flex flex-col scroll-smooth",
             div {
                 class: "container mx-auto px-3",
                 nav {
