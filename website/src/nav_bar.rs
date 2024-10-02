@@ -56,7 +56,6 @@ fn LanguageSelection() -> Element {
 
 #[component]
 fn LanguageList() -> Element {
-    let i18 = use_i18();
     rsx! {
         div {
             id: "languageDropdown",
