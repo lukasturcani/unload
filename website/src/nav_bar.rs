@@ -29,7 +29,7 @@ fn LanguageSelection() -> Element {
     rsx! {
         button {
             "data-dropdown-toggle": "languageDropdown",
-            class: "flex items-center justify-between w-full py-2 px-3 rounded md:hover:bg-transparent \
+            class: "flex items-center justify-between py-2 px-3 rounded md:hover:bg-transparent \
                 md:border-0 md:p-0 md:w-auto text-text-primary md:hover:text-hover \
                 border-gray-700 hover:bg-gray-700",
             aria_label: "select language",
