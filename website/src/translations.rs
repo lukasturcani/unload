@@ -51,7 +51,7 @@ pub fn translations() -> Vec<Translation> {
                 home_link: "/en",
                 new_board_link: "/en/new-board",
                 new_board: "New board",
-                h1_main: "Shared task managment.",
+                h1_main: "Shared task management.",
                 h1_sub: "Simple, with no sign ups.",
                 dense_button_label: "Dense",
                 dark_button_label: "Dark",

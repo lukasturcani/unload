@@ -84,12 +84,12 @@ fn App(language: LanguageIdentifier) -> Element {
     let i18 = use_i18();
     rsx! {
         div {
-            class: "font-mono min-h-screen min-w-screen text-text-primary flex flex-col pt-28 sm:pt-20",
+            class: "font-mono min-h-screen min-w-screen text-text-primary flex flex-col pt-28 sm:pt-32",
             NavBar {}
             div {
                 class: "container mx-auto px-3",
                 div {
-                    class: "flex flex-col items-center gap-4 pb-5",
+                    class: "flex flex-col items-center gap-10 pb-5",
                     h1 {
                         id: "home",
                         class: "text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-center",
