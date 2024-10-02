@@ -47,7 +47,7 @@ pub fn ButtonLink(
         a {
             href,
             class: "{text_color} {bg_color} {border} {focus} {size} \
-                focus:ring-4 font-medium rounded-lg focus:outline-none",
+                text-center focus:ring-4 font-medium rounded-lg focus:outline-none",
             {children}
         }
     }
