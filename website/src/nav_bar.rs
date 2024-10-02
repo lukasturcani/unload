@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
-use dioxus_html_macro::html;
 use dioxus_sdk::{i18n::use_i18, translate};
+
+use crate::translations;
 
 #[component]
 pub fn NavBar() -> Element {
@@ -32,7 +33,7 @@ fn LanguageSelection() -> Element {
             class: "flex items-center justify-between py-2 px-3 rounded md:hover:bg-transparent \
                 md:border-0 md:p-0 md:w-auto text-text-primary md:hover:text-hover \
                 border-gray-700 hover:bg-gray-700",
-            aria_label: "select language",
+            aria_label: translate!(i18, "select_language"),
             {i18.selected_language.read().language.as_str().to_uppercase()}
             svg {
                 class:  "w-2.5 h-2.5 ms-2.5",
@@ -63,9 +64,9 @@ fn LanguageList() -> Element {
             ul {
                 class: "py-2 text-sm text-text-primary",
                 aria_labelledby: "languageDropdownButton",
-                li { LanguageLink { href: "/en", label: "English" } }
-                li { LanguageLink { href: "/sk", label: "Slovak" } }
-                li { LanguageLink { href: "/ko", label: "Korean" } }
+                for language in translations::translations() {
+                    li { LanguageLink { href: format!("/{}", language.id), label: language.name } }
+                }
             }
         }
     }
