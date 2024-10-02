@@ -1,4 +1,5 @@
 use anyhow::Result;
+use buttons::ButtonLink;
 use dioxus::prelude::*;
 use dioxus_logger::tracing::Level;
 use dioxus_sdk::{
@@ -10,6 +11,7 @@ use nav_bar::NavBar;
 use std::{fs, path::PathBuf};
 use unic_langid_impl::LanguageIdentifier;
 
+mod buttons;
 mod nav_bar;
 mod translations;
 
@@ -98,32 +100,17 @@ fn App(language: LanguageIdentifier) -> Element {
                     }
                     div {
                         class: "flex flex-col sm:flex-row gap-4 w-full sm:w-auto",
-                        a {
-                            class: "
-                                text-xl sm:text-2xl md:text-3xl font-bold text-center
-                                w-full sm:w-auto
-                                px-5 py-3 sm:py-5
-                                text-[#ff6dff]
-                                bg-white
-                                rounded-md
-                                transition-all ease-in-out
-                                shadow-xl hover:shadow-md hover:translate-y-1
-                            ",
+                        ButtonLink {
                             href: translate!(i18, "new_board_link"),
+                            size: buttons::Size::Large,
+                            color: buttons::Color::Secondary,
                             {translate!(i18, "new_board")}
 
                         }
-                        a {
-                            class: "
-                                text-xl sm:text-2xl md:text-3xl font-bold text-center
-                                w-full sm:w-auto
-                                px-5 py-3 sm:py-5
-                                bg-[#ff6dff]
-                                rounded-md
-                                transition-all ease-in-out
-                                shadow-xl hover:shadow-md hover:translate-y-1
-                            ",
+                        ButtonLink {
                             href: translate!(i18, "app_link"),
+                            size: buttons::Size::Large,
+                            color: buttons::Color::Primary,
                             {translate!(i18, "go_to_app")}
                         }
                     }
