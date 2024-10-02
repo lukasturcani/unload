@@ -64,7 +64,7 @@ fn Logo() -> Element {
             }
             span {
                 class: "self-center text-2xl font-semibold whitespace-nowrap text-text-primary",
-                "Flowbite"
+                "Unload"
             }
         }
     }
