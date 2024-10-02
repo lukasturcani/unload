@@ -35,8 +35,6 @@ fn main() -> Result<()> {
     #[cfg(not(feature = "prebuild"))]
     {
         dioxus_logger::init(Level::INFO).expect("failed to init logger");
-        let url = web_sys::window().unwrap().location().href().unwrap();
-        dioxus_logger::tracing::info!("boo {}", url);
         LaunchBuilder::web()
             .with_cfg(Config::new().hydrate(true))
             .launch(|| {
@@ -69,6 +67,15 @@ fn App(language: LanguageIdentifier) -> Element {
     let mut dense = use_signal(|| false);
     let mut dark = use_signal(|| false);
     let mut mobile = use_signal(|| false);
+    use_future(move || async move {
+        {
+            web_sys::window()
+                .and_then(|window| window.inner_width().ok())
+                .and_then(|width| width.as_f64())
+                .filter(|&width| width < 640.0)
+                .map(move |_| mobile.set(true))
+        }
+    });
     use_init_i18n(language.clone(), language, translations::languages);
     let i18 = use_i18();
     rsx! {

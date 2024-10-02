@@ -15,10 +15,8 @@ dioxus-sdk = { version = "0.5", features = ["i18n"] }
 unic-langid-impl = "0.9.5"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0"
-
-# Debug
-dioxus-logger = "0.5.1"
 web-sys = { version = "0.3.70", features = ["Navigator", "Window"] }
+dioxus-logger = "0.5.1"
 dioxus-html-macro = "0.3.0"
 
 [features]
