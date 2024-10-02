@@ -12,7 +12,7 @@ pub fn NavBar() -> Element {
                 Logo {}
                 div {
                     class: "flex md:order-2 space-x-3 rtl:space-x-reverse",
-                    LanguageSelectionButton {}
+                    LanguageSelection {}
                     GitHubLink {}
                     AppLink {}
                     ToggleSectionListButton {}
@@ -24,27 +24,61 @@ pub fn NavBar() -> Element {
 }
 
 #[component]
-fn LanguageSelectionButton() -> Element {
+fn LanguageSelection() -> Element {
     let i18 = use_i18();
-    html! {
-              <button id="dropdownNavbarLink" "data-dropdown-toggle"="dropdownNavbar" class="flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
-                    {i18.selected_language.read().language.as_str().to_uppercase()} <svg class="w-2.5 h-2.5 ms-2.5" "aria-hidden"="true" xmlns="http://www.w3.org/2000/svg" fill="none" view_box="0 0 10 6">
-      <path stroke="currentColor" stroke_linecap="round" stroke_linejoin="round" stroke_width="2" d="m1 1 4 4 4-4"/>
-    </svg></button>
-              <div id="dropdownNavbar" class="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
-                  <ul class="py-2 text-sm text-gray-700 dark:text-gray-400" aria_labelledby="dropdownLargeButton">
-                    <li>
-                      <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{"Dashboard"}</a>
-                    </li>
-                    <li>
-                      <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{"Settings"}</a>
-                    </li>
-                    <li>
-                      <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{"Earnings"}</a>
-                    </li>
-                  </ul>
-              </div>
-      }
+    rsx! {
+        button {
+            "data-dropdown-toggle": "languageDropdown",
+            class: "flex items-center justify-between w-full py-2 px-3 rounded md:hover:bg-transparent \
+                md:border-0 md:p-0 md:w-auto text-text-primary md:hover:text-hover \
+                border-gray-700 hover:bg-gray-700",
+            {i18.selected_language.read().language.as_str().to_uppercase()}
+            svg {
+                class:  "w-2.5 h-2.5 ms-2.5",
+                "aria-hidden": "true",
+                xmlns: "http://www.w3.org/2000/svg",
+                fill: "none",
+                view_box: "0 0 10 6",
+                path {
+                    stroke: "currentColor",
+                    stroke_linecap: "round",
+                    stroke_linejoin: "round",
+                    stroke_width: "2",
+                    d: "m1 1 4 4 4-4",
+                }
+            }
+            LanguageList {}
+        }
+    }
+}
+
+#[component]
+fn LanguageList() -> Element {
+    let i18 = use_i18();
+    rsx! {
+        div {
+            id: "languageDropdown",
+            class: "z-10 hidden font-normal divide-y rounded-lg shadow w-44 bg-gray-700 divide-gray-600",
+            ul {
+                class: "py-2 text-sm text-text-primary",
+                aria_label: "languages",
+                li { LanguageLink { href: "/en", label: "English" } }
+                li { LanguageLink { href: "/sk", label: "Slovak" } }
+                li { LanguageLink { href: "/ko", label: "Korean" } }
+            }
+        }
+    }
+}
+
+#[component]
+fn LanguageLink(href: ReadOnlySignal<String>, label: ReadOnlySignal<String>) -> Element {
+    rsx! {
+        a {
+            href,
+            class: "block px-4 py-2 hover:bg-gray-600",
+            {label}
+        }
+    }
 }
 
 #[component]
