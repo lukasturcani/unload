@@ -76,7 +76,7 @@ fn AppLink() -> Element {
     rsx! {
         a {
             href: translate!(i18, "app_link"),
-            class: "cursor-pointer text-white focus:ring-4 focus:outline-none \
+            class: "cursor-pointer text-primary-contrast-text focus:ring-4 focus:outline-none \
                 font-medium rounded-lg text-sm px-4 py-2 text-center bg-primary-main \
                 hover:bg-primary-dark focus:ring-focus",
             {translate!(i18, "go_to_app")}
@@ -108,9 +108,8 @@ fn Link(href: ReadOnlySignal<String>, label: ReadOnlySignal<String>) -> Element 
     rsx! {
         a {
             href,
-            class: "block py-2 px-3 text-text-primary rounded hover:bg-grey-700 \
-                md:hover:bg-transparent md:hover:text-primary-main \
-                hover:text-text-primary md:p-0 border-grey-700",
+            class: "block py-2 px-3 rounded md:hover:bg-transparent md:p-0 md:hover:text-blue-500 text-text-primary hover:bg-gray-700 \
+                border-gray-700",
             {label}
         }
     }
