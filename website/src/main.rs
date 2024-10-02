@@ -6,9 +6,11 @@ use dioxus_sdk::{
     translate,
 };
 use dioxus_web::Config;
+use nav_bar::NavBar;
 use std::{fs, path::PathBuf};
 use unic_langid_impl::LanguageIdentifier;
 
+mod nav_bar;
 mod translations;
 
 fn main() -> Result<()> {
@@ -70,6 +72,7 @@ fn App(language: LanguageIdentifier) -> Element {
     use_init_i18n(language.clone(), language, translations::languages);
     let i18 = use_i18();
     rsx! {
+        NavBar {}
         div {
             class: "font-mono min-h-screen min-w-screen text-white flex flex-col ",
             div {
