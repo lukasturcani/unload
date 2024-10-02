@@ -13,6 +13,7 @@ module.exports = {
     extend: {
       colors: {
         "background": colors.gray[900],
+        "background-card": colors.gray[800],
         "common-black": "#000",
         "common-white": "#fff",
         "primary-light": "#e3f2fd",
@@ -41,18 +42,6 @@ module.exports = {
         "success-contrast-text": "#000",
         "text-primary": colors.white,
         "focus": colors.blue[800],
-        "grey": {
-          50: "#fafafa",
-          100: "#f5f5f5",
-          200: "#eeeeee",
-          300: "#e0e0e0",
-          400: "#bdbdbd",
-          500: "#9e9e9e",
-          600: "#757575",
-          700: "#616161",
-          800: "#424242",
-          900: "#212121",
-        }
       }
     },
   },
