@@ -23,7 +23,7 @@ module.exports = {
         "secondary-light": colors.gray[700],
         "secondary-main": colors.gray[800],
         "secondary-dark": colors.gray[900],
-        "secondary-contrast-text": colors.white
+        "secondary-contrast-text": colors.white,
         "error-light": "#e57373",
         "error-main": "#f44336",
         "error-dark": "#d32f2f",
