@@ -12,6 +12,11 @@ pub struct Translation {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 struct Text {
+    open_main_menu: &'static str,
+    home_section_label: &'static str,
+    features_section_label: &'static str,
+    pricing_section_label: &'static str,
+    contact_section_label: &'static str,
     go_to_app: &'static str,
     app_link: &'static str,
     home_link: &'static str,
@@ -34,6 +39,11 @@ pub fn translations() -> Vec<Translation> {
             id: "en",
             name: "EN - English",
             text: Text {
+                open_main_menu: "Open main menu",
+                home_section_label: "Home",
+                features_section_label: "Features",
+                pricing_section_label: "Pricing",
+                contact_section_label: "Contact",
                 go_to_app: "Go to app",
                 app_link: "/en/app",
                 home_link: "/en",
@@ -50,6 +60,11 @@ pub fn translations() -> Vec<Translation> {
             id: "sk",
             name: "SK - Slovenčina",
             text: Text {
+                open_main_menu: "Otvoriť hlavné menu",
+                home_section_label: "Domov",
+                features_section_label: "Funkcie",
+                pricing_section_label: "Ceny",
+                contact_section_label: "Kontakt",
                 go_to_app: "Prejsť na aplikáciu",
                 app_link: "/sk/app",
                 home_link: "/sk",
@@ -66,6 +81,11 @@ pub fn translations() -> Vec<Translation> {
             id: "ko",
             name: "KO - 한국어",
             text: Text {
+                open_main_menu: "메인 메뉴 열기",
+                home_section_label: "홈",
+                features_section_label: "기능",
+                pricing_section_label: "요금",
+                contact_section_label: "연락처",
                 go_to_app: "앱으로 이동",
                 app_link: "/ko/app",
                 home_link: "/ko",

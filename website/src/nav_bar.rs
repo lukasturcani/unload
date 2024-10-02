@@ -24,6 +24,7 @@ pub fn NavBar() -> Element {
 
 #[component]
 fn ToggleSectionListButton() -> Element {
+    let i18 = use_i18();
     rsx! {
         button {
             "data-collapse-toggle": "navbar-sticky",
@@ -32,7 +33,7 @@ fn ToggleSectionListButton() -> Element {
                 focus:outline-none focus:ring-2 text-gray-400 hover:bg-gray-700 focus:ring-gray-600",
             aria_controls: "navbar-sticky",
             aria_expanded: "false",
-            span { class: "sr-only", "Open main menu" }
+            span { class: "sr-only", {translate!(i18, "open_main_menu")} }
             svg {
                 class: "w-5 h-5",
                 "aria-hidden": "true",
@@ -86,6 +87,7 @@ fn AppLink() -> Element {
 
 #[component]
 fn SectionList() -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "items-center justify-between hidden w-full md:flex md:w-auto \
@@ -94,10 +96,10 @@ fn SectionList() -> Element {
             ul {
                 class: "flex flex-col p-4 md:p-0 mt-4 font-medium border rounded-lg md:space-x-8 \
                     rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 bg-background-card md:bg-background border-gray-700",
-                li { Link { href: "#", label: "Home" } }
-                li { Link { href: "#", label: "Feautres" } }
-                li { Link { href: "#", label: "Pricing" } }
-                li { Link { href: "#", label: "Contact" } }
+                li { Link { href: "#", label: translate!(i18, "home_section_label") } }
+                li { Link { href: "#", label: translate!(i18, "features_section_label") } }
+                li { Link { href: "#", label: translate!(i18, "pricing_section_label") } }
+                li { Link { href: "#", label: translate!(i18, "contact_section_label") } }
             }
         }
     }
