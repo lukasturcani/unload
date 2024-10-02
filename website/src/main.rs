@@ -73,7 +73,7 @@ fn App(language: LanguageIdentifier) -> Element {
     let i18 = use_i18();
     rsx! {
         div {
-            class: "font-mono min-h-screen min-w-screen text-text-primary flex flex-col scroll-smooth pt-28 sm:pt-20",
+            class: "font-mono min-h-screen min-w-screen text-text-primary flex flex-col pt-28 sm:pt-20",
             NavBar {}
             div {
                 class: "container mx-auto px-3",
