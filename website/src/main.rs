@@ -94,7 +94,7 @@ fn App(language: LanguageIdentifier) -> Element {
                         {translate!(i18, "h1_main")}
                         br {}
                         span {
-                            class: "text-[#ff6dff]",
+                            class: "text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400",
                             {translate!(i18, "h1_sub")}
                         }
                     }

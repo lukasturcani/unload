@@ -41,6 +41,7 @@ module.exports = {
         "success-dark": "#388e3c",
         "success-contrast-text": "#000",
         "text-primary": colors.white,
+        "text-secondary": colors.blue[600],
         "focus": colors.blue[800],
         "hover": colors.blue[500],
       }
