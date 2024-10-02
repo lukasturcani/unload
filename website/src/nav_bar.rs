@@ -11,6 +11,7 @@ pub fn NavBar() -> Element {
                 Logo {}
                 div {
                     class: "flex md:order-2 space-x-3 rtl:space-x-reverse",
+                    LanguageSelectionButton {}
                     GitHubLink {}
                     AppLink {}
                     ToggleSectionListButton {}
@@ -19,6 +20,11 @@ pub fn NavBar() -> Element {
             }
         }
     }
+}
+
+#[component]
+fn LanguageSelectionButton() -> Element {
+    rsx! {}
 }
 
 #[component]
