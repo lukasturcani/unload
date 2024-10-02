@@ -165,11 +165,9 @@ fn Logo() -> Element {
 fn AppLink() -> Element {
     let i18 = use_i18();
     rsx! {
-        a {
-            class: "text-text-primary bg-secondary-main hover:bg-secondary-light border-2 border-primary-main \
-                focus:ring-focus text-sm px-5 py-2.5 text-center focus:ring-4 font-medium rounded-lg \
-                focus:outline-none",
+        ButtonLink {
             href: translate!(i18, "app_link"),
+            color: buttons::Color::Primary,
             {translate!(i18, "go_to_app")}
         }
     }
