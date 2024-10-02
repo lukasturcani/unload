@@ -72,50 +72,11 @@ fn App(language: LanguageIdentifier) -> Element {
     use_init_i18n(language.clone(), language, translations::languages);
     let i18 = use_i18();
     rsx! {
-        NavBar {}
         div {
-            class: "font-mono min-h-screen min-w-screen text-white flex flex-col scroll-smooth",
+            class: "font-mono min-h-screen min-w-screen text-text-primary flex flex-col scroll-smooth",
+            NavBar {}
             div {
                 class: "container mx-auto px-3",
-                nav {
-                    class: "flex flex-row py-5 justify-center sm:justify-between items-center",
-                    a {
-                        class: "text-2xl font-bold",
-                        href: translate!(i18, "home_link"),
-                        "Unload"
-                    }
-                    div {
-                        class: "
-                            sm:flex flex-row gap-4 items-center
-                        ",
-                        ToggleLanguageSelectionButton {}
-                        a {
-                            href: "https://github.com/lukasturcani/unload",
-                            target: "_blank",
-                            svg {
-                                class: "stroke-white fill-white hover:stroke-[#07fc03] hover:fill-[#07fc03]",
-                                height: "36",
-                                width: "37",
-                                view_box: "0 0 37 36",
-                                xmlns: "http://www.w3.org/2000/svg",
-                                path {
-                                    d: "m18.5 0c-10.24365 0-18.5 8.21021-18.5 18.2766 0 8.4958 5.90771 15.6887 13.875 17.7234v-3.6767c-5.81738-1.7313-7.37109-6.0863-7.44336-6.2648-.0542-.2142.03613-.4641.25293-.589.1626-.1249.41553-.0892.59619.0892.03613 0 3.16164 3.0343 7.02784 2.9629.2891-.7675.7588-1.535 1.4995-2.0883-4.9683-.7496-8.8706-3.6232-8.8706-8.1567 0-1.8562.77686-3.7302 2.1499-5.2473-.43359-1.7313-.61426-3.85528.1626-5.40808 1.9692.16063 3.9023 1.14229 5.3477 2.01686 1.2104-.28558 2.4931-.49976 3.9023-.49976s2.6919.21418 3.9023.49976c1.4454-.87457 3.3785-1.85623 5.3477-2.01686.7769 1.5528.5601 3.67678.1626 5.40808 1.373 1.5171 2.1499 3.3911 2.1499 5.2473 0 4.5335-3.9023 7.4071-8.8706 8.1567 1.5537 1.1959 1.9331 3.3019 1.9331 4.7834v4.7833c7.9673-2.0347 13.875-9.2276 13.875-17.7234 0-10.06639-8.3105-18.2766-18.5-18.2766z",
-                                }
-                            }
-                        }
-                        a {
-                            class: "
-                                px-5 py-2
-                                bg-[#ff6dff]
-                                rounded-md
-                                transition-all ease-in-out
-                                shadow-xl hover:shadow-md hover:translate-y-1
-                            ",
-                            href: translate!(i18, "app_link"),
-                            {translate!(i18, "go_to_app")}
-                        }
-                    }
-                }
                 div {
                     class: "flex flex-col items-center gap-4 pb-5",
                     h1 {
