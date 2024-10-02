@@ -32,6 +32,7 @@ fn LanguageSelection() -> Element {
             class: "flex items-center justify-between w-full py-2 px-3 rounded md:hover:bg-transparent \
                 md:border-0 md:p-0 md:w-auto text-text-primary md:hover:text-hover \
                 border-gray-700 hover:bg-gray-700",
+            aria_label: "select language",
             {i18.selected_language.read().language.as_str().to_uppercase()}
             svg {
                 class:  "w-2.5 h-2.5 ms-2.5",
@@ -61,7 +62,7 @@ fn LanguageList() -> Element {
             class: "z-10 hidden font-normal divide-y rounded-lg shadow w-44 bg-gray-700 divide-gray-600",
             ul {
                 class: "py-2 text-sm text-text-primary",
-                aria_label: "languages",
+                aria_labelledby: "languageDropdownButton",
                 li { LanguageLink { href: "/en", label: "English" } }
                 li { LanguageLink { href: "/sk", label: "Slovak" } }
                 li { LanguageLink { href: "/ko", label: "Korean" } }
