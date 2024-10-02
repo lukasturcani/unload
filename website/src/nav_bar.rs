@@ -5,8 +5,7 @@ use dioxus_sdk::{i18n::use_i18, translate};
 pub fn NavBar() -> Element {
     rsx! {
         nav {
-            class: "bg-background fixed w-full z-20 top-0 start-0 border-b \
-                border-grey-600",
+            class: "bg-background fixed w-full z-20 top-0 start-0 border-b border-gray-600",
             div {
                 class: "max-w-screen-xl flex flex-wrap items-center \
                     justify-between mx-auto p-4",
@@ -65,8 +64,7 @@ fn Logo() -> Element {
                 alt: "Unload Logo"
             }
             span {
-                class: "self-center text-2xl font-semibold whitespace-nowrap \
-                    text-text-primary",
+                class: "self-center text-2xl font-semibold whitespace-nowrap text-text-primary",
                 "Flowbite"
             }
         }
@@ -79,10 +77,9 @@ fn AppLink() -> Element {
     rsx! {
         a {
             href: translate!(i18, "app_link"),
-            class: "cursor-pointer text-primary-contrast-text bg-primary-main \
-                hover:bg-primary-dark focus:ring-4 focus:ring-focus \
-                focus:outline-none focus:ring-info-main font-medium rounded-lg \
-                text-sm px-4 py-2 text-center",
+            class: "cursor-pointer text-white focus:ring-4 focus:outline-none \
+                font-medium rounded-lg text-sm px-4 py-2 text-center bg-primary-main \
+                hover:bg-primary-dark focus:ring-focus",
             {translate!(i18, "go_to_app")}
         }
     }
