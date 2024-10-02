@@ -1,7 +1,10 @@
 use dioxus::prelude::*;
 use dioxus_sdk::{i18n::use_i18, translate};
 
-use crate::translations;
+use crate::{
+    buttons::{self, ButtonLink},
+    translations,
+};
 
 #[component]
 pub fn NavBar() -> Element {
@@ -163,10 +166,10 @@ fn AppLink() -> Element {
     let i18 = use_i18();
     rsx! {
         a {
+            class: "text-text-primary bg-secondary-main hover:bg-secondary-light border-2 border-primary-main \
+                focus:ring-focus text-sm px-5 py-2.5 text-center focus:ring-4 font-medium rounded-lg \
+                focus:outline-none",
             href: translate!(i18, "app_link"),
-            class: "cursor-pointer text-primary-contrast-text focus:ring-4 focus:outline-none \
-                font-medium rounded-lg text-sm px-4 py-2 text-center bg-primary-main \
-                hover:bg-primary-dark focus:ring-focus",
             {translate!(i18, "go_to_app")}
         }
     }

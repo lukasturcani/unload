@@ -1,5 +1,6 @@
 use anyhow::Result;
 use buttons::ButtonLink;
+use cards::Card;
 use dioxus::prelude::*;
 use dioxus_logger::tracing::Level;
 use dioxus_sdk::{
@@ -12,6 +13,7 @@ use std::{fs, path::PathBuf};
 use unic_langid_impl::LanguageIdentifier;
 
 mod buttons;
+mod cards;
 mod nav_bar;
 mod translations;
 
@@ -103,25 +105,20 @@ fn App(language: LanguageIdentifier) -> Element {
                         ButtonLink {
                             href: translate!(i18, "new_board_link"),
                             size: buttons::Size::Large,
-                            color: buttons::Color::Secondary,
+                            color: buttons::Color::Primary,
                             {translate!(i18, "new_board")}
 
                         }
                         ButtonLink {
                             href: translate!(i18, "app_link"),
                             size: buttons::Size::Large,
-                            color: buttons::Color::Primary,
+                            color: buttons::Color::Secondary,
                             {translate!(i18, "go_to_app")}
                         }
                     }
-                    div {
-                        class: "
-                            rounded-xl overflow-hidden mt-9 p-3 max-w-5xl
-                            bg-[#ff6dff]
-                            flex flex-col items-center justify-center gap-4
-                        ",
+                    Card {
                         div {
-                            class: "flex flex-row gap-2 items-center justify-center",
+                            class: "flex flex-row gap-2 items-center justify-center mb-4",
                             ToggleButton {
                                 aria_pressed: dense(),
                                 onclick: move |_| {
