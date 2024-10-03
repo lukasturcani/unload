@@ -19,13 +19,7 @@ receivers:
     # https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver
     protocols:
       grpc:
-      http:
-  hostmetrics:
-    # Optional. Host Metrics Receiver added as an example of Infra Monitoring capabilities of the OpenTelemetry Collector
-    # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
-    scrapers:
-      load:
-      memory:
+        endpoint: 0.0.0.0:4317
 
 processors:
   batch:
@@ -73,7 +67,7 @@ service:
       processors: [resourcedetection, batch]
       exporters: [otlp/grafana_cloud_traces]
     metrics:
-      receivers: [otlp, hostmetrics]
+      receivers: [otlp]
       processors: [resourcedetection, transform/add_resource_attributes_as_metric_attributes, batch]
       exporters: [prometheusremotewrite/grafana_cloud_metrics]
     logs:
