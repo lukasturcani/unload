@@ -36,6 +36,7 @@ mod tr;
 mod uk;
 mod ur;
 mod vi;
+mod yue;
 mod zh;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
