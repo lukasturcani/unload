@@ -10,11 +10,13 @@ use dioxus_sdk::{
 use dioxus_web::Config;
 use nav_bar::NavBar;
 use std::{fs, path::PathBuf};
+use toggles::Toggle;
 use unic_langid_impl::LanguageIdentifier;
 
 mod buttons;
 mod cards;
 mod nav_bar;
+mod toggles;
 mod translations;
 
 fn main() -> Result<()> {
@@ -119,29 +121,29 @@ fn App(language: LanguageIdentifier) -> Element {
                     Card {
                         div {
                             class: "flex flex-row gap-2 items-center justify-center mb-4",
-                            ToggleButton {
-                                aria_pressed: dense(),
-                                onclick: move |_| {
+                            Toggle {
+                                checked: dense(),
+                                label: translate!(i18, "dense_button_label"),
+                                on_change: move |_| {
                                     dense.set(!dense());
                                     let _ = scroll.send("board-image".into());
                                 },
-                                label: translate!(i18, "dense_button_label")
                             }
-                            ToggleButton {
-                                aria_pressed: dark(),
-                                onclick: move |_| {
+                            Toggle {
+                                checked: dark(),
+                                label: translate!(i18, "dark_button_label"),
+                                on_change: move |_| {
                                     dark.set(!dark());
                                     let _ = scroll.send("board-image".into());
                                 },
-                                label: translate!(i18, "dark_button_label")
                             }
-                            ToggleButton {
-                                aria_pressed: mobile(),
-                                onclick: move |_| {
+                            Toggle {
+                                checked: mobile(),
+                                label: translate!(i18, "mobile_button_label"),
+                                on_change: move |_| {
                                     mobile.set(!mobile());
                                     let _ = scroll.send("board-image".into());
                                 },
-                                label: translate!(i18, "mobile_button_label")
                             }
                         }
                         div {
