@@ -5,16 +5,38 @@ use serde_json::{json, Value};
 use shared_models::{IntoEnumIterator, SupportedLanguage};
 use std::str::FromStr;
 
+mod ar;
+mod az;
+mod bg;
+mod bn;
 mod cs;
+mod de;
 mod en;
 mod es;
+mod fa;
 mod fr;
+mod gu;
+mod ha;
+mod hi;
 mod hr;
+mod hu;
 mod it;
+mod ja;
 mod ko;
+mod mr;
 mod pl;
 mod pt;
+mod ro;
+mod ru;
 mod sk;
+mod sr;
+mod ta;
+mod te;
+mod tr;
+mod uk;
+mod ur;
+mod vi;
+mod zh;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Translation {
@@ -187,6 +209,55 @@ impl From<SupportedLanguage> for Translation {
             SupportedLanguage::Czech => cs::CS,
             SupportedLanguage::Polish => pl::PL,
             SupportedLanguage::Croatian => hr::HR,
+            SupportedLanguage::Serbian => sr::SR,
+            SupportedLanguage::Bulgarian => bg::BG,
+            SupportedLanguage::Ukranian => uk::UK,
+            SupportedLanguage::Russian => ru::RU,
+            SupportedLanguage::Romanian => ro::RO,
+            SupportedLanguage::Hungarian => hu::HU,
+            SupportedLanguage::German => de::DE,
+            SupportedLanguage::Turkish => tr::TR,
+            SupportedLanguage::Farsi => fa::FA,
+            SupportedLanguage::Hindi => hi::HI,
+            SupportedLanguage::Bengali => bn::BN,
+            SupportedLanguage::Japanese => ja::JA,
+            SupportedLanguage::Mandarin => zh::ZH,
+            SupportedLanguage::Vietnamese => vi::VI,
+            SupportedLanguage::Cantonese => yue::YUE,
+            SupportedLanguage::Marathi => mr::MR,
+            SupportedLanguage::Telugu => te::TE,
+            SupportedLanguage::Tamil => ta::TA,
+            SupportedLanguage::Urdu => ur::UR,
+            SupportedLanguage::Gujarati => gu::GU,
+            SupportedLanguage::Hausa => ha::HA,
+            SupportedLanguage::Arabic => ar::AR,
+            SupportedLanguage::Javanese => jv::JV,
+            SupportedLanguage::Punjabi => pa::PA,
+            SupportedLanguage::Dutch => nl::NL,
+            SupportedLanguage::Swedish => sv::SV,
+            SupportedLanguage::Norwegian => no::NO,
+            SupportedLanguage::Danish => da::DA,
+            SupportedLanguage::Greek => el::EL,
+            SupportedLanguage::Lithuanian => lt::LT,
+            SupportedLanguage::Latvian => lv::LV,
+            SupportedLanguage::Finnish => fi::FI,
+            SupportedLanguage::Estonian => et::ET,
+            SupportedLanguage::Armenian => hy::HY,
+            SupportedLanguage::Georgian => ka::KA,
+            SupportedLanguage::Kazakh => kk::KK,
+            SupportedLanguage::Tajik => tg::TG,
+            SupportedLanguage::Uzbek => uz::UZ,
+            SupportedLanguage::Azeri => az::AZ,
+            SupportedLanguage::Malay => ms::MS,
+            SupportedLanguage::Indonesian => id::ID,
+            SupportedLanguage::Yoruba => yo::YO,
+            SupportedLanguage::Igbo => ig::IG,
+            SupportedLanguage::Swahili => sw::SW,
+            SupportedLanguage::Tagalog => tl::TL,
+            SupportedLanguage::Thai => th::TH,
+            SupportedLanguage::Amharic => am::AM,
+            SupportedLanguage::Bhojpuri => bho::BHO,
+            SupportedLanguage::Kannada => kn::KN,
         }
     }
 }
