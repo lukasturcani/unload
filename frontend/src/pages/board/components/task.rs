@@ -487,13 +487,6 @@ fn TaskActions(task_id: TaskId) -> Element {
         section {
             aria_label: translate!(i18, "task_actions_section_label"),
             class: "flex flex-row gap-1",
-            // ActionButton {
-            //     onclick: move |_| {
-            //         spawn_forever(create_quick_add_task(board_signals, task_id));
-            //     },
-            //     tooltip: "Add to Quick Tasks",
-            //     body: rsx!(BoltIcon {}),
-            // }
             ActionButton {
                 onclick: move |_| {
                     spawn_forever(clone_task(board_signals, task_id)) ;
