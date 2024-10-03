@@ -7,7 +7,7 @@ edition.workspace = true
 
 [dependencies]
 anyhow = "1.0"
-
+shared_models = { path = "../shared_models" }
 dioxus = { version = "0.5", features = ["web", "ssr"] }
 dioxus-web = { version = "0.5", features = ["hydrate"] }
 dioxus-ssr = { version = "0.5" }

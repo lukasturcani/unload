@@ -1,6 +1,7 @@
 use dioxus_sdk::i18n::Language;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use shared_models::{IntoEnumIterator, SupportedLanguage};
 use std::str::FromStr;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -35,76 +36,7 @@ pub fn languages() -> Vec<Language> {
 }
 
 pub fn translations() -> Vec<Translation> {
-    let mut translations = vec![
-        Translation {
-            id: "en",
-            name: "EN - English",
-            text: Text {
-                open_main_menu: "Open main menu",
-                home_section_label: "Home",
-                features_section_label: "Features",
-                pricing_section_label: "Pricing",
-                contact_section_label: "Contact",
-                select_language: "Select language",
-                go_to_app: "Go to app",
-                app_link: "/en/app",
-                home_link: "/en",
-                new_board_link: "/en/new-board",
-                new_board: "New board",
-                h1_main: "Shared task management.",
-                h1_sub: "Simple, with no sign ups.",
-                dense_button_label: "Dense",
-                dark_button_label: "Dark",
-                mobile_button_label: "Mobile",
-            },
-        },
-        Translation {
-            id: "sk",
-            name: "SK - Slovenčina",
-            text: Text {
-                open_main_menu: "Otvoriť hlavné menu",
-                home_section_label: "Domov",
-                features_section_label: "Funkcie",
-                pricing_section_label: "Ceny",
-                contact_section_label: "Kontakt",
-                select_language: "Vyberte jazyk",
-                go_to_app: "Prejsť na aplikáciu",
-                app_link: "/sk/app",
-                home_link: "/sk",
-                new_board_link: "/sk/new-board",
-                new_board: "Nová nástenka",
-                h1_main: "Správa úloh.",
-                h1_sub: "Jednoducho, bez registrácie.",
-                dense_button_label: "Husté",
-                dark_button_label: "Tmavé",
-                mobile_button_label: "Mobil",
-            },
-        },
-        Translation {
-            id: "ko",
-            name: "KO - 한국어",
-            text: Text {
-                open_main_menu: "메인 메뉴 열기",
-                home_section_label: "홈",
-                features_section_label: "기능",
-                pricing_section_label: "요금",
-                contact_section_label: "연락처",
-                select_language: "언어 선택",
-                go_to_app: "앱으로 이동",
-                app_link: "/ko/app",
-                home_link: "/ko",
-                new_board_link: "/ko/new-board",
-                new_board: "새 보드",
-                h1_main: "동기 작업 관리.",
-                h1_sub: "등록 없이 간단하고 쉽게.",
-                dense_button_label: "밀집",
-                dark_button_label: "어두운",
-                mobile_button_label: "모바일",
-            },
-        },
-    ];
-    translations.sort_by_key(|t| t.name);
-    translations
+    SupportedLanguage::iter().map(Translation::from).collect()
 }
 
 impl Translation {
@@ -119,5 +51,78 @@ impl Translation {
 impl From<Translation> for Language {
     fn from(translation: Translation) -> Self {
         Language::from_str(&translation.to_json().to_string()).unwrap()
+    }
+}
+
+impl From<SupportedLanguage> for Translation {
+    fn from(language: SupportedLanguage) -> Self {
+        match language {
+            SupportedLanguage::English => Translation {
+                id: "en",
+                name: "EN - English",
+                text: Text {
+                    open_main_menu: "Open main menu",
+                    home_section_label: "Home",
+                    features_section_label: "Features",
+                    pricing_section_label: "Pricing",
+                    contact_section_label: "Contact",
+                    select_language: "Select language",
+                    go_to_app: "Go to app",
+                    app_link: "/en/app",
+                    home_link: "/en",
+                    new_board_link: "/en/new-board",
+                    new_board: "New board",
+                    h1_main: "Shared task management.",
+                    h1_sub: "Simple, with no sign ups.",
+                    dense_button_label: "Dense",
+                    dark_button_label: "Dark",
+                    mobile_button_label: "Mobile",
+                },
+            },
+            SupportedLanguage::Slovak => Translation {
+                id: "sk",
+                name: "SK - Slovenčina",
+                text: Text {
+                    open_main_menu: "Otvoriť hlavné menu",
+                    home_section_label: "Domov",
+                    features_section_label: "Funkcie",
+                    pricing_section_label: "Ceny",
+                    contact_section_label: "Kontakt",
+                    select_language: "Vyberte jazyk",
+                    go_to_app: "Prejsť na aplikáciu",
+                    app_link: "/sk/app",
+                    home_link: "/sk",
+                    new_board_link: "/sk/new-board",
+                    new_board: "Nová nástenka",
+                    h1_main: "Správa úloh.",
+                    h1_sub: "Jednoducho, bez registrácie.",
+                    dense_button_label: "Husté",
+                    dark_button_label: "Tmavé",
+                    mobile_button_label: "Mobil",
+                },
+            },
+            SupportedLanguage::Korean => Translation {
+                id: "ko",
+                name: "KO - 한국어",
+                text: Text {
+                    open_main_menu: "메인 메뉴 열기",
+                    home_section_label: "홈",
+                    features_section_label: "기능",
+                    pricing_section_label: "요금",
+                    contact_section_label: "연락처",
+                    select_language: "언어 선택",
+                    go_to_app: "앱으로 이동",
+                    app_link: "/ko/app",
+                    home_link: "/ko",
+                    new_board_link: "/ko/new-board",
+                    new_board: "새 보드",
+                    h1_main: "동기 작업 관리.",
+                    h1_sub: "등록 없이 간단하고 쉽게.",
+                    dense_button_label: "밀집",
+                    dark_button_label: "어두운",
+                    mobile_button_label: "모바일",
+                },
+            },
+        }
     }
 }
