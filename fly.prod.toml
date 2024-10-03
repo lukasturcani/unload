@@ -19,7 +19,7 @@ primary_region = "lhr"
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
-  memory = '512mb'
+  memory = '256mb'
 
 [env]
   UNLOAD_DATABASE_URL = "sqlite:/mnt/unload_data/unload.db"
