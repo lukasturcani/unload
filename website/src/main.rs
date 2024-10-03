@@ -147,23 +147,26 @@ fn App(language: LanguageIdentifier) -> Element {
                             }
                         }
                         div {
-                            class: if mobile() { "sm:w-1/2" },
-                            figure {
-                                class: "rounded-xl overflow-hidden shadow-lg",
-                                img {
-                                    id: "board-image",
-                                    class: "object-contain",
-                                    alt: "unload board",
-                                    src: match (dense(), dark(), mobile()) {
-                                        (true, true, true) => "/dense_dark_mobile.png",
-                                        (true, true, false) => "/dense_dark_nmobile.png",
-                                        (true, false, true) => "/dense_ndark_mobile.png",
-                                        (true, false, false) => "/dense_ndark_nmobile.png",
-                                        (false, true, true) => "/ndense_dark_mobile.png",
-                                        (false, true, false) => "/ndense_dark_nmobile.png",
-                                        (false, false, true) => "/ndense_ndark_mobile.png",
-                                        (false, false, false) => "/ndense_ndark_nmobile.png",
-                                    },
+                            class: "flex flex-row items-center justify-center",
+                            div {
+                                class: if mobile() { "sm:w-1/2" },
+                                figure {
+                                    class: "rounded-xl overflow-hidden shadow-lg border border-gray-700",
+                                    img {
+                                        id: "board-image",
+                                        class: "object-contain",
+                                        alt: "unload board",
+                                        src: match (dense(), dark(), mobile()) {
+                                            (true, true, true) => "/dense_dark_mobile.png",
+                                            (true, true, false) => "/dense_dark_nmobile.png",
+                                            (true, false, true) => "/dense_ndark_mobile.png",
+                                            (true, false, false) => "/dense_ndark_nmobile.png",
+                                            (false, true, true) => "/ndense_dark_mobile.png",
+                                            (false, true, false) => "/ndense_dark_nmobile.png",
+                                            (false, false, true) => "/ndense_ndark_mobile.png",
+                                            (false, false, false) => "/ndense_ndark_nmobile.png",
+                                        },
+                                    }
                                 }
                             }
                         }
