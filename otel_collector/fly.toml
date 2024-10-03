@@ -20,6 +20,6 @@ primary_region = 'lhr'
   force_https = false
 
 [[vm]]
-  memory = '1gb'
+  memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
