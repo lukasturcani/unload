@@ -71,7 +71,7 @@ fn App(language: LanguageIdentifier) -> Element {
         "#,
     );
     let mut dense = use_signal(|| false);
-    let mut dark = use_signal(|| false);
+    let mut dark = use_signal(|| true);
     let mut mobile = use_signal(|| false);
     use_future(move || async move {
         {
@@ -120,7 +120,7 @@ fn App(language: LanguageIdentifier) -> Element {
                     }
                     Card {
                         div {
-                            class: "flex flex-row gap-2 items-center justify-center mb-4",
+                            class: "flex flex-row gap-12 items-center justify-center mb-4",
                             Toggle {
                                 checked: dense(),
                                 label: translate!(i18, "dense_button_label"),
