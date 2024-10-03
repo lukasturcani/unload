@@ -94,7 +94,7 @@ fn App(language: LanguageIdentifier) -> Element {
                     class: "flex flex-col items-center gap-10 pb-5",
                     h1 {
                         id: "home",
-                        class: "text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-center",
+                        class: "text-2xl sm:text-4xl md:text-5xl md:leading-tight lg:text-6xl lg:leading-tight tracking-tight font-extrabold text-center",
                         {translate!(i18, "h1_main")}
                         br {}
                         span {
