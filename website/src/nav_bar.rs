@@ -144,9 +144,10 @@ fn ToggleSectionListButton() -> Element {
 
 #[component]
 fn Logo() -> Element {
+    let i18 = use_i18();
     rsx! {
         a {
-            href: "/",
+            href: translate!(i18, "home_link"),
             class: "flex items-center space-x-3 rtl:space-x-reverse",
             img {
                 src: "https://flowbite.com/docs/images/logo.svg",
