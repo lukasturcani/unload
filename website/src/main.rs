@@ -89,7 +89,7 @@ fn App(language: LanguageIdentifier) -> Element {
             class: "font-mono min-h-screen min-w-screen text-text-primary flex flex-col pt-28 sm:pt-32",
             NavBar {}
             div {
-                class: "container mx-auto px-3",
+                class: "container mx-auto px-3 max-w-5xl",
                 div {
                     class: "flex flex-col items-center gap-10 pb-5",
                     h1 {
