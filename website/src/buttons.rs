@@ -8,6 +8,7 @@ pub enum Color {
 
 #[derive(PartialEq, Eq, Copy, Clone)]
 pub enum Size {
+    #[allow(dead_code)]
     Small,
     Medium,
     Large,
