@@ -5,8 +5,15 @@ use serde_json::{json, Value};
 use shared_models::{IntoEnumIterator, SupportedLanguage};
 use std::str::FromStr;
 
+mod cs;
 mod en;
+mod es;
+mod fr;
+mod hr;
+mod it;
 mod ko;
+mod pl;
+mod pt;
 mod sk;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -173,6 +180,13 @@ impl From<SupportedLanguage> for Translation {
             SupportedLanguage::English => en::EN,
             SupportedLanguage::Slovak => sk::SK,
             SupportedLanguage::Korean => ko::KO,
+            SupportedLanguage::French => fr::FR,
+            SupportedLanguage::Italian => it::IT,
+            SupportedLanguage::Portuguese => pt::PT,
+            SupportedLanguage::Spanish => es::ES,
+            SupportedLanguage::Czech => cs::CS,
+            SupportedLanguage::Polish => pl::PL,
+            SupportedLanguage::Croatian => hr::HR,
         }
     }
 }

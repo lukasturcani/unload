@@ -278,6 +278,13 @@ pub enum SupportedLanguage {
     English,
     Slovak,
     Korean,
+    Spanish,
+    Portuguese,
+    French,
+    Italian,
+    Czech,
+    Polish,
+    Croatian,
 }
 
 impl SupportedLanguage {
@@ -286,6 +293,13 @@ impl SupportedLanguage {
             SupportedLanguage::English => "en",
             SupportedLanguage::Slovak => "sk",
             SupportedLanguage::Korean => "ko",
+            SupportedLanguage::Spanish => "es",
+            SupportedLanguage::Portuguese => "pt",
+            SupportedLanguage::French => "fr",
+            SupportedLanguage::Italian => "it",
+            SupportedLanguage::Czech => "cs",
+            SupportedLanguage::Polish => "pl",
+            SupportedLanguage::Croatian => "hr",
         }
     }
 }

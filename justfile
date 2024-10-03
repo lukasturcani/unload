@@ -216,7 +216,7 @@ website:
 
 # watch the website
 watch-website:
-  watchexec -c -w website "\
+  watchexec -c -w website -w shared_models "\
   cd website && \
   rm -rf dist && \
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
