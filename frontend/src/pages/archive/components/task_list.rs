@@ -278,7 +278,7 @@ fn TaskActions(task_id: TaskId) -> Element {
                 onclick: move |_| {
                     spawn_forever(requests::set_task_archived(tasks, url, task_id));
                 },
-                tooltip: "Restore Task",
+                tooltip: translate!(i18, "unarchive_task_button_tooltip"),
                 body: rsx!(UnarchiveIcon {}),
             }
         }
