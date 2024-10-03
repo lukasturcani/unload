@@ -1,6 +1,8 @@
 use dioxus_sdk::i18n::Language;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use shared_models::{IntoEnumIterator, SupportedLanguage};
 use std::str::FromStr;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -136,8 +138,35 @@ struct Text {
 }
 
 pub fn translations() -> Vec<Translation> {
-    let mut translations = vec![
-        Translation {
+    SupportedLanguage::iter()
+        .sorted_unstable_by_key(|x| x.id())
+        .map(Translation::from)
+        .collect()
+}
+
+pub fn languages() -> Vec<Language> {
+    translations().into_iter().map(Language::from).collect()
+}
+
+impl Translation {
+    pub fn to_json(&self) -> Value {
+        json!({
+            "id": self.id,
+            "texts": serde_json::to_value(&self.text).unwrap(),
+        })
+    }
+}
+
+impl From<Translation> for Language {
+    fn from(translation: Translation) -> Self {
+        Language::from_str(&translation.to_json().to_string()).unwrap()
+    }
+}
+
+impl From<SupportedLanguage> for Translation {
+    fn from(language: SupportedLanguage) -> Self {
+        match language {
+            SupportedLanguage::English => Translation {
             id: "en",
             name: "EN - English",
             text: Text {
@@ -265,8 +294,8 @@ pub fn translations() -> Vec<Translation> {
                 users_link: "Users",
                 archive_link: "Archive",
             },
-        },
-        Translation {
+            },
+            SupportedLanguage::Slovak => Translation {
             id: "sk",
             name: "SK - Slovenčina",
             text: Text {
@@ -394,8 +423,10 @@ pub fn translations() -> Vec<Translation> {
                 users_link: "Užívatelia",
                 archive_link: "Archív",
             },
-        },
-        Translation {
+
+            },
+            SupportedLanguage::Korean => Translation {
+
             id: "ko",
             name: "KO - 한국어",
             text: Text {
@@ -523,27 +554,7 @@ pub fn translations() -> Vec<Translation> {
                 users_link: "사용자",
                 archive_link: "아카이브",
             },
-        },
-    ];
-    translations.sort_by_key(|t| t.name);
-    translations
-}
-
-pub fn languages() -> Vec<Language> {
-    translations().into_iter().map(Language::from).collect()
-}
-
-impl Translation {
-    pub fn to_json(&self) -> Value {
-        json!({
-            "id": self.id,
-            "texts": serde_json::to_value(&self.text).unwrap(),
-        })
-    }
-}
-
-impl From<Translation> for Language {
-    fn from(translation: Translation) -> Self {
-        Language::from_str(&translation.to_json().to_string()).unwrap()
+            },
+        }
     }
 }

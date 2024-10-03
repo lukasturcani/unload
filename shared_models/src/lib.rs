@@ -281,7 +281,7 @@ pub enum SupportedLanguage {
 }
 
 impl SupportedLanguage {
-    pub fn id(&self) -> &str {
+    pub fn id(&self) -> &'static str {
         match self {
             SupportedLanguage::English => "en",
             SupportedLanguage::Slovak => "sk",

@@ -1,4 +1,5 @@
 use dioxus_sdk::i18n::Language;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use shared_models::{IntoEnumIterator, SupportedLanguage};
@@ -36,7 +37,10 @@ pub fn languages() -> Vec<Language> {
 }
 
 pub fn translations() -> Vec<Translation> {
-    SupportedLanguage::iter().map(Translation::from).collect()
+    SupportedLanguage::iter()
+        .sorted_unstable_by_key(|x| x.id())
+        .map(Translation::from)
+        .collect()
 }
 
 impl Translation {
