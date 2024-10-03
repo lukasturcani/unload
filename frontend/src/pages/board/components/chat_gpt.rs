@@ -470,7 +470,7 @@ fn DeleteTaskButton(suggestion_id: usize, resolved_suggestions: Signal<HashSet<u
     ";
     rsx! {
         button {
-            aria_label: translate!(i18, "delete_task_button_label"),
+            aria_label: translate!(i18, "delete_task_tooltip"),
             class: "size-7 {style}",
             onclick: move |_| {
                 let mut resolved_suggestions = resolved_suggestions.write();
