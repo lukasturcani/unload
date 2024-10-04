@@ -69,7 +69,7 @@ async fn main() {
 
     file.write(batch_request_content.as_bytes()).unwrap();
     let file_upload_request = FileUploadRequest::new(
-        file.path().as_str().unwrap().to_string(),
+        file.path().to_str().unwrap().to_string(),
         "batch".to_string(),
     );
     let file_upload_result = client.upload_file(file_upload_request).await.unwrap();
