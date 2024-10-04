@@ -1,3 +1,3 @@
 use super::{Text, Translation};
 
-pub const JA: Translation = todo!();
+pub const JA: Translation = crate::translations::en::EN;
