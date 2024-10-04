@@ -50,7 +50,7 @@ async fn main() {
             )
         })
         .map(|(l, s)| BatchFileLine {
-            custom_id: format!("frontend-{}-request", l.name()),
+            custom_id: format!("website-{}-request", l.name()),
             method: "POST".to_string(),
             url: format!("/v1/chat/completions"),
             body: ChatCompletionRequest::new(
