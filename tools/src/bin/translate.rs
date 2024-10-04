@@ -2,7 +2,7 @@ use clap::Parser;
 use frontend::translations;
 use openai_api_rs::v1::{
     api::OpenAIClient,
-    chat_completion::{self, ChatCompletionMessage, ChatCompletionRequest, Content, MessageRole},
+    chat_completion::{ChatCompletionMessage, ChatCompletionRequest, Content, MessageRole},
     common::GPT4_O,
 };
 use shared_models::SupportedLanguage;
@@ -25,10 +25,10 @@ async fn main() {
             ChatCompletionMessage {
                 role: MessageRole::system,
                 content: Content::Text(
-                    format!("Translate the following text into sk. \
+                    format!("Translate the following text into {}. \
                     It is for a to-do list app. It consists of tasks which are placed in 3 columns, to do \
                     in progress and done. \
-                    \n```json\n{english}\n```"),
+                    \n```json\n{english}\n```", SupportedLanguage::Slovak.name()),
                 ),
                 name: None,
                 tool_calls: None,
