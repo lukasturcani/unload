@@ -13,11 +13,11 @@ use std::{fs, path::PathBuf};
 use toggles::Toggle;
 use unic_langid_impl::LanguageIdentifier;
 
-mod buttons;
-mod cards;
-mod nav_bar;
-mod toggles;
-mod translations;
+use website::buttons;
+use website::cards;
+use website::nav_bar;
+use website::toggles;
+use website::translations;
 
 fn main() -> Result<()> {
     #[cfg(feature = "prebuild")]
