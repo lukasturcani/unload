@@ -560,7 +560,7 @@ fn LanguageList(panel: Signal<Panel>) -> Element {
 }
 
 #[component]
-fn LanguageListItem(translation: Translation, panel: Signal<Panel>) -> Element {
+fn LanguageListItem(translation: Translation<&'static str>, panel: Signal<Panel>) -> Element {
     let mut language = use_context::<Signal<BoardLanguage>>();
     let mut i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();

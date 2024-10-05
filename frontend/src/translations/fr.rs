@@ -1,6 +1,6 @@
 use super::{Text, Translation};
 
-pub const FR: Translation = Translation
+pub const FR: Translation<&'static str> = Translation
 {
     id: "fr",
     name: "FR - Français",

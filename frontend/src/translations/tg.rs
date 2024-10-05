@@ -1,3 +1,3 @@
 use super::{Text, Translation};
 
-pub const TG: Translation = crate::translations::en::EN;
+pub const TG: Translation<&'static str> = crate::translations::en::EN;
