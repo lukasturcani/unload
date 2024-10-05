@@ -28,9 +28,9 @@ struct BatchFileLine {
 async fn main() {
     let cli = Cli::parse();
     let client = OpenAIClient::new(cli.openai_api_key);
-    let english = translations::Translation::from(SupportedLanguage::English)
-        .to_json()
-        .to_string();
+    let english =
+        serde_json::to_string(&translations::Translation::from(SupportedLanguage::English))
+            .unwrap();
     let mut file = tempfile::NamedTempFile::new().unwrap();
 
     let batch_request_content = SupportedLanguage::iter()
