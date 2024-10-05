@@ -51,7 +51,7 @@ async fn main() {
         .map(|(l, s)| BatchFileLine {
             custom_id: format!("frontend-{}-request", l.name()),
             method: "POST".to_string(),
-            url: "/v1/chat/completions",
+            url: "/v1/chat/completions".into(),
             body: ChatCompletionRequest::new(
                 GPT4_O.to_string(),
                 vec![ChatCompletionMessage {
