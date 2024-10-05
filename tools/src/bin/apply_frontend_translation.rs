@@ -45,7 +45,7 @@ async fn main() {
 
 fn file_content(translation: &Translation<String>) -> String {
     format!(
-        "use super::{{Text, Translation}};\n\npub const {}: Translation<&'static str> = {:#?}\n",
+        "use super::{{Text, Translation}};\n\npub const {}: Translation<&'static str> = {:#?};\n",
         translation.id.to_uppercase(),
         translation
     )
