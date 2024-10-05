@@ -67,7 +67,7 @@ async fn main() {
         .collect::<Vec<String>>()
         .join("\n");
 
-    file.write(batch_request_content.as_bytes()).unwrap();
+    file.write_all(batch_request_content.as_bytes()).unwrap();
     let file_upload_request = FileUploadRequest::new(
         file.path().to_str().unwrap().to_string(),
         "batch".to_string(),

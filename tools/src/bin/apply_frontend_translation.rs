@@ -18,13 +18,18 @@ async fn main() {
     let file_id = batch.output_file_id.unwrap();
     let content = client.retrieve_file_content(file_id).await.unwrap();
     let content = str::from_utf8(&content).unwrap();
-    for line in content.split("\n").filter(|line| !line.is_empty()) {
-        let value = serde_json::from_str::<Value>(line).unwrap();
+    for value in content
+        .split("\n")
+        .filter(|line| !line.is_empty())
+        .map(|line| serde_json::from_str::<Value>(line).unwrap())
+    {
         let content = &value["response"]["body"]["choices"][0]["message"]["content"]
             .as_str()
             .unwrap();
+        println!("{content}");
         let content = content.strip_prefix("```json\n").unwrap_or(content);
         let content = content.strip_suffix("\n```").unwrap_or(content);
-        let translation = serde_json::from_str::<Translation>(content);
+        let translation = serde_json::from_str::<Translation<String>>(content);
+        println!("{:?}", translation);
     }
 }
