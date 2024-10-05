@@ -7,6 +7,7 @@ use openai_api_rs::v1::{
     file::FileUploadRequest,
 };
 use serde::Serialize;
+use serde_json::json;
 use shared_models::{IntoEnumIterator, SupportedLanguage};
 use std::io::Write;
 use website::translations;
@@ -28,9 +29,9 @@ struct BatchFileLine {
 async fn main() {
     let cli = Cli::parse();
     let client = OpenAIClient::new(cli.openai_api_key);
-    let english = translations::Translation::from(SupportedLanguage::English)
-        .to_json()
-        .to_string();
+    let english =
+        serde_json::to_string(&translations::Translation::from(SupportedLanguage::English))
+            .unwrap();
     let mut file = tempfile::NamedTempFile::new().unwrap();
 
     let batch_request_content = SupportedLanguage::iter()
@@ -39,11 +40,12 @@ async fn main() {
             (
                 l,
                 format!(
-                    "Translate the following text into {}. \
+                    "Translate the following text into {} ({}). \
                         It is for the landing page of a website of a to-do list app. \
                         It consists of tasks which are placed in 3 columns, to do \
                         in progress and done. \
                     \n```json\n{}\n```",
+                    l.id(),
                     l.name(),
                     english
                 ),
@@ -52,7 +54,7 @@ async fn main() {
         .map(|(l, s)| BatchFileLine {
             custom_id: format!("website-{}-request", l.name()),
             method: "POST".to_string(),
-            url: format!("/v1/chat/completions"),
+            url: "/v1/chat/completions".into(),
             body: ChatCompletionRequest::new(
                 GPT4_O.to_string(),
                 vec![ChatCompletionMessage {
@@ -62,13 +64,14 @@ async fn main() {
                     tool_calls: None,
                     tool_call_id: None,
                 }],
-            ),
+            )
+            .response_format(json!({"type": "json_object"})),
         })
         .map(|l| serde_json::to_string(&l).unwrap())
         .collect::<Vec<String>>()
         .join("\n");
 
-    file.write(batch_request_content.as_bytes()).unwrap();
+    file.write_all(batch_request_content.as_bytes()).unwrap();
     let file_upload_request = FileUploadRequest::new(
         file.path().to_str().unwrap().to_string(),
         "batch".to_string(),
