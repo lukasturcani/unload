@@ -2,11 +2,12 @@ use clap::Parser;
 use frontend::translations::Translation;
 use openai_api_rs::v1::api::OpenAIClient;
 use serde_json::Value;
-use std::str;
+use std::{path::PathBuf, str};
 
 #[derive(Parser)]
 struct Cli {
     batch_id: String,
+    write_to: PathBuf,
     openai_api_key: String,
 }
 
@@ -29,7 +30,19 @@ async fn main() {
         println!("{content}");
         let content = content.strip_prefix("```json\n").unwrap_or(content);
         let content = content.strip_suffix("\n```").unwrap_or(content);
-        let translation = serde_json::from_str::<Translation<String>>(content);
-        println!("{:?}", translation);
+        match serde_json::from_str::<Translation<String>>(content) {
+            Ok(translation) => {
+                std::fs::write(cli.write_to.join(""), file_content(&translation)).unwrap();
+            }
+            Err(e) => println!("failed: {e}"),
+        }
     }
+}
+
+fn file_content(translation: &Translation<String>) -> String {
+    format!(
+        "use super::{{Text, Translation}};\n\npub const {}: Translation<&'static str> = {:#?}\n",
+        translation.id.to_uppercase(),
+        translation
+    )
 }
