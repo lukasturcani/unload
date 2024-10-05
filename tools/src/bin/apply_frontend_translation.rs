@@ -32,7 +32,11 @@ async fn main() {
         let content = content.strip_suffix("\n```").unwrap_or(content);
         match serde_json::from_str::<Translation<String>>(content) {
             Ok(translation) => {
-                std::fs::write(cli.write_to.join(""), file_content(&translation)).unwrap();
+                std::fs::write(
+                    cli.write_to.join(format!("{}.rs", translation.id)),
+                    file_content(&translation),
+                )
+                .unwrap();
             }
             Err(e) => println!("failed: {e}"),
         }
