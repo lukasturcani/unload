@@ -8,6 +8,7 @@ use openai_api_rs::v1::{
     file::FileUploadRequest,
 };
 use serde::Serialize;
+use serde_json::json;
 use shared_models::{IntoEnumIterator, SupportedLanguage};
 use std::io::Write;
 
@@ -61,7 +62,8 @@ async fn main() {
                     tool_calls: None,
                     tool_call_id: None,
                 }],
-            ),
+            )
+            .response_format(json!({"type": "json_object"})),
         })
         .map(|l| serde_json::to_string(&l).unwrap())
         .collect::<Vec<String>>()
