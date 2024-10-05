@@ -2,16 +2,26 @@ use anyhow::Result;
 use buttons::ButtonLink;
 use cards::Card;
 use dioxus::prelude::*;
-use dioxus_logger::tracing::Level;
 use dioxus_sdk::{
     i18n::{use_i18, use_init_i18n},
     translate,
 };
-use dioxus_web::Config;
 use nav_bar::NavBar;
-use std::{fs, path::PathBuf};
+use std::fs;
 use toggles::Toggle;
 use unic_langid_impl::LanguageIdentifier;
+
+#[cfg(feature = "prebuild")]
+use shared_models::{IntoEnumIterator, SupportedLanguage};
+#[cfg(feature = "prebuild")]
+use std::path::PathBuf;
+#[cfg(feature = "prebuild")]
+use std::str::FromStr;
+
+#[cfg(not(feature = "prebuild"))]
+use dioxus_logger::tracing::Level;
+#[cfg(not(feature = "prebuild"))]
+use dioxus_web::Config;
 
 use website::buttons;
 use website::cards;
@@ -22,16 +32,14 @@ use website::translations;
 fn main() -> Result<()> {
     #[cfg(feature = "prebuild")]
     {
-        let languages = [
-            "en".parse::<LanguageIdentifier>()?,
-            "sk".parse::<LanguageIdentifier>()?,
-            "ko".parse::<LanguageIdentifier>()?,
-        ];
-        for language in languages {
-            let mut path = PathBuf::from(format!("./dist/{}", language));
+        for language in SupportedLanguage::iter() {
+            let mut path = PathBuf::from(format!("./dist/{}", language.id()));
             fs::create_dir(&path)?;
             path.push("index.html");
-            fs::write(path, index_page(language)?)?;
+            fs::write(
+                path,
+                index_page(LanguageIdentifier::from_str(language.id()).unwrap())?,
+            )?;
         }
         fs::write(
             "./dist/index.html",
