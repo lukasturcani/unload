@@ -27,9 +27,6 @@ async fn main() {
         let content = &value["response"]["body"]["choices"][0]["message"]["content"]
             .as_str()
             .unwrap();
-        println!("{content}");
-        let content = content.strip_prefix("```json\n").unwrap_or(content);
-        let content = content.strip_suffix("\n```").unwrap_or(content);
         match serde_json::from_str::<Translation<String>>(content) {
             Ok(translation) => {
                 std::fs::write(

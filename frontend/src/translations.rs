@@ -8,7 +8,7 @@ mod am;
 mod ar;
 mod az;
 mod bg;
-mod bho;
+mod bh;
 mod bn;
 mod cs;
 mod da;
@@ -281,7 +281,7 @@ impl From<SupportedLanguage> for Translation<&'static str> {
             SupportedLanguage::Tagalog => tl::TL,
             SupportedLanguage::Thai => th::TH,
             SupportedLanguage::Amharic => am::AM,
-            SupportedLanguage::Bhojpuri => bho::BHO,
+            SupportedLanguage::Bhojpuri => bh::BH,
             SupportedLanguage::Kannada => kn::KN,
         }
     }
