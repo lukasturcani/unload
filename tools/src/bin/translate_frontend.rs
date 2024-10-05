@@ -40,10 +40,11 @@ async fn main() {
             (
                 l,
                 format!(
-                    "Translate the following text into {}. \
+                    "Translate the following text into {} ({}). \
                         It is for a to-do list app. It consists of tasks which are placed in 3 columns, to do \
                         in progress and done. \
                     \n```json\n{}\n```",
+                    l.id(),
                     l.name(),
                     english
                 ),
