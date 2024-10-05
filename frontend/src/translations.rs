@@ -215,6 +215,7 @@ where
     pub fn to_json(&self) -> Value {
         json!({
             "id": self.id,
+            "name": self.name,
             "texts": serde_json::to_value(&self.text).unwrap(),
         })
     }
