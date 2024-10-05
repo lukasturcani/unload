@@ -35,6 +35,7 @@ mod ka;
 mod kk;
 mod kn;
 mod ko;
+mod kz;
 mod lt;
 mod lv;
 mod mr;
