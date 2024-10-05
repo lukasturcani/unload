@@ -205,28 +205,15 @@ pub fn translations() -> Vec<Translation<&'static str>> {
 }
 
 pub fn languages() -> Vec<Language> {
-    translations().into_iter().map(Language::from).collect()
+    translations().iter().map(Language::from).collect()
 }
 
-impl<T> Translation<T>
+impl<T> From<&Translation<T>> for Language
 where
     T: Serialize,
 {
-    pub fn to_json(&self) -> Value {
-        json!({
-            "id": self.id,
-            "name": self.name,
-            "texts": serde_json::to_value(&self.text).unwrap(),
-        })
-    }
-}
-
-impl<T> From<Translation<T>> for Language
-where
-    T: Serialize,
-{
-    fn from(translation: Translation<T>) -> Self {
-        Language::from_str(&translation.to_json().to_string()).unwrap()
+    fn from(translation: &Translation<T>) -> Self {
+        Language::from_str(&serde_json::to_string(translation).unwrap()).unwrap()
     }
 }
 
