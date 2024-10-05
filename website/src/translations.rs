@@ -1,7 +1,6 @@
 use dioxus_sdk::i18n::Language;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
 use shared_models::{IntoEnumIterator, SupportedLanguage};
 use std::str::FromStr;
 
@@ -66,59 +65,53 @@ mod yue;
 mod zh;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Translation {
-    pub id: &'static str,
-    pub name: &'static str,
-    text: Text,
+pub struct Translation<T> {
+    pub id: T,
+    pub name: T,
+    text: Text<T>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-struct Text {
-    open_main_menu: &'static str,
-    home_section_label: &'static str,
-    features_section_label: &'static str,
-    pricing_section_label: &'static str,
-    contact_section_label: &'static str,
-    select_language: &'static str,
-    go_to_app: &'static str,
-    app_link: &'static str,
-    home_link: &'static str,
-    new_board_link: &'static str,
-    new_board: &'static str,
-    h1_main: &'static str,
-    h1_sub: &'static str,
-    dense_button_label: &'static str,
-    dark_button_label: &'static str,
-    mobile_button_label: &'static str,
+struct Text<T> {
+    open_main_menu: T,
+    home_section_label: T,
+    features_section_label: T,
+    pricing_section_label: T,
+    contact_section_label: T,
+    select_language: T,
+    go_to_app: T,
+    app_link: T,
+    home_link: T,
+    new_board_link: T,
+    new_board: T,
+    h1_main: T,
+    h1_sub: T,
+    dense_button_label: T,
+    dark_button_label: T,
+    mobile_button_label: T,
 }
 
 pub fn languages() -> Vec<Language> {
-    translations().into_iter().map(Language::from).collect()
+    translations().iter().map(Language::from).collect()
 }
 
-pub fn translations() -> Vec<Translation> {
+pub fn translations() -> Vec<Translation<&'static str>> {
     SupportedLanguage::iter()
         .sorted_unstable_by_key(|x| x.id())
         .map(Translation::from)
         .collect()
 }
 
-impl Translation {
-    pub fn to_json(&self) -> Value {
-        json!({
-            "id": self.id,
-            "texts": serde_json::to_value(&self.text).unwrap(),
-        })
+impl<T> From<&Translation<T>> for Language
+where
+    T: Serialize,
+{
+    fn from(translation: &Translation<T>) -> Self {
+        Language::from_str(&serde_json::to_string(translation).unwrap()).unwrap()
     }
 }
 
-impl From<Translation> for Language {
-    fn from(translation: Translation) -> Self {
-        Language::from_str(&translation.to_json().to_string()).unwrap()
-    }
-}
-
-impl From<SupportedLanguage> for Translation {
+impl From<SupportedLanguage> for Translation<&'static str> {
     fn from(language: SupportedLanguage) -> Self {
         match language {
             SupportedLanguage::English => en::EN,
