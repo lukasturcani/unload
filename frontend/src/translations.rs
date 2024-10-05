@@ -212,7 +212,12 @@ where
     T: Serialize,
 {
     fn from(translation: &Translation<T>) -> Self {
-        Language::from_str(&serde_json::to_string(translation).unwrap()).unwrap()
+        let mut value = serde_json::to_value(translation).unwrap();
+        let value = value.as_object_mut().unwrap();
+        value.remove("name");
+        let text = value.remove("text").unwrap();
+        value.insert("texts".into(), text);
+        Language::from_str(&serde_json::to_string(value).unwrap()).unwrap()
     }
 }
 
