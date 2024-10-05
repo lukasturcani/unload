@@ -1,4 +1,5 @@
 use clap::Parser;
+use frontend::translations::Translation;
 use openai_api_rs::v1::api::OpenAIClient;
 use serde_json::Value;
 use std::str;
@@ -17,10 +18,13 @@ async fn main() {
     let file_id = batch.output_file_id.unwrap();
     let content = client.retrieve_file_content(file_id).await.unwrap();
     let content = str::from_utf8(&content).unwrap();
-    let values = content
-        .split("\n")
-        .filter(|line| !line.is_empty())
-        .map(|line| serde_json::from_str(line).unwrap())
-        .collect::<Vec<Value>>();
-    println!("{:?}", values);
+    for line in content.split("\n").filter(|line| !line.is_empty()) {
+        let value = serde_json::from_str::<Value>(line).unwrap();
+        let content = &value["response"]["body"]["choices"][0]["message"]["content"]
+            .as_str()
+            .unwrap();
+        let content = content.strip_prefix("```json\n").unwrap_or(content);
+        let content = content.strip_suffix("\n```").unwrap_or(content);
+        let translation = serde_json::from_str::<Translation>(content);
+    }
 }
