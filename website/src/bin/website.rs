@@ -147,7 +147,7 @@ fn App(language: LanguageIdentifier) -> Element {
                                     class: "rounded-xl overflow-hidden shadow-lg border border-gray-700",
                                     img {
                                         id: "board-image",
-                                        class: "object-contain",
+                                        class: if mobile() { "max-h-96 sm:max-h-none" } else { "object-contain" },
                                         alt: "unload board",
                                         src: match (dense(), dark(), mobile()) {
                                             (true, true, true) => "/dense_dark_mobile.png",
