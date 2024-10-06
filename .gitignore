@@ -1,11 +1,11 @@
 frontend/dist
-frontend/assets/tailwind.css
-frontend/static
-frontend/.dioxus
 frontend/node_modules
-website/assets/tailwind.css
-website/assets/flowbite.min.js
+frontend/assets/tailwind.css
+frontend/assets/flowbite.min.js
+frontend/assets/*.br
 website/dist
 website/node_modules
+website/assets/tailwind.css
+website/assets/flowbite.min.js
+website/assets/*.br
 /target
-*.br

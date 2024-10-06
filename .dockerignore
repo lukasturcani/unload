@@ -3,4 +3,11 @@
 /frontend/dist
 /frontend/node_modules
 /frontend/assets/tailwind.css
+/frontend/assets/flowbite.min.js
+/frontend/assets/*.br
+/website/dist
+/website/node_modules
+/website/assets/tailwind.css
+/website/assets/flowbite.min.js
+/website/assets/*.br
 /otel-collector
