@@ -70,14 +70,6 @@ fn index_page(language: LanguageIdentifier) -> Result<String> {
 
 #[component]
 fn App(language: LanguageIdentifier) -> Element {
-    let scroll = eval(
-        r#"
-            let elementId = await dioxus.recv();
-            if (elementId !== "ignore") {
-                document.getElementById(elementId).scrollIntoView({behavior: "smooth"});
-            }
-        "#,
-    );
     let mut dense = use_signal(|| false);
     let mut dark = use_signal(|| true);
     let mut mobile = use_signal(|| false);
@@ -134,26 +126,17 @@ fn App(language: LanguageIdentifier) -> Element {
                             Toggle {
                                 checked: dense(),
                                 label: translate!(i18, "dense_button_label"),
-                                on_change: move |_| {
-                                    dense.set(!dense());
-                                    let _ = scroll.send("board-image".into());
-                                },
+                                on_change: move |_| dense.set(!dense()),
                             }
                             Toggle {
                                 checked: dark(),
                                 label: translate!(i18, "dark_button_label"),
-                                on_change: move |_| {
-                                    dark.set(!dark());
-                                    let _ = scroll.send("board-image".into());
-                                },
+                                on_change: move |_| dark.set(!dark()),
                             }
                             Toggle {
                                 checked: mobile(),
                                 label: translate!(i18, "mobile_button_label"),
-                                on_change: move |_| {
-                                    mobile.set(!mobile());
-                                    let _ = scroll.send("board-image".into());
-                                },
+                                on_change: move |_| mobile.set(!mobile()),
                             }
                         }
                         div {
