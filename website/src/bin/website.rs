@@ -196,37 +196,3 @@ fn App(language: LanguageIdentifier) -> Element {
         }
     }
 }
-
-#[component]
-fn ToggleLanguageSelectionButton() -> Element {
-    let i18 = use_i18();
-    rsx! {
-        button {
-            class: "text-xl",
-            {i18.selected_language.read().language.as_str().to_uppercase()}
-        }
-    }
-}
-
-#[component]
-fn ToggleButton(
-    onclick: EventHandler<MouseEvent>,
-    aria_pressed: bool,
-    label: ReadOnlySignal<String>,
-) -> Element {
-    rsx! {
-        button {
-            class: "
-                px-2 py-1 rounded-md font-bold
-                shadow-md sm:hover:shadow sm:hover:translate-y-1
-                aria-pressed:shadow aria-pressed:translate-y-1 aria-pressed:bg-[#07fc03]
-                bg-white text-[#ff6dff]
-                transition-all ease-in-out
-                text-3xl
-            ",
-            aria_pressed,
-            onclick: move |event| onclick.call(event),
-            {label}
-        }
-    }
-}
