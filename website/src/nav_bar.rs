@@ -64,7 +64,7 @@ fn LanguageList() -> Element {
             id: "languageDropdown",
             class: "z-10 hidden font-normal divide-y rounded-lg shadow w-44 bg-gray-700 divide-gray-600",
             ul {
-                class: "py-2 text-sm text-text-primary",
+                class: "h-96 py-2 overflow-y-auto text-sm text-text-primary",
                 aria_labelledby: "languageDropdownButton",
                 for language in translations::translations() {
                     li { LanguageLink { href: format!("/{}", language.id), label: language.name } }
