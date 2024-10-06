@@ -4,7 +4,7 @@ use crate::themes::Theme;
 
 #[component]
 pub fn Tooltip(
-    content: String,
+    content: ReadOnlySignal<String>,
     position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {

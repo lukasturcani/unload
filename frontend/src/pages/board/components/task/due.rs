@@ -1,5 +1,6 @@
 use chrono::{DateTime, Local, NaiveDate, NaiveTime, TimeZone, Utc};
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use reqwest::Client;
 use shared_models::TaskId;
 
@@ -40,15 +41,17 @@ pub fn Due(task_id: TaskId, due: Option<DueOptions>) -> Element {
 
 #[component]
 fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let board_signals = BoardSignals::default();
     let mut has_due = use_signal(|| due.is_some());
+    let input_label = translate!(i18, "due_date_input_label");
     rsx! {
         form {
-            "aria-label": "set due date",
+            aria_label: translate!(i18, "due_date_form_label"),
             class: "flex flex-row flex-wrap gap-1 items-center",
             onsubmit: move |event| {
                 let values = event.values();
-                let due_string = values["Due"].as_value();
+                let due_string = values[&input_label].as_value();
                 let due = if due_string.is_empty() {
                     None
                 } else {
@@ -70,15 +73,18 @@ fn EditingDue(task_id: TaskId, due: Option<DateTime<Utc>>, editing: Signal<bool>
             div { class: "size-6", ClockIcon {} }
             DateInput {
                 id: "task-{task_id}-due-input",
-                label: "Due",
+                label: input_label.clone(),
                 value: due.map(|d| d.format("%Y-%m-%d").to_string()),
                 oninput: move |event: FormEvent| has_due.set(!event.value().is_empty()),
             }
             if has_due() {
                 TimeSelect {}
             }
-            ConfirmButton { label: "set due" }
-            CancelButton { label: "cancel due update", editing }
+            ConfirmButton { label: translate!(i18, "set_due_date_button_label") }
+            CancelButton {
+                label: translate!(i18, "cancel_due_date_update_button_label"),
+                editing,
+            }
         }
     }
 }
@@ -121,6 +127,7 @@ fn TimeSelect() -> Element {
 
 #[component]
 fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let icon_style = if let Some(DueOptions {
@@ -135,7 +142,7 @@ fn ShowDue(task_id: TaskId, due: Option<DueOptions>, editing: Signal<bool>) -> E
     };
     rsx! {
         section {
-            "aria-label": "due date",
+            aria_label: translate!(i18, "due_date_section_label"),
             class: "flex flex-row gap-2 items-center text-sm",
             div { class: "size-6 {icon_style}", ClockIcon {} }
             if let Some(DueOptions { due, show_time_left, is_late }) = due {
@@ -175,17 +182,19 @@ fn HasDue(due: DateTime<Utc>, show_time_left: bool, is_late: bool) -> Element {
 
 #[component]
 fn EditButton(task_id: TaskId, editing: Signal<bool>, dir: &'static str) -> Element {
+    let i18 = use_i18();
+    let aria_label = translate!(i18, "edit_due_date_tooltip");
     rsx! {
         div {
             class: "group relative",
             button {
-                "aria-label": "edit due date",
+                aria_label,
                 class: "block size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
             }
             Tooltip {
-                content: "Edit Due Date",
+                content: aria_label.clone(),
                 position: "",
                 dir,
             }

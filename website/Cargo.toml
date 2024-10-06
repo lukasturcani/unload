@@ -7,13 +7,18 @@ edition.workspace = true
 
 [dependencies]
 anyhow = "1.0"
-
+shared_models = { path = "../shared_models" }
 dioxus = { version = "0.5", features = ["web", "ssr"] }
 dioxus-web = { version = "0.5", features = ["hydrate"] }
 dioxus-ssr = { version = "0.5" }
-
-# Debug
+dioxus-sdk = { version = "0.5", features = ["i18n"] }
+unic-langid-impl = "0.9.5"
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0"
+web-sys = { version = "0.3.70", features = ["Navigator", "Window"] }
 dioxus-logger = "0.5.1"
+dioxus-html-macro = "0.3.0"
+itertools = "0.13.0"
 
 [features]
 prebuild = []

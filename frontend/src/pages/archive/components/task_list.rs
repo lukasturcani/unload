@@ -5,6 +5,7 @@ use crate::{
 };
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, TagId, TaskId, TaskStatus, UserId};
 
 use crate::{
@@ -57,6 +58,7 @@ fn Task(
     tags: ReadOnlySignal<Vec<TagId>>,
     due: Option<DateTime<Utc>>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let expanded = use_signal(|| false);
@@ -84,14 +86,14 @@ fn Task(
                     Title { title }
                 }
                 section {
-                    "aria-label": "task status",
+                    aria_label: translate!(i18, "task_status_section_label"),
                     match status {
                         TaskStatus::ToDo => rsx! {
                             div {
                                 class: "group relative",
                                 div { class: "size-8 stroke-red-600", ToDoIcon {} }
                                 Tooltip {
-                                    content: "To Do",
+                                    content: translate!(i18, "to_do_button_tooltip"),
                                     position: "",
                                     dir: "rtl"
                                 }
@@ -102,7 +104,7 @@ fn Task(
                                 class: "group relative",
                                 div { class: "size-8 stroke-fuchsia-600", InProgressIcon {} }
                                 Tooltip {
-                                    content: "In Progress",
+                                    content: translate!(i18, "in_progress_button_tooltip"),
                                     position: "",
                                     dir: "rtl"
                                 }
@@ -113,7 +115,7 @@ fn Task(
                                 class: "group relative",
                                 div { class: "size-8 stroke-green-500", DoneIcon {} }
                                 Tooltip {
-                                    content: "Done",
+                                    content: translate!(i18, "done_button_tooltip"),
                                     position: "",
                                     dir: "rtl"
                                 }
@@ -133,7 +135,7 @@ fn Task(
             }
             if expanded() {
                 Description { description }
-                SpecialActions { task_id }
+                AdditionalActions { task_id }
             }
         }
     }
@@ -141,13 +143,14 @@ fn Task(
 
 #[component]
 fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     let style = "rounded";
     let expanded_ = expanded();
     rsx! {
         button {
-            "aria-label": "toggle expand task",
-            "aria-pressed": expanded(),
+            aria_label: translate!(i18, "toggle_expand_task_button_label"),
+            aria_pressed: expanded(),
             class: "{size} p-1 {style}",
             onclick: move |_| {
                 if !expanded() {
@@ -185,13 +188,14 @@ fn Assignees(
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
+    let i18 = use_i18();
     let users = use_context::<Signal<Users>>();
     let users = &users.read().0;
     let size = icon_size.unwrap_or("size-6");
     rsx! {
         section {
             id: "task-{task_id}-assignees",
-            aria_label: "assignees",
+            aria_label: translate!(i18, "assignees_section_label"),
             class: "flex flex-row flex-wrap items-center gap-2",
             for (&user_id, user) in assignees
                 .read()
@@ -263,17 +267,18 @@ pub fn UserIcon(
 
 #[component]
 fn TaskActions(task_id: TaskId) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<BoardUrl>>();
     let tasks = use_context::<Signal<TaskEntries>>();
     rsx! {
         section {
-            "aria-label": "task actions",
+            aria_label: translate!(i18, "task_actions_section_label"),
             class: "flex flex-row gap-1",
             ActionButton {
                 onclick: move |_| {
                     spawn_forever(requests::set_task_archived(tasks, url, task_id));
                 },
-                tooltip: "Restore Task",
+                tooltip: translate!(i18, "unarchive_task_button_tooltip"),
                 body: rsx!(UnarchiveIcon {}),
             }
         }
@@ -288,7 +293,7 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
         div {
             class: "group relative",
             button {
-                "aria-label": aria_label,
+                aria_label,
                 class: "block size-6 {style}",
                 onclick: move |event| onclick.call(event),
                 {body}
@@ -300,12 +305,13 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
 
 #[component]
 fn TaskTags(task_id: TaskId, tags: ReadOnlySignal<Vec<TagId>>) -> Element {
+    let i18 = use_i18();
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
     rsx! {
         section {
             id: "task-{task_id}-tags",
-            aria_label: "tags",
+            aria_label: translate!(i18, "tags_section_label"),
             class: "flex flex-row flex-wrap gap-2 items-center",
             for (&tag_id, tag) in tags
                 .read()
@@ -370,9 +376,10 @@ pub fn TaskTagIcon(
 
 #[component]
 fn Description(description: ReadOnlySignal<String>) -> Element {
+    let i18 = use_i18();
     rsx! {
         section {
-            aria_label: "description",
+            aria_label: translate!(i18, "description_section_label"),
             class: "flex flex-col gap-1",
             DescriptionContent { description }
         }
@@ -440,10 +447,11 @@ fn Bullet(line: String) -> Element {
 }
 
 #[component]
-fn SpecialActions(task_id: TaskId) -> Element {
+fn AdditionalActions(task_id: TaskId) -> Element {
+    let i18 = use_i18();
     rsx! {
         section {
-            "aria-label": "special actions",
+            aria_label: translate!(i18, "additional_actions_section_label"),
             class: "grid grid-rows-1 justify-items-end",
             DeleteTaskButton { task_id }
         }
@@ -452,30 +460,36 @@ fn SpecialActions(task_id: TaskId) -> Element {
 
 #[component]
 fn DeleteTaskButton(task_id: TaskId) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<BoardUrl>>();
     let tasks = use_context::<Signal<TaskEntries>>();
     let style = "stroke-red-600";
+    let aria_label = translate!(i18, "delete_task_tooltip");
     rsx! {
         div {
             class: "group relative",
             button {
-                "aria-label": "delete task",
+                aria_label,
                 class: "block size-6 {style}",
                 onclick: move |_| {
                     spawn_forever(requests::delete_task(tasks, url, task_id));
                 },
                 TrashIcon {}
             }
-            Tooltip { content: "Delete Task", position: "-top-10 -left-20" }
+            Tooltip {
+                content: aria_label.clone(),
+                position: "-top-10 -left-20",
+            }
         }
     }
 }
 
 #[component]
 fn ShowDue(due: Option<DateTime<Utc>>) -> Element {
+    let i18 = use_i18();
     rsx! {
         section {
-            aria_label: "due date",
+            aria_label: translate!(i18, "due_date_section_label"),
             class: "flex flex-row gap-2 items-center",
             div { class: "size-8", CalendarIcon {} }
             if let Some(due_value) = due {

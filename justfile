@@ -210,15 +210,17 @@ frontend-release:
 website:
   rm -rf website/dist
   cd website && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
+  cd website && cp ./node_modules/flowbite/dist/flowbite.min.js ./assets/flowbite.min.js
   cd website && dx build --release
   cd website && cargo run --release --features prebuild
 
 # watch the website
 watch-website:
-  watchexec -c -w website "\
+  watchexec -c -w website -w shared_models "\
   cd website && \
   rm -rf dist && \
   npx tailwindcss -i ./input.css -o ./assets/tailwind.css && \
+  cp ./node_modules/flowbite/dist/flowbite.min.js ./assets/flowbite.min.js && \
   dx build && \
   cargo run --features prebuild"
 

@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, TagData, TagEntry, TagId, TaskStatus, TaskSuggestion, UserId};
 
 use crate::{
@@ -52,16 +53,17 @@ pub fn ChatGpt(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
 
 #[component]
 fn ChatGptLimitExceeded(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center",
             h2 {
                 class: "text-xl font-bold",
-                "ChatGPT Limit Exceeded"
+                {translate!(i18, "caht_gpt_limit_exceeded_title")}
             },
             p {
                 class: "text-sm",
-                "You have reached the limit of ChatGPT calls. Please try again later."
+                {translate!(i18, "chat_gpt_limit_exceeded_content")}
             }
         }
     }
@@ -69,12 +71,13 @@ fn ChatGptLimitExceeded(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> E
 
 #[component]
 fn ChatGptWaiting() -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center",
             role: "status",
             p {
-                "Talking to ChatGPT..."
+                {translate!(i18, "chat_gpt_waiting_message")}
             }
             svg {
                 xmlns: "http://www.w3.org/2000/svg",
@@ -330,6 +333,7 @@ fn Title(suggestion_id: usize, title: Signal<String>) -> Element {
 
 #[component]
 fn TitleShow(editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "flex flex-row gap-2 pr-2 items-center",
@@ -340,18 +344,21 @@ fn TitleShow(editing: Signal<bool>, title: ReadOnlySignal<String>) -> Element {
                 ",
                 {title}
             }
-            EditButton { tooltip: "Edit Title", editing }
+            EditButton {
+                tooltip: translate!(i18, "edit_task_title_tooltip"),
+                editing
+            }
         }
     }
 }
 
 #[component]
-fn EditButton(tooltip: &'static str, editing: Signal<bool>) -> Element {
+fn EditButton(tooltip: ReadOnlySignal<String>, editing: Signal<bool>) -> Element {
     rsx! {
         div {
             class: "group relative",
             button {
-                "aria-label": "edit title",
+                aria_label: tooltip,
                 class: "block size-5",
                 onclick: move |_| editing.set(true),
                 EditIcon {}
@@ -366,27 +373,32 @@ fn EditButton(tooltip: &'static str, editing: Signal<bool>) -> Element {
 
 #[component]
 fn TitleInput(suggestion_id: usize, editing: Signal<bool>, title: Signal<String>) -> Element {
+    let i18 = use_i18();
     let read_only_title = ReadOnlySignal::from(title);
+    let input_label = translate!(i18, "task_title_input_label");
     rsx! {
         form {
-            "aria-label": "update title",
+            aria_label: translate!(i18, "task_title_update_form_label"),
             class: "flex flex-row gap-2 justify-start items-center",
             onsubmit: move |event| {
-                title.set(event.values()["Title"].as_value());
+                title.set(event.values()[&input_label].as_value());
                 editing.set(false);
             },
             div {
                 class: "flex flex-row gap-1 items-center",
                 TextInput {
                     id: "suggestion-{suggestion_id}-title-input",
-                    label: "Title",
+                    label: input_label.clone(),
                     value: read_only_title,
                 }
             }
             div {
                 class: "flex flex-row gap-1 items-center",
-                ConfirmButton { label: "set title" }
-                CancelButton { label: "cancel title update", editing }
+                ConfirmButton { label: translate!(i18, "set_task_title_button_label") }
+                CancelButton {
+                    label: translate!(i18, "cancel_task_title_update_button_label"),
+                    editing
+                }
             }
         }
     }
@@ -407,6 +419,7 @@ fn AddTaskButton(
     resolved_suggestions: Signal<HashSet<usize>>,
     suggestion: SuggestionSignals,
 ) -> Element {
+    let i18 = use_i18();
     let style = "
         rounded-md
         border border-green-500
@@ -417,7 +430,7 @@ fn AddTaskButton(
     let board_signals = BoardSignals::default();
     rsx! {
         button {
-            aria_label: "add task",
+            aria_label: translate!(i18, "add_task_button_label"),
             class: "size-7 {style}",
             onclick: move |_| {
                 let mut resolved_suggestions = resolved_suggestions.write();
@@ -447,6 +460,7 @@ async fn create_task(signals: BoardSignals, suggestion: SuggestionSignals) {
 
 #[component]
 fn DeleteTaskButton(suggestion_id: usize, resolved_suggestions: Signal<HashSet<usize>>) -> Element {
+    let i18 = use_i18();
     let style = "
         rounded-md
         border border-red-600
@@ -456,7 +470,7 @@ fn DeleteTaskButton(suggestion_id: usize, resolved_suggestions: Signal<HashSet<u
     ";
     rsx! {
         button {
-            aria_label: "delete task",
+            aria_label: translate!(i18, "delete_task_tooltip"),
             class: "size-7 {style}",
             onclick: move |_| {
                 let mut resolved_suggestions = resolved_suggestions.write();
@@ -521,9 +535,10 @@ fn DescriptionForm(
     editing: Signal<bool>,
     description: Signal<String>,
 ) -> Element {
+    let i18 = use_i18();
     rsx! {
         form {
-            aria_label: "update description",
+            aria_label: translate!(i18, "description_update_form_label"),
             class: "flex flex-col gap-2",
             onsubmit: move |event| {
                 description.set(event.values()["Description"].as_value());
@@ -536,8 +551,11 @@ fn DescriptionForm(
             },
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "set description" }
-                CancelButton { label: "cancel description update", editing }
+                ConfirmButton { label: translate!(i18, "set_description_button_label") }
+                CancelButton {
+                    label: translate!(i18, "cancel_description_update_button_label"),
+                    editing,
+                }
             }
         }
     }
@@ -545,9 +563,10 @@ fn DescriptionForm(
 
 #[component]
 fn DescriptionShow(editing: Signal<bool>, description: Signal<String>) -> Element {
+    let i18 = use_i18();
     rsx! {
         section {
-            aria_label: "description",
+            aria_label: translate!(i18, "description_section_label"),
             class: "flex flex-col gap-2",
             DescriptionContent { description }
             div {
@@ -560,12 +579,14 @@ fn DescriptionShow(editing: Signal<bool>, description: Signal<String>) -> Elemen
 
 #[component]
 fn EditDescriptionButton(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded border {}", theme.button);
+    let aria_label = translate!(i18, "edit_description_tooltip");
     rsx! {
         button {
-            aria_label: "edit description",
+            aria_label,
             class: "
                 group
                 flex flex-row justify-center items-center
@@ -576,7 +597,10 @@ fn EditDescriptionButton(editing: Signal<bool>) -> Element {
             div {
                 class: "relative",
                 div { class: "size-5", EditIcon {} }
-                Tooltip { content: "Edit Description", position: "-top-12 -left-10" }
+                Tooltip {
+                    content: aria_label.clone(),
+                    position: "-top-12 -left-10",
+                }
             }
         }
     }
@@ -651,16 +675,17 @@ fn Bullet(line: String) -> Element {
 
 #[component]
 fn ChatGptError(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let i18 = use_i18();
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center",
             h2 {
                 class: "text-xl font-bold",
-                "ChatGPT Error"
+                {translate!(i18, "chat_gpt_error_title")}
             },
             p {
                 class: "text-sm",
-                "An error occurred while trying to connect to Chat GPT. Please try again later."
+                {translate!(i18, "chat_gpt_error_content")}
             }
         }
     }
@@ -668,6 +693,7 @@ fn ChatGptError(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
 
 #[component]
 fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = theme.text_color;
@@ -675,27 +701,35 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
     let board = use_context::<Signal<Board>>();
     let num_calls_left = use_context::<Signal<NumChatGptCalls>>();
     let num_calls_left_ = num_calls_left.read().0;
+    let input_label = translate!(i18, "chat_gpt_prompt_input_label");
     rsx! {
         div {
             class: "flex flex-col gap-2 items-center justify-center {style}",
             p {
                 class: "text-xl font-bold",
-                "Use ChatGPT ({num_calls_left_} daily attempts left)"
+                {
+                    format!(
+                        "{} ({}: {num_calls_left_})",
+                        translate!(i18, "chat_gpt_prompt_input_title"),
+                        translate!(i18, "chat_gpt_daily_attempts_left"),
+                    )
+                }
             }
             p {
                 class: "text-sm",
-                "or pick one from the suggestions below:"
+                {translate!(i18, "chat_gpt_prompt_input_content")}
             }
             PromptSuggestions { chat_gpt_response }
             form {
                 id: "chat-gpt-prompt-form",
-                "aria-label": "chat gpt prompt",
+                aria_label: translate!(i18, "chat_gpt_prompt_input_form_label"),
                 onsubmit: move |event| {
-                    let prompt = event.values()["Prompt:"].as_value();
+                    let prompt = event.values()[&input_label].as_value();
                     spawn_forever(requests::send_chat_gpt_prompt(
                         board.read().board_name.clone(),
                         url,
                         prompt,
+                        i18.selected_language.read().language.as_str().to_string(),
                         chat_gpt_response,
                         num_calls_left,
                     ));
@@ -704,7 +738,7 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
                     class: "flex flex-row gap-2 items-center justify-start",
                     TextInput {
                         id: "chat-gpt-prompt" ,
-                        label: "Prompt:",
+                        label: input_label.clone(),
                     }
                 }
             }
@@ -714,6 +748,7 @@ fn ChatGptPromptInput(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Ele
 
 #[component]
 fn PromptSuggestions(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -723,18 +758,37 @@ fn PromptSuggestions(chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Elem
     rsx! {
         ul {
             class: "w-full {style}",
-            PromptSuggestion { prompt: "suggest cupcake recipe", chat_gpt_response }
-            PromptSuggestion { prompt: "paint bedroom", chat_gpt_response }
-            PromptSuggestion { prompt: "friends over for BBQ", chat_gpt_response }
-            PromptSuggestion { prompt: "prepare for Rome vacation", chat_gpt_response }
-            PromptSuggestion { prompt: "house tidy", chat_gpt_response }
-            PromptSuggestion { prompt: "fix fence", chat_gpt_response }
+            PromptSuggestion {
+                prompt: translate!(i18, "suggest_cupcake_recipe_prompt"),
+                chat_gpt_response
+            }
+            PromptSuggestion {
+                prompt: translate!(i18, "paint_bedroom_prompt"),
+                chat_gpt_response
+            }
+            PromptSuggestion {
+                prompt: translate!(i18, "friends_over_for_bbq_prompt"),
+                chat_gpt_response
+            }
+            PromptSuggestion {
+                prompt: translate!(i18, "prepare_for_rome_vacation_prompt"),
+                chat_gpt_response
+            }
+            PromptSuggestion {
+                prompt: translate!(i18, "house_tidy_prompt"),
+                chat_gpt_response
+            }
+            PromptSuggestion {
+                prompt: translate!(i18, "fix_fence_prompt"),
+                chat_gpt_response
+            }
         }
     }
 }
 
 #[component]
 fn PromptSuggestion(prompt: String, chat_gpt_response: Signal<Option<ChatGptResponse>>) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<UnloadUrl>>();
     let p = prompt.clone();
     let board = use_context::<Signal<Board>>();
@@ -748,6 +802,7 @@ fn PromptSuggestion(prompt: String, chat_gpt_response: Signal<Option<ChatGptResp
                         board.read().board_name.clone(),
                         url,
                         p.clone(),
+                        i18.selected_language.read().language.as_str().to_string(),
                         chat_gpt_response,
                         num_calls_left,
                     ));

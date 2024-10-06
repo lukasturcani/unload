@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::*, translate};
 use reqwest::Client;
 use shared_models::{TagId, TaskId, TaskStatus, UserId};
 
@@ -160,7 +161,7 @@ pub fn Task(
             }
             if expanded() {
                 Description { task_id, description }
-                SpecialActions { task_id }
+                AdditionalActions { task_id }
             }
         }
     }
@@ -281,7 +282,7 @@ pub fn DenseTask(
                         },
                     }
                 }
-                SpecialActions { task_id }
+                AdditionalActions { task_id }
             }
         }
     }
@@ -289,13 +290,14 @@ pub fn DenseTask(
 
 #[component]
 fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     let style = "rounded";
     let expanded_ = expanded();
     rsx! {
         button {
-            "aria-label": "toggle expand task",
-            "aria-pressed": expanded(),
+            aria_label: translate!(i18, "toggle_expand_task_button_label"),
+            aria_pressed: expanded(),
             class: "shrink-0 {size} p-1 {style}",
             onclick: move |_| {
                 if !expanded() {
@@ -313,10 +315,11 @@ fn ToggleExpanded(task_id: TaskId, expanded: Signal<bool>, size: &'static str) -
 }
 
 #[component]
-fn SpecialActions(task_id: TaskId) -> Element {
+fn AdditionalActions(task_id: TaskId) -> Element {
+    let i18 = use_i18();
     rsx! {
         section {
-            "aria-label": "special actions",
+            aria_label: translate!(i18, "additional_actions_section_label"),
             class: "grid grid-rows-1 justify-items-end",
             DeleteTaskButton { task_id }
         }
@@ -325,29 +328,35 @@ fn SpecialActions(task_id: TaskId) -> Element {
 
 #[component]
 fn DeleteTaskButton(task_id: TaskId) -> Element {
+    let i18 = use_i18();
     let style = "stroke-red-600";
     let board_signals = BoardSignals::default();
+    let aria_label = translate!(i18, "delete_task_tooltip");
     rsx! {
         div {
             class: "group relative",
             button {
-                "aria-label": "delete task",
+                aria_label,
                 class: "block size-6 {style}",
                 onclick: move |_| {
                     spawn_forever(delete_task(board_signals, task_id));
                 },
                 TrashIcon {}
             }
-            Tooltip { content: "Delete Task", position: "-top-10 -left-20" }
+            Tooltip {
+                content: aria_label.clone(),
+                position: "-top-10 -left-20",
+            }
         }
     }
 }
 
 #[component]
 fn StatusButtons(task_id: TaskId, status: TaskStatus) -> Element {
+    let i18 = use_i18();
     rsx! {
         section {
-            "aria-label": "set task status",
+            aria_label: translate!(i18, "set_task_status_section_label"),
             class: "flex flex-row items-center justify-end gap-1",
             ToDoButton { task_id, status }
             InProgressButton { task_id, status }
@@ -358,6 +367,7 @@ fn StatusButtons(task_id: TaskId, status: TaskStatus) -> Element {
 
 #[component]
 fn ToDoButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let i18 = use_i18();
     let style = format!(
         "active:stroke-red-600 sm:hover:stroke-red-600 {}",
         if status == TaskStatus::ToDo {
@@ -371,20 +381,25 @@ fn ToDoButton(task_id: TaskId, status: TaskStatus) -> Element {
         div {
             class: "group relative",
             button {
-                "aria-label": "set task status to to do",
+                aria_label: translate!(i18, "to_do_button_tooltip"),
                 class: "block size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::ToDo));
                 },
                 ToDoIcon {}
             }
-            Tooltip { content: "To Do", position: "", dir: "rtl" }
+            Tooltip {
+                content: translate!(i18, "to_do_button_tooltip"),
+                position: "",
+                dir: "rtl",
+            }
         }
     }
 }
 
 #[component]
 fn InProgressButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let i18 = use_i18();
     let style = format!(
         "active:stroke-fuchsia-600 sm:hover:stroke-fuchsia-600 {}",
         if status == TaskStatus::InProgress {
@@ -398,20 +413,25 @@ fn InProgressButton(task_id: TaskId, status: TaskStatus) -> Element {
         div {
             class: "group relative",
             button {
-                "aria-label": "set task status to in progress",
+                aria_label: translate!(i18, "in_progress_button_tooltip"),
                 class: "block size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::InProgress));
                 },
                 InProgressIcon {}
             }
-            Tooltip { content: "In Progress", position: "", dir: "rtl" }
+            Tooltip {
+                content: translate!(i18, "in_progress_button_tooltip"),
+                position: "",
+                dir: "rtl",
+            }
         }
     }
 }
 
 #[component]
 fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
+    let i18 = use_i18();
     let style = format!(
         "active:stroke-green-500 sm:hover:stroke-green-500 {}",
         if status == TaskStatus::Done {
@@ -425,14 +445,18 @@ fn DoneButton(task_id: TaskId, status: TaskStatus) -> Element {
         div {
             class: "group relative",
             button {
-                "aria-label": "set task status to done",
+                aria_label: translate!(i18, "done_button_tooltip"),
                 class: "block size-8 {style}",
                 onclick: move |_| {
                     spawn_forever(set_task_status(board_signals, task_id, TaskStatus::Done));
                 },
                 DoneIcon {}
             }
-            Tooltip { content: "Done", position: "", dir: "rtl" }
+            Tooltip {
+                content: translate!(i18, "done_button_tooltip"),
+                position: "",
+                dir: "rtl",
+            }
         }
     }
 }
@@ -445,42 +469,36 @@ fn ActionButton(tooltip: String, body: Element, onclick: EventHandler<MouseEvent
         div {
             class: "group relative",
             button {
-                "aria-label": aria_label,
+                aria_label,
                 class: "block size-6 {style}",
                 onclick: move |event| onclick.call(event),
                 {body}
             }
-            Tooltip { position: "-top-10 -left-20", content: tooltip }
+            Tooltip { position: "-top-10 right-0", content: tooltip }
         }
     }
 }
 
 #[component]
 fn TaskActions(task_id: TaskId) -> Element {
+    let i18 = use_i18();
     let board_signals = BoardSignals::default();
     rsx! {
         section {
-            "aria-label": "task actions",
+            aria_label: translate!(i18, "task_actions_section_label"),
             class: "flex flex-row gap-1",
-            // ActionButton {
-            //     onclick: move |_| {
-            //         spawn_forever(create_quick_add_task(board_signals, task_id));
-            //     },
-            //     tooltip: "Add to Quick Tasks",
-            //     body: rsx!(BoltIcon {}),
-            // }
             ActionButton {
                 onclick: move |_| {
                     spawn_forever(clone_task(board_signals, task_id)) ;
                 },
-                tooltip: "Duplicate Task",
+                tooltip: translate!(i18, "duplicate_task_button_tooltip"),
                 body: rsx!(CopyIcon {})
             }
             ActionButton {
                 onclick: move |_| {
                     spawn_forever(archive_task(board_signals, task_id));
                 },
-                tooltip: "Archive Task",
+                tooltip: translate!(i18, "archive_task_button_tooltip"),
                 body: rsx!(ArchiveIcon {})
             }
         }

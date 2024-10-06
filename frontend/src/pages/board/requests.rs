@@ -11,7 +11,6 @@ use reqwest::Client;
 use shared_models::BoardData;
 use shared_models::BoardName;
 use shared_models::ChatGptRequest;
-use shared_models::Language;
 use shared_models::SavedBoard;
 use shared_models::TagData;
 use shared_models::TagId;
@@ -277,11 +276,12 @@ pub async fn send_chat_gpt_prompt(
     board_name: BoardName,
     url: Signal<UnloadUrl>,
     prompt: String,
+    language: String,
     mut chat_gpt_response: Signal<Option<ChatGptResponse>>,
     mut num_calls_left: Signal<NumChatGptCalls>,
 ) {
     chat_gpt_response.set(Some(ChatGptResponse::Waiting));
-    match send_chat_gpt_prompt_request(board_name, url, prompt).await {
+    match send_chat_gpt_prompt_request(board_name, url, prompt, language).await {
         Ok(shared_models::ChatGptResponse::Suggestions(suggestions)) => {
             chat_gpt_response.set(Some(ChatGptResponse::Suggestions(suggestions)));
             num_calls_left.write().0 -= 1;
@@ -297,6 +297,7 @@ async fn send_chat_gpt_prompt_request(
     board_name: BoardName,
     url: Signal<UnloadUrl>,
     prompt: String,
+    language: String,
 ) -> Result<shared_models::ChatGptResponse, anyhow::Error> {
     let url = &url.read().0;
     let url = url.join("/api/chat-gpt/suggest-tasks")?;
@@ -305,7 +306,7 @@ async fn send_chat_gpt_prompt_request(
         .json(&ChatGptRequest {
             board_name,
             prompt,
-            language: Language::English,
+            language,
         })
         .send()
         .await?

@@ -1,10 +1,12 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::Color;
 
 use crate::themes::Theme;
 
 #[component]
 pub fn ColorPicker(selected_color: Option<Color>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let fieldset_style = format!("rounded-lg border {}", theme.border_color);
@@ -19,7 +21,7 @@ pub fn ColorPicker(selected_color: Option<Color>) -> Element {
             class: "flex flex-row items-center justify-center p-2 {fieldset_style}",
             legend {
                 class: legend_style,
-                "Color"
+                {translate!(i18, "color_picker_legend_label")}
             }
             div {
                 class: "grid grid-cols-4 gap-4 group filled",

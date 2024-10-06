@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use itertools::Itertools;
 use shared_models::{BoardName, SavedBoard, TaskStatus};
 
@@ -8,8 +9,8 @@ use crate::{
         form::{CancelButton, ConfirmButton},
         icons::{
             BarsIcon, BookmarkIcon, CancelIcon, CircledPlusIcon, DoneIcon, EditIcon,
-            ElipsisHorizontalIcon, FilterIcon, InProgressIcon, SparklesIcon, StackIcon, ToDoIcon,
-            TrashIcon,
+            ElipsisHorizontalIcon, FilterIcon, InProgressIcon, LanguageIcon, SparklesIcon,
+            StackIcon, ToDoIcon, TrashIcon,
         },
         input::TextInput,
         nav::NavBar,
@@ -26,6 +27,8 @@ use crate::{
     },
     route::Route,
     themes::Theme,
+    translations::{translations, Translation},
+    BoardLanguage,
 };
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -34,6 +37,7 @@ enum Panel {
     Actions,
     Navigation,
     Status,
+    Languages,
     ChatGpt {
         status: TaskStatus,
         adding_task: Signal<bool>,
@@ -49,16 +53,17 @@ enum ExtraBar {
 
 #[component]
 pub fn OneColumnBoard(board_name: BoardName) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("{} {}", theme.text_color, theme.bg_color_1);
     let status = use_signal(|| TaskStatus::ToDo);
     let status_ = status();
     let mut panel = use_signal(|| Panel::None);
-    let column_label = match status_ {
-        TaskStatus::ToDo => "To Do",
-        TaskStatus::InProgress => "In Progress",
-        TaskStatus::Done => "Done",
+    let aria_label = match status_ {
+        TaskStatus::ToDo => translate!(i18, "to_do_column_title"),
+        TaskStatus::InProgress => translate!(i18, "in_progress_column_title"),
+        TaskStatus::Done => translate!(i18, "done_column_title"),
     };
     let extra_bar = use_signal(|| ExtraBar::None);
     let adding_task = use_signal(|| false);
@@ -69,7 +74,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
             Header { panel, status, extra_bar }
             section {
                 class: "grow flex flex-col overflow-y-auto gap-1",
-                "aria-label": "{column_label} tasks",
+                aria_label,
                 ColumnSwitcher { status, panel }
                 Column { status: status_, adding_task }
             }
@@ -85,6 +90,7 @@ pub fn OneColumnBoard(board_name: BoardName) -> Element {
             Panel::Actions => rsx! { ActionsSheet { panel, extra_bar } },
             Panel::Navigation => rsx! { NavigationSheet { panel } },
             Panel::ChatGpt{status, adding_task} => rsx! { ChatGptSheet { status, adding_task, panel } },
+            Panel::Languages => rsx! { LanguagesSheet { panel } },
             Panel::None | Panel::Status => rsx! {},
         }
     }
@@ -116,6 +122,7 @@ fn AddTaskButton(status: TaskStatus, adding_task: Signal<bool>, panel: Signal<Pa
 
 #[component]
 fn TitleInput(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let board = use_context::<Signal<Board>>();
     let board_signals = BoardSignals::default();
 
@@ -124,12 +131,13 @@ fn TitleInput(editing: Signal<bool>) -> Element {
         board.title.clone()
     });
     let title = ReadOnlySignal::from(title);
+    let input_label = translate!(i18, "board_title_input_label");
     rsx! {
         form {
-            "aria-label": "update board title",
+            aria_label: translate!(i18, "board_title_update_form_label"),
             class: "grow flex flex-col gap-1 items-center justify-center",
             onsubmit: move |event| {
-                let title = event.values()["Title"].as_value();
+                let title = event.values()[&input_label].as_value();
                 spawn_forever(requests::set_board_title(board_signals, title));
                 editing.set(false);
             },
@@ -137,14 +145,17 @@ fn TitleInput(editing: Signal<bool>) -> Element {
                 class: "flex flex-row gap-1 items-center justify-center",
                 TextInput {
                     id: "board-title-input",
-                    label: "Title",
+                    label: input_label.clone(),
                     value: title,
                 }
             }
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "set title" }
-                CancelButton { label: "cancel title update", editing }
+                ConfirmButton { label: translate!(i18, "set_board_title_button_label") }
+                CancelButton {
+                    label: translate!(i18, "cancel_board_title_update_button_label"),
+                    editing,
+                }
             }
         }
     }
@@ -175,9 +186,10 @@ fn TitleShow(editing: Signal<bool>) -> Element {
 
 #[component]
 fn EditTitleButton(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     rsx! {
         button {
-            "aria-label": "edit title",
+            aria_label: translate!(i18, "edit_board_title_tooltip"),
             class: "block size-4",
             onclick: move |_| editing.set(true),
             EditIcon {}
@@ -204,6 +216,7 @@ fn BottomSheet(panel: Signal<Panel>, body: Element) -> Element {
 
 #[component]
 fn ChatGptSheet(status: TaskStatus, panel: Signal<Panel>, adding_task: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -231,7 +244,7 @@ fn ChatGptSheet(status: TaskStatus, panel: Signal<Panel>, adding_task: Signal<bo
                             hr { class: "w-64 h-px border-0 bg-gray-700" }
                             span {
                                 class: "absolute px-3 font-medium -translate-x-1/2 left-1/2 text-white bg-gray-900",
-                                "or"
+                                {translate!(i18, "or_label")}
                             }
                         }
                         CustomTaskButton { status, adding_task, panel }
@@ -248,6 +261,7 @@ fn CustomTaskButton(
     adding_task: Signal<bool>,
     panel: Signal<Panel>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg {}", theme.primary_button);
@@ -270,13 +284,14 @@ fn CustomTaskButton(
                     adding_task.set(true);
                 }
             },
-            "Custom Task"
+            {translate!(i18, "custom_task_button_label")}
         }
     }
 }
 
 #[component]
 fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -292,7 +307,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
             panel
             body: rsx! {
                 section {
-                    aria_label: "actions",
+                    aria_label: translate!(i18, "task_actions_section_label"),
                     class: "flex flex-col gap-2 pt-2 pb-20 {style}",
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
@@ -302,7 +317,7 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                             panel.set(Panel::None);
                         },
                         div { class: "size-5", StackIcon {} }
-                        "Toggle dense view"
+                        {translate!(i18, "toggle_dense_view_tooltip")}
                     }
                     button {
                         class: "flex flex-row gap-2 items-center justify-left px-1",
@@ -311,7 +326,13 @@ fn ActionsSheet(panel: Signal<Panel>, extra_bar: Signal<ExtraBar>) -> Element {
                             panel.set(Panel::None);
                         },
                         div { class: "size-5", SparklesIcon {} }
-                        "Change theme"
+                        {translate!(i18, "toggle_show_themes_tooltip")}
+                    }
+                    button {
+                        class: "flex flex-row gap-2 items-center justify-left px-1",
+                        onclick: move |_| panel.set(Panel::Languages),
+                        div { class: "size-5", LanguageIcon {} }
+                        {translate!(i18, "pick_language_tooltip")}
                     }
                 }
             },
@@ -338,6 +359,7 @@ fn SideSheet(panel: Signal<Panel>, body: Element) -> Element {
 
 #[component]
 fn NavigationSheet(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -350,7 +372,7 @@ fn NavigationSheet(panel: Signal<Panel>) -> Element {
             body: rsx! {
                 section {
                     class: "w-10/12 {style}",
-                    "aria-label": "navigation",
+                    aria_label: translate!(i18, "navigation_section_label"),
                     BoardList { panel }
                 }
             }
@@ -359,7 +381,93 @@ fn NavigationSheet(panel: Signal<Panel>) -> Element {
 }
 
 #[component]
+fn LanguagesSheet(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!(
+        "
+            rounded-t-2xl text-lg border-t overflow-hidden
+            {} {} {}
+        ",
+        theme.bg_color_1, theme.text_color, theme.border_color
+    );
+    rsx! {
+        BottomSheet {
+            panel,
+            body: rsx! {
+                section {
+                    aria_label: translate!(i18, "languages_section_title"),
+                    class: "flex flex-col gap-5 h-5/6 overflow-y-auto {style}",
+                    LanguageList { panel }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn LanguageList(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("rounded-lg {} {}", theme.text_color, theme.bg_color_2);
+    rsx! {
+        section {
+            onclick: move |event| event.stop_propagation(),
+            class: "px-3 py-5 flex flex-col gap-2 {style}",
+            h2 {
+                class: "
+                    px-2
+                    font-bold text-xl
+                    flex flex-row gap-1 items-center
+                ",
+                div { class: "size-5", LanguageIcon {} }
+                {translate!(i18, "languages_section_title")}
+            }
+            ul {
+                class: "flex flex-col",
+                for translation in translations()
+                {
+                    LanguageListItem { key: "{translation.id}", translation, panel }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn LanguageListItem(translation: Translation<&'static str>, panel: Signal<Panel>) -> Element {
+    let mut language = use_context::<Signal<BoardLanguage>>();
+    let mut i18 = use_i18();
+    let theme = use_context::<Signal<Theme>>();
+    let theme = theme.read();
+    let style = format!("first:border-t border-b {}", theme.border_color);
+    rsx! {
+        li {
+            class: style,
+            button {
+                class: format!("
+                    flex flex-row justify-between items-center
+                    px-2
+                    size-full rounded-lg
+                    group
+                    {}
+                ", theme.hover_color),
+                onclick: move |_| {
+                    language.set(BoardLanguage(translation.id.to_string()));
+                    i18.set_language(translation.id.parse().unwrap());
+                    panel.set(Panel::None);
+                },
+                {translation.name}
+            }
+        }
+    }
+}
+
+#[component]
 fn BoardList(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let current_board = use_context::<Signal<Board>>();
     let current_board = current_board.read();
     let boards = use_context::<Signal<SavedBoards>>();
@@ -369,7 +477,7 @@ fn BoardList(panel: Signal<Panel>) -> Element {
             h2 {
                 class: "font-bold flex flex-row gap-1 items-center",
                 div { class: "size-5", BookmarkIcon {} }
-                "Boards"
+                {translate!(i18, "board_list_section_label")}
             }
             ul {
                 class: "flex flex-col",
@@ -401,6 +509,7 @@ fn JoinBoard(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn JoinBoardButton(editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg p-2 {}", theme.primary_button);
@@ -410,7 +519,7 @@ fn JoinBoardButton(editing: Signal<bool>) -> Element {
             button {
                 class: "text-sm {style}",
                 onclick: move |_| editing.set(true),
-                "Join Board"
+                {translate!(i18, "join_board_button_label")}
             }
         }
     }
@@ -418,25 +527,27 @@ fn JoinBoardButton(editing: Signal<bool>) -> Element {
 
 #[component]
 fn JoinBoardForm(panel: Signal<Panel>, editing: Signal<bool>) -> Element {
+    let i18 = use_i18();
     let nav = use_navigator();
+    let input_label = translate!(i18, "join_board_input_label");
     rsx! {
         form {
-            "aria-label": "join board",
+            aria_label: translate!(i18, "join_board_form_label"),
             class: "flex flex-col gap-1 items-center justify-center",
             onsubmit: move |event| {
-                let board_name = event.values()["Board Name"].as_value().into();
+                let board_name = event.values()[&input_label].as_value().into();
                 panel.set(Panel::None);
                 nav.push(Route::Board { board_name });
             },
             TextInput {
                 id: "join-board-input",
-                label: "Board Name"
+                label: input_label.clone(),
             }
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "join board" }
+                ConfirmButton { label: translate!(i18, "join_board_button_label") }
                 CancelButton {
-                    label: "cancel join board",
+                    label: translate!(i18, "cancel_joining_board_button_label"),
                     editing,
                 }
             }
@@ -476,10 +587,11 @@ fn BoardListItem(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
 
 #[component]
 fn RemoveBoardButton(boards: Signal<SavedBoards>, board: SavedBoard) -> Element {
+    let i18 = use_i18();
     let style = "stroke-red-600";
     rsx! {
         button {
-            "aria-label": "remove board",
+            aria_label: translate!(i18, "remove_board_button_label"),
             class: "size-5 {style}",
             onclick: move |_| {
                 boards.write().0.retain(|b| b != &board);
@@ -625,7 +737,7 @@ fn ToggleNavDrawerButton(panel: Signal<Panel>) -> Element {
     rsx! {
         button {
             class: "size-7 p-1 {style}",
-            "aria-pressed": panel() == Panel::Navigation,
+            aria_pressed: panel() == Panel::Navigation,
             onclick: move |event| {
                 event.stop_propagation();
                 if panel() == Panel::Navigation {
@@ -641,14 +753,15 @@ fn ToggleNavDrawerButton(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn ToggleActionsDrawerButton(panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
-            "aria-label": "toggle actions drawer",
+            aria_label: translate!(i18, "toggle_actions_drawer_button_label"),
             class: "size-7 p-1 {style}",
-            "aria-pressed": panel() == Panel::Actions,
+            aria_pressed: panel() == Panel::Actions,
             onclick: move |event| {
                 event.stop_propagation();
                 if panel() == Panel::Actions {
@@ -664,14 +777,15 @@ fn ToggleActionsDrawerButton(panel: Signal<Panel>) -> Element {
 
 #[component]
 fn ToggleFiltersButton(extra_bar: Signal<ExtraBar>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border rounded {}", theme.button);
     rsx! {
         button {
-            "aria-label": "toggle show filters",
+            aria_label: translate!(i18, "toggle_show_filters_button_label"),
             class: "size-7 p-1 {style}",
-            "aria-pressed": extra_bar() == ExtraBar::Filter,
+            aria_pressed: extra_bar() == ExtraBar::Filter,
             onclick: move |event| {
                 event.stop_propagation();
                 if extra_bar() == ExtraBar::Filter {
@@ -687,6 +801,7 @@ fn ToggleFiltersButton(extra_bar: Signal<ExtraBar>) -> Element {
 
 #[component]
 fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let status_style = format!("border rounded {}", theme.button);
@@ -708,7 +823,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                     text-sm
                     {status_style}
                 ",
-                "aria-pressed": panel() == Panel::Status,
+                aria_pressed: panel() == Panel::Status,
                 onclick: move |event| {
                     if panel() == Panel::Status {
                         panel.set(Panel::None);
@@ -720,15 +835,15 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                 match status() {
                     TaskStatus::ToDo => rsx! {
                         div { class: "size-3", ToDoIcon {} }
-                        "To Do"
+                        {translate!(i18, "to_do_column_title")}
                     },
                     TaskStatus::InProgress => rsx! {
                         div { class: "size-3", InProgressIcon {} }
-                        "In Progress"
+                        {translate!(i18, "in_progress_column_title")}
                     },
                     TaskStatus::Done => rsx! {
                         div { class: "size-3", DoneIcon {} }
-                        "Done"
+                        {translate!(i18, "done_column_title")}
                     }
                 }
             }
@@ -749,7 +864,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             event.stop_propagation();
                         },
                         div { class: "size-5", ToDoIcon {} }
-                        "To Do",
+                        {translate!(i18, "to_do_column_title")}
                     }
                     button {
                         class: "flex flex-row gap-1 items-center text-nowrap px-1",
@@ -759,7 +874,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             event.stop_propagation();
                         },
                         div { class: "size-5", InProgressIcon {} }
-                        "In Progress",
+                        {translate!(i18, "in_progress_column_title")}
                     }
                     button {
                         class: "flex flex-row gap-1 items-center text-nowrap px-1",
@@ -769,7 +884,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
                             event.stop_propagation();
                         },
                         div { class: "size-5", DoneIcon {} }
-                        "Done",
+                        {translate!(i18, "done_column_title")}
                     }
                 }
             }
@@ -779,6 +894,7 @@ fn ColumnSwitcher(status: Signal<TaskStatus>, panel: Signal<Panel>) -> Element {
 
 #[component]
 fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
+    let i18 = use_i18();
     let themes = use_context::<Signal<Vec<Theme>>>();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -793,7 +909,7 @@ fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
                 p-2
                 {style}
             ",
-            "aria-label": "themes",
+            aria_label: translate!(i18, "themes_section_label"),
             div {
                 class: "flex flex-row overflow-x-auto gap-2",
                 for theme in themes.read().iter() {
@@ -801,7 +917,7 @@ fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
                 }
             }
             button {
-                "aria-label": "close theme selector",
+                aria_label: translate!(i18, "close_theme_selector_button_label"),
                 class: "size-6 shrink-0",
                 onclick: move |_| extra_bar.set(ExtraBar::None),
                 CancelIcon {}
@@ -812,6 +928,7 @@ fn ThemesBar(extra_bar: Signal<ExtraBar>) -> Element {
 
 #[component]
 fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("border-t {}", theme.border_color);
@@ -821,12 +938,12 @@ fn FilterBar(extra_bar: Signal<ExtraBar>) -> Element {
     let users = &users.read().0;
     rsx! {
         section {
-            "aria-label": "filters",
+            aria_label: translate!(i18, "filters_section_label"),
             class: "flex flex-col gap-1 px-2 py-1 {style}",
             div {
                 class: "flex flex-row px-1 justify-end",
                 button {
-                    "aria-label": "close filters",
+                    aria_label: translate!(i18, "close_filters_button_label"),
                     class: "size-6",
                     onclick: move |_| extra_bar.set(ExtraBar::None),
                     CancelIcon {}

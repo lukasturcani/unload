@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::*, translate};
 use shared_models::{TagData, TagId};
 
 use crate::{
@@ -23,6 +24,7 @@ pub fn TagSelection(
     on_assign_tag: EventHandler<TagId>,
     on_add_tag: EventHandler<TagId>,
 ) -> Element {
+    let i18 = use_i18();
     let tags = tags.read();
     let tag_data = use_context::<Signal<Tags>>();
     let tag_data = &tag_data.read().0;
@@ -35,7 +37,7 @@ pub fn TagSelection(
     unassigned.sort_by_key(|(_, tag)| tag.name.to_lowercase());
     rsx! {
         section {
-            "aria-label": "tag selection",
+            aria_label: translate!(i18, "tag_selection_section_label"),
             AssignmentList {
                 body: rsx! {
                     for (tag_id, tag) in unassigned {
@@ -50,12 +52,10 @@ pub fn TagSelection(
 
 #[component]
 fn TagListItem(tag_id: TagId, tag: TagData, on_assign_tag: EventHandler<TagId>) -> Element {
-    let label = format!("assign {} to task", tag.name);
     rsx! {
         AssignmentListItem {
             content: tag.name,
             color: tag.color,
-            aria_label: label,
             onclick: move |_| on_assign_tag.call(tag_id),
         }
     }
@@ -63,6 +63,7 @@ fn TagListItem(tag_id: TagId, tag: TagData, on_assign_tag: EventHandler<TagId>) 
 
 #[component]
 fn AddTagListItem(id: String, on_add_tag: EventHandler<TagId>) -> Element {
+    let i18 = use_i18();
     let show_form = use_signal(|| false);
     rsx! {
         li {
@@ -71,7 +72,7 @@ fn AddTagListItem(id: String, on_add_tag: EventHandler<TagId>) -> Element {
             } else {
                 ShowSelectionListFormButton {
                     r#for: "{id}-form",
-                    content: "Add Tag",
+                    content: translate!(i18, "add_tag_button_label"),
                     show_form,
                 }
             }
@@ -81,16 +82,18 @@ fn AddTagListItem(id: String, on_add_tag: EventHandler<TagId>) -> Element {
 
 #[component]
 fn AddTagListForm(id: String, show_form: Signal<bool>, on_add_tag: EventHandler<TagId>) -> Element {
+    let i18 = use_i18();
     let board_signals = BoardSignals::default();
+    let input_label = translate!(i18, "tag_name_input_label");
     rsx! {
         li {
             form {
                 id: "{id}-form",
-                "aria-label": "add tag",
+                aria_label: translate!(i18, "add_tag_form_label"),
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
                     let values = event.values();
-                    let name = values["Name"].as_value();
+                    let name = values[&input_label].as_value();
                     let color = serde_json::from_str(
                         &values["color-picker"].as_value()
                     ).unwrap();
@@ -99,14 +102,14 @@ fn AddTagListForm(id: String, show_form: Signal<bool>, on_add_tag: EventHandler<
                 },
                 TextInput {
                     id: "{id}-tag-name-input",
-                    label: "Name",
+                    label: input_label.clone(),
                 }
                 ColorPicker { }
                 div {
                     class: "flex flex-row gap-2 items-center justify-center",
-                    ConfirmButton { label: "add tag" }
+                    ConfirmButton { label: translate!(i18, "add_tag_button_label") }
                     CancelButton {
-                        label: "cancel adding tag",
+                        label: translate!(i18, "cancel_adding_new_tag_button_label"),
                         editing: show_form,
                     }
                 }

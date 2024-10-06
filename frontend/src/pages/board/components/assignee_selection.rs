@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, UserData, UserId};
 
 use crate::{
@@ -26,6 +27,7 @@ pub fn AssigneeSelection(
     on_unassign_user: EventHandler<UserId>,
     on_add_user: EventHandler<UserId>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!("rounded-lg border {}", theme.border_color);
@@ -44,7 +46,7 @@ pub fn AssigneeSelection(
     unassigned.sort_by_key(|(_, user)| user.name.to_lowercase());
     rsx! {
         section {
-            "aria-label": "assignee selection",
+            aria_label: translate!(i18, "assignee_selection_section_label"),
             class: "flex flex-col gap-2 p-2 {style}",
             UserBadges { assignees: assignee_data, on_unassign_user }
             UserList { id, unassigned, on_assign_user, on_add_user }
@@ -73,6 +75,7 @@ fn UserBadge(
     user_data: UserData,
     on_unassign_user: EventHandler<UserId>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = "border-2 rounded";
@@ -95,7 +98,11 @@ fn UserBadge(
         Color::Teal => theme.color15_button,
         Color::Aqua => theme.color16_button,
     };
-    let unassign_label = format!("unassign {} from task", user_data.name);
+    let aria_label = format!(
+        "{}: {}",
+        translate!(i18, "remove_user_from_task_button_label"),
+        user_data.name,
+    );
     rsx! {
         div {
             class: "
@@ -104,7 +111,7 @@ fn UserBadge(
             ",
             {user_data.name}
             button {
-                "aria-label": unassign_label,
+                aria_label,
                 class: "size-5 p-0.5 {button_style}",
                 onclick: move |_| on_unassign_user.call(user_id),
                 CancelIcon {}
@@ -134,12 +141,10 @@ fn UserList(
 
 #[component]
 fn UserListItem(user_id: UserId, user: UserData, on_assign_user: EventHandler<UserId>) -> Element {
-    let label = format!("assign {} to task", user.name);
     rsx! {
         AssignmentListItem {
             content: user.name,
             color: user.color,
-            aria_label: label,
             onclick: move |_| on_assign_user.call(user_id),
         }
     }
@@ -147,6 +152,7 @@ fn UserListItem(user_id: UserId, user: UserData, on_assign_user: EventHandler<Us
 
 #[component]
 fn AddUserListItem(id: String, on_add_user: EventHandler<UserId>) -> Element {
+    let i18 = use_i18();
     let show_form = use_signal(|| false);
     rsx! {
         li {
@@ -155,7 +161,7 @@ fn AddUserListItem(id: String, on_add_user: EventHandler<UserId>) -> Element {
             } else {
                 ShowSelectionListFormButton {
                     r#for: "{id}-form",
-                    content: "Add User",
+                    content: translate!(i18, "add_user_button_label"),
                     show_form ,
                 }
             }
@@ -169,16 +175,18 @@ fn AddUserListForm(
     show_form: Signal<bool>,
     on_add_user: EventHandler<UserId>,
 ) -> Element {
+    let i18 = use_i18();
     let board_signals = BoardSignals::default();
+    let input_label = translate!(i18, "user_name_input_label");
     rsx! {
         li {
             form {
                 id: "{id}-form",
-                "aria-label": "add user",
+                aria_label: translate!(i18, "add_user_form_label"),
                 class: "flex flex-col gap-2 p-2",
                 onsubmit: move |event| {
                     let values = event.values();
-                    let name = values["Name"].as_value();
+                    let name = values[&input_label].as_value();
                     let color = serde_json::from_str(
                         &values["color-picker"].as_value()
                     ).unwrap();
@@ -187,14 +195,14 @@ fn AddUserListForm(
                 },
                 TextInput {
                     id: "{id}-new-user-name-input",
-                    label: "Name",
+                    label: input_label.clone(),
                 }
                 ColorPicker { }
                 div {
                     class: "flex flex-row gap-2 items-center justify-center",
-                    ConfirmButton { label: "add user" }
+                    ConfirmButton { label: translate!(i18, "add_user_button_label") }
                     CancelButton {
-                        label: "cancel adding user",
+                        label: translate!(i18, "cancel_adding_new_user_button_label"),
                         editing: show_form,
                     }
                 }

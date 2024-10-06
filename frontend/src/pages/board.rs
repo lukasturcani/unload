@@ -1,13 +1,15 @@
 use dioxus::prelude::*;
+use dioxus_sdk::i18n::use_i18;
 use dioxus_sdk::storage::*;
 use model::NumChatGptCalls;
 
-use crate::model::SavedBoards;
+use crate::model::{BoardLanguage, SavedBoards};
 use crate::pages::board::model::{Board, Dense, TagFilter, Tags, Tasks, UserFilter, Users};
 use crate::pages::board::one_column_board::OneColumnBoard;
 use crate::pages::board::requests::BoardSignals;
 use crate::pages::board::three_column_board::ThreeColumnBoard;
 use crate::responsive_layout::ResponsiveLayout;
+use crate::route::Route;
 use crate::window::use_window_size;
 
 use shared_models::{BoardName, SavedBoard};
@@ -17,6 +19,17 @@ mod model;
 mod one_column_board;
 mod requests;
 mod three_column_board;
+
+#[component]
+pub fn LanguageBoard(language: ReadOnlySignal<String>, board_name: BoardName) -> Element {
+    let mut board_language = use_context::<Signal<BoardLanguage>>();
+    board_language.set(BoardLanguage(language.read().clone()));
+    let mut i18 = use_i18();
+    i18.set_language(language.read().parse().unwrap());
+    let nav = use_navigator();
+    nav.replace(Route::Board { board_name });
+    rsx! {}
+}
 
 #[component]
 pub fn Board(board_name: BoardName) -> Element {

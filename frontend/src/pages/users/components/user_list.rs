@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, UserEntry, UserId};
 
 use crate::{
@@ -87,12 +88,13 @@ fn UserListItem(user: UserEntry) -> Element {
 
 #[component]
 fn ColorSelect(user_id: UserId, color: Color, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let users = use_context::<Signal<UserEntries>>();
     let url = use_context::<Signal<UsersUrl>>();
     rsx! {
         form {
             id: "user-{user_id}-color-form",
-            "aria-label": "edit color",
+            aria_label: translate!(i18, "edit_user_color_form_label"),
             class: "flex flex-col gap-2 items-center p-2",
             onsubmit: move |event| {
                 let color = serde_json::from_str(
@@ -104,15 +106,18 @@ fn ColorSelect(user_id: UserId, color: Color, state: Signal<State>) -> Element {
             ColorPicker { selected_color: color }
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "set color" }
-                CancelButton { label: "cancel color update", state }
+                ConfirmButton { label: translate!(i18, "set_user_color_button_label") }
+                CancelButton {
+                    aria_label: translate!(i18, "cancel_user_color_update_button_label"),
+                    state,
+                }
             }
         }
     }
 }
 
 #[component]
-fn CancelButton(label: String, state: Signal<State>) -> Element {
+fn CancelButton(aria_label: String, state: Signal<State>) -> Element {
     let style = "
         rounded-md
         border border-red-600
@@ -122,7 +127,7 @@ fn CancelButton(label: String, state: Signal<State>) -> Element {
     ";
     rsx! {
         button {
-            "aria-label": label,
+            aria_label,
             class: "size-7 {style}",
             onclick: move |_| {
                 state.set(State::Show);
@@ -134,6 +139,7 @@ fn CancelButton(label: String, state: Signal<State>) -> Element {
 
 #[component]
 fn ColorShow(user_id: UserId, color: Color, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -164,7 +170,7 @@ fn ColorShow(user_id: UserId, color: Color, state: Signal<State>) -> Element {
             }
             button {
                 class: "size-4",
-                "aria-label": "edit color",
+                aria_label: translate!(i18, "edit_user_color_button_label"),
                 onclick: move |_| {
                     scroll_target.set(
                         ScrollTarget(Some(format!("user-{user_id}-color-form")))
@@ -179,31 +185,37 @@ fn ColorShow(user_id: UserId, color: Color, state: Signal<State>) -> Element {
 
 #[component]
 fn NameInput(user_id: UserId, name: ReadOnlySignal<String>, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<UsersUrl>>();
     let users = use_context::<Signal<UserEntries>>();
+    let input_label = translate!(i18, "user_name_input_label");
     rsx! {
         form {
             id: "user-{user_id}-name-form",
-            "aria-label": "edit name",
+            aria_label: translate!(i18, "edit_user_name_form_label"),
             class: "flex flex-row gap-2 items-center p-2",
             onsubmit: move |event| {
-                let name = event.values()["Name"].as_value();
+                let name = event.values()[&input_label].as_value();
                 spawn_forever(requests::set_user_name(users, url, user_id, name));
                 state.set(State::Show);
             },
             TextInput {
                 id: "user-{user_id}-name-input",
-                label: "Name",
+                label: input_label.clone(),
                 value: name,
             }
-            ConfirmButton { label: "set name" }
-            CancelButton { label: "cancel name update", state }
+            ConfirmButton { label: translate!(i18, "set_user_name_button_label") }
+            CancelButton {
+                aria_label: translate!(i18, "cancel_user_name_update_button_label"),
+                state,
+            }
         }
     }
 }
 
 #[component]
 fn NameShow(user_id: UserId, name: String, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         div {
@@ -211,7 +223,7 @@ fn NameShow(user_id: UserId, name: String, state: Signal<State>) -> Element {
             {name}
             button {
                 class: "size-4",
-                "aria-label": "edit name",
+                aria_label: translate!(i18, "edit_user_name_button_label"),
                 onclick: move |_| {
                     scroll_target.set(
                         ScrollTarget(Some(format!("user-{user_id}-name-form")))
@@ -226,12 +238,13 @@ fn NameShow(user_id: UserId, name: String, state: Signal<State>) -> Element {
 
 #[component]
 fn DeleteUserButton(user_id: UserId) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<UsersUrl>>();
     let users = use_context::<Signal<UserEntries>>();
     let style = "stroke-red-600";
     rsx! {
         button {
-            "aria-label": "delete user",
+            aria_label: translate!(i18, "delete_user_button_label"),
             class: "block size-6 {style}",
             onclick: move |_| {
                 spawn_forever(requests::delete_user(users, url, user_id));

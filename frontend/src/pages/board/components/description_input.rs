@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 
 use crate::{
     components::{
@@ -14,6 +15,7 @@ pub fn DescriptionInput(
     editing: Signal<bool>,
     description: ReadOnlySignal<String>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -31,27 +33,34 @@ pub fn DescriptionInput(
             div {
                 class: "flex flex-row justify-center items-center gap-2",
                 button {
+                    aria_label: translate!(i18, "bullet_points_button_tooltip"),
                     class: "group",
                     prevent_default: "onclick",
                     onclick: move |_| insert_string(id, "\n* "),
                     div {
                         class: "relative",
                         div { class: "size-6", BulletsIcon {} }
-                        Tooltip { content: "Bullet Points" }
+                        Tooltip {
+                            content: translate!(i18, "bullet_points_button_tooltip"),
+                        }
                     }
                 }
                 button {
+                    aria_label: translate!(i18, "task_list_button_tooltip"),
                     class: "group",
                     prevent_default: "onclick",
                     onclick: move |_| insert_string(id, "\n- [ ] "),
                     div {
                         class: "relative",
                         div { class: "size-6", CheckboxIcon {} }
-                        Tooltip { content: "Task List" }
+                        Tooltip {
+                            content: translate!(i18, "task_list_button_tooltip"),
+                        }
                     }
                 }
             }
             textarea {
+                aria_label: translate!(i18, "description_text_area_label"),
                 id,
                 onmounted: move |event| async move {
                     let _ = event.set_focus(true).await;

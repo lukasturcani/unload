@@ -8,8 +8,7 @@ use crate::{
 #[component]
 pub fn SelectorToggle(
     show_selector: Signal<bool>,
-    aria_label: String,
-    tooltip: String,
+    tooltip: ReadOnlySignal<String>,
     size: &'static str,
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
@@ -22,9 +21,9 @@ pub fn SelectorToggle(
         div {
             class: "group relative",
             button {
-                "aria-label": aria_label,
+                aria_label: tooltip,
                 class: "block {size} {style}",
-                "aria-pressed": show_selector(),
+                aria_pressed: show_selector(),
                 onclick: move |_| {
                     let show = show_selector();
                     on_toggle_selector.call(show);

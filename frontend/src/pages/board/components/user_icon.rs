@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, UserData, UserId};
 
 use crate::{components::tooltip::Tooltip, pages::board::model::UserFilter, themes::Theme};
@@ -11,6 +12,7 @@ pub fn UserIcon(
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let color = match user_data.color {
@@ -35,7 +37,11 @@ pub fn UserIcon(
         rounded border-2
         sm:hover:border-4 active:border-4 sm:hover:scale-110 active:scale-110
     ";
-    let aria_label = format!("toggle {} filter", user_data.name);
+    let aria_label = format!(
+        "{}: {}",
+        translate!(i18, "toggle_user_filter_button_label"),
+        user_data.name,
+    );
     rsx! {
         div {
             class: "group relative",
@@ -57,6 +63,7 @@ pub fn FilteringUserIcon(
     tooltip_position: Option<&'static str>,
     dir: Option<&'static str>,
 ) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let mut user_filter = use_context::<Signal<UserFilter>>();
@@ -82,7 +89,11 @@ pub fn FilteringUserIcon(
         rounded border-2
         sm:hover:border-4 active:border-4 sm:hover:scale-110 active:scale-110
     ";
-    let aria_label = format!("toggle {} filter", user_data.name);
+    let aria_label = format!(
+        "{}: {}",
+        translate!(i18, "toggle_user_filter_button_label"),
+        user_data.name,
+    );
     rsx! {
         div {
             class: "group relative",

@@ -11,7 +11,8 @@ RUN \
   curl -LJO https://github.com/aptible/supercronic/releases/download/v"${SUPERCRONIC_VERSION}"/supercronic-linux-amd64 && \
   chmod 755 supercronic-linux-amd64 && \
   mv supercronic-linux-amd64 /usr/local/bin/supercronic
-RUN cargo install dioxus-cli
+ENV DIOXUS_CLI_VERSION=0.5.7
+RUN cargo install dioxus-cli --version "${DIOXUS_CLI_VERSION}"
 WORKDIR /usr/src/unload
 COPY Cargo.lock Cargo.toml ./
 COPY tools ./tools/
@@ -30,6 +31,7 @@ RUN cd frontend && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
 RUN cd frontend && dx build --release
 RUN fdfind . 'frontend/dist' --type file --exec gzip -f -k
 RUN cd website && npx tailwindcss -i ./input.css -o ./assets/tailwind.css
+RUN cd website && cp ./node_modules/flowbite/dist/flowbite.min.js ./assets/flowbite.min.js
 RUN cd website && dx build --release
 RUN cd website &&  cargo run --release --features prebuild
 RUN fdfind . 'website/dist' --type file --exec gzip -f -k

@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 html {
-    @apply bg-indigo-600;
+    @apply bg-background;
 }

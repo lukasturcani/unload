@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::{Color, TagEntry, TagId};
 
 use crate::{
@@ -88,12 +89,13 @@ fn TagListItem(tag: TagEntry) -> Element {
 
 #[component]
 fn ColorSelect(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let tags = use_context::<Signal<TagEntries>>();
     let url = use_context::<Signal<TagsUrl>>();
     rsx! {
         form {
             id: "tag-{tag_id}-color-form",
-            "aria-label": "edit color",
+            aria_label: translate!(i18, "edit_tag_color_form_label"),
             class: "flex flex-col gap-2 items-center p-2",
             onsubmit: move |event| {
                 let color = serde_json::from_str(
@@ -105,15 +107,18 @@ fn ColorSelect(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
             ColorPicker { selected_color: color }
             div {
                 class: "flex flex-row gap-2 items-center justify-center",
-                ConfirmButton { label: "set color" }
-                CancelButton { label: "cancel color update", state }
+                ConfirmButton { label: translate!(i18, "set_tag_color_button_label") }
+                CancelButton {
+                    aria_label: translate!(i18, "cancel_tag_color_update_label"),
+                    state,
+                }
             }
         }
     }
 }
 
 #[component]
-fn CancelButton(label: String, state: Signal<State>) -> Element {
+fn CancelButton(aria_label: String, state: Signal<State>) -> Element {
     let style = "
         rounded-md
         border border-red-600
@@ -123,7 +128,7 @@ fn CancelButton(label: String, state: Signal<State>) -> Element {
     ";
     rsx! {
         button {
-            "aria-label": label,
+            aria_label,
             class: "size-7 {style}",
             onclick: move |_| {
                 state.set(State::Show);
@@ -135,6 +140,7 @@ fn CancelButton(label: String, state: Signal<State>) -> Element {
 
 #[component]
 fn ColorShow(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
@@ -165,7 +171,7 @@ fn ColorShow(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
             }
             button {
                 class: "size-4",
-                "aria-label": "edit color",
+                aria_label: translate!(i18, "edit_tag_color_button_label"),
                 onclick: move |_| {
                     scroll_target.set(
                         ScrollTarget(Some(format!("tag-{tag_id}-color-form")))
@@ -180,31 +186,37 @@ fn ColorShow(tag_id: TagId, color: Color, state: Signal<State>) -> Element {
 
 #[component]
 fn NameInput(tag_id: TagId, name: ReadOnlySignal<String>, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<TagsUrl>>();
     let tags = use_context::<Signal<TagEntries>>();
+    let input_label = translate!(i18, "tag_name_input_label");
     rsx! {
         form {
             id: "tag-{tag_id}-name-form",
-            "aria-label": "edit name",
+            aria_label: translate!(i18, "edit_tag_name_form_label"),
             class: "flex flex-row gap-2 items-center p-2",
             onsubmit: move |event| {
-                let name = event.values()["Name"].as_value();
+                let name = event.values()[&input_label].as_value();
                 spawn_forever(requests::set_tag_name(tags, url, tag_id, name));
                 state.set(State::Show);
             },
             TextInput {
                 id: "tag-{tag_id}-name-input",
-                label: "Name",
+                label: input_label.clone(),
                 value: name,
             }
-            ConfirmButton { label: "set name" }
-            CancelButton { label: "cancel name update", state }
+            ConfirmButton { label: translate!(i18, "set_tag_name_button_label") }
+            CancelButton {
+                aria_label: translate!(i18, "cancel_tag_name_update_button_label"),
+                state,
+            }
         }
     }
 }
 
 #[component]
 fn NameShow(tag_id: TagId, name: String, state: Signal<State>) -> Element {
+    let i18 = use_i18();
     let mut scroll_target = use_context::<Signal<ScrollTarget>>();
     rsx! {
         div {
@@ -212,7 +224,7 @@ fn NameShow(tag_id: TagId, name: String, state: Signal<State>) -> Element {
             {name}
             button {
                 class: "size-4",
-                "aria-label": "edit name",
+                aria_label: translate!(i18, "edit_tag_name_button_label"),
                 onclick: move |_| {
                     scroll_target.set(
                         ScrollTarget(Some(format!("tag-{tag_id}-name-form")))
@@ -227,12 +239,13 @@ fn NameShow(tag_id: TagId, name: String, state: Signal<State>) -> Element {
 
 #[component]
 fn DeleteTagButton(tag_id: TagId) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<TagsUrl>>();
     let tags = use_context::<Signal<TagEntries>>();
     let style = "stroke-red-600";
     rsx! {
         button {
-            "aria-label": "delete tag",
+            aria_label: translate!(i18, "delete_tag_button_label"),
             class: "block size-6 {style}",
             onclick: move |_| {
                 spawn_forever(requests::delete_tag(tags, url, tag_id));
@@ -244,11 +257,12 @@ fn DeleteTagButton(tag_id: TagId) -> Element {
 
 #[component]
 fn ArchiveTagButton(tag_id: TagId) -> Element {
+    let i18 = use_i18();
     let url = use_context::<Signal<TagsUrl>>();
     let tags = use_context::<Signal<TagEntries>>();
     rsx! {
         button {
-            "aria-label": "archive tag",
+            aria_label: translate!(i18, "archive_tag_button_label"),
             class: "block size-6",
             onclick: move |_| {
                 spawn_forever(requests::set_tag_archived(tags, url, tag_id));

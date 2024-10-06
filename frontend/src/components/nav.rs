@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_sdk::{i18n::use_i18, translate};
 use shared_models::BoardName;
 
 use crate::{
@@ -12,6 +13,7 @@ use crate::{
 
 #[component]
 pub fn NavBar(board_name: BoardName) -> Element {
+    let i18 = use_i18();
     let theme = use_context::<Signal<Theme>>();
     let theme = theme.read();
     let style = format!(
@@ -35,7 +37,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                         class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", BoardIcon {} }
                         div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidBoardIcon {} }
-                        "Board"
+                        {translate!(i18, "board_link")}
                     }
                 }
             }
@@ -46,7 +48,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                         class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", TagIcon {} }
                         div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidTagIcon {} }
-                        "Tags"
+                        {translate!(i18, "tags_link")}
                     }
                 }
             }
@@ -57,7 +59,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                         class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", UsersIcon {} }
                         div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidUsersIcon {} }
-                        "Users"
+                        {translate!(i18, "users_link")}
                     }
                 }
             }
@@ -68,7 +70,7 @@ pub fn NavBar(board_name: BoardName) -> Element {
                         class: "h-full flex flex-col items-center justify-center",
                         div { class: "size-5 sm:size-8 hidden group-[:not(.current-page)]:block", ArchiveIcon {} }
                         div { class: "size-5 sm:size-8 hidden group-[.current-page]:block", SolidArchiveIcon {} }
-                        "Archive"
+                        {translate!(i18, "archive_link")}
                     }
                 }
             }
