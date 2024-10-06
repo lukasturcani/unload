@@ -93,10 +93,12 @@ pub const SK: Translation<&'static str> = Translation {
         create_new_board_button_label: "Vytvoriť novú tabulku",
         or_label: "alebo",
         chat_gpt_limit_exceeded_title: "Prekročený limit ChatGPT",
-        chat_gpt_limit_exceeded_content: "Dosiahli ste limit volaní ChatGPT. Skúste to prosím neskôr.",
+        chat_gpt_limit_exceeded_content:
+            "Dosiahli ste limit volaní ChatGPT. Skúste to prosím neskôr.",
         chat_gpt_waiting_message: "Komunikujem s ChatGPT...",
         chat_gpt_error_title: "Chyba ChatGPT",
-        chat_gpt_error_content: "Pri pokuse o pripojenie k ChatGPT došlo k chybe. Skúste to prosím neskôr.",
+        chat_gpt_error_content:
+            "Pri pokuse o pripojenie k ChatGPT došlo k chybe. Skúste to prosím neskôr.",
         chat_gpt_prompt_input_title: "Pokyn ChatGPT",
         chat_gpt_daily_attempts_left: "denné pokusy zostávajú",
         chat_gpt_prompt_input_content: "alebo vyberte z nižšie uvedených návrhov:",

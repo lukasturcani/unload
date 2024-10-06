@@ -93,10 +93,12 @@ pub const KO: Translation<&'static str> = Translation {
         create_new_board_button_label: "새 보드 생성",
         or_label: "또는",
         chat_gpt_limit_exceeded_title: "ChatGPT 한도 초과",
-        chat_gpt_limit_exceeded_content: "ChatGPT 호출 한도를 초과했습니다. 나중에 다시 시도해 주세요.",
+        chat_gpt_limit_exceeded_content:
+            "ChatGPT 호출 한도를 초과했습니다. 나중에 다시 시도해 주세요.",
         chat_gpt_waiting_message: "ChatGPT와 대화 중...",
         chat_gpt_error_title: "ChatGPT 오류",
-        chat_gpt_error_content: "ChatGPT에 연결하는 동안 오류가 발생했습니다. 나중에 다시 시도해 주세요.",
+        chat_gpt_error_content:
+            "ChatGPT에 연결하는 동안 오류가 발생했습니다. 나중에 다시 시도해 주세요.",
         chat_gpt_prompt_input_title: "ChatGPT 프롬프트",
         chat_gpt_daily_attempts_left: "남은 일일 시도 횟수",
         chat_gpt_prompt_input_content: "아래 제안에서 하나를 선택하십시오:",

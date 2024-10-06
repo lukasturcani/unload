@@ -93,10 +93,12 @@ pub const ET: Translation<&'static str> = Translation {
         create_new_board_button_label: "Loo uus tahvel",
         or_label: "või",
         chat_gpt_limit_exceeded_title: "ChatGPT limiit ületatud",
-        chat_gpt_limit_exceeded_content: "Olete ületanud ChatGPT kõnede limiidi. Palun proovige hiljem uuesti.",
+        chat_gpt_limit_exceeded_content:
+            "Olete ületanud ChatGPT kõnede limiidi. Palun proovige hiljem uuesti.",
         chat_gpt_waiting_message: "Räägin ChatGPT-ga...",
         chat_gpt_error_title: "ChatGPT viga",
-        chat_gpt_error_content: "Tekkis viga ChatGPT-ga ühenduse loomisel. Palun proovige hiljem uuesti.",
+        chat_gpt_error_content:
+            "Tekkis viga ChatGPT-ga ühenduse loomisel. Palun proovige hiljem uuesti.",
         chat_gpt_prompt_input_title: "ChatGPT juhis",
         chat_gpt_daily_attempts_left: "päevased katsed alles",
         chat_gpt_prompt_input_content: "või vali üks allolevatest soovitustest:",

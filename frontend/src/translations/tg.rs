@@ -93,10 +93,12 @@ pub const TG: Translation<&'static str> = Translation {
         create_new_board_button_label: "Эҷоди лавҳаи нав",
         or_label: "ё",
         chat_gpt_limit_exceeded_title: "Ҳадди гапи ChatGPT супер шуд",
-        chat_gpt_limit_exceeded_content: "Шумо ба ҳадди муомила бо ChatGPT расидед. Лутфан баъдтар кӯшиш кунед.",
+        chat_gpt_limit_exceeded_content:
+            "Шумо ба ҳадди муомила бо ChatGPT расидед. Лутфан баъдтар кӯшиш кунед.",
         chat_gpt_waiting_message: "Бо ChatGPT суҳбат мекунам...",
         chat_gpt_error_title: "Хатои ChatGPT",
-        chat_gpt_error_content: "Ҳангоми кӯшиши пайвастшавӣ ба ChatGPT хатое рух дод. Лутфан баъдтар кӯшиш кунед.",
+        chat_gpt_error_content:
+            "Ҳангоми кӯшиши пайвастшавӣ ба ChatGPT хатое рух дод. Лутфан баъдтар кӯшиш кунед.",
         chat_gpt_prompt_input_title: "Дарсхост барои ChatGPT",
         chat_gpt_daily_attempts_left: "муроҷиати ҳамарӯза боқӣ мондааст",
         chat_gpt_prompt_input_content: "ё яке аз пешниҳодҳои зерро интихоб кунед:",

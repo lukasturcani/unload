@@ -93,10 +93,12 @@ pub const BG: Translation<&'static str> = Translation {
         create_new_board_button_label: "Създайте ново табло",
         or_label: "или",
         chat_gpt_limit_exceeded_title: "Превишен лимит на ChatGPT",
-        chat_gpt_limit_exceeded_content: "Достигнахте лимита на заявки към ChatGPT. Моля, опитайте по-късно.",
+        chat_gpt_limit_exceeded_content:
+            "Достигнахте лимита на заявки към ChatGPT. Моля, опитайте по-късно.",
         chat_gpt_waiting_message: "Говорим с ChatGPT...",
         chat_gpt_error_title: "Грешка в ChatGPT",
-        chat_gpt_error_content: "Възникна грешка при опит за свързване с Chat GPT. Моля, опитайте по-късно.",
+        chat_gpt_error_content:
+            "Възникна грешка при опит за свързване с Chat GPT. Моля, опитайте по-късно.",
         chat_gpt_prompt_input_title: "Покана за ChatGPT",
         chat_gpt_daily_attempts_left: "останали дневни опити",
         chat_gpt_prompt_input_content: "или изберете една от предложените по-долу:",

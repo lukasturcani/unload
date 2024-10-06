@@ -93,10 +93,12 @@ pub const RU: Translation<&'static str> = Translation {
         create_new_board_button_label: "Создать новую доску",
         or_label: "или",
         chat_gpt_limit_exceeded_title: "Лимит на использование ChatGPT превышен",
-        chat_gpt_limit_exceeded_content: "Вы достигли лимита вызовов ChatGPT. Пожалуйста, попробуйте позже.",
+        chat_gpt_limit_exceeded_content:
+            "Вы достигли лимита вызовов ChatGPT. Пожалуйста, попробуйте позже.",
         chat_gpt_waiting_message: "Общение с ChatGPT...",
         chat_gpt_error_title: "Ошибка ChatGPT",
-        chat_gpt_error_content: "Произошла ошибка при попытке подключиться к ChatGPT. Пожалуйста, попробуйте позже.",
+        chat_gpt_error_content:
+            "Произошла ошибка при попытке подключиться к ChatGPT. Пожалуйста, попробуйте позже.",
         chat_gpt_prompt_input_title: "Запрос ChatGPT",
         chat_gpt_daily_attempts_left: "оставшиеся ежедневные попытки",
         chat_gpt_prompt_input_content: "или выберите один из предложенных ниже:",

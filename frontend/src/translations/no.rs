@@ -93,10 +93,12 @@ pub const NO: Translation<&'static str> = Translation {
         create_new_board_button_label: "Opprett Ny Tavle",
         or_label: "eller",
         chat_gpt_limit_exceeded_title: "ChatGPT Grense Overskredet",
-        chat_gpt_limit_exceeded_content: "Du har nådd grensen for ChatGPT-forespørsler. Vennligst prøv igjen senere.",
+        chat_gpt_limit_exceeded_content:
+            "Du har nådd grensen for ChatGPT-forespørsler. Vennligst prøv igjen senere.",
         chat_gpt_waiting_message: "Snakker med ChatGPT...",
         chat_gpt_error_title: "ChatGPT Feil",
-        chat_gpt_error_content: "En feil oppsto under forsøk på å koble til Chat GPT. Vennligst prøv igjen senere.",
+        chat_gpt_error_content:
+            "En feil oppsto under forsøk på å koble til Chat GPT. Vennligst prøv igjen senere.",
         chat_gpt_prompt_input_title: "ChatGPT Prompt",
         chat_gpt_daily_attempts_left: "daglige forsøk igjen",
         chat_gpt_prompt_input_content: "eller velg en fra forslagene nedenfor:",

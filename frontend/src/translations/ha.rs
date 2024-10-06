@@ -93,10 +93,12 @@ pub const HA: Translation<&'static str> = Translation {
         create_new_board_button_label: "Ƙirƙiri Sabon allo",
         or_label: "ko",
         chat_gpt_limit_exceeded_title: "ChatGPT ya wuce iyaka",
-        chat_gpt_limit_exceeded_content: "Kun kai iyakar kiran ChatGPT. Da fatan za a gwada daga bisani.",
+        chat_gpt_limit_exceeded_content:
+            "Kun kai iyakar kiran ChatGPT. Da fatan za a gwada daga bisani.",
         chat_gpt_waiting_message: "Magana da ChatGPT...",
         chat_gpt_error_title: "ChatGPT kuskure",
-        chat_gpt_error_content: "An samu kuskure yayin gwada haɗi zuwa Chat GPT. Da fatan za a gwada daga bisani.",
+        chat_gpt_error_content:
+            "An samu kuskure yayin gwada haɗi zuwa Chat GPT. Da fatan za a gwada daga bisani.",
         chat_gpt_prompt_input_title: "ChatGPT tsokana",
         chat_gpt_daily_attempts_left: "kokarin yau da ya rage",
         chat_gpt_prompt_input_content: "ko zaɓi daya daga cikin shawarwarin da ke ƙasa:",

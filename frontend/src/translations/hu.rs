@@ -93,10 +93,12 @@ pub const HU: Translation<&'static str> = Translation {
         create_new_board_button_label: "Új tábla létrehozása",
         or_label: "vagy",
         chat_gpt_limit_exceeded_title: "ChatGPT kvóta túllépve",
-        chat_gpt_limit_exceeded_content: "Elérted a ChatGPT hívások limitjét. Kérlek, próbáld újra később.",
+        chat_gpt_limit_exceeded_content:
+            "Elérted a ChatGPT hívások limitjét. Kérlek, próbáld újra később.",
         chat_gpt_waiting_message: "Beszélgetés a ChatGPT-vel...",
         chat_gpt_error_title: "ChatGPT hiba",
-        chat_gpt_error_content: "Hiba történt a ChatGPT-hez való csatlakozás során. Kérlek, próbáld újra később.",
+        chat_gpt_error_content:
+            "Hiba történt a ChatGPT-hez való csatlakozás során. Kérlek, próbáld újra később.",
         chat_gpt_prompt_input_title: "ChatGPT prompt",
         chat_gpt_daily_attempts_left: "napi próbálkozások hátralévő száma",
         chat_gpt_prompt_input_content: "vagy válassz egyet az alábbi javaslatok közül:",

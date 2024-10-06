@@ -93,10 +93,12 @@ pub const CS: Translation<&'static str> = Translation {
         create_new_board_button_label: "Vytvořit novou tabuli",
         or_label: "nebo",
         chat_gpt_limit_exceeded_title: "Překročen limit ChatGPT",
-        chat_gpt_limit_exceeded_content: "Dosáhli jste limitu volání ChatGPT. Zkuste to prosím později.",
+        chat_gpt_limit_exceeded_content:
+            "Dosáhli jste limitu volání ChatGPT. Zkuste to prosím později.",
         chat_gpt_waiting_message: "Mluvím s ChatGPT...",
         chat_gpt_error_title: "Chyba ChatGPT",
-        chat_gpt_error_content: "Došlo k chybě při pokusu o připojení k ChatGPT. Zkuste to prosím později.",
+        chat_gpt_error_content:
+            "Došlo k chybě při pokusu o připojení k ChatGPT. Zkuste to prosím později.",
         chat_gpt_prompt_input_title: "Vstupní výzva ChatGPT",
         chat_gpt_daily_attempts_left: "denní pokusy zbývají",
         chat_gpt_prompt_input_content: "nebo si vyberte jednu z níže uvedených návrhů:",

@@ -93,10 +93,12 @@ pub const JA: Translation<&'static str> = Translation {
         create_new_board_button_label: "新しいボードを作成",
         or_label: "または",
         chat_gpt_limit_exceeded_title: "ChatGPTの制限を超えました",
-        chat_gpt_limit_exceeded_content: "ChatGPTの呼び出し制限に達しました。後でもう一度お試しください。",
+        chat_gpt_limit_exceeded_content:
+            "ChatGPTの呼び出し制限に達しました。後でもう一度お試しください。",
         chat_gpt_waiting_message: "ChatGPTとの対話中...",
         chat_gpt_error_title: "ChatGPTエラー",
-        chat_gpt_error_content: "ChatGPTとの接続中にエラーが発生しました。後でもう一度お試しください。",
+        chat_gpt_error_content:
+            "ChatGPTとの接続中にエラーが発生しました。後でもう一度お試しください。",
         chat_gpt_prompt_input_title: "ChatGPTのプロンプト",
         chat_gpt_daily_attempts_left: "残りの毎日の試行回数",
         chat_gpt_prompt_input_content: "以下の提案の中から選択するか:",

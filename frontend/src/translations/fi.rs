@@ -93,10 +93,12 @@ pub const FI: Translation<&'static str> = Translation {
         create_new_board_button_label: "Luo Uusi Hallinta",
         or_label: "tai",
         chat_gpt_limit_exceeded_title: "ChatGPT Kutsuraja Ylittynyt",
-        chat_gpt_limit_exceeded_content: "Olet saavuttanut ChatGPT kutsujen rajan. Yritä uudelleen myöhemmin.",
+        chat_gpt_limit_exceeded_content:
+            "Olet saavuttanut ChatGPT kutsujen rajan. Yritä uudelleen myöhemmin.",
         chat_gpt_waiting_message: "Keskustelu ChatGPT:n kanssa...",
         chat_gpt_error_title: "ChatGPT Virhe",
-        chat_gpt_error_content: "Virhe yritettäessä yhdistää Chat GPT:hen. Yritä uudelleen myöhemmin.",
+        chat_gpt_error_content:
+            "Virhe yritettäessä yhdistää Chat GPT:hen. Yritä uudelleen myöhemmin.",
         chat_gpt_prompt_input_title: "ChatGPT Kehote",
         chat_gpt_daily_attempts_left: "päivittäiset yritykset jäljellä",
         chat_gpt_prompt_input_content: "tai valitse yksi alla olevista ehdotuksista:",

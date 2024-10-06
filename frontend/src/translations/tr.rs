@@ -93,10 +93,12 @@ pub const TR: Translation<&'static str> = Translation {
         create_new_board_button_label: "Yeni Pano Oluştur",
         or_label: "veya",
         chat_gpt_limit_exceeded_title: "ChatGPT Limiti Aşıldı",
-        chat_gpt_limit_exceeded_content: "ChatGPT çağrılarında limite ulaştınız. Lütfen daha sonra tekrar deneyin.",
+        chat_gpt_limit_exceeded_content:
+            "ChatGPT çağrılarında limite ulaştınız. Lütfen daha sonra tekrar deneyin.",
         chat_gpt_waiting_message: "ChatGPT ile konuşuluyor...",
         chat_gpt_error_title: "ChatGPT Hatası",
-        chat_gpt_error_content: "ChatGPT'ye bağlanmaya çalışırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.",
+        chat_gpt_error_content:
+            "ChatGPT'ye bağlanmaya çalışırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.",
         chat_gpt_prompt_input_title: "ChatGPT Komutu",
         chat_gpt_daily_attempts_left: "günlük kalan deneme",
         chat_gpt_prompt_input_content: "veya aşağıdaki önerilerden birini seçin:",

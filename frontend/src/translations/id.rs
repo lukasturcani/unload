@@ -93,10 +93,12 @@ pub const ID: Translation<&'static str> = Translation {
         create_new_board_button_label: "Buat Papan Baru",
         or_label: "atau",
         chat_gpt_limit_exceeded_title: "Batas ChatGPT Tercapai",
-        chat_gpt_limit_exceeded_content: "Anda telah mencapai batas panggilan ChatGPT. Silakan coba lagi nanti.",
+        chat_gpt_limit_exceeded_content:
+            "Anda telah mencapai batas panggilan ChatGPT. Silakan coba lagi nanti.",
         chat_gpt_waiting_message: "Berbicara dengan ChatGPT...",
         chat_gpt_error_title: "Kesalahan ChatGPT",
-        chat_gpt_error_content: "Terjadi kesalahan saat mencoba menghubungkan ke ChatGPT. Silahkan coba lagi nanti.",
+        chat_gpt_error_content:
+            "Terjadi kesalahan saat mencoba menghubungkan ke ChatGPT. Silahkan coba lagi nanti.",
         chat_gpt_prompt_input_title: "Prompt ChatGPT",
         chat_gpt_daily_attempts_left: "upaya harian tersisa",
         chat_gpt_prompt_input_content: "atau pilih salah satu dari saran di bawah:",

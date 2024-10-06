@@ -93,10 +93,12 @@ pub const SV: Translation<&'static str> = Translation {
         create_new_board_button_label: "Skapa Ny Styrelse",
         or_label: "eller",
         chat_gpt_limit_exceeded_title: "ChatGPT Gräns Överskriden",
-        chat_gpt_limit_exceeded_content: "Du har nått gränsen för ChatGPT-anrop. Försök igen senare.",
+        chat_gpt_limit_exceeded_content:
+            "Du har nått gränsen för ChatGPT-anrop. Försök igen senare.",
         chat_gpt_waiting_message: "Pratar med ChatGPT...",
         chat_gpt_error_title: "ChatGPT Fel",
-        chat_gpt_error_content: "Ett fel uppstod vid försök att ansluta till Chat GPT. Försök igen senare.",
+        chat_gpt_error_content:
+            "Ett fel uppstod vid försök att ansluta till Chat GPT. Försök igen senare.",
         chat_gpt_prompt_input_title: "ChatGPT Prompt",
         chat_gpt_daily_attempts_left: "dagliga försök kvar",
         chat_gpt_prompt_input_content: "eller välj en från förslagen nedan:",

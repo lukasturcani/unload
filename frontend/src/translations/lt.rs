@@ -93,10 +93,12 @@ pub const LT: Translation<&'static str> = Translation {
         create_new_board_button_label: "Sukurti naują lentą",
         or_label: "arba",
         chat_gpt_limit_exceeded_title: "ChatGPT limitas viršytas",
-        chat_gpt_limit_exceeded_content: "Pasiekėte ChatGPT skambučių limitą. Bandykite dar kartą vėliau.",
+        chat_gpt_limit_exceeded_content:
+            "Pasiekėte ChatGPT skambučių limitą. Bandykite dar kartą vėliau.",
         chat_gpt_waiting_message: "Kalbama su ChatGPT...",
         chat_gpt_error_title: "ChatGPT klaida",
-        chat_gpt_error_content: "Įvyko klaida bandant prisijungti prie Chat GPT. Bandykite dar kartą vėliau.",
+        chat_gpt_error_content:
+            "Įvyko klaida bandant prisijungti prie Chat GPT. Bandykite dar kartą vėliau.",
         chat_gpt_prompt_input_title: "ChatGPT raginimas",
         chat_gpt_daily_attempts_left: "dienos bandymų liko",
         chat_gpt_prompt_input_content: "arba pasirinkite vieną iš žemiau pateiktų pasiūlymų:",

@@ -93,10 +93,12 @@ pub const MS: Translation<&'static str> = Translation {
         create_new_board_button_label: "Buat Papantanda Baru",
         or_label: "atau",
         chat_gpt_limit_exceeded_title: "Had ChatGPT Melebihi",
-        chat_gpt_limit_exceeded_content: "Anda telah mencapai had panggilan ChatGPT. Sila cuba lagi nanti.",
+        chat_gpt_limit_exceeded_content:
+            "Anda telah mencapai had panggilan ChatGPT. Sila cuba lagi nanti.",
         chat_gpt_waiting_message: "Sedang berhubung dengan ChatGPT...",
         chat_gpt_error_title: "Ralat ChatGPT",
-        chat_gpt_error_content: "Terdapat ralat semasa cuba berhubung dengan ChatGPT. Sila cuba lagi nanti.",
+        chat_gpt_error_content:
+            "Terdapat ralat semasa cuba berhubung dengan ChatGPT. Sila cuba lagi nanti.",
         chat_gpt_prompt_input_title: "Prompt ChatGPT",
         chat_gpt_daily_attempts_left: "percubaan harian yang masih tinggal",
         chat_gpt_prompt_input_content: "atau pilih satu daripada cadangan di bawah:",

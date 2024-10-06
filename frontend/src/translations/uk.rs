@@ -93,10 +93,12 @@ pub const UK: Translation<&'static str> = Translation {
         create_new_board_button_label: "Створити нову дошку",
         or_label: "або",
         chat_gpt_limit_exceeded_title: "Перевищено ліміт ChatGPT",
-        chat_gpt_limit_exceeded_content: "Ви досягли ліміту запитів до ChatGPT. Будь ласка, спробуйте пізніше.",
+        chat_gpt_limit_exceeded_content:
+            "Ви досягли ліміту запитів до ChatGPT. Будь ласка, спробуйте пізніше.",
         chat_gpt_waiting_message: "Спілкування з ChatGPT...",
         chat_gpt_error_title: "Помилка ChatGPT",
-        chat_gpt_error_content: "Сталася помилка при спробі підключення до ChatGPT. Будь ласка, спробуйте пізніше.",
+        chat_gpt_error_content:
+            "Сталася помилка при спробі підключення до ChatGPT. Будь ласка, спробуйте пізніше.",
         chat_gpt_prompt_input_title: "Запит ChatGPT",
         chat_gpt_daily_attempts_left: "залишилось спроб на день",
         chat_gpt_prompt_input_content: "або виберіть один із запропонованих нижче:",

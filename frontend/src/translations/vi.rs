@@ -93,7 +93,8 @@ pub const VI: Translation<&'static str> = Translation {
         create_new_board_button_label: "Tạo Bảng Mới",
         or_label: "hoặc",
         chat_gpt_limit_exceeded_title: "Giới Hạn ChatGPT Đã Vượt Quá",
-        chat_gpt_limit_exceeded_content: "Bạn đã đạt đến giới hạn cuộc gọi ChatGPT. Vui lòng thử lại sau.",
+        chat_gpt_limit_exceeded_content:
+            "Bạn đã đạt đến giới hạn cuộc gọi ChatGPT. Vui lòng thử lại sau.",
         chat_gpt_waiting_message: "Đang nói chuyện với ChatGPT...",
         chat_gpt_error_title: "Lỗi ChatGPT",
         chat_gpt_error_content: "Đã xảy ra lỗi khi kết nối với ChatGPT. Vui lòng thử lại sau.",

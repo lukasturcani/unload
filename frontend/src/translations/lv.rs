@@ -93,7 +93,8 @@ pub const LV: Translation<&'static str> = Translation {
         create_new_board_button_label: "Izveidot Jaunu Dēli",
         or_label: "vai",
         chat_gpt_limit_exceeded_title: "ChatGPT Limits Pārsniegts",
-        chat_gpt_limit_exceeded_content: "Jūs esat sasniedzis ChatGPT izsaukumu limitu. Lūdzu, mēģiniet vēlāk.",
+        chat_gpt_limit_exceeded_content:
+            "Jūs esat sasniedzis ChatGPT izsaukumu limitu. Lūdzu, mēģiniet vēlāk.",
         chat_gpt_waiting_message: "Sarunājas ar ChatGPT...",
         chat_gpt_error_title: "ChatGPT Kļūda",
         chat_gpt_error_content: "Radās kļūda, mēģinot pieslēgties ChatGPT. Lūdzu, mēģiniet vēlāk.",

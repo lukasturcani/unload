@@ -93,10 +93,12 @@ pub const PT: Translation<&'static str> = Translation {
         create_new_board_button_label: "Criar Novo Quadro",
         or_label: "ou",
         chat_gpt_limit_exceeded_title: "Limite do ChatGPT Excedido",
-        chat_gpt_limit_exceeded_content: "Você atingiu o limite de chamadas do ChatGPT. Por favor, tente novamente mais tarde.",
+        chat_gpt_limit_exceeded_content:
+            "Você atingiu o limite de chamadas do ChatGPT. Por favor, tente novamente mais tarde.",
         chat_gpt_waiting_message: "Falando com ChatGPT...",
         chat_gpt_error_title: "Erro no ChatGPT",
-        chat_gpt_error_content: "Ocorreu um erro ao tentar conectar ao ChatGPT. Por favor, tente novamente mais tarde.",
+        chat_gpt_error_content:
+            "Ocorreu um erro ao tentar conectar ao ChatGPT. Por favor, tente novamente mais tarde.",
         chat_gpt_prompt_input_title: "Prompt do ChatGPT",
         chat_gpt_daily_attempts_left: "tentativas diárias restantes",
         chat_gpt_prompt_input_content: "ou escolha uma das sugestões abaixo:",

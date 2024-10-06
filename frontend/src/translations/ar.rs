@@ -93,10 +93,12 @@ pub const AR: Translation<&'static str> = Translation {
         create_new_board_button_label: "إنشاء لوحة جديدة",
         or_label: "أو",
         chat_gpt_limit_exceeded_title: "تم تجاوز حد ChatGPT",
-        chat_gpt_limit_exceeded_content: "لقد وصلت إلى الحد الأقصى من مكالمات ChatGPT. يرجى المحاولة مرة أخرى لاحق\u{64b}ا.",
+        chat_gpt_limit_exceeded_content:
+            "لقد وصلت إلى الحد الأقصى من مكالمات ChatGPT. يرجى المحاولة مرة أخرى لاحق\u{64b}ا.",
         chat_gpt_waiting_message: "التحدث إلى ChatGPT...",
         chat_gpt_error_title: "خطأ ChatGPT",
-        chat_gpt_error_content: "حدث خطأ أثناء محاولة الاتصال بـ ChatGPT. يرجى المحاولة مرة أخرى لاحق\u{64b}ا.",
+        chat_gpt_error_content:
+            "حدث خطأ أثناء محاولة الاتصال بـ ChatGPT. يرجى المحاولة مرة أخرى لاحق\u{64b}ا.",
         chat_gpt_prompt_input_title: "موجه ChatGPT",
         chat_gpt_daily_attempts_left: "المحاولات اليومية المتبقية",
         chat_gpt_prompt_input_content: "أو اختر واحد\u{64b}ا من الاقتراحات أدناه:",

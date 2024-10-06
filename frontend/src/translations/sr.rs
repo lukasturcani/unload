@@ -93,10 +93,12 @@ pub const SR: Translation<&'static str> = Translation {
         create_new_board_button_label: "Kreirajte Novu Tablu",
         or_label: "ili",
         chat_gpt_limit_exceeded_title: "Prekoračen Limit ChatGPT",
-        chat_gpt_limit_exceeded_content: "Dostigli ste limit korišćenja ChatGPT-a. Molimo pokušajte kasnije.",
+        chat_gpt_limit_exceeded_content:
+            "Dostigli ste limit korišćenja ChatGPT-a. Molimo pokušajte kasnije.",
         chat_gpt_waiting_message: "Razgovor sa ChatGPT...",
         chat_gpt_error_title: "Greška ChatGPT",
-        chat_gpt_error_content: "Došlo je do greške prilikom povezivanja sa ChatGPT-om. Molimo pokušajte kasnije.",
+        chat_gpt_error_content:
+            "Došlo je do greške prilikom povezivanja sa ChatGPT-om. Molimo pokušajte kasnije.",
         chat_gpt_prompt_input_title: "ChatGPT Unos",
         chat_gpt_daily_attempts_left: "preostalih pokušaja dnevno",
         chat_gpt_prompt_input_content: "ili izaberite neki od predloga ispod:",

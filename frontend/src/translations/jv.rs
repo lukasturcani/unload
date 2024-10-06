@@ -93,10 +93,12 @@ pub const JV: Translation<&'static str> = Translation {
         create_new_board_button_label: "Gawe Papan Anyar",
         or_label: "utawa",
         chat_gpt_limit_exceeded_title: "Watesan ChatGPT Kasuwun",
-        chat_gpt_limit_exceeded_content: "Sampeyan wis tekan watesan panggilan ChatGPT. Monggo nyoba maneh mengko.",
+        chat_gpt_limit_exceeded_content:
+            "Sampeyan wis tekan watesan panggilan ChatGPT. Monggo nyoba maneh mengko.",
         chat_gpt_waiting_message: "Ngomong karo ChatGPT...",
         chat_gpt_error_title: "Kesalahan ChatGPT",
-        chat_gpt_error_content: "Terjadi kesalahan nalika nyoba nyambung karo Chat GPT. Monggo nyoba maneh mengko.",
+        chat_gpt_error_content:
+            "Terjadi kesalahan nalika nyoba nyambung karo Chat GPT. Monggo nyoba maneh mengko.",
         chat_gpt_prompt_input_title: "ChatGPT Pitakon",
         chat_gpt_daily_attempts_left: "upaya saben dina sing kasedhiya",
         chat_gpt_prompt_input_content: "utawa pilih salah sawijining saran ing ngisor iki:",

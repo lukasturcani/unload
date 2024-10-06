@@ -93,7 +93,8 @@ pub const KK: Translation<&'static str> = Translation {
         create_new_board_button_label: "Жаңа тақта жасау",
         or_label: "немесе",
         chat_gpt_limit_exceeded_title: "ChatGPT шегі асты",
-        chat_gpt_limit_exceeded_content: "ChatGPT қоңырауларының шегіне жеттіңіз. Кейінірек қайталаңыз.",
+        chat_gpt_limit_exceeded_content:
+            "ChatGPT қоңырауларының шегіне жеттіңіз. Кейінірек қайталаңыз.",
         chat_gpt_waiting_message: "ChatGPT-мен сөйлесіп жатыр...",
         chat_gpt_error_title: "ChatGPT қатесі",
         chat_gpt_error_content: "ChatGPT-ге қосылу кезінде қате пайда болды. Кейінірек қайталаңыз.",

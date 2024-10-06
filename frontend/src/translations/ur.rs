@@ -93,10 +93,12 @@ pub const UR: Translation<&'static str> = Translation {
         create_new_board_button_label: "نیا بورڈ بنائیں",
         or_label: "یا",
         chat_gpt_limit_exceeded_title: "چیٹ جی پی ٹی حد سے تجاوز",
-        chat_gpt_limit_exceeded_content: "آپ نے چیٹ جی پی ٹی کالز کی حد تک پہنچ گئے ہیں۔ براہ کرم بعد میں دوبارہ کوشش کریں۔",
+        chat_gpt_limit_exceeded_content:
+            "آپ نے چیٹ جی پی ٹی کالز کی حد تک پہنچ گئے ہیں۔ براہ کرم بعد میں دوبارہ کوشش کریں۔",
         chat_gpt_waiting_message: "چیٹ جی پی ٹی سے بات کی جا رہی ہے...",
         chat_gpt_error_title: "چیٹ جی پی ٹی خرابی",
-        chat_gpt_error_content: "چیٹ جی پی ٹی سے کنکشن میں خرابی پیش آئی۔ براہ کرم بعد میں کوشش کریں۔",
+        chat_gpt_error_content:
+            "چیٹ جی پی ٹی سے کنکشن میں خرابی پیش آئی۔ براہ کرم بعد میں کوشش کریں۔",
         chat_gpt_prompt_input_title: "چیٹ جی پی ٹی پرامپٹ",
         chat_gpt_daily_attempts_left: "روزانہ کی کوششیں باقی ہیں",
         chat_gpt_prompt_input_content: "یا نیچے دی گئی تجاویز میں سے ایک منتخب کریں:",
