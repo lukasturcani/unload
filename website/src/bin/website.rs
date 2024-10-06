@@ -92,6 +92,8 @@ fn App(language: LanguageIdentifier) -> Element {
     });
     use_init_i18n(language.clone(), language, translations::languages);
     let i18 = use_i18();
+    let language_code = i18.selected_language.read();
+    let language_code = language_code.language.as_str();
     rsx! {
         div {
             class: "font-mono min-h-screen min-w-screen text-text-primary flex flex-col pt-28 sm:pt-32",
@@ -113,14 +115,14 @@ fn App(language: LanguageIdentifier) -> Element {
                     div {
                         class: "flex flex-col sm:flex-row gap-4 w-full sm:w-auto",
                         ButtonLink {
-                            href: translate!(i18, "new_board_link"),
+                            href: format!("/{}/new-board", language_code),
                             size: buttons::Size::Large,
                             color: buttons::Color::Primary,
                             {translate!(i18, "new_board")}
 
                         }
                         ButtonLink {
-                            href: translate!(i18, "app_link"),
+                            href: format!("/{}/app", language_code),
                             size: buttons::Size::Large,
                             color: buttons::Color::Secondary,
                             {translate!(i18, "go_to_app")}

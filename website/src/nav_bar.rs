@@ -145,9 +145,11 @@ fn ToggleSectionListButton() -> Element {
 #[component]
 fn Logo() -> Element {
     let i18 = use_i18();
+    let language_code = i18.selected_language.read();
+    let language_code = language_code.language.as_str();
     rsx! {
         a {
-            href: translate!(i18, "home_link"),
+            href: format!("/{}", language_code),
             class: "flex items-center space-x-3 rtl:space-x-reverse",
             img {
                 src: "https://flowbite.com/docs/images/logo.svg",
@@ -165,9 +167,11 @@ fn Logo() -> Element {
 #[component]
 fn AppLink() -> Element {
     let i18 = use_i18();
+    let language_code = i18.selected_language.read();
+    let language_code = language_code.language.as_str();
     rsx! {
         ButtonLink {
-            href: translate!(i18, "app_link"),
+            href: format!("/{}/app", language_code),
             color: buttons::Color::Primary,
             {translate!(i18, "go_to_app")}
         }
