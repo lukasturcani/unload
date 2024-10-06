@@ -398,7 +398,7 @@ fn LanguagesSheet(panel: Signal<Panel>) -> Element {
             body: rsx! {
                 section {
                     aria_label: translate!(i18, "languages_section_title"),
-                    class: "flex flex-col gap-5 h-5/6 {style}",
+                    class: "flex flex-col gap-5 h-5/6 overflow-y-auto {style}",
                     LanguageList { panel }
                 }
             }
