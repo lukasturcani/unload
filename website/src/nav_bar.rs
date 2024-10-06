@@ -67,7 +67,13 @@ fn LanguageList() -> Element {
                 class: "h-96 py-2 overflow-y-auto text-sm text-text-primary",
                 aria_labelledby: "languageDropdownButton",
                 for language in translations::translations() {
-                    li { LanguageLink { href: format!("/{}", language.id), label: language.name } }
+                    li {
+                        LanguageLink {
+                            key: "{language.id}",
+                            href: format!("/{}", language.id),
+                            label: language.name,
+                        }
+                    }
                 }
             }
         }
