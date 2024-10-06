@@ -429,7 +429,7 @@ fn LanguageList(panel: Signal<Panel>) -> Element {
                 class: "flex flex-col",
                 for translation in translations()
                 {
-                    LanguageListItem { translation, panel }
+                    LanguageListItem { key: "{translation.id}", translation, panel }
                 }
             }
         }
