@@ -68,8 +68,8 @@ fn LanguageList() -> Element {
                 aria_labelledby: "languageDropdownButton",
                 for language in translations::translations() {
                     li {
+                        key: "{language.id}",
                         LanguageLink {
-                            key: "{language.id}",
                             href: format!("/{}", language.id),
                             label: language.name,
                         }
