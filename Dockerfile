@@ -11,7 +11,8 @@ RUN \
   curl -LJO https://github.com/aptible/supercronic/releases/download/v"${SUPERCRONIC_VERSION}"/supercronic-linux-amd64 && \
   chmod 755 supercronic-linux-amd64 && \
   mv supercronic-linux-amd64 /usr/local/bin/supercronic
-RUN cargo install dioxus-cli
+ENV DIOXUS_CLI_VERSION=0.5.7
+RUN cargo install dioxus-cli --version "${DIOXUS_CLI_VERSION}"
 WORKDIR /usr/src/unload
 COPY Cargo.lock Cargo.toml ./
 COPY tools ./tools/
