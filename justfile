@@ -167,7 +167,7 @@ check:
   test $? = 0
 
   echo
-  (set -x; cargo check --all-features)
+  (set -x; cargo check --all-features --all-targets)
   test $? = 0
 
   echo
