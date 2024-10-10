@@ -134,8 +134,8 @@ create-bench-dbs database-dir:
   --num-tags-per-task 5
 
 # run benchmarks
-bench database:
-  BENCH_DATABASE_URL={{database}} cargo bench
+bench $BENCH_DATABASE_URL:
+  cd ./backend && cargo bench
 
 # run cargo test
 test:
