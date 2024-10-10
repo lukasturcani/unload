@@ -1,3 +1,4 @@
+use aes_gcm::{Aes256Gcm, KeyInit};
 use openai_api_rs::v1::api::OpenAIClient;
 use std::sync::Arc;
 
@@ -13,6 +14,9 @@ fn bench_show_tasks(c: &mut Criterion) {
     let runtime = Runtime::new().unwrap();
     let pool = runtime.block_on(SqlitePool::connect(&bench_db)).unwrap();
     let chat_gpt_client = Arc::new(OpenAIClient::new("".into()));
+    let cipher = Arc::new(Aes256Gcm::new(aes_gcm::Key::<Aes256Gcm>::from_slice(
+        &[0; 32],
+    )));
     c.bench_function("show_tasks", |b| {
         b.to_async(&runtime).iter(|| {
             show_tasks(
@@ -20,6 +24,7 @@ fn bench_show_tasks(c: &mut Criterion) {
                     pool: pool.clone(),
                     chat_gpt_client: Arc::clone(&chat_gpt_client),
                     chat_gpt_limit: 100,
+                    cipher: Arc::clone(&cipher),
                 }),
                 Path("board-35".into()),
             )

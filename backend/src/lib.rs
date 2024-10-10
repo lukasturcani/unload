@@ -1,3 +1,4 @@
+use aes_gcm::Aes256Gcm;
 use axum::extract::Host;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -79,6 +80,7 @@ pub struct AppState {
     pub pool: SqlitePool,
     pub chat_gpt_client: Arc<OpenAIClient>,
     pub chat_gpt_limit: u8,
+    pub cipher: Arc<Aes256Gcm>,
 }
 
 #[derive(Debug)]

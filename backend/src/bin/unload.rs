@@ -1,3 +1,4 @@
+use aes_gcm::{Aes256Gcm, Key, KeyInit};
 use axum::{
     extract::{self, Host, State},
     http::{Request, StatusCode},
@@ -70,6 +71,9 @@ struct Config {
 
     #[config(env = "UNLOAD_CHAT_GPT_LIMIT", default = 20)]
     chat_gpt_limit: u8,
+
+    #[config(env = "UNLOAD_ENCRYPTION_KEY")]
+    encryption_key: String,
 }
 
 fn website_router(serve_dir: impl AsRef<Path>) -> Router<AppState> {
@@ -297,12 +301,15 @@ async fn delegate_request(
 async fn main() -> Result<()> {
     let config = Config::builder().env().load()?;
     init_tracing(&config.otlp_endpoint, config.environment, config.log)?;
+    let encryption_key = Key::<Aes256Gcm>::from_slice(config.encryption_key.as_bytes());
+    let cipher = Arc::new(Aes256Gcm::new(encryption_key));
     let pool = SqlitePool::connect(&config.database_url).await?;
     let chat_gpt_client = Arc::new(OpenAIClient::new(config.openai_api_key));
     let state = AppState {
         pool: pool.clone(),
         chat_gpt_client,
         chat_gpt_limit: config.chat_gpt_limit,
+        cipher,
     };
     sqlx::migrate!("./migrations")
         .run(&pool)
@@ -346,10 +353,14 @@ mod tests {
         let pool = SqlitePool::connect(&std::env::var("TEST_DATABASE_URL").unwrap())
             .await
             .unwrap();
+        let cipher = Arc::new(Aes256Gcm::new(aes_gcm::Key::<Aes256Gcm>::from_slice(
+            &[0; 32],
+        )));
         let state = AppState {
             pool: pool.clone(),
             chat_gpt_client: Arc::new(OpenAIClient::new("test".to_string())),
             chat_gpt_limit: 20,
+            cipher,
         };
         let app = app_router(PathBuf::from("does_not_matter")).with_state(state);
         let server = TestServer::new(app).unwrap();

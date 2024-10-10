@@ -1,3 +1,4 @@
+use aes_gcm::{Aes256Gcm, KeyInit};
 use axum::{
     extract::{Path, State},
     Json,
@@ -43,6 +44,9 @@ fn bench_create_task(c: &mut Criterion) {
         .into_iter()
         .map(|row| row.get("id"))
         .collect::<Vec<TagId>>();
+    let cipher = Arc::new(Aes256Gcm::new(aes_gcm::Key::<Aes256Gcm>::from_slice(
+        &[0; 32],
+    )));
     c.bench_function("create_task", |b| {
         b.to_async(&runtime).iter(|| {
             create_task(
@@ -50,6 +54,7 @@ fn bench_create_task(c: &mut Criterion) {
                     pool: pool.clone(),
                     chat_gpt_client: Arc::clone(&chat_gpt_client),
                     chat_gpt_limit: 100,
+                    cipher: Arc::clone(&cipher),
                 }),
                 Path(board.clone()),
                 Json(NewTaskData {
