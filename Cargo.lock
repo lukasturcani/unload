@@ -6661,6 +6661,7 @@ dependencies = [
  "serde_json",
  "shared_models",
  "sqlx",
+ "tempfile",
  "tokio",
  "tower 0.4.13",
  "tower-http",

@@ -35,7 +35,12 @@ serde_json = "1.0.122"
 [dev-dependencies]
 axum-test = "14.0.0"
 criterion = { version = "0.5.1", features = ["async_tokio"] }
+tempfile = "3"
 
 [[bench]]
 name = "show_tasks"
+harness = false
+
+[[bench]]
+name = "create_task"
 harness = false
