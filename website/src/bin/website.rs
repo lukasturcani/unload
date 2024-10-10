@@ -23,11 +23,11 @@ use dioxus_logger::tracing::Level;
 #[cfg(not(feature = "prebuild"))]
 use dioxus_web::Config;
 
-use website::buttons;
 use website::cards;
 use website::nav_bar;
 use website::toggles;
 use website::translations;
+use website::{buttons, cards::ImageCard};
 
 fn main() -> Result<()> {
     #[cfg(feature = "prebuild")]
@@ -165,16 +165,22 @@ fn App(language: LanguageIdentifier) -> Element {
                         }
                     }
                 }
-                h2 {
-                    id: "features",
-                    {translate!(i18, "features_section_label")}
+                section {
+                    h2 {
+                        id: "features",
+                        class: "mb-4 text-4xl font-extrabold text-text-primary",
+                        {translate!(i18, "features_section_label")}
+                    }
+                    ImageCard {}
                 }
                 h2 {
                     id: "pricing",
+                    class: "my-4 text-4xl font-extrabold text-text-primary",
                     {translate!(i18, "pricing_section_label")}
                 }
                 h2 {
                     id: "contact",
+                    class: "my-4 text-4xl font-extrabold text-text-primary",
                     {translate!(i18, "contact_section_label")}
                 }
             }
