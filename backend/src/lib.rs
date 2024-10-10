@@ -26,6 +26,7 @@ use shared_models::{BoardName, Color, TaskEntry, TaskId, TaskStatus, UserData, U
 use sqlx::{QueryBuilder, Row, SqlitePool};
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::sync::Mutex;
 use tokio::try_join;
 use tracing::debug_span;
 use tracing::error;
@@ -81,6 +82,7 @@ pub struct AppState {
     pub chat_gpt_client: Arc<OpenAIClient>,
     pub chat_gpt_limit: u8,
     pub cipher: Arc<Aes256Gcm>,
+    pub nonce_counter: Arc<Mutex<u128>>,
 }
 
 #[derive(Debug)]
@@ -500,7 +502,12 @@ pub async fn show_tasks(
 }
 
 pub async fn create_task(
-    State(AppState { pool, .. }): State<AppState>,
+    State(AppState {
+        pool,
+        cipher,
+        nonce_counter,
+        ..
+    }): State<AppState>,
     Path(board_name): Path<BoardName>,
     Json(mut task_data): Json<NewTaskData>,
 ) -> Result<Json<TaskId>> {
