@@ -171,7 +171,7 @@ check:
   test $? = 0
 
   echo
-  (set -x; cargo clippy --tests -- -D warnings)
+  (set -x; cargo clippy --all-features --all-targets -- -D warnings)
   test $? = 0
 
   echo
