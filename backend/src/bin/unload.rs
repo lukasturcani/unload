@@ -298,7 +298,11 @@ async fn main() -> Result<()> {
     let config = Config::builder().env().load()?;
     init_tracing(&config.otlp_endpoint, config.environment, config.log)?;
     let pool = SqlitePool::connect(&config.database_url).await?;
-    let chat_gpt_client = Arc::new(OpenAIClient::new(config.openai_api_key));
+    let client = OpenAIClient::builder()
+        .with_api_key(config.openai_api_key)
+        .build()
+        .expect("failed to create OpenAI client");
+    let chat_gpt_client = Arc::new(client);
     let state = AppState {
         pool: pool.clone(),
         chat_gpt_client,
@@ -348,7 +352,12 @@ mod tests {
             .unwrap();
         let state = AppState {
             pool: pool.clone(),
-            chat_gpt_client: Arc::new(OpenAIClient::new("test".to_string())),
+            chat_gpt_client: Arc::new(
+                OpenAIClient::builder()
+                    .with_api_key("test".to_string())
+                    .build()
+                    .expect("failed to create OpenAI client"),
+            ),
             chat_gpt_limit: 20,
         };
         let app = app_router(PathBuf::from("does_not_matter")).with_state(state);

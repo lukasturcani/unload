@@ -1,4 +1,4 @@
-FROM rust:1.80.0 AS builder
+FROM rust:1.82.0 AS builder
 RUN apt-get update && apt-get install -y npm fd-find
 RUN rustup target add wasm32-unknown-unknown
 ENV UPX_VERSION=4.2.4

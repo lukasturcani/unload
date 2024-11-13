@@ -28,7 +28,10 @@ struct BatchFileLine {
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
-    let client = OpenAIClient::new(cli.openai_api_key);
+    let client = OpenAIClient::builder()
+        .with_api_key(cli.openai_api_key)
+        .build()
+        .expect("failed to create OpenAI client");
     let english =
         serde_json::to_string(&translations::Translation::from(SupportedLanguage::English))
             .unwrap();

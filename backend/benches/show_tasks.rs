@@ -12,13 +12,14 @@ fn bench_show_tasks(c: &mut Criterion) {
     let bench_db = std::env::var("BENCH_DATABASE_URL").unwrap();
     let runtime = Runtime::new().unwrap();
     let pool = runtime.block_on(SqlitePool::connect(&bench_db)).unwrap();
-    let chat_gpt_client = Arc::new(OpenAIClient::new("".into()));
+    let chat_gpt_client = Arc::new(OpenAIClient::builder().build().unwrap());
     c.bench_function("show_tasks", |b| {
         b.to_async(&runtime).iter(|| {
             show_tasks(
                 State(AppState {
                     pool: pool.clone(),
                     chat_gpt_client: Arc::clone(&chat_gpt_client),
+                    chat_gpt_limit: 200,
                 }),
                 Path("board-35".into()),
             )
