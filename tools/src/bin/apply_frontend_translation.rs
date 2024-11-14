@@ -14,7 +14,10 @@ struct Cli {
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
-    let client = OpenAIClient::new(cli.openai_api_key);
+    let client = OpenAIClient::builder()
+        .with_api_key(cli.openai_api_key)
+        .build()
+        .expect("failed to create OpenAI client");
     let batch = client.retrieve_batch(cli.batch_id).await.unwrap();
     let file_id = batch.output_file_id.unwrap();
     let content = client.retrieve_file_content(file_id).await.unwrap();
